@@ -1,0 +1,136 @@
+//! Tests for the point_of_sale back-office methods in `pos_methods`, `pos_session_methods` and `pos_order_methods`.
+use odoo_core::{ddl, orm::{self, AllowAll, Env}, store::{self, Store}, Domain, OdooError, Registry, Row, Value};
+use odoo_modules::{account, rules_for, stock, util::*};
+use odoo_sqlite::SqliteStore;
+use std::path::Path;
+
+fn setup(mods: &[&str]) -> (Registry, SqliteStore) {
+    let reg = Registry::load_dir(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../schema")), mods).unwrap();
+    let st = SqliteStore::open(":memory:").unwrap();
+    let plan = ddl::install_plan(&reg, st.dialect());
+    store::run(&st, |c| { for s in &plan { c.execute(s, &[])?; } Ok(()) }).unwrap();
+    (reg, st)
+}
+fn call(env: &Env, model: &str, method: &str, ids: &[i64], kw: Row) -> odoo_core::Result<Value> { orm::call(env, model, method, ids, &kw) }
+fn mk(env: &Env, model: &str, v: &[(&str, Value)]) -> i64 { orm::create(env, model, row(v)).unwrap_or_else(|e| panic!("create {model}: {e}")) }
+fn err_of<T: std::fmt::Debug>(c: &dyn odoo_core::store::Conn, f: impl FnOnce() -> odoo_core::Result<T>) -> String { match store::nested(c, f) { Ok(v) => panic!("expected an error, got {v:?}"), Err(e) => e.to_string() } }
+fn cmd6(ids: &[i64]) -> Value { Value::List(vec![Value::List(vec![6.into(), 0.into(), Value::List(ids.iter().map(|i| Value::Int(*i)).collect())])]) }
+fn rd(env: &Env, model: &str, id: i64, f: &str) -> Value { orm::read(env, model, &[id], &[f.to_string()]).unwrap().remove(0).remove(f).unwrap_or(Value::Null) }
+fn rid(v: &Value) -> Option<i64> { match v { Value::Int(i) => Some(*i), Value::List(l) => l.first().and_then(|x| x.as_i64()), _ => None } }
+
+struct Fx { cfg: i64, cash: i64, bank: i64, later: i64, journal: i64, pen: i64, partner: i64, tax: i64 }
+/// A configured register: a cash method on a cash journal with loss/profit accounts, a bank method and customer account.
+fn fixture(env: &Env) -> Fx {
+    let pt = stock::ensure_picking_type(env, "outgoing").unwrap();
+    let loss = account::ensure_account(env, "expense", "Cash Loss").unwrap(); let profit = account::ensure_account(env, "income_other", "Cash Profit").unwrap(); let cash_acc = account::ensure_account(env, "asset_cash", "Cash").unwrap();
+    let journal = mk(env, "account.journal", &[("name", "Cash".into()), ("code", "CSH1".into()), ("type", "cash".into()), ("loss_account_id", loss.into()), ("profit_account_id", profit.into()), ("default_account_id", cash_acc.into())]);
+    let bank_j = account::ensure_journal(env, "bank", "BNK1", "Bank").unwrap();
+    let cash = mk(env, "pos.payment.method", &[("name", "Cash".into()), ("journal_id", journal.into())]);
+    let bank = mk(env, "pos.payment.method", &[("name", "Card".into()), ("journal_id", bank_j.into())]);
+    let later = mk(env, "pos.payment.method", &[("name", "Customer Account".into()), ("split_transactions", true.into())]);
+    let sale_j = account::ensure_journal(env, "sale", "INV", "Customer Invoices").unwrap();
+    let cfg = mk(env, "pos.config", &[("name", "Shop".into()), ("picking_type_id", pt.into()), ("payment_method_ids", cmd6(&[cash, bank, later])), ("invoice_journal_id", sale_j.into()), ("journal_id", sale_j.into())]);
+    let tax = mk(env, "account.tax", &[("name", "VAT 10%".into()), ("amount", 10.0.into()), ("amount_type", "percent".into()), ("type_tax_use", "sale".into())]);
+    let pen = mk(env, "product.product", &[("name", "Pen".into()), ("list_price", 10.0.into()), ("type", "consu".into()), ("available_in_pos", true.into())]);
+    let partner = mk(env, "res.partner", &[("name", "Azure".into())]);
+    Fx { cfg, cash, bank, later, journal, pen, partner, tax }
+}
+fn new_env<'a>(reg: &'a Registry, c: &'a dyn odoo_core::store::Conn, rules: &'a odoo_core::Rules) -> Env<'a> { let env = Env::new(reg, c, rules, &AllowAll, 1); odoo_modules::bootstrap::run(&env).unwrap(); env }
+
+#[test]
+fn config_computes_constraints_and_guards() {
+    let (reg, st) = setup(&["point_of_sale", "account"]); let rules = rules_for(&reg);
+    store::run(&st, |c| {
+        let env = new_env(&reg, c, &rules); let f = fixture(&env);
+        // cash_control follows the payment methods; currency comes from the company; warehouse from the picking type / company
+        assert_eq!(rd(&env, "pos.config", f.cfg, "cash_control"), Value::Bool(true));
+        assert!(rid(&rd(&env, "pos.config", f.cfg, "currency_id")).is_some());
+        let other = mk(&env, "pos.config", &[("name", "Online".into()), ("picking_type_id", rec(&env, "pos.config", f.cfg)?["picking_type_id"].clone()), ("payment_method_ids", cmd6(&[f.bank]))]);
+        assert_eq!(rd(&env, "pos.config", other, "cash_control"), Value::Bool(false));
+        assert_eq!(rd(&env, "pos.config", f.cfg, "has_active_session"), Value::Bool(false));
+        assert_eq!(rd(&env, "pos.config", f.cfg, "current_session_state"), Value::Bool(false));
+        assert_eq!(rd(&env, "pos.config", f.cfg, "pos_session_duration"), Value::Text("0".into()));
+        // no chart yet -> cannot start; then an accounting entry exists -> can start
+        assert!(err_of(c, || call(&env, "pos.config", "_check_before_creating_new_session", &[f.cfg], Row::new())).contains("No chart of account configured"));
+        assert_eq!(rd(&env, "pos.config", f.cfg, "company_has_template"), Value::Bool(false));
+        let m = mk(&env, "account.move", &[("move_type", "entry".into())]);
+        mk(&env, "account.move.line", &[("move_id", m.into()), ("account_id", account::ensure_account(&env, "asset_cash", "Cash")?.into()), ("debit", 1.0.into()), ("credit", 0.0.into())]);
+        mk(&env, "account.move.line", &[("move_id", m.into()), ("account_id", account::ensure_account(&env, "income", "Sales")?.into()), ("debit", 0.0.into()), ("credit", 1.0.into())]);
+        assert_eq!(rd(&env, "pos.config", f.cfg, "company_has_template"), Value::Bool(true));
+        call(&env, "pos.config", "_check_before_creating_new_session", &[f.cfg], Row::new())?;
+        // no payment method -> refused; no loss/profit account on a cash journal -> refused
+        let bare = mk(&env, "pos.config", &[("name", "Bare".into()), ("picking_type_id", rec(&env, "pos.config", f.cfg)?["picking_type_id"].clone())]);
+        assert!(err_of(c, || call(&env, "pos.config", "_check_payment_method_ids", &[bare], Row::new())).contains("at least one payment method"));
+        let j2 = mk(&env, "account.journal", &[("name", "Cash 2".into()), ("code", "CSH2".into()), ("type", "cash".into())]);
+        let pm2 = mk(&env, "pos.payment.method", &[("name", "Cash 2".into()), ("journal_id", j2.into())]);
+        orm::write(&env, "pos.config", &[bare], row(&[("payment_method_ids", cmd6(&[pm2]))]))?;
+        assert!(err_of(c, || call(&env, "pos.config", "_check_profit_loss_cash_journal", &[bare], Row::new())).contains("loss and profit account"));
+        // a cash method belongs to one register only
+        assert!(err_of(c, || orm::write(&env, "pos.config", &[other], row(&[("payment_method_ids", cmd6(&[f.cash]))]))).contains("already used in another Point of Sale"));
+        // default pricelist must be available when pricelists are used
+        let pl = mk(&env, "product.pricelist", &[("name", "Retail".into())]);
+        assert!(err_of(c, || orm::write(&env, "pos.config", &[other], row(&[("use_pricelist", true.into()), ("pricelist_id", pl.into())]))).contains("default pricelist must be included"));
+        orm::write(&env, "pos.config", &[other], row(&[("use_pricelist", true.into()), ("available_pricelist_ids", cmd6(&[pl])), ("pricelist_id", pl.into())]))?;
+        assert_eq!(call(&env, "pos.config", "_get_available_pricelists", &[other], Row::new())?, Value::List(vec![Value::Int(pl)]));
+        // customer display needs an IoT box
+        assert!(err_of(c, || orm::write(&env, "pos.config", &[other], row(&[("customer_display_type", "proxy".into())]))).contains("iot box"));
+        // an emptied tip product with tips enabled has no default product here
+        assert!(err_of(c, || orm::write(&env, "pos.config", &[other], row(&[("iface_tipproduct", true.into()), ("tip_product_id", Value::Bool(false))]))).contains("default tip product is missing"));
+        // payment method lookup by type and helper actions
+        assert_eq!(call(&env, "pos.config", "_get_payment_method", &[f.cfg], row(&[("payment_type", "bank".into())]))?, Value::Int(f.bank));
+        assert_eq!(call(&env, "pos.config", "_get_payment_method", &[f.cfg], row(&[("payment_type", "pay_later".into())]))?, Value::Int(f.later));
+        let jx = call(&env, "pos.config", "_is_journal_exist", &[], row(&[("journal_code", "XYZ".into()), ("name", "Extra cash".into()), ("company_id", 1.into())]))?;
+        assert_eq!(call(&env, "pos.config", "_is_journal_exist", &[], row(&[("journal_code", "XYZ".into()), ("name", "Extra cash".into()), ("company_id", 1.into())]))?, jx);
+        // the register is frozen while a session is open
+        let s = mk(&env, "pos.session", &[("config_id", f.cfg.into())]);
+        assert_eq!(rd(&env, "pos.config", f.cfg, "has_active_session"), Value::Bool(true));
+        assert_eq!(rid(&rd(&env, "pos.config", f.cfg, "current_session_id")), Some(s));
+        assert_eq!(rd(&env, "pos.config", f.cfg, "current_session_state"), Value::Text("opening_control".into()));
+        assert_eq!(rd(&env, "pos.config", f.cfg, "pos_session_state"), Value::Text("opening_control".into()));
+        assert_eq!(rid(&rd(&env, "pos.config", f.cfg, "current_user_id")), Some(1));
+        let e = err_of(c, || orm::write(&env, "pos.config", &[f.cfg], row(&[("limit_categories", true.into())])));
+        assert!(e.contains("can't modify Limit Categories while a session is open") || e.contains("while a session is open"), "{e}");
+        orm::write(&env, "pos.config", &[f.cfg], row(&[("name", "Shop 1".into())]))?;   // free fields stay editable
+        // _open_session / open_existing_session_cb return the session form
+        let act = call(&env, "pos.config", "open_existing_session_cb", &[f.cfg], Row::new())?;
+        let Value::Map(a) = act else { panic!() }; assert_eq!(a["res_id"], Value::Int(s)); assert_eq!(a["res_model"], Value::Text("pos.session".into()));
+        Ok(())
+    }).unwrap();
+}
+
+#[test]
+fn payment_method_computes_and_guards() {
+    let (reg, st) = setup(&["point_of_sale", "account"]); let rules = rules_for(&reg);
+    store::run(&st, |c| {
+        let env = new_env(&reg, c, &rules); let f = fixture(&env);
+        // type and is_cash_count come from the journal
+        assert_eq!(rd(&env, "pos.payment.method", f.cash, "type"), Value::Text("cash".into()));
+        assert_eq!(rd(&env, "pos.payment.method", f.cash, "is_cash_count"), Value::Bool(true));
+        assert_eq!(rd(&env, "pos.payment.method", f.bank, "type"), Value::Text("bank".into()));
+        assert_eq!(rd(&env, "pos.payment.method", f.bank, "is_cash_count"), Value::Bool(false));
+        assert_eq!(rd(&env, "pos.payment.method", f.later, "type"), Value::Text("pay_later".into()));
+        // moving the method to the bank journal changes both
+        let bank_j = rec(&env, "pos.payment.method", f.bank)?["journal_id"].as_i64().unwrap();
+        orm::write(&env, "pos.payment.method", &[f.cash], row(&[("journal_id", bank_j.into())]))?;
+        assert_eq!(rd(&env, "pos.payment.method", f.cash, "type"), Value::Text("bank".into()));
+        assert_eq!(rd(&env, "pos.payment.method", f.cash, "is_cash_count"), Value::Bool(false));
+        orm::write(&env, "pos.payment.method", &[f.cash], row(&[("journal_id", f.journal.into())]))?;
+        assert_eq!(rd(&env, "pos.payment.method", f.cash, "is_cash_count"), Value::Bool(true));
+        // QR methods need a bank account on a bank journal and a QR format
+        let e = err_of(c, || orm::create(&env, "pos.payment.method", row(&[("name", "QR".into()), ("payment_method_type", "qr_code".into()), ("journal_id", bank_j.into())])));
+        assert!(e.contains("bank account must be defined"), "{e}");
+        // terminal methods drop the QR format and vice versa
+        let t = mk(&env, "pos.payment.method", &[("name", "Terminal".into()), ("payment_method_type", "terminal".into()), ("qr_code_method", "sepa".into())]);
+        assert_eq!(rd(&env, "pos.payment.method", t, "qr_code_method"), Value::Bool(false));
+        // open sessions freeze a method; only its sequence may change
+        orm::write(&env, "pos.payment.method", &[f.cash], row(&[("config_ids", cmd6(&[f.cfg]))]))?;
+        assert!(orm::read(&env, "pos.payment.method", &[f.cash], &["open_session_ids".into()]).is_ok());
+        let s = mk(&env, "pos.session", &[("config_id", f.cfg.into())]);
+        assert_eq!(call(&env, "pos.payment.method", "_is_write_forbidden", &[f.cash], row(&[("fields", Value::List(vec!["name".into()]))]))?, Value::Bool(true));
+        assert_eq!(call(&env, "pos.payment.method", "_is_write_forbidden", &[f.cash], row(&[("fields", Value::List(vec!["sequence".into()]))]))?, Value::Bool(false));
+        let e = err_of(c, || orm::write(&env, "pos.payment.method", &[f.cash], row(&[("name", "Till".into())])));
+        assert!(e.contains("close and validate the following open PoS Sessions") && e.contains(&text(&rec(&env, "pos.session", s)?, "name").unwrap()), "{e}");
+        orm::write(&env, "pos.payment.method", &[f.cash], row(&[("sequence", 5.into())]))?;
+        Ok(())
+    }).unwrap();
+}

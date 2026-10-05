@@ -10,6 +10,9 @@ pub mod pos;
 pub mod pos_hw;
 pub mod pos_kiosk;
 pub mod pos_loyalty;
+pub mod pos_methods;
+pub mod pos_order_methods;
+pub mod pos_session_methods;
 pub mod pos_post;
 pub mod pos_restaurant;
 pub mod pos_shop;
@@ -34,6 +37,7 @@ pub fn rules_for(reg: &Registry) -> Rules {
     if has("res.partner") { r = r.merge(base::partner_rules()); }
     if has("res.users") && has("ir.model.data") { r = r.merge(base::rules()); }
     if has("pos.payment.method") { r = r.merge(pos::rules()); }
+    if has("pos.session") && has("pos.order") { r = r.merge(pos_methods::rules()); }
     if has("hr.leave") { r = r.merge(hr::rules()); }
     if has("project.task") { r = r.merge(project::rules()); }
     if has("crm.lead") { r = r.merge(crm::rules()); }
