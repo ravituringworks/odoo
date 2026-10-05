@@ -63,7 +63,22 @@ pub fn catalog_json(available: &dyn Fn(&str) -> bool) -> J {
 }
 
 /// A trial database name: `trial-` + 16 hex chars. Anything else is rejected before it can touch the filesystem.
-pub fn valid_db(db: &str) -> bool { db.len() == 22 && db.starts_with("trial-") && db[6..].chars().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()) }
+pub fn valid_db(db: &str) -> bool { db.len() == 22 && db.starts_with("trial-") && db[6..].chars().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()) || valid_standard_name(db) }
+
+/// An administrator-created (non-trial) database name: 3-30 chars of `a-z 0-9 _`, starting with a letter, never `trial…` or a reserved word.
+pub fn valid_standard_name(db: &str) -> bool {
+    (3..=30).contains(&db.len()) && db.chars().next().map_or(false, |c| c.is_ascii_lowercase()) && db.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+        && !db.starts_with("trial") && !["main", "backups", "postgres", "template", "odoo"].contains(&db)
+}
+
+/// Modules that must not be installed when the given catalog apps are disallowed (a module still needed by an allowed app stays available).
+pub fn denied_modules(disallowed: &[String]) -> Vec<String> {
+    let module = |n: &str| CATALOG.iter().find(|c| c.name == n).and_then(|c| c.module);
+    let kept: Vec<&str> = CATALOG.iter().filter(|c| !disallowed.iter().any(|d| d == c.name)).filter_map(|c| c.module).collect();
+    let mut out: Vec<String> = vec![];
+    for d in disallowed { if let Some(m) = module(d) { if !kept.contains(&m) && !out.iter().any(|x| x == m) { out.push(m.to_string()); } } }
+    out
+}
 
 #[cfg(test)]
 mod tests {
@@ -85,6 +100,13 @@ mod tests {
     #[test] fn accounting_and_invoicing_share_a_module() { assert_eq!(modules_for(&["Invoicing".into(), "Accounting".into()]), vec!["contacts", "account"]); }
     #[test] fn db_names_cannot_escape_the_trial_directory() {
         assert!(valid_db("trial-0123456789abcdef")); assert!(!valid_db("trial-../../etc/passwd")); assert!(!valid_db("../trial-0123456789abcdef")); assert!(!valid_db("trial-0123456789ABCDEF")); assert!(!valid_db("main")); assert!(!valid_db(""));
+        assert!(valid_db("acme_prod") && !valid_db("Acme") && !valid_db("../acme") && !valid_db("trial_x") && !valid_db("ab") && !valid_db("backups") && !valid_db("a/b") && !valid_db("9lives"));
+    }
+    #[test] fn disallowing_an_app_keeps_modules_other_apps_need() {
+        assert_eq!(denied_modules(&["CRM".into()]), vec!["crm"]);
+        assert!(denied_modules(&["Invoicing".into()]).is_empty(), "Accounting still needs the account module");
+        assert_eq!(denied_modules(&["Invoicing".into(), "Accounting".into()]), vec!["account"]);
+        assert!(denied_modules(&["Studio".into(), "nope".into()]).is_empty());
     }
     #[test] fn catalog_marks_enterprise_only_apps() {
         let c = catalog_json(&all); let find = |n: &str| c.as_array().unwrap().iter().find(|x| x["name"] == n).unwrap().clone();

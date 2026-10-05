@@ -2,6 +2,7 @@
 //! HTTP server (Next.js) and the Tauri shell, so both transports expose identical semantics.
 pub mod ai;
 pub mod i18n;
+pub mod admin;
 pub mod portal;
 pub mod security;
 pub mod email;
@@ -42,6 +43,8 @@ pub struct App {
     portal_sessions: Mutex<std::collections::HashMap<String, (String, std::time::Instant)>>, login_failures: Mutex<std::collections::HashMap<String, std::collections::VecDeque<std::time::Instant>>>,
     mailer: Mutex<Arc<dyn email::Mailer>>, send_log: Mutex<std::collections::VecDeque<std::time::Instant>>,
     trial_cfg: Option<trial::TrialConfig>, tenants: RwLock<std::collections::HashMap<String, Arc<App>>>, create_lock: Mutex<std::collections::VecDeque<std::time::Instant>>, is_trial: bool,
+    /// Modules this (tenant) database may not install, set by the operator per account (see `admin.rs`).
+    denied_modules: RwLock<Vec<String>>,
 }
 
 const MODULES_DDL: &str = "CREATE TABLE IF NOT EXISTS odoo_modules (name VARCHAR(128) PRIMARY KEY)";
@@ -92,7 +95,10 @@ impl App {
         let st = open_store(&cfg.backend, &cfg.url)?;
         store::run(st.as_ref(), |c| { c.execute(security::AUTH_DDL, &[])?; c.execute(MODULES_DDL, &[])?; c.execute(SETTINGS_DDL, &[])?; c.execute(TRIALS_DDL, &[])?; c.execute(portal::PORTAL_DDL, &[]).map(|_| ()) })?;
         // databases created before the portal existed lack these columns (ADD COLUMN failures are ignored)
-        store::apply_upgrade(st.as_ref(), &["ALTER TABLE odoo_trials ADD COLUMN company VARCHAR(100)".to_string(), "ALTER TABLE odoo_trials ADD COLUMN apps TEXT".to_string()])?;
+        store::apply_upgrade(st.as_ref(), &["ALTER TABLE odoo_trials ADD COLUMN company VARCHAR(100)".to_string(), "ALTER TABLE odoo_trials ADD COLUMN apps TEXT".to_string(),
+            // lifecycle (admin console): kind = trial | standard, status = active | archived; per-account disallowed apps (JSON list of catalog names)
+            "ALTER TABLE odoo_trials ADD COLUMN kind VARCHAR(10) DEFAULT 'trial'".to_string(), "ALTER TABLE odoo_trials ADD COLUMN status VARCHAR(10) DEFAULT 'active'".to_string(),
+            "ALTER TABLE odoo_portal_users ADD COLUMN disallowed TEXT".to_string()])?;
         // installed roots live in the database; the config list only bootstraps a fresh one
         let mut roots: Vec<String> = store::run(st.as_ref(), |c| Ok(c.query("SELECT name FROM odoo_modules ORDER BY name", &[])?.iter().filter_map(|r| r["name"].as_str().map(String::from)).collect()))?;
         let fresh_db = roots.is_empty();
@@ -117,7 +123,7 @@ impl App {
         let app = App { rt: RwLock::new(Arc::new(Runtime { reg, rules, catalog, roots })), install_lock: Mutex::new(()), sec, require_auth: cfg.require_auth, store: st, schema_dir: cfg.schema_dir.clone(), data_dir: cfg.data_dir.clone(), views_dir: cfg.views_dir.clone(), i18n: i18n::I18n::new(cfg.i18n_dir.clone()), seed: cfg.seed,
             portal_sessions: Mutex::new(Default::default()), login_failures: Mutex::new(Default::default()),
             mailer: Mutex::new(Arc::new(email::LiveMailer)), send_log: Mutex::new(Default::default()),
-            trial_cfg: cfg.trial.as_ref().map(|c| trial::TrialConfig { dir: c.dir.clone(), max_active: c.max_active, days: c.days }), tenants: RwLock::new(Default::default()), create_lock: Mutex::new(Default::default()), is_trial: cfg.is_trial };
+            trial_cfg: cfg.trial.as_ref().map(|c| trial::TrialConfig { dir: c.dir.clone(), max_active: c.max_active, days: c.days }), tenants: RwLock::new(Default::default()), create_lock: Mutex::new(Default::default()), is_trial: cfg.is_trial, denied_modules: RwLock::new(vec![]) };
         app.purge_expired_trials();
         Ok(app)
     }
@@ -296,9 +302,11 @@ impl App {
     fn tenant(&self, db: &str) -> Result<Arc<App>> {
         if let Some(t) = self.tenants.read().unwrap().get(db) { return Ok(t.clone()); }
         let path = self.trial_path(db)?;
-        if !path.exists() { return Err(OdooError::User("This trial database does not exist (it may have expired).".into())); }
-        let app = Arc::new(self.open_tenant(&path, vec!["contacts".into()])?);
-        Ok(self.tenants.write().unwrap().entry(db.to_string()).or_insert(app).clone())
+        if !path.exists() { return Err(OdooError::User("This database does not exist (a trial may have expired).".into())); }
+        if self.db_status(db)?.as_deref() == Some("archived") { return Err(OdooError::User("This database is archived. Ask an administrator to restore it.".into())); }
+        let app = self.open_tenant(&path, vec!["contacts".into()])?;
+        *app.denied_modules.write().unwrap() = self.denied_for_db(db);
+        Ok(self.tenants.write().unwrap().entry(db.to_string()).or_insert(Arc::new(app)).clone())
     }
 
     fn open_tenant(&self, path: &std::path::Path, modules: Vec<String>) -> Result<App> {
@@ -323,23 +331,32 @@ impl App {
     }
 
     /// Provision one isolated trial database for `sg` (limits enforced here): returns (db name, administrator session token).
-    pub(crate) fn provision_trial(&self, sg: &trial::Signup) -> Result<(String, String)> {
+    pub(crate) fn provision_trial(&self, sg: &trial::Signup) -> Result<(String, String)> { self.provision_db(sg, "trial", None) }
+
+    /// Provision a database of `kind` ("trial": expiring, capacity and rate limited; "standard": created by an administrator, permanent).
+    pub(crate) fn provision_db(&self, sg: &trial::Signup, kind: &str, name: Option<&str>) -> Result<(String, String)> {
         let cfg = self.trial_cfg.as_ref().ok_or_else(|| OdooError::User("Free trials are not enabled on this server.".into()))?;
+        let denied = self.account_disallowed(&sg.email)?;
+        if let Some(app) = sg.apps.iter().find(|a| denied.contains(a)) { return Err(OdooError::User(format!("`{app}` is not allowed for this account."))); }
         // serialise provisioning (it is the expensive operation) and rate-limit it
         let mut recent = self.create_lock.lock().map_err(|_| OdooError::Storage("lock poisoned".into()))?;
         let now = std::time::Instant::now();
-        recent.retain(|t| now.duration_since(*t).as_secs() < 60);
-        if recent.len() >= 10 { return Err(OdooError::User("Too many signups right now. Please try again in a minute.".into())); }
-        let count = store::run(self.store.as_ref(), |c| Ok(c.query("SELECT COUNT(*) AS n FROM odoo_trials", &[])?.first().and_then(|r| r["n"].as_i64()).unwrap_or(0)))?;
-        if count as usize >= cfg.max_active { return Err(OdooError::User("Trial capacity has been reached. Please try again later.".into())); }
-        recent.push_back(now);
-        let db = format!("trial-{}", security::random_hex(8));
+        if kind == "trial" {
+            recent.retain(|t| now.duration_since(*t).as_secs() < 60);
+            if recent.len() >= 10 { return Err(OdooError::User("Too many signups right now. Please try again in a minute.".into())); }
+            let count = store::run(self.store.as_ref(), |c| Ok(c.query("SELECT COUNT(*) AS n FROM odoo_trials WHERE kind = 'trial' OR kind IS NULL", &[])?.first().and_then(|r| r["n"].as_i64()).unwrap_or(0)))?;
+            if count as usize >= cfg.max_active { return Err(OdooError::User("Trial capacity has been reached. Please try again later.".into())); }
+            recent.push_back(now);
+        }
+        let db = match name { Some(n) => n.to_string(), None => format!("trial-{}", security::random_hex(8)) };
         std::fs::create_dir_all(&cfg.dir).map_err(|e| OdooError::Storage(e.to_string()))?;
         let path = self.trial_path(&db)?;
-        store::run(self.store.as_ref(), |c| { let p: Vec<String> = (1..=5).map(|i| c.dialect().placeholder(i)).collect(); c.execute(&format!("INSERT INTO odoo_trials (db, email, created_at, company, apps) VALUES ({}, {}, {}, {}, {})", p[0], p[1], p[2], p[3], p[4]), &[Value::Text(db.clone()), Value::Text(sg.email.clone()), Value::Text(orm::now()), Value::Text(sg.company.clone()), Value::Text(json!(sg.apps).to_string())]).map(|_| ()) })?;
+        if path.exists() { return Err(OdooError::User(format!("A database named `{db}` already exists."))); }
+        store::run(self.store.as_ref(), |c| { let p: Vec<String> = (1..=6).map(|i| c.dialect().placeholder(i)).collect(); c.execute(&format!("INSERT INTO odoo_trials (db, email, created_at, company, apps, kind) VALUES ({}, {}, {}, {}, {}, {})", p[0], p[1], p[2], p[3], p[4], p[5]), &[Value::Text(db.clone()), Value::Text(sg.email.clone()), Value::Text(orm::now()), Value::Text(sg.company.clone()), Value::Text(json!(sg.apps).to_string()), Value::Text(kind.to_string())]).map(|_| ()) })
+            .map_err(|_| OdooError::User(format!("A database named `{db}` already exists.")))?;
         let built = self.open_tenant(&path, trial::modules_for(&sg.apps)).and_then(|app| { let token = provision(&app, sg)?; Ok((app, token)) });
         match built {
-            Ok((app, token)) => { self.tenants.write().unwrap().insert(db.clone(), Arc::new(app)); Ok((db, token)) }
+            Ok((app, token)) => { *app.denied_modules.write().unwrap() = self.denied_for_db(&db); self.tenants.write().unwrap().insert(db.clone(), Arc::new(app)); Ok((db, token)) }
             Err(e) => { self.delete_trial(&db); Err(e) }
         }
     }
@@ -365,7 +382,7 @@ impl App {
     pub fn purge_expired_trials(&self) {
         let Some(cfg) = &self.trial_cfg else { return };
         let cutoff = orm::shift_date(&orm::today(), -(cfg.days as i64));
-        let old: Vec<String> = store::run(self.store.as_ref(), |c| { let p = c.dialect().placeholder(1); Ok(c.query(&format!("SELECT db FROM odoo_trials WHERE created_at < {p}"), &[Value::Text(cutoff.clone())])?.iter().filter_map(|r| r["db"].as_str().map(String::from)).collect()) }).unwrap_or_default();
+        let old: Vec<String> = store::run(self.store.as_ref(), |c| { let p = c.dialect().placeholder(1); Ok(c.query(&format!("SELECT db FROM odoo_trials WHERE created_at < {p} AND (kind = 'trial' OR kind IS NULL) AND (status = 'active' OR status IS NULL)"), &[Value::Text(cutoff.clone())])?.iter().filter_map(|r| r["db"].as_str().map(String::from)).collect()) }).unwrap_or_default();
         for db in old { self.delete_trial(&db); }
     }
 
@@ -398,6 +415,7 @@ impl App {
         let reg = Registry::load_dir(&self.schema_dir, &rootrefs)?;
         let added: Vec<String> = reg.modules.iter().filter(|m| !old.reg.modules.contains(m)).cloned().collect();
         if added.is_empty() { return Ok(vec![]); }
+        { let denied = self.denied_modules.read().unwrap(); if let Some(m) = added.iter().find(|m| denied.contains(m)) { return Err(OdooError::User(format!("The `{m}` app is not allowed for this account."))); } }
         let plan = ddl::upgrade_plan(&old.reg, &reg, self.store.dialect());
         store::apply_upgrade(self.store.as_ref(), &plan)?;
         let rules = odoo_modules::rules_for(&reg);
@@ -440,6 +458,14 @@ impl App {
         if let Some(db) = req.db.take() { return self.tenant(&db)?.dispatch(req); }
         match req.method.as_str() { "trial_catalog" => return self.trial_catalog(), "trial_create" => return self.trial_create(&req.args.first().cloned().unwrap_or(J::Null), req.lang.as_deref().unwrap_or("en")), _ => {} }
         let rt = self.runtime();
+        // self-ordering (QR menu / mobile / kiosk) is public: each action validates the register's access token itself
+        if matches!(req.method.as_str(), "kiosk_menu" | "kiosk_order" | "kiosk_status") {
+            let cfg = req.args.first().and_then(|v| v.as_i64()).unwrap_or(0);
+            let kw = match odoo_core::Value::from_json(req.args.get(1).unwrap_or(&J::Null)) { odoo_core::Value::Map(m) => m, _ => Default::default() };
+            let mut out = J::Null;
+            store::run(self.store.as_ref(), |c| { let env = Env::new(&rt.reg, c, &rt.rules, self.sec.as_ref(), 1); out = orm::call(&env, "pos.config", &req.method, &[cfg], &kw)?.to_json(); Ok(()) })?;
+            return Ok(out);
+        }
         match req.method.as_str() {
             "login" => {
                 let (l, p) = (req.args.first().and_then(|a| a.as_str()).unwrap_or("").to_string(), req.args.get(1).and_then(|a| a.as_str()).unwrap_or("").to_string());
@@ -456,6 +482,7 @@ impl App {
         } else if req.token.is_some() { if let Some(u) = req.token.as_deref().and_then(|t| self.sec.uid_of(t)) { req.uid = u; } }
         match req.method.as_str() {
             "apps_list" => return self.apps_list(),
+            m if m.starts_with("admin_") => return self.admin_dispatch(&req),
             "companies" => return self.company_state(&rt, &req),
             "switch_company" => {
                 let ids: Vec<i64> = req.args.first().and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|v| v.as_i64()).collect()).unwrap_or_default();

@@ -43,4 +43,15 @@ assert.equal(findByCode([desk, lamp], '111')?.id, 1); assert.equal(findByCode([d
 assert.deepEqual(parseScale('2100123012345'), { code: '00123', kg: 1.234 }); assert.equal(parseScale('1234'), null)
 let q = enqueue([], { uuid: 'a', kwargs: {} }); q = enqueue(q, { uuid: 'a', kwargs: {} }); q = enqueue(q, { uuid: 'b', kwargs: {} })
 assert.equal(q.length, 2); assert.equal(dequeue(q, 'a').length, 1)
+// restaurant: kitchen deltas and draft round-trip
+import { cartFromDraft, hasUnsent, kitchenDelta, tipAmount } from './pos'
+const tc = { ...reduce(reduce(emptyCart(), { t: 'add', product: desk }), { t: 'add', product: lamp }), sent: {} as Record<string, number> }
+assert.ok(hasUnsent(tc)); assert.equal(kitchenDelta(tc).added.length, 2)
+const sentAll = { ...tc, sent: Object.fromEntries(tc.lines.map((l) => [l.key, l.qty])) }
+assert.ok(!hasUnsent(sentAll))
+const more = reduce(sentAll, { t: 'qty', key: sentAll.lines[0].key, qty: 3 }); assert.deepEqual(kitchenDelta(more).added, [{ name: 'Desk', qty: 2 }])
+const gone = reduce(sentAll, { t: 'remove', key: sentAll.lines[1].key }); assert.equal(kitchenDelta(gone).removed.length, 1); assert.ok(hasUnsent(gone))
+const back = cartFromDraft({ uuid: 'u', table_id: [4, 'T4'], customer_count: 2, takeaway: false, partner_id: [9, 'Ann'], last_order_preparation_change: JSON.stringify({ a: { qty: 1 } }), lines: [{ uuid: 'a', product_id: [1, 'Desk'], qty: 1, price_unit: 100, discount: 0 }, { uuid: 'x', product_id: 99, qty: 1, price_unit: 1, discount: 0 }] }, [desk, lamp], { id: 4, name: '4' })
+assert.equal(back.lines.length, 1); assert.equal(back.partner?.name, 'Ann'); assert.ok(!hasUnsent(back)); assert.equal(back.guests, 2)
+assert.equal(tipAmount(33.33, 15), 5)
 console.log('pos ok')

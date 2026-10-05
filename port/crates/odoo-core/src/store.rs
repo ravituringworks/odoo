@@ -25,6 +25,8 @@ pub trait Store: Send + Sync {
     fn dialect(&self) -> &dyn Dialect;
     /// Run `f` atomically; rolls back on Err.
     fn transaction(&self, f: &mut dyn FnMut(&dyn Conn) -> Result<()>) -> Result<()>;
+    /// Write a consistent copy of the whole database to `dest` (a file that must not exist yet). Backends that cannot say so.
+    fn snapshot(&self, _dest: &std::path::Path) -> Result<()> { Err(crate::error::OdooError::User("Backups are only supported for SQLite databases.".into())) }
 }
 
 /// Ergonomic generic wrapper over the object-safe `transaction`.

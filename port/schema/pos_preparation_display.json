@@ -1,0 +1,189 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Point of Sale",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/preparation_views.xml"
+ ],
+ "depends": [
+  "point_of_sale",
+  "pos_restaurant"
+ ],
+ "models": {
+  "pos_preparation_display.display": {
+   "abstract": false,
+   "description": "Preparation Display",
+   "extension": false,
+   "fields": {
+    "category_ids": {
+     "comodel": "pos.category",
+     "help": "Only these categories show on this display. Empty = everything.",
+     "string": "Product Categories",
+     "type": "Many2many"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "pos_config_ids": {
+     "comodel": "pos.config",
+     "string": "Point of Sales",
+     "type": "Many2many"
+    },
+    "ticket_count": {
+     "compute": "_compute_ticket_count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_ticket_count"
+    }
+   ],
+   "name": "pos_preparation_display.display",
+   "order": "name",
+   "transient": false
+  },
+  "pos_preparation_display.line": {
+   "abstract": false,
+   "description": "Preparation Line",
+   "extension": false,
+   "fields": {
+    "cancelled": {
+     "help": "The waiter removed this item after sending it.",
+     "type": "Boolean"
+    },
+    "category_ids": {
+     "comodel": "pos.category",
+     "string": "Categories",
+     "type": "Many2many"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "note": {
+     "type": "Char"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "type": "Many2one"
+    },
+    "qty": {
+     "default": 1.0,
+     "type": "Float"
+    },
+    "state": {
+     "default": "new",
+     "required": true,
+     "selection": [
+      [
+       "new",
+       "To prepare"
+      ],
+      [
+       "cooking",
+       "Preparing"
+      ],
+      [
+       "done",
+       "Ready"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "ticket_id": {
+     "comodel": "pos_preparation_display.ticket",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "pos_preparation_display.line",
+   "transient": false
+  },
+  "pos_preparation_display.ticket": {
+   "abstract": false,
+   "description": "Preparation Ticket",
+   "extension": false,
+   "fields": {
+    "config_id": {
+     "comodel": "pos.config",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "line_ids": {
+     "comodel": "pos_preparation_display.line",
+     "inverse_name": "ticket_id",
+     "string": "Lines",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "note": {
+     "type": "Char"
+    },
+    "order_id": {
+     "comodel": "pos.order",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "state": {
+     "default": "new",
+     "required": true,
+     "selection": [
+      [
+       "new",
+       "To prepare"
+      ],
+      [
+       "cooking",
+       "Preparing"
+      ],
+      [
+       "done",
+       "Ready"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "table_id": {
+     "comodel": "restaurant.table",
+     "type": "Many2one"
+    },
+    "takeaway": {
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "pos_preparation_display.ticket",
+   "order": "id",
+   "transient": false
+  }
+ },
+ "module": "pos_preparation_display",
+ "path": "/Volumes/fast01/source/git-oss/odoo/port/addons/pos_preparation_display",
+ "stats": {
+  "fields": 20,
+  "methods": 1,
+  "models": 3,
+  "py_lines": 49
+ },
+ "summary": "Kitchen / bar display: tickets sent from the POS, advanced by the cooks",
+ "title": "POS Preparation Display",
+ "version": "1.0"
+}

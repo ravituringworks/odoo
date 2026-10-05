@@ -471,3 +471,330 @@ fn pos_sells_refunds_and_closes_a_session() {
     // closed session refuses new orders
     assert!(sell("u9", 1.0, json!([{"payment_method_id": cash, "amount": price}]), json!({})).unwrap_err().contains("closed"));
 }
+
+#[test]
+fn pos_loyalty_points_coupons_promotions_and_gift_cards() {
+    let a = app(&["point_of_sale", "account", "pos_loyalty"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let rd = |model: &str, id: &serde_json::Value, f: &str| call(&a, "read", model, vec![json!([id]), json!([f])]).unwrap()[0][f].clone();
+    let demo = call(&a, "search", "loyalty.program", vec![json!([])]).unwrap(); call(&a, "write", "loyalty.program", vec![demo, json!({"active": false})]).unwrap();   // module demo programs would also earn points
+    let pen = mk("product.product", json!({"name": "Pen", "list_price": 10.0, "type": "consu", "available_in_pos": true}));
+    let gift = mk("product.product", json!({"name": "Gift card 50", "list_price": 50.0, "type": "service", "available_in_pos": true}));
+    let partner = mk("res.partner", json!({"name": "Azure"}));
+    let cmd = |v: serde_json::Value| json!([[0, 0, v]]);
+    // points per unit; 3 points buy $5 off
+    let loyal = mk("loyalty.program", json!({"name": "Loyalty", "program_type": "loyalty", "applies_on": "future", "pos_ok": true, "is_nominative": true,
+        "rule_ids": cmd(json!({"reward_point_mode": "unit", "reward_point_amount": 1.0})), "reward_ids": cmd(json!({"reward_type": "discount", "discount_mode": "per_order", "discount": 5.0, "required_points": 3.0, "discount_applicability": "order"}))}));
+    // automatic 10% on orders over $100, no card
+    mk("loyalty.program", json!({"name": "Big basket", "program_type": "promotion", "applies_on": "current", "pos_ok": true, "trigger": "auto",
+        "rule_ids": cmd(json!({"minimum_amount": 100.0, "reward_point_mode": "order", "reward_point_amount": 1.0})), "reward_ids": cmd(json!({"reward_type": "discount", "discount_mode": "percent", "discount": 10.0, "required_points": 1.0, "discount_applicability": "order"}))}));
+    // gift cards: the product mints a card worth its price; the card pays per point
+    let gp = mk("loyalty.program", json!({"name": "Gift", "program_type": "gift_card", "applies_on": "future", "pos_ok": true,
+        "rule_ids": cmd(json!({"reward_point_mode": "money", "reward_point_amount": 1.0, "product_ids": [[6, 0, [gift]]]})), "reward_ids": cmd(json!({"reward_type": "discount", "discount_mode": "per_point", "discount": 1.0, "required_points": 1.0, "discount_applicability": "order"}))}));
+    let cfg = mk("pos.config", json!({"name": "Shop"}));
+    let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap();
+    let sid = t["session"]["id"].as_i64().unwrap();
+    assert_eq!(t["loyalty"].as_array().unwrap().len(), 3);
+    let cash = t["payment_methods"].as_array().unwrap().iter().find(|m| m["kind"] == "cash").unwrap()["id"].clone();
+    let reward_of = |prog: &serde_json::Value| t["loyalty"].as_array().unwrap().iter().find(|p| p["id"] == *prog).unwrap()["rewards"][0]["id"].clone();
+    let sell = |uuid: &str, lines: serde_json::Value, extra: serde_json::Value, pay: f64| {
+        let mut kw = json!({"session_id": sid, "uuid": uuid, "lines": lines, "payments": [{"payment_method_id": cash, "amount": pay}]});
+        for (k2, v) in extra.as_object().unwrap() { kw[k2] = v.clone(); }
+        k("pos.order", "create_from_ui", json!([]), kw)
+    };
+    // 2 pens → 2 points on the customer's (new) card
+    let o1 = sell("a1", json!([{"product_id": pen, "qty": 2.0}]), json!({"partner_id": partner}), 20.0).unwrap();
+    let card_id = o1["loyalty_issued"][0]["card_id"].clone(); assert_eq!(o1["loyalty_issued"][0]["points"].as_f64(), Some(2.0));
+    // not enough points yet
+    let e = sell("a2", json!([{"product_id": pen, "qty": 1.0}]), json!({"partner_id": partner, "rewards": [{"reward_id": reward_of(&loyal), "card_id": card_id}]}), 10.0).unwrap_err(); assert!(e.contains("Not enough points"), "{e}");
+    // earn 2 more (=4), then spend 3 for $5 off a $20 basket → pay 15, balance 4-3+2
+    sell("a3", json!([{"product_id": pen, "qty": 2.0}]), json!({"partner_id": partner}), 20.0).unwrap();
+    assert_eq!(rd("loyalty.card", &card_id, "points").as_f64(), Some(4.0));
+    let o4 = sell("a4", json!([{"product_id": pen, "qty": 2.0}]), json!({"partner_id": partner, "rewards": [{"reward_id": reward_of(&loyal), "card_id": card_id}]}), 15.0).unwrap();
+    assert_eq!(o4["amount_total"].as_f64(), Some(15.0));
+    assert_eq!(rd("loyalty.card", &card_id, "points").as_f64(), Some(3.0));    // 4 − 3 spent + 2 earned
+    // the same card cannot be spent by someone else
+    let other = mk("res.partner", json!({"name": "Other"}));
+    assert!(sell("a5", json!([{"product_id": pen, "qty": 1.0}]), json!({"partner_id": other, "rewards": [{"reward_id": reward_of(&loyal), "card_id": card_id}]}), 10.0).unwrap_err().contains("another customer"));
+    // refunding the redemption order gives the points back and takes the earned ones away
+    k("pos.order", "refund", json!([o4["id"]]), json!({"session_id": sid})).unwrap();
+    assert_eq!(rd("loyalty.card", &card_id, "points").as_f64(), Some(4.0));
+    // automatic promotion: 12 pens = $120 → 10% off, no card needed
+    let big = sell("b1", json!([{"product_id": pen, "qty": 12.0}]), json!({"rewards": [{"reward_id": t["loyalty"].as_array().unwrap().iter().find(|p| p["name"] == "Big basket").unwrap()["rewards"][0]["id"]}]}), 108.0).unwrap();
+    assert_eq!(big["amount_total"].as_f64(), Some(108.0));
+    let small = sell("b2", json!([{"product_id": pen, "qty": 2.0}]), json!({"rewards": [{"reward_id": t["loyalty"].as_array().unwrap().iter().find(|p| p["name"] == "Big basket").unwrap()["rewards"][0]["id"]}]}), 18.0).unwrap_err();
+    assert!(small.contains("Not enough points"), "{small}");
+    // gift card: sell → card with 50 points; pay a $30 basket with it → 20 left
+    let g = sell("c1", json!([{"product_id": gift, "qty": 1.0}]), json!({}), 50.0).unwrap();
+    assert_eq!(g["loyalty_issued"][0]["points"].as_f64(), Some(50.0));
+    let (gcode, gid) = (g["loyalty_issued"][0]["code"].as_str().unwrap().to_string(), g["loyalty_issued"][0]["card_id"].clone());
+    let found = k("pos.config", "loyalty_cards", json!([cfg]), json!({"code": gcode})).unwrap(); assert_eq!(found[0]["id"], gid);
+    let paid = sell("c2", json!([{"product_id": pen, "qty": 3.0}]), json!({"rewards": [{"reward_id": reward_of(&gp), "card_id": gid}]}), 0.0).unwrap();
+    assert_eq!(paid["amount_total"].as_f64(), Some(0.0)); assert_eq!(rd("loyalty.card", &gid, "points").as_f64(), Some(20.0));
+}
+
+#[test]
+fn pos_cashiers_need_pin_or_badge_and_basic_ones_cannot_refund_or_discount() {
+    let a = app(&["point_of_sale", "account", "pos_hr"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let boss = mk("hr.employee", json!({"name": "Boss", "pin": "1234", "barcode": "BADGE-1"}));
+    let clerk = mk("hr.employee", json!({"name": "Clerk"}));
+    let stranger = mk("hr.employee", json!({"name": "Stranger"}));
+    let pen = mk("product.product", json!({"name": "Pen", "list_price": 10.0, "type": "consu", "available_in_pos": true}));
+    let cfg = mk("pos.config", json!({"name": "Shop", "manual_discount": true, "basic_employee_ids": [[6, 0, [clerk]]], "advanced_employee_ids": [[6, 0, [boss]]]}));
+    let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap();
+    assert_eq!(t["cashier_lock"], true); assert_eq!(t["employees"].as_array().unwrap().len(), 2);
+    let sid = t["session"]["id"].as_i64().unwrap(); let cash = t["payment_methods"].as_array().unwrap().iter().find(|m| m["kind"] == "cash").unwrap()["id"].clone();
+    // PIN / badge / outsiders
+    assert!(k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": boss, "pin": "0000"})).unwrap_err().contains("Wrong PIN"));
+    assert_eq!(k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": boss, "pin": "1234"})).unwrap()["role"], "advanced");
+    assert_eq!(k("pos.config", "verify_employee", json!([cfg]), json!({"badge": "BADGE-1"})).unwrap()["name"], "Boss");
+    assert_eq!(k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": clerk})).unwrap()["role"], "basic");       // no PIN set
+    assert!(k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": stranger})).is_err());
+    assert!(k("pos.config", "verify_employee", json!([cfg]), json!({"badge": "nope"})).is_err());
+    let sell = |emp: serde_json::Value, uuid: &str, disc: f64, pay: f64| k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "uuid": uuid, "employee_id": emp, "lines": [{"product_id": pen, "qty": 1.0, "discount": disc}], "payments": [{"payment_method_id": cash, "amount": pay}]}));
+    assert!(k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "lines": [{"product_id": pen, "qty": 1.0}], "payments": [{"payment_method_id": cash, "amount": 10.0}]})).unwrap_err().contains("Select a cashier"));
+    assert!(sell(json!(stranger), "x", 0.0, 10.0).is_err());
+    let o = sell(json!(clerk), "s1", 0.0, 10.0).unwrap();
+    assert_eq!(call(&a, "read", "pos.order", vec![json!([o["id"]]), json!(["cashier"])]).unwrap()[0]["cashier"], "Clerk");
+    assert!(sell(json!(clerk), "s2", 10.0, 9.0).unwrap_err().contains("managers"));
+    assert!(sell(json!(boss), "s3", 10.0, 9.0).is_ok());
+    assert!(k("pos.order", "refund", json!([o["id"]]), json!({"session_id": sid, "employee_id": clerk})).unwrap_err().contains("managers"));
+    assert!(k("pos.session", "close_session", json!([sid]), json!({"employee_id": clerk})).unwrap_err().contains("managers"));
+    assert!(k("pos.order", "refund", json!([o["id"]]), json!({"session_id": sid, "employee_id": boss})).is_ok());
+    assert_eq!(k("pos.session", "close_session", json!([sid]), json!({"employee_id": boss, "counted_cash": 0.0})).unwrap()["state"], "closed");
+}
+
+#[test]
+fn admin_console_manages_every_database_and_per_account_app_rules() {
+    let (a, dir) = trial_app(5);
+    let signup = |email: &str, apps: serde_json::Value| req(&a, json!({"method": "trial_create", "args": [form(email, apps)]})).unwrap();
+    let r = signup("ada@example.com", json!(["CRM"]));
+    let (db, tok) = (r["db"].as_str().unwrap().to_string(), r["token"].as_str().unwrap().to_string());
+    let admin = req(&a, json!({"method": "login", "args": ["admin", "admin"]})).unwrap()["token"].as_str().unwrap().to_string();
+    let adm = |method: &str, args: serde_json::Value| req(&a, json!({"method": method, "args": args, "token": admin}));
+
+    // only the administrator of the main database may use the console: not anonymous callers, not a trial's own administrator
+    assert!(req(&a, json!({"method": "admin_db_list"})).is_err());
+    assert!(req(&a, json!({"method": "admin_db_list", "token": tok})).is_err(), "a trial token is not a main-database session");
+    assert!(req(&a, json!({"method": "admin_db_list", "db": db, "token": tok})).is_err(), "tenants refuse admin methods");
+
+    // visibility: main + the trial, with owner and lifecycle info
+    let list = adm("admin_db_list", json!([])).unwrap();
+    let row = |l: &serde_json::Value, d: &str| l.as_array().unwrap().iter().find(|x| x["db"] == d).cloned();
+    assert_eq!(row(&list, "main").unwrap()["kind"], "main");
+    let t = row(&list, &db).unwrap();
+    assert_eq!((t["kind"].as_str(), t["status"].as_str(), t["owner"].as_str()), (Some("trial"), Some("active"), Some("ada@example.com")));
+
+    // backup -> change data -> restore brings the old data back (and keeps a safety copy of what was replaced)
+    let b = adm("admin_db_backup", json!([db])).unwrap(); let file = b["file"].as_str().unwrap().to_string();
+    assert!(dir.join("backups").join(&file).exists());
+    let mk = |name: &str| req(&a, json!({"method": "create", "model": "res.partner", "args": [{"name": name}], "db": db, "token": tok}));
+    let count = |name: &str, t: &str| req(&a, json!({"method": "search_count", "model": "res.partner", "args": [[["name", "=", name]]], "db": db, "token": t})).unwrap().as_i64().unwrap();
+    mk("Added after backup").unwrap(); assert_eq!(count("Added after backup", &tok), 1);
+    assert!(adm("admin_db_restore", json!([db, file, "wrong"])).is_err(), "restore needs the name typed to confirm");
+    assert!(adm("admin_db_restore", json!([db, "../../etc/passwd", db])).is_err() && adm("admin_db_restore", json!(["trial-0000000000000000", file, "trial-0000000000000000"])).is_err());
+    adm("admin_db_restore", json!([db, file, db])).unwrap();
+    assert!(req(&a, json!({"method": "whoami", "db": db, "token": tok})).unwrap().is_null(), "sessions end with a restore");
+    let tok = req(&a, json!({"method": "login", "args": ["ada@example.com", "correct-horse-battery"], "db": db})).unwrap()["token"].as_str().unwrap().to_string();
+    assert_eq!(count("Added after backup", &tok), 0, "restored to the backed-up state");
+    assert_eq!(adm("admin_db_backups", json!([db])).unwrap().as_array().unwrap().len(), 2, "the backup plus the pre-restore safety copy");
+    assert!(adm("admin_db_backup", json!(["main"])).is_ok(), "the main database can be backed up");
+    assert!(adm("admin_db_restore", json!(["main", file, "main"])).is_err() && adm("admin_db_delete", json!(["main", "main"])).is_err() && adm("admin_db_archive", json!(["main"])).is_err());
+
+    // archive blocks access (and the owner's portal) but keeps the data; unarchive brings it back
+    adm("admin_db_archive", json!([db])).unwrap();
+    assert!(req(&a, json!({"method": "whoami", "db": db, "token": tok})).is_err(), "archived databases are closed");
+    assert_eq!(row(&adm("admin_db_list", json!([])).unwrap(), &db).unwrap()["status"], "archived");
+    assert!(dir.join(format!("{db}.sqlite")).exists());
+    a.purge_expired_trials(); assert!(dir.join(format!("{db}.sqlite")).exists(), "archived trials do not expire");
+    assert!(adm("admin_db_backup", json!([db])).is_ok(), "archived databases can still be backed up");
+    adm("admin_db_archive", json!([db, false])).unwrap();
+    let tok = req(&a, json!({"method": "login", "args": ["ada@example.com", "correct-horse-battery"], "db": db})).unwrap()["token"].as_str().unwrap().to_string();
+
+    // per-account app rules: a disallowed app can neither be provisioned nor installed later
+    assert!(adm("admin_account_set_apps", json!(["ada@example.com", ["Not An App"]])).is_err());
+    adm("admin_account_set_apps", json!(["ada@example.com", ["Sales", "Project"]])).unwrap();
+    assert_eq!(adm("admin_account_list", json!([])).unwrap()[0]["disallowed"], json!(["Project", "Sales"]));
+    let own = req(&a, json!({"method": "portal_login", "args": ["ada@example.com", "correct-horse-battery"]})).unwrap()["token"].as_str().unwrap().to_string();
+    let e = req(&a, json!({"method": "portal_new_trial", "token": own, "args": [{"apps": ["Project"]}]})).unwrap_err(); assert!(e.contains("not allowed"), "{e}");
+    assert!(req(&a, json!({"method": "portal_new_trial", "token": own, "args": [{"apps": ["Inventory"]}]})).is_ok(), "other apps are fine");
+    let e = req(&a, json!({"method": "install_module", "args": ["sale_management"], "db": db, "token": tok})).unwrap_err(); assert!(e.contains("not allowed"), "{e}");
+    adm("admin_account_set_apps", json!(["ada@example.com", []])).unwrap();
+    assert!(req(&a, json!({"method": "install_module", "args": ["sale_management"], "db": db, "token": tok})).is_ok(), "allowed again once the rule is lifted");
+
+    // non-trial databases: created by the administrator, permanent, deletable only after typing the name
+    assert!(adm("admin_db_create", json!([{"name": "trial_x", "apps": ["CRM"]}])).is_err() && adm("admin_db_create", json!([{"name": "Bad Name", "apps": ["CRM"]}])).is_err());
+    let c = adm("admin_db_create", json!([{"name": "acme_prod", "company": "Acme", "apps": ["CRM"]}])).unwrap(); assert_eq!(c["db"], "acme_prod");
+    assert!(adm("admin_db_create", json!([{"name": "acme_prod", "apps": ["CRM"]}])).is_err(), "names are unique");
+    let l = adm("admin_db_list", json!([])).unwrap(); assert_eq!(row(&l, "acme_prod").unwrap()["kind"], "standard"); assert!(row(&l, "acme_prod").unwrap()["days_left"].is_null());
+    let o = adm("admin_db_open", json!(["acme_prod"])).unwrap();
+    assert!(req(&a, json!({"method": "search_count", "model": "crm.lead", "args": [[]], "db": "acme_prod", "token": o["token"]})).is_ok(), "the administrator can open any database");
+    assert!(adm("admin_db_delete", json!(["acme_prod", "nope"])).is_err());
+    adm("admin_db_delete", json!(["acme_prod", "acme_prod"])).unwrap();
+    assert!(!dir.join("acme_prod.sqlite").exists() && row(&adm("admin_db_list", json!([])).unwrap(), "acme_prod").is_none());
+    adm("admin_db_delete", json!([db, db, true])).unwrap();
+    assert!(!dir.join(format!("{db}.sqlite")).exists());
+    assert!(!adm("admin_db_backups", json!(["main"])).unwrap().as_array().unwrap().is_empty() && adm("admin_db_backups", json!([db])).is_err(), "keep_backups kept the files but the database is gone from the registry");
+}
+
+#[test]
+fn pos_moves_stock_per_order_and_books_one_entry_when_the_session_closes() {
+    let a = app(&["point_of_sale", "account", "stock"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let pen = mk("product.product", json!({"name": "Pen", "list_price": 10.0, "type": "consu", "available_in_pos": true}));
+    // POS draws stock from the first internal location (the warehouse stock location of this tiny dataset)
+    let stock_loc = match call(&a, "search", "stock.location", vec![json!([["usage", "=", "internal"]])]).unwrap().as_array().and_then(|l| l.first().cloned()) { Some(l) => l, None => mk("stock.location", json!({"name": "WH/Stock", "usage": "internal"})) };
+    mk("stock.quant", json!({"product_id": pen, "location_id": stock_loc, "quantity": 10.0}));
+    let on_hand = || call(&a, "search_read", "stock.quant", vec![json!([["product_id", "=", pen], ["location_id", "=", stock_loc]]), json!(["quantity"])]).unwrap()[0]["quantity"].as_f64().unwrap();
+    let cfg = mk("pos.config", json!({"name": "Shop"}));
+    let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap();
+    let sid = t["session"]["id"].as_i64().unwrap(); let m = t["payment_methods"].as_array().unwrap();
+    let id = |kind: &str| m.iter().find(|x| x["kind"] == kind).unwrap()["id"].clone();
+    let sell = |uuid: &str, qty: f64, method: serde_json::Value, extra: serde_json::Value| { let mut kw = json!({"session_id": sid, "uuid": uuid, "lines": [{"product_id": pen, "qty": qty}], "payments": [{"payment_method_id": method, "amount": 10.0 * qty}]}); for (a, b) in extra.as_object().unwrap() { kw[a] = b.clone(); } k("pos.order", "create_from_ui", json!([]), kw).unwrap() };
+    let o = sell("s1", 2.0, id("cash"), json!({})); assert_eq!(on_hand(), 8.0);
+    let partner = mk("res.partner", json!({"name": "Azure"}));
+    sell("s2", 1.0, id("bank"), json!({"to_invoice": true, "partner_id": partner})); assert_eq!(on_hand(), 7.0);
+    k("pos.order", "refund", json!([o["id"]]), json!({"session_id": sid})).unwrap(); assert_eq!(on_hand(), 9.0);   // goods come back
+    // 20 cash − 20 refunded + 10 bank (invoiced) → entry balanced; cash short by 1 is booked as a difference
+    let c = k("pos.session", "close_session", json!([sid]), json!({"counted_cash": -1.0})).unwrap(); assert_eq!(c["difference"].as_f64(), Some(-1.0));
+    let mv = call(&a, "read", "pos.session", vec![json!([sid]), json!(["move_id"])]).unwrap()[0]["move_id"].clone();
+    let mvid = if mv.is_array() { mv[0].clone() } else { mv }; assert!(mvid.as_i64().is_some(), "session entry missing");
+    let ls = call(&a, "search_read", "account.move.line", vec![json!([["move_id", "=", mvid]]), json!(["debit", "credit"])]).unwrap();
+    let (d, cr): (f64, f64) = ls.as_array().unwrap().iter().fold((0.0, 0.0), |(d, c), l| (d + l["debit"].as_f64().unwrap(), c + l["credit"].as_f64().unwrap()));
+    assert!(d > 0.0 && (d - cr).abs() < 0.005, "unbalanced {d} vs {cr}");
+    assert_eq!(call(&a, "read", "account.move", vec![json!([mvid]), json!(["state"])]).unwrap()[0]["state"], "posted");
+}
+
+#[test]
+fn pos_restaurant_table_orders_kitchen_tickets_and_paying_a_draft() {
+    let a = app(&["point_of_sale", "account", "pos_restaurant", "pos_preparation_display"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let burger = mk("product.product", json!({"name": "Burger", "list_price": 12.0, "type": "consu", "available_in_pos": true}));
+    let cola = mk("product.product", json!({"name": "Cola", "list_price": 3.0, "type": "consu", "available_in_pos": true}));
+    let floor = mk("restaurant.floor", json!({"name": "Main"}));
+    let t1 = mk("restaurant.table", json!({"floor_id": floor, "table_number": 1, "seats": 4, "position_h": 10.0, "position_v": 10.0, "width": 80.0, "height": 80.0}));
+    let t2 = mk("restaurant.table", json!({"floor_id": floor, "table_number": 2, "seats": 2}));
+    let cfg = mk("pos.config", json!({"name": "Bistro", "floor_ids": [[6, 0, [floor]]]}));
+    let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap();
+    let sid = t["session"]["id"].as_i64().unwrap(); let cash = t["payment_methods"].as_array().unwrap().iter().find(|m| m["kind"] == "cash").unwrap()["id"].clone();
+    assert_eq!(t["floors"][0]["tables"].as_array().unwrap().len(), 2);
+    let save = |lines: serde_json::Value, send: bool| k("pos.order", if send { "send_to_kitchen" } else { "save_draft" }, json!([]), json!({"session_id": sid, "uuid": "tbl1-order", "table_id": t1, "customer_count": 3, "lines": lines}));
+    let l = |u: &str, p: &serde_json::Value, q: f64| json!({"uuid": u, "product_id": p, "qty": q});
+    let d = save(json!([l("a", &burger, 2.0), l("b", &cola, 1.0)]), true).unwrap();
+    assert_eq!(d["amount_total"].as_f64(), Some(27.0)); assert!(d["ticket_id"].as_i64().is_some());
+    // the table shows as occupied with its total; the draft survives a reload with its lines
+    let plan = k("pos.config", "floor_plan", json!([cfg]), json!({})).unwrap();
+    let tab = plan[0]["tables"].as_array().unwrap().iter().find(|x| x["id"] == json!(t1)).unwrap(); assert_eq!((tab["orders"].as_i64(), tab["total"].as_f64()), (Some(1), Some(27.0)));
+    assert_eq!(k("pos.config", "open_orders", json!([cfg]), json!({"table_id": t1})).unwrap()[0]["lines"].as_array().unwrap().len(), 2);
+    assert_eq!(k("pos.config", "open_orders", json!([cfg]), json!({"table_id": t2})).unwrap().as_array().unwrap().len(), 0);
+    // sending again with nothing new creates no ticket; +1 burger and the cola removed → one ticket with a delta and a cancellation
+    assert!(save(json!([l("a", &burger, 2.0), l("b", &cola, 1.0)]), true).unwrap()["ticket_id"].is_null());
+    let d2 = save(json!([l("a", &burger, 3.0)]), true).unwrap(); assert!(d2["ticket_id"].as_i64().is_some());
+    let tickets = k("pos.config", "kitchen_tickets", json!([cfg]), json!({})).unwrap(); let tk = tickets.as_array().unwrap();
+    assert_eq!(tk.len(), 2); assert_eq!(tk[0]["name"], "Table 1");
+    let second = tk[1]["lines"].as_array().unwrap(); assert!(second.iter().any(|x| x["name"] == "Burger" && x["qty"].as_f64() == Some(1.0) && x["cancelled"] == false));
+    assert!(second.iter().any(|x| x["name"] == "Cola" && x["cancelled"] == true));
+    // cooks advance lines; the ticket leaves the display once everything is ready
+    for line in tk[0]["lines"].as_array().unwrap() { k("pos_preparation_display.line", "advance", json!([line["id"]]), json!({"state": "done"})).unwrap(); }
+    assert_eq!(k("pos.config", "kitchen_tickets", json!([cfg]), json!({})).unwrap().as_array().unwrap().len(), 1);
+    k("pos_preparation_display.ticket", "bump", json!([tk[1]["id"]]), json!({})).unwrap();
+    assert_eq!(k("pos.config", "kitchen_tickets", json!([cfg]), json!({})).unwrap().as_array().unwrap().len(), 0);
+    // transfer to table 2, then pay the draft in place: same order record, no duplicate, table freed
+    k("pos.order", "transfer_table", json!([]), json!({"uuid": "tbl1-order", "table_id": t2})).unwrap();
+    let paid = k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "uuid": "tbl1-order", "table_id": t2, "lines": [l("a", &burger, 3.0)], "payments": [{"payment_method_id": cash, "amount": 36.0}]})).unwrap();
+    assert_eq!(paid["state"], "paid"); assert_eq!(paid["id"], d["id"]);
+    assert_eq!(call(&a, "search_count", "pos.order", vec![json!([])]).unwrap(), 1);
+    assert_eq!(k("pos.config", "open_orders", json!([cfg]), json!({})).unwrap().as_array().unwrap().len(), 0);
+    // abandoned drafts can be discarded
+    k("pos.order", "save_draft", json!([]), json!({"session_id": sid, "uuid": "tbl2-order", "table_id": t1, "lines": [l("z", &cola, 1.0)]})).unwrap();
+    assert_eq!(k("pos.config", "open_orders", json!([cfg]), json!({})).unwrap().as_array().unwrap().len(), 1);
+    k("pos.order", "discard_draft", json!([]), json!({"uuid": "tbl2-order"})).unwrap();
+    assert_eq!(k("pos.config", "open_orders", json!([cfg]), json!({})).unwrap().as_array().unwrap().len(), 0);
+}
+
+#[test]
+fn pos_self_order_is_public_but_token_gated_and_cannot_set_prices() {
+    let a = app(&["point_of_sale", "account", "pos_restaurant", "pos_preparation_display", "pos_self_order"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let public = |method: &str, cfg: &serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "args": [cfg, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let tax = mk("account.tax", json!({"name": "VAT 10%", "amount": 10.0, "amount_type": "percent", "type_tax_use": "sale"}));
+    let soup = mk("product.product", json!({"name": "Soup", "list_price": 10.0, "type": "consu", "available_in_pos": true}));
+    let soup_t = call(&a, "read", "product.product", vec![json!([soup]), json!(["product_tmpl_id"])]).unwrap()[0]["product_tmpl_id"].clone();
+    call(&a, "write", "product.template", vec![json!([if soup_t.is_array() { soup_t[0].clone() } else { soup_t }]), json!({"taxes_id": [[6, 0, [tax]]]})]).unwrap();
+    let secret = mk("product.product", json!({"name": "Staff meal", "list_price": 1.0, "type": "consu", "available_in_pos": false}));
+    let floor = mk("restaurant.floor", json!({"name": "Main"})); mk("restaurant.table", json!({"floor_id": floor, "table_number": 7, "seats": 2}));
+    let cfg = mk("pos.config", json!({"name": "Bistro", "floor_ids": [[6, 0, [floor]]], "self_ordering_mode": "mobile", "self_ordering_service_mode": "table"}));
+    let link = k("pos.config", "kiosk_link", json!([cfg]), json!({})).unwrap(); let token = link["token"].as_str().unwrap().to_string(); assert!(token.len() >= 32);
+    assert_eq!(k("pos.config", "kiosk_link", json!([cfg]), json!({})).unwrap()["token"], json!(token));        // stable
+    // wrong / missing token → nothing is revealed
+    assert!(public("kiosk_menu", &json!(cfg), json!({"access_token": "nope"})).is_err()); assert!(public("kiosk_menu", &json!(cfg), json!({})).is_err());
+    let menu = public("kiosk_menu", &json!(cfg), json!({"access_token": token, "table": 7})).unwrap();
+    assert_eq!(menu["open"], false); assert!(menu["table"].as_i64().is_some());
+    let prods = menu["products"].as_array().unwrap(); assert!(prods.iter().any(|p| p["name"] == "Soup" && p["price"].as_f64() == Some(11.0)));   // tax-included price shown
+    assert!(!prods.iter().any(|p| p["name"] == "Staff meal"));
+    let order = |uuid: &str, lines: serde_json::Value| public("kiosk_order", &json!(cfg), json!({"access_token": token, "uuid": uuid, "table": 7, "lines": lines}));
+    // closed register
+    assert!(order("kiosk-aaaaaaaaaaaa", json!([{"product_id": soup, "qty": 1}])).unwrap_err().contains("closed"));
+    let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap(); let sid = t["session"]["id"].as_i64().unwrap();
+    // hostile input: foreign uuid, hidden product, absurd quantity, price injection
+    assert!(order("not-a-kiosk-uuid-123", json!([{"product_id": soup, "qty": 1}])).is_err());
+    assert!(order("kiosk-bbbbbbbbbbbb", json!([{"product_id": secret, "qty": 1}])).unwrap_err().contains("not available"));
+    assert!(order("kiosk-cccccccccccc", json!([{"product_id": soup, "qty": 9999}])).is_err());
+    let o = order("kiosk-dddddddddddd", json!([{"product_id": soup, "qty": 2, "price_unit": 0.01, "discount": 100}])).unwrap();
+    assert_eq!(o["amount_total"].as_f64(), Some(22.0));                                                        // server price, no discount
+    assert_eq!(order("kiosk-dddddddddddd", json!([{"product_id": soup, "qty": 2}])).unwrap()["uuid"], "kiosk-dddddddddddd");   // retry is harmless
+    let st = |u: &str| public("kiosk_status", &json!(cfg), json!({"access_token": token, "uuid": u})).unwrap()["stage"].as_str().unwrap().to_string();
+    assert_eq!(st("kiosk-dddddddddddd"), "received");
+    // the kitchen sees it, advances it; the guest follows along
+    let tk = k("pos.config", "kitchen_tickets", json!([cfg]), json!({})).unwrap(); assert_eq!(tk[0]["name"], "Table 7");
+    let line = tk[0]["lines"][0]["id"].clone();
+    k("pos_preparation_display.line", "advance", json!([line]), json!({"state": "cooking"})).unwrap(); assert_eq!(st("kiosk-dddddddddddd"), "preparing");
+    k("pos_preparation_display.line", "advance", json!([line]), json!({"state": "done"})).unwrap(); assert_eq!(st("kiosk-dddddddddddd"), "ready");
+    // staff takes payment at the table; the visitor cannot touch a POS order through the public API
+    let cash = t["payment_methods"].as_array().unwrap().iter().find(|m| m["kind"] == "cash").unwrap()["id"].clone();
+    k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "uuid": "kiosk-dddddddddddd", "lines": [{"product_id": soup, "qty": 2}], "payments": [{"payment_method_id": cash, "amount": 22.0}]})).unwrap();
+    assert_eq!(st("kiosk-dddddddddddd"), "ready");   // kitchen stage wins once food is out; `paid` is reported separately
+    assert_eq!(public("kiosk_status", &json!(cfg), json!({"access_token": token, "uuid": "kiosk-dddddddddddd"})).unwrap()["paid"], true);
+    assert!(public("kiosk_status", &json!(cfg), json!({"access_token": token, "uuid": "some-staff-uuid"})).is_err());
+    // QR-menu (consultation) mode shows the menu but takes no orders; disabled mode shows nothing
+    k("pos.config", "write", json!([cfg]), json!({})).ok(); call(&a, "write", "pos.config", vec![json!([cfg]), json!({"self_ordering_mode": "consultation"})]).unwrap();
+    assert!(public("kiosk_menu", &json!(cfg), json!({"access_token": token})).is_ok());
+    assert!(order("kiosk-eeeeeeeeeeee", json!([{"product_id": soup, "qty": 1}])).unwrap_err().contains("view-only"));
+    call(&a, "write", "pos.config", vec![json!([cfg]), json!({"self_ordering_mode": "nothing"})]).unwrap();
+    assert!(public("kiosk_menu", &json!(cfg), json!({"access_token": token})).is_err());
+}
+
+#[test]
+fn pos_prints_raw_escpos_only_to_printers_configured_on_the_register() {
+    use std::io::Read;
+    let a = app(&["point_of_sale"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap(); let addr = listener.local_addr().unwrap().to_string();
+    let kitchen = std::net::TcpListener::bind("127.0.0.1:0").unwrap(); let kaddr = kitchen.local_addr().unwrap().to_string();
+    let cat = call(&a, "create", "pos.category", vec![json!({"name": "Drinks"})]).unwrap();
+    let printer = call(&a, "create", "pos.printer", vec![json!({"name": "Bar", "printer_type": "iot", "proxy_ip": kaddr, "product_categories_ids": [[6, 0, [cat]]]})]).unwrap();
+    let cfg = call(&a, "create", "pos.config", vec![json!({"name": "Shop", "proxy_ip": addr, "printer_ids": [[6, 0, [printer]]]})]).unwrap();
+    let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap();
+    let ps = t["printers"].as_array().unwrap(); assert_eq!(ps.len(), 2);
+    assert_eq!(ps[0]["target"], json!(addr)); assert_eq!(ps[1]["name"], "Bar"); assert_eq!(ps[1]["category_ids"], json!([cat]));
+    // receipt bytes arrive intact (init + text + cut)
+    let rx = std::thread::spawn(move || { let (mut s, _) = listener.accept().unwrap(); let mut b = vec![]; s.read_to_end(&mut b).unwrap(); b });
+    assert_eq!(k("pos.config", "print_raw", json!([cfg]), json!({"target": addr, "data": "1b40486f6c610a1d564200"})).unwrap(), json!(11));
+    assert_eq!(rx.join().unwrap(), vec![0x1b, 0x40, b'H', b'o', b'l', b'a', 0x0a, 0x1d, 0x56, 0x42, 0x00]);
+    // kitchen printer works too; arbitrary hosts (SSRF) and malformed payloads do not
+    let rk = std::thread::spawn(move || { let (mut s, _) = kitchen.accept().unwrap(); let mut b = vec![]; s.read_to_end(&mut b).unwrap(); b });
+    k("pos.config", "print_raw", json!([cfg]), json!({"target": kaddr, "data": "4142"})).unwrap(); assert_eq!(rk.join().unwrap(), b"AB");
+    assert!(k("pos.config", "print_raw", json!([cfg]), json!({"target": "10.0.0.5:9100", "data": "41"})).unwrap_err().contains("not configured"));
+    assert!(k("pos.config", "print_raw", json!([cfg]), json!({"target": "localhost:22", "data": "41"})).unwrap_err().contains("not configured"));
+    assert!(k("pos.config", "print_raw", json!([cfg]), json!({"target": addr, "data": "zz"})).unwrap_err().contains("Invalid"));
+    // a printer that is down reports a readable error instead of hanging
+    drop(std::net::TcpListener::bind("127.0.0.1:0")); let dead = { let l = std::net::TcpListener::bind("127.0.0.1:0").unwrap(); l.local_addr().unwrap().to_string() };
+    call(&a, "write", "pos.config", vec![json!([cfg]), json!({"proxy_ip": dead})]).unwrap();
+    assert!(k("pos.config", "print_raw", json!([cfg]), json!({"target": dead, "data": "41"})).unwrap_err().contains("unreachable"));
+}

@@ -56,6 +56,10 @@ impl Conn for Tx<'_> {
 
 impl Store for SqliteStore {
     fn dialect(&self) -> &dyn Dialect { &self.dialect }
+    fn snapshot(&self, dest: &std::path::Path) -> Result<()> {
+        let g = self.conn.lock().map_err(|_| OdooError::Storage("poisoned lock".into()))?;
+        g.execute("VACUUM INTO ?1", [dest.to_string_lossy().as_ref()]).map(|_| ()).map_err(err)   // consistent even while the WAL has unmerged pages
+    }
     fn transaction(&self, f: &mut dyn FnMut(&dyn Conn) -> Result<()>) -> Result<()> {
         let mut g = self.conn.lock().map_err(|_| OdooError::Storage("poisoned lock".into()))?;
         let tx = g.transaction().map_err(err)?;

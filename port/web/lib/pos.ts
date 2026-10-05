@@ -2,11 +2,12 @@
 export type Tax = { id: number; name?: string; amount: number; amount_type: string; price_include: boolean }
 export type PricelistItem = { applied_on: string; compute_price: string; fixed_price: number; percent_price: number; min_quantity: number; product_tmpl_id: unknown; product_id: unknown; categ_id: unknown }
 export type Pricelist = { id: number; name: string; items: PricelistItem[] }
-export type Product = { id: number; name: string; price: number; code?: string | null; barcode?: string | null; tax_ids: number[]; category_ids: number[]; to_weight?: boolean }
+export type Product = { id: number; name: string; price: number; code?: string | null; barcode?: string | null; tax_ids: number[]; category_ids: number[]; categ_chain?: number[]; to_weight?: boolean }
 export type Line = { key: string; product: Product; qty: number; price: number; discount: number; note?: string }
 export type Method = { id: number; name: string; kind: 'cash' | 'bank' | 'account' }
 export type Pay = { method: number; amount: number }
-export type Cart = { lines: Line[]; partner?: { id: number; name: string } | null; pricelist?: number | null; note?: string; uuid: string }
+export type Claim = { rewardId: number; cardId?: number | null }
+export type Cart = { lines: Line[]; partner?: { id: number; name: string } | null; pricelist?: number | null; note?: string; uuid: string; claims?: Claim[]; codes?: string[]; table?: { id: number; name: string } | null; guests?: number; takeaway?: boolean; sent?: Record<string, number> }
 
 export const r2 = (x: number) => Math.round(x * 100 + (x < 0 ? -1e-9 : 1e-9)) / 100
 export const uuid = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`)
@@ -60,6 +61,11 @@ export type Act =
   | { t: 'note'; key: string; note: string }
   | { t: 'remove'; key: string }
   | { t: 'partner'; partner: Cart['partner'] }
+  | { t: 'meta'; meta: Partial<Cart> }
+  | { t: 'move'; keys: string[] }
+  | { t: 'claim'; claim: Claim }
+  | { t: 'unclaim'; index: number }
+  | { t: 'code'; code: string }
   | { t: 'pricelist'; id: number | null; list?: Pricelist | null; products?: Product[] }
 export function reduce(c: Cart, a: Act): Cart {
   const upd = (key: string, f: (l: Line) => Line): Cart => ({ ...c, lines: c.lines.map((l) => (l.key === key ? f(l) : l)) })
@@ -75,7 +81,12 @@ export function reduce(c: Cart, a: Act): Cart {
     case 'order_discount': return { ...c, lines: c.lines.map((l) => ({ ...l, discount: Math.min(100, Math.max(0, a.pct)) })) }
     case 'note': return upd(a.key, (l) => ({ ...l, note: a.note }))
     case 'remove': return { ...c, lines: c.lines.filter((l) => l.key !== a.key) }
-    case 'partner': return { ...c, partner: a.partner }
+    case 'partner': return { ...c, partner: a.partner, claims: (c.claims ?? []).filter((x) => x.cardId == null) }   // a card belongs to the customer: drop card claims on change
+    case 'meta': return { ...c, ...a.meta }
+    case 'move': return { ...c, lines: c.lines.filter((l) => !a.keys.includes(l.key)) }
+    case 'claim': return { ...c, claims: [...(c.claims ?? []), a.claim] }
+    case 'unclaim': return { ...c, claims: (c.claims ?? []).filter((_, i) => i !== a.index) }
+    case 'code': return (c.codes ?? []).includes(a.code) ? c : { ...c, codes: [...(c.codes ?? []), a.code] }
     case 'pricelist': return { ...c, pricelist: a.id, lines: c.lines.map((l) => ({ ...l, price: priceFor(l.product, l.qty, a.list) })) }
   }
 }
@@ -105,3 +116,24 @@ export function parseScale(code: string): { code: string; kg: number } | null { 
 export type Queued = { uuid: string; kwargs: Record<string, unknown> }
 export const enqueue = (q: Queued[], o: Queued) => (q.some((x) => x.uuid === o.uuid) ? q : [...q, o])
 export const dequeue = (q: Queued[], id: string) => q.filter((x) => x.uuid !== id)
+
+// ---- restaurant helpers ----
+/** What the kitchen has not seen yet: new/increased quantities, and removed lines. */
+export function kitchenDelta(c: Cart): { added: { name: string; qty: number }[]; removed: { key: string; qty: number }[] } {
+  const sent = c.sent ?? {}
+  const added = c.lines.map((l) => ({ name: l.product.name, qty: l.qty - (sent[l.key] ?? 0) })).filter((x) => x.qty > 0)
+  const removed = Object.entries(sent).filter(([k, q]) => q > 0 && !c.lines.some((l) => l.key === k)).map(([key, qty]) => ({ key, qty }))
+  return { added, removed }
+}
+export const hasUnsent = (c: Cart) => { const d = kitchenDelta(c); return d.added.length > 0 || d.removed.length > 0 || c.lines.some((l) => l.qty < (c.sent?.[l.key] ?? 0)) }
+/** Rebuild a cart from a server draft (lines are matched to the terminal's product list). */
+export function cartFromDraft(d: { uuid: string; table_id?: unknown; customer_count?: number; takeaway?: boolean; partner_id?: unknown; last_order_preparation_change?: string; lines: { uuid?: string; product_id: unknown; qty: number; price_unit: number; discount: number; customer_note?: string }[] }, products: Product[], table: { id: number; name: string } | null): Cart {
+  const byId = new Map(products.map((p) => [p.id, p]))
+  let sent: Record<string, number> = {}
+  try { const j = JSON.parse(d.last_order_preparation_change || '{}') as Record<string, { qty: number }>; sent = Object.fromEntries(Object.entries(j).map(([k, v]) => [k, v.qty])) } catch { /* no history */ }
+  return { uuid: d.uuid, table, guests: d.customer_count ?? 1, takeaway: !!d.takeaway, sent,
+    partner: Array.isArray(d.partner_id) ? { id: d.partner_id[0] as number, name: d.partner_id[1] as string } : null,
+    lines: d.lines.flatMap((l) => { const id = Array.isArray(l.product_id) ? (l.product_id[0] as number) : (l.product_id as number); const p = byId.get(id); return p ? [{ key: l.uuid || uuid(), product: p, qty: l.qty, price: l.price_unit, discount: l.discount, note: l.customer_note || undefined }] : [] }) }
+}
+/** Tip as a percentage of the untaxed-or-total amount, rounded to cents. */
+export const tipAmount = (total: number, pct: number) => r2((total * pct) / 100)

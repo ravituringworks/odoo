@@ -117,6 +117,8 @@ impl Security {
         { let mut a = self.acl.write().unwrap(); a.user_groups = ug; a.user_group_ids = ugi; }
         Ok(())
     }
+    /// The superuser or a member of `base.group_system`.
+    pub fn is_admin(&self, uid: i64) -> bool { uid == 1 || self.groups_of(uid).contains("base.group_system") }
     fn groups_of(&self, uid: i64) -> BTreeSet<String> { self.acl.read().unwrap().user_groups.get(&uid).cloned().unwrap_or_default() }
 }
 
