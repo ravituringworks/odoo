@@ -12,7 +12,7 @@ use odoo_core::{Domain, OdooError, Result, Row, Rules, Value};
 
 pub fn rules() -> Rules {
     config_rules().merge(payment_method_rules()).merge(payment_rules())
-        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules())
+        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules()).merge(crate::pos_loyalty_methods::rules())
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -259,6 +259,7 @@ fn open_session_action(env: &Env, cfg: i64, session: Option<i64>) -> Result<Valu
 }
 
 fn check_before_new_session(env: &Env, cfg: i64) -> Result<()> {
+    crate::pos_loyalty_methods::check_programs(env, cfg)?;   // pos_loyalty runs its checks before the base ones
     check_company_has_template(env, cfg)?;
     let r = rec(env, "pos.config", cfg)?;
     check_pricelists(env, &r)?; check_company_payment(env, &r)?; check_currencies(env, &r)?;

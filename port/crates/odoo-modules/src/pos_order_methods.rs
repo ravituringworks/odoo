@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 fn oid_of(ids_: &[i64]) -> Result<i64> { ids_.first().copied().ok_or_else(|| OdooError::User("Select an order".into())) }
-fn new_uuid() -> String {
+pub(crate) fn new_uuid() -> String {
     static N: AtomicU64 = AtomicU64::new(0);
     let t = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0) as u64;
     let a = t ^ (N.fetch_add(1, Ordering::Relaxed).wrapping_mul(0x9E37_79B9_7F4A_7C15));
@@ -724,7 +724,7 @@ pub fn rules() -> Rules {
         })
         .action("pos.order.line", "_get_tax_ids_after_fiscal_position", |env, ids_, _| Ok(id_list(&line_taxes_after_fpos(env, &rec(env, "pos.order.line", oid_of(ids_)?)?)?)))
         .action("pos.order.line", "_get_discount_amount", |env, ids_, _| Ok(line_discount_amount(env, &rec(env, "pos.order.line", oid_of(ids_)?)?)?.into()))
-        .action("pos.order.line", "isRefund", |env, ids_, _| { let l = rec(env, "pos.order.line", oid_of(ids_)?)?; let _ = env; Ok((num(&l, "qty") * num(&l, "price_unit") < 0.0).into()) })
+        .action("pos.order.line", "isRefund", |env, ids_, _| { let l = rec(env, "pos.order.line", oid_of(ids_)?)?; let _ = env; Ok((num(&l, "qty") * num(&l, "price_unit") < 0.0 && !flag(&l, "is_reward_line")).into()) })
         .action("pos.order.line", "_prepare_refund_data", |env, ids_, kw| {
             let l = rec(env, "pos.order.line", oid_of(ids_)?)?;
             Ok(Value::Map(row(&[("name", format!("{} REFUND", text(&l, "name").unwrap_or_default()).into()), ("qty", (-(num(&l, "qty") - line_refunded_qty(env, &l)?)).into()), ("order_id", kw.get("refund_order_id").cloned().unwrap_or(Value::Null)), ("price_subtotal", (-num(&l, "price_subtotal")).into()), ("price_subtotal_incl", (-num(&l, "price_subtotal_incl")).into()), ("is_total_cost_computed", false.into()), ("refunded_orderline_id", l["id"].clone()), ("uuid", new_uuid().into())])))
