@@ -1,0 +1,770 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Employees",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/hr_skills_security.xml",
+  "views/hr_views.xml",
+  "views/hr_employee_skill_log_views.xml",
+  "data/hr_resume_data.xml",
+  "data/hr_skill_data.xml",
+  "data/ir_actions_server_data.xml",
+  "data/report_paperformat.xml",
+  "report/hr_employee_skill_report_views.xml",
+  "report/hr_employee_cv_report.xml",
+  "views/hr_department_views.xml",
+  "views/hr_employee_cv_templates.xml",
+  "wizard/hr_employee_cv_wizard_views.xml",
+  "data/hr_skill_demo.xml",
+  "data/hr_resume_demo.xml",
+  "data/hr.employee.skill.csv",
+  "data/hr.resume.line.csv"
+ ],
+ "depends": [
+  "hr"
+ ],
+ "models": {
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_skill_ids": {
+     "comodel": "hr.employee.skill",
+     "domain": [
+      [
+       "skill_type_id.active",
+       "=",
+       true
+      ]
+     ],
+     "inverse_name": "employee_id",
+     "string": "Skills",
+     "type": "One2many"
+    },
+    "resume_line_ids": {
+     "comodel": "hr.resume.line",
+     "inverse_name": "employee_id",
+     "string": "Resume lines",
+     "type": "One2many"
+    },
+    "skill_ids": {
+     "comodel": "hr.skill",
+     "compute": "_compute_skill_ids",
+     "groups": "hr.group_hr_user",
+     "store": true,
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_skill_ids.skill_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_skill_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 16,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_load_scenario"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.employee.cv.wizard": {
+   "abstract": false,
+   "description": "Print Resume",
+   "extension": false,
+   "fields": {
+    "can_show_others": {
+     "compute": "_compute_can_show_others",
+     "type": "Boolean"
+    },
+    "can_show_skills": {
+     "compute": "_compute_can_show_others",
+     "type": "Boolean"
+    },
+    "color_primary": {
+     "default": {
+      "$lambda": "self.env.company.primary_color or '#666666'"
+     },
+     "required": true,
+     "string": "Primary Color",
+     "type": "Char"
+    },
+    "color_secondary": {
+     "default": {
+      "$lambda": "self.env.company.secondary_color or '#666666'"
+     },
+     "required": true,
+     "string": "Secondary Color",
+     "type": "Char"
+    },
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "type": "Many2many"
+    },
+    "show_contact": {
+     "default": true,
+     "string": "Contact Information",
+     "type": "Boolean"
+    },
+    "show_others": {
+     "default": true,
+     "string": "Others",
+     "type": "Boolean"
+    },
+    "show_skills": {
+     "default": true,
+     "string": "Skills",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_can_show_others"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_validate"
+    }
+   ],
+   "name": "hr.employee.cv.wizard",
+   "transient": true
+  },
+  "hr.employee.public": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_skill_ids": {
+     "comodel": "hr.employee.skill",
+     "domain": [
+      [
+       "skill_type_id.active",
+       "=",
+       true
+      ]
+     ],
+     "inverse_name": "employee_id",
+     "string": "Skills",
+     "type": "One2many"
+    },
+    "resume_line_ids": {
+     "comodel": "hr.resume.line",
+     "inverse_name": "employee_id",
+     "string": "Resume lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.employee.public",
+   "transient": false
+  },
+  "hr.employee.skill": {
+   "abstract": false,
+   "description": "Skill level for an employee",
+   "extension": false,
+   "fields": {
+    "color": {
+     "related": "skill_type_id.color",
+     "type": "Integer"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "level_progress": {
+     "related": "skill_level_id.level_progress",
+     "type": "Integer"
+    },
+    "skill_id": {
+     "comodel": "hr.skill",
+     "compute": "_compute_skill_id",
+     "domain": "[('skill_type_id', '=', skill_type_id)]",
+     "ondelete": "cascade",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "skill_level_id": {
+     "comodel": "hr.skill.level",
+     "compute": "_compute_skill_level_id",
+     "domain": "[('skill_type_id', '=', skill_type_id)]",
+     "ondelete": "cascade",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "skill_type_id": {
+     "comodel": "hr.skill.type",
+     "default": {
+      "$lambda": "self.env['hr.skill.type'].search([], limit=1)"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('skill_id', 'skill_type_id')"
+     ],
+     "lines": 4,
+     "name": "_check_skill_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('skill_type_id', 'skill_level_id')"
+     ],
+     "lines": 4,
+     "name": "_check_skill_level"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('skill_type_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_skill_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('skill_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_skill_level_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('skill_id', 'skill_level_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_create_logs"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    }
+   ],
+   "name": "hr.employee.skill",
+   "order": "skill_type_id, skill_level_id",
+   "rec_name": "skill_id",
+   "sql_constraints": [
+    [
+     "_unique_skill",
+     "unique (employee_id, skill_id)",
+     "Two levels for the same skill is not allowed"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.employee.skill.log": {
+   "abstract": false,
+   "description": "Skills History",
+   "extension": false,
+   "fields": {
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "type": "Date"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "level_progress": {
+     "related": "skill_level_id.level_progress",
+     "store": true,
+     "type": "Integer"
+    },
+    "skill_id": {
+     "comodel": "hr.skill",
+     "compute": "_compute_skill_id",
+     "domain": "[('skill_type_id', '=', skill_type_id)]",
+     "ondelete": "cascade",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "skill_level_id": {
+     "comodel": "hr.skill.level",
+     "compute": "_compute_skill_level_id",
+     "domain": "[('skill_type_id', '=', skill_type_id)]",
+     "ondelete": "cascade",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "skill_type_id": {
+     "comodel": "hr.skill.type",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.employee.skill.log",
+   "order": "employee_id,date",
+   "rec_name": "skill_id",
+   "sql_constraints": [
+    [
+     "_unique_skill_log",
+     "unique (employee_id, department_id, skill_id, date)",
+     "Two levels for the same skill on the same day is not allowed"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.employee.skill.report": {
+   "abstract": false,
+   "description": "Employee Skills Report",
+   "extension": false,
+   "fields": {
+    "active": {
+     "related": "employee_id.active",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "display_name": {
+     "related": "employee_id.name",
+     "type": "Char"
+    },
+    "id": {
+     "type": "Id"
+    },
+    "level_progress": {
+     "readonly": true,
+     "type": "Float"
+    },
+    "skill_id": {
+     "comodel": "hr.skill",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "skill_level": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "skill_type_id": {
+     "comodel": "hr.skill.type",
+     "readonly": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "hr.manager.department.report"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "init"
+    }
+   ],
+   "name": "hr.employee.skill.report",
+   "order": "employee_id, level_progress desc",
+   "transient": false
+  },
+  "hr.resume.line": {
+   "abstract": false,
+   "description": "Resume line of an employee",
+   "extension": false,
+   "fields": {
+    "date_end": {
+     "type": "Date"
+    },
+    "date_start": {
+     "required": true,
+     "type": "Date"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Html"
+    },
+    "display_type": {
+     "default": "classic",
+     "selection": [
+      [
+       "classic",
+       "Classic"
+      ]
+     ],
+     "string": "Display Type",
+     "type": "Selection"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "line_type_id": {
+     "comodel": "hr.resume.line.type",
+     "string": "Type",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.resume.line",
+   "order": "line_type_id, date_end desc, date_start desc",
+   "sql_constraints": [
+    [
+     "date_check",
+     "CHECK ((date_start <= date_end OR date_end IS NULL))",
+     "The start date must be anterior to the end date."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.resume.line.type": {
+   "abstract": false,
+   "description": "Type of a resume line",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.resume.line.type",
+   "order": "sequence",
+   "transient": false
+  },
+  "hr.skill": {
+   "abstract": false,
+   "description": "Skill",
+   "extension": false,
+   "fields": {
+    "color": {
+     "related": "skill_type_id.color",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "skill_type_id": {
+     "comodel": "hr.skill.type",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('skill_type_id')",
+      "api.depends_context('from_skill_dropdown')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "hr.skill",
+   "order": "sequence, name",
+   "transient": false
+  },
+  "hr.skill.level": {
+   "abstract": false,
+   "description": "Skill Level",
+   "extension": false,
+   "fields": {
+    "default_level": {
+     "help": "If checked, this level will be the default one selected when choosing this skill.",
+     "type": "Boolean"
+    },
+    "level_progress": {
+     "help": "Progress from zero knowledge (0%) to fully mastered (100%).",
+     "string": "Progress",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "skill_type_id": {
+     "comodel": "hr.skill.type",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('level_progress')",
+      "api.depends_context('from_skill_level_dropdown')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    }
+   ],
+   "name": "hr.skill.level",
+   "order": "level_progress desc",
+   "sql_constraints": [
+    [
+     "check_level_progress",
+     "CHECK(level_progress BETWEEN 0 AND 100)",
+     "Progress should be a number between 0 and 100."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.skill.type": {
+   "abstract": false,
+   "description": "Skill Type",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "string": "Color",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "skill_ids": {
+     "comodel": "hr.skill",
+     "inverse_name": "skill_type_id",
+     "string": "Skills",
+     "type": "One2many"
+    },
+    "skill_level_ids": {
+     "comodel": "hr.skill.level",
+     "copy": true,
+     "inverse_name": "skill_type_id",
+     "string": "Levels",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    }
+   ],
+   "name": "hr.skill.type",
+   "order": "name",
+   "transient": false
+  },
+  "report.hr_skills.report_employee_cv": {
+   "abstract": true,
+   "description": "Employee Resume",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.hr_skills.report_employee_cv",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_skill_ids": {
+     "readonly": false,
+     "related": "employee_id.employee_skill_ids",
+     "type": "One2many"
+    },
+    "resume_line_ids": {
+     "readonly": false,
+     "related": "employee_id.resume_line_ids",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "SELF_WRITEABLE_FIELDS"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "resource.resource": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_skill_ids": {
+     "related": "employee_id.employee_skill_ids",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "resource.resource",
+   "transient": false
+  }
+ },
+ "module": "hr_skills",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_skills",
+ "stats": {
+  "fields": 60,
+  "methods": 24,
+  "models": 14,
+  "py_lines": 552
+ },
+ "summary": "Manage skills, knowledge and resume of your employees",
+ "title": "Skills Management",
+ "version": "1.0"
+}

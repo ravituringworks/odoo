@@ -1,0 +1,177 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/mail_templates.xml",
+  "data/mail_template_data.xml",
+  "views/payment_form_templates.xml",
+  "views/payment_provider.xml",
+  "views/res_config_settings_views.xml",
+  "views/snippets/snippets.xml",
+  "views/snippets/s_donation.xml"
+ ],
+ "depends": [
+  "website",
+  "account_payment",
+  "portal"
+ ],
+ "models": {
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_donation": {
+     "related": "payment_transaction_id.is_donation",
+     "string": "Is Donation",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.payment",
+   "transient": false
+  },
+  "payment.provider": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "website_id": {
+     "comodel": "website",
+     "ondelete": "restrict",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_get_compatible_providers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "get_base_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "copy"
+    }
+   ],
+   "name": "payment.provider",
+   "transient": false
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_donation": {
+     "string": "Is donation",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_post_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_send_donation_email"
+    }
+   ],
+   "name": "payment.transaction",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "first_provider_label": {
+     "compute": "_compute_providers_state",
+     "type": "Char"
+    },
+    "is_stripe_supported_country": {
+     "related": "company_id.country_id.is_stripe_supported_country",
+     "type": "Boolean"
+    },
+    "providers_state": {
+     "compute": "_compute_providers_state",
+     "selection": [
+      [
+       "none",
+       "None"
+      ],
+      [
+       "paypal_only",
+       "Paypal Only"
+      ],
+      [
+       "other_than_paypal",
+       "Other than Paypal"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_activated_providers"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('website_id')"
+     ],
+     "lines": 13,
+     "name": "_compute_providers_state"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_activate_stripe"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_configure_first_provider"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "website_payment",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_payment",
+ "stats": {
+  "fields": 6,
+  "methods": 9,
+  "models": 4,
+  "py_lines": 398
+ },
+ "summary": "Payment integration with website",
+ "title": "Website Payment",
+ "version": "1.0"
+}

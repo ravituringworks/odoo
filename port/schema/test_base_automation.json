@@ -1,0 +1,304 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "base_automation"
+ ],
+ "models": {
+  "base.automation.lead.test": {
+   "abstract": false,
+   "description": "Automated Rule Test",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "date_automation_last": {
+     "readonly": true,
+     "string": "Last Automation",
+     "type": "Datetime"
+    },
+    "deadline": {
+     "compute": "_compute_employee_deadline",
+     "store": true,
+     "type": "Boolean"
+    },
+    "employee": {
+     "compute": "_compute_employee_deadline",
+     "store": true,
+     "type": "Boolean"
+    },
+    "is_assigned_to_admin": {
+     "string": "Assigned to admin user",
+     "type": "Boolean"
+    },
+    "line_ids": {
+     "comodel": "base.automation.line.test",
+     "inverse_name": "lead_id",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Subject",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "priority": {
+     "type": "Boolean"
+    },
+    "stage_id": {
+     "comodel": "test_base_automation.stage",
+     "compute": "_compute_stage_id",
+     "readonly": false,
+     "store": true,
+     "string": "Stage",
+     "type": "Many2one"
+    },
+    "state": {
+     "default": "draft",
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "New"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ],
+      [
+       "open",
+       "In Progress"
+      ],
+      [
+       "pending",
+       "Pending"
+      ],
+      [
+       "done",
+       "Closed"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "tag_ids": {
+     "comodel": "test_base_automation.tag",
+     "type": "Many2many"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 8,
+     "name": "_compute_stage_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id.employee', 'priority')"
+     ],
+     "lines": 8,
+     "name": "_compute_employee_deadline"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    }
+   ],
+   "name": "base.automation.lead.test",
+   "transient": false
+  },
+  "base.automation.lead.thread.test": {
+   "abstract": false,
+   "description": "Threaded Lead Test",
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "base.automation.lead.test",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "base.automation.lead.thread.test",
+   "transient": false
+  },
+  "base.automation.line.test": {
+   "abstract": false,
+   "description": "Automated Rule Line Test",
+   "extension": false,
+   "fields": {
+    "lead_id": {
+     "comodel": "base.automation.lead.test",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "base.automation.line.test",
+   "transient": false
+  },
+  "base.automation.link.test": {
+   "abstract": false,
+   "description": "Automated Rule Link Test",
+   "extension": false,
+   "fields": {
+    "linked_id": {
+     "comodel": "base.automation.linked.test",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "base.automation.link.test",
+   "transient": false
+  },
+  "base.automation.linked.test": {
+   "abstract": false,
+   "description": "Automated Rule Linked Test",
+   "extension": false,
+   "fields": {
+    "another_field": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "base.automation.linked.test",
+   "transient": false
+  },
+  "base.automation.model.with.recname.char": {
+   "abstract": false,
+   "description": "Model with Char as _rec_name",
+   "extension": false,
+   "fields": {
+    "description": {
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "base.automation.model.with.recname.char",
+   "rec_name": "description",
+   "transient": false
+  },
+  "base.automation.model.with.recname.m2o": {
+   "abstract": false,
+   "description": "Model with Many2one as _rec_name and name_create",
+   "extension": false,
+   "fields": {
+    "user_id": {
+     "comodel": "base.automation.model.with.recname.char",
+     "string": "Responsible",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "name_create"
+    }
+   ],
+   "name": "base.automation.model.with.recname.m2o",
+   "rec_name": "user_id",
+   "transient": false
+  },
+  "base.automation.readonly.test": {
+   "abstract": false,
+   "description": "Automated Rule Read-Only Test",
+   "extension": false,
+   "fields": {
+    "date_automation_last": {
+     "readonly": true,
+     "type": "Datetime"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "tag_id": {
+     "comodel": "test_base_automation.tag",
+     "type": "Many2one"
+    },
+    "tag_name": {
+     "compute": "_compute_tag_name",
+     "store": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tag_id.name')"
+     ],
+     "lines": 3,
+     "name": "_compute_tag_name"
+    }
+   ],
+   "name": "base.automation.readonly.test",
+   "transient": false
+  }
+ },
+ "module": "test_base_automation",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/test_base_automation",
+ "stats": {
+  "fields": 27,
+  "methods": 5,
+  "models": 8,
+  "py_lines": 196
+ },
+ "summary": "Base Automation Tests: Ensure Flow Robustness",
+ "title": "Test - Base Automation",
+ "version": "1.0"
+}

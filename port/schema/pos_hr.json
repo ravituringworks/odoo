@@ -1,0 +1,492 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/pos_config.xml",
+  "views/pos_order_view.xml",
+  "views/pos_payment_view.xml",
+  "views/pos_order_report_view.xml",
+  "views/single_employee_sales_report.xml",
+  "views/multi_employee_sales_report.xml",
+  "views/res_config_settings_views.xml",
+  "wizard/pos_daily_sales_reports.xml"
+ ],
+ "depends": [
+  "point_of_sale",
+  "hr"
+ ],
+ "models": {
+  "account.bank.statement.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_id": {
+     "comodel": "hr.employee",
+     "help": "The employee who made the cash move.",
+     "string": "Employee",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.bank.statement.line",
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_load_pos_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "get_barcodes_and_pin_hashed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 12,
+     "name": "_unlink_except_active_pos_session"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "advanced_employee_ids": {
+     "comodel": "hr.employee",
+     "help": "Employees linked to users with the PoS Manager role are automatically added to this list",
+     "relation_table": "pos_hr_advanced_employee_hr_employee",
+     "string": "Employees with manager access",
+     "type": "Many2many"
+    },
+    "basic_employee_ids": {
+     "comodel": "hr.employee",
+     "help": "If left empty, all employees can log in to PoS",
+     "relation_table": "pos_hr_basic_employee_hr_employee",
+     "string": "Employees with basic access",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('basic_employee_ids')"
+     ],
+     "lines": 7,
+     "name": "_onchange_basic_employee_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('advanced_employee_ids')"
+     ],
+     "lines": 4,
+     "name": "_onchange_advanced_employee_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_employee_domain"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.daily.sales.reports.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "add_report_per_employee": {
+     "default": true,
+     "string": "Add a report per each employee",
+     "type": "Boolean"
+    },
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "compute": "_compute_employee_ids",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_report_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "get_single_report_print_action"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "get_multi_report_print_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_session_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_employee_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_session_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_pos_session_id"
+    }
+   ],
+   "name": "pos.daily.sales.reports.wizard",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "cashier": {
+     "compute": "_compute_cashier",
+     "store": true,
+     "string": "Cashier name",
+     "type": "Char"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "help": "The employee who uses the cash register.",
+     "string": "Cashier",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'user_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_cashier"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_post_chatter_message"
+    }
+   ],
+   "name": "pos.order",
+   "transient": false
+  },
+  "pos.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_id": {
+     "comodel": "hr.employee",
+     "index": true,
+     "related": "pos_order_id.employee_id",
+     "store": true,
+     "string": "Cashier",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'user_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_cashier"
+    }
+   ],
+   "name": "pos.payment",
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_id": {
+     "comodel": "hr.employee",
+     "help": "The employee who currently uses the cash register",
+     "string": "Cashier",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_load_pos_data_models"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_set_opening_control_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "post_close_register_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_message_author"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_aggregate_payments_amounts_by_employee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_aggregate_moves_by_employee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "get_closing_control_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_account_bank_statement_line_vals"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "report.pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_id": {
+     "comodel": "hr.employee",
+     "readonly": true,
+     "string": "Employee",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_group_by"
+    }
+   ],
+   "name": "report.pos.order",
+   "transient": false
+  },
+  "report.pos_hr.multi_employee_sales_report": {
+   "abstract": true,
+   "description": "A collection of single session reports. One for each employee",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.pos_hr.multi_employee_sales_report",
+   "transient": false
+  },
+  "report.pos_hr.single_employee_sales_report": {
+   "abstract": true,
+   "description": "Session sales details for a single employee",
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "report.point_of_sale.report_saledetails"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_get_sale_details_args_kwargs"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "get_sale_details"
+    }
+   ],
+   "name": "report.pos_hr.single_employee_sales_report",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_advanced_employee_ids": {
+     "help": "Employees linked to users with the PoS Manager role are automatically added to this list",
+     "readonly": false,
+     "related": "pos_config_id.advanced_employee_ids",
+     "type": "Many2many"
+    },
+    "pos_basic_employee_ids": {
+     "help": "If left empty, all employees can log in to PoS",
+     "readonly": false,
+     "related": "pos_config_id.basic_employee_ids",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_basic_employee_ids')"
+     ],
+     "lines": 7,
+     "name": "_onchange_basic_employee_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_advanced_employee_ids')"
+     ],
+     "lines": 4,
+     "name": "_onchange_advanced_employee_ids"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "pos_hr",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_hr",
+ "stats": {
+  "fields": 12,
+  "methods": 35,
+  "models": 12,
+  "py_lines": 433
+ },
+ "summary": "Link module between Point of Sale and HR",
+ "title": "POS - HR",
+ "version": null
+}

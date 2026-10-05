@@ -1,0 +1,627 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/Website",
+ "data_files": [
+  "data/crm_lead_merge_template.xml",
+  "data/crm_tag_data.xml",
+  "data/mail_template_data.xml",
+  "data/res_partner_activation_data.xml",
+  "data/res_partner_grade_data.xml",
+  "security/ir.model.access.csv",
+  "security/ir_rule.xml",
+  "wizard/crm_forward_to_partner_view.xml",
+  "views/res_partner_views.xml",
+  "views/res_partner_activation_views.xml",
+  "views/res_partner_grade_views.xml",
+  "views/crm_lead_views.xml",
+  "views/website_crm_partner_assign_templates.xml",
+  "views/partner_assign_menus.xml",
+  "report/crm_partner_report_view.xml",
+  "views/snippets.xml",
+  "data/res_partner_demo.xml",
+  "data/crm_lead_demo.xml",
+  "data/res_partner_grade_demo.xml"
+ ],
+ "depends": [
+  "base_geolocalize",
+  "crm",
+  "account",
+  "website_partner",
+  "website_google_map",
+  "portal"
+ ],
+ "models": {
+  "crm.lead": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "date_partner_assign": {
+     "compute": "_compute_date_partner_assign",
+     "copy": true,
+     "help": "Last date this case was forwarded/assigned to a partner",
+     "readonly": false,
+     "store": true,
+     "string": "Partner Assignment Date",
+     "type": "Date"
+    },
+    "partner_assigned_id": {
+     "comodel": "res.partner",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "help": "Partner this case has been forwarded/assigned to.",
+     "index": "btree_not_null",
+     "string": "Assigned Partner",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "partner_declined_ids": {
+     "column1": "lead_id",
+     "column2": "partner_id",
+     "comodel": "res.partner",
+     "relation_table": "crm_lead_declined_partner",
+     "string": "Partner not interested",
+     "type": "Many2many"
+    },
+    "partner_latitude": {
+     "digits": [
+      10,
+      7
+     ],
+     "string": "Geo Latitude",
+     "type": "Float"
+    },
+    "partner_longitude": {
+     "digits": [
+      10,
+      7
+     ],
+     "string": "Geo Longitude",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_assigned_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_date_partner_assign"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_assert_portal_write_access"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_partner_email_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_partner_phone_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_merge_get_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "assign_salesman_of_assigned_partner"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_assign_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "assign_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "assign_geo_localize"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_customer_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 72,
+     "name": "search_geo_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "partner_interested"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "partner_desinterested"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "update_lead_portal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "update_contact_details_from_portal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "create_opp_portal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_access_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_mail_message_access"
+    }
+   ],
+   "name": "crm.lead",
+   "sel_methods": {
+    "_get_access_action": [],
+    "_get_mail_message_access": [],
+    "_get_partner_email_update": [],
+    "_get_partner_phone_update": []
+   },
+   "transient": false
+  },
+  "crm.lead.assignation": {
+   "abstract": false,
+   "description": "Lead Assignation",
+   "extension": false,
+   "fields": {
+    "forward_id": {
+     "comodel": "crm.lead.forward.to.partner",
+     "string": "Partner Assignment",
+     "type": "Many2one"
+    },
+    "lead_id": {
+     "comodel": "crm.lead",
+     "string": "Lead",
+     "type": "Many2one"
+    },
+    "lead_link": {
+     "string": "Link to Lead",
+     "type": "Char"
+    },
+    "lead_location": {
+     "string": "Lead Location",
+     "type": "Char"
+    },
+    "partner_assigned_id": {
+     "comodel": "res.partner",
+     "string": "Assigned Partner",
+     "type": "Many2one"
+    },
+    "partner_location": {
+     "string": "Partner Location",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('lead_id')"
+     ],
+     "lines": 11,
+     "name": "_onchange_lead_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_assigned_id')"
+     ],
+     "lines": 11,
+     "name": "_onchange_partner_assigned_id"
+    }
+   ],
+   "name": "crm.lead.assignation",
+   "transient": true
+  },
+  "crm.lead.forward.to.partner": {
+   "abstract": false,
+   "description": "Lead forward to partner",
+   "extension": false,
+   "fields": {
+    "assignation_lines": {
+     "comodel": "crm.lead.assignation",
+     "inverse_name": "forward_id",
+     "string": "Partner Assignment",
+     "type": "One2many"
+    },
+    "body": {
+     "help": "Automatically sanitized HTML contents",
+     "string": "Contents",
+     "type": "Html"
+    },
+    "forward_type": {
+     "default": {
+      "$lambda": "self.env.context.get('forward_type') or 'single'"
+     },
+     "selection": [
+      [
+       "single",
+       "a single partner: manual selection of partner"
+      ],
+      [
+       "assigned",
+       "several partners: automatic assignment, using GPS coordinates and partner's grades"
+      ]
+     ],
+     "string": "Forward selected leads to",
+     "type": "Selection"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Forward Leads To",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_convert_to_assignation_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "default_get"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 49,
+     "name": "action_forward"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "get_lead_portal_url"
+    }
+   ],
+   "name": "crm.lead.forward.to.partner",
+   "transient": true
+  },
+  "crm.partner.report.assign": {
+   "abstract": false,
+   "description": "CRM Partnership Analysis",
+   "extension": false,
+   "fields": {
+    "activation": {
+     "comodel": "res.partner.activation",
+     "index": true,
+     "string": "Activation",
+     "type": "Many2one"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "readonly": true,
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "date": {
+     "readonly": true,
+     "string": "Invoice Account Date",
+     "type": "Date"
+    },
+    "date_partnership": {
+     "string": "Partnership Date",
+     "type": "Date"
+    },
+    "date_review": {
+     "string": "Latest Partner Review",
+     "type": "Date"
+    },
+    "grade_id": {
+     "comodel": "res.partner.grade",
+     "readonly": true,
+     "string": "Grade",
+     "type": "Many2one"
+    },
+    "nbr_opportunities": {
+     "readonly": true,
+     "string": "# of Opportunity",
+     "type": "Integer"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "required": false,
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "turnover": {
+     "readonly": true,
+     "string": "Turnover",
+     "type": "Float"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_table_query"
+    }
+   ],
+   "name": "crm.partner.report.assign",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "activation": {
+     "comodel": "res.partner.activation",
+     "index": "btree_not_null",
+     "string": "Activation",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "assigned_partner_id": {
+     "comodel": "res.partner",
+     "string": "Implemented by",
+     "type": "Many2one"
+    },
+    "date_partnership": {
+     "string": "Partnership Date",
+     "type": "Date"
+    },
+    "date_review": {
+     "string": "Latest Partner Review",
+     "type": "Date"
+    },
+    "date_review_next": {
+     "string": "Next Partner Review",
+     "type": "Date"
+    },
+    "grade_id": {
+     "comodel": "res.partner.grade",
+     "string": "Partner Level",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "grade_sequence": {
+     "readonly": true,
+     "related": "grade_id.sequence",
+     "store": true,
+     "type": "Integer"
+    },
+    "implemented_partner_count": {
+     "compute": "_compute_implemented_partner_count",
+     "store": true,
+     "type": "Integer"
+    },
+    "implemented_partner_ids": {
+     "comodel": "res.partner",
+     "inverse_name": "assigned_partner_id",
+     "string": "Implementation References",
+     "type": "One2many"
+    },
+    "partner_weight": {
+     "compute": "_compute_partner_weight",
+     "help": "This should be a numerical value greater than 0 which will decide the contention for this partner to take this lead/opportunity.",
+     "readonly": false,
+     "store": true,
+     "string": "Level Weight",
+     "tracking": true,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('implemented_partner_ids.is_published', 'implemented_partner_ids.active')"
+     ],
+     "lines": 10,
+     "name": "_compute_implemented_partner_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('grade_id.partner_weight')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_opportunity_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_view_opportunity"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.partner.activation": {
+   "abstract": false,
+   "description": "Partner Activation",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner.activation",
+   "order": "sequence",
+   "transient": false
+  },
+  "res.partner.grade": {
+   "abstract": false,
+   "description": "Partner Grade",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": {
+      "$lambda": "1"
+     },
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "name": {
+     "string": "Level Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "partner_weight": {
+     "default": 1,
+     "help": "Gives the probability to assign a lead to this partner. (0 means no assignment.)",
+     "string": "Level Weight",
+     "type": "Integer"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "website.published.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_is_published"
+    }
+   ],
+   "name": "res.partner.grade",
+   "order": "sequence",
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "get_suggested_controllers"
+    }
+   ],
+   "name": "website",
+   "transient": false
+  }
+ },
+ "module": "website_crm_partner_assign",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_crm_partner_assign",
+ "stats": {
+  "fields": 42,
+  "methods": 34,
+  "models": 8,
+  "py_lines": 1119
+ },
+ "summary": "Publish your resellers/partners and forward leads to them",
+ "title": "Resellers",
+ "version": "1.2"
+}

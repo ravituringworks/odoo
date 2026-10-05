@@ -1,0 +1,316 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/website_livechat.xml",
+  "views/res_config_settings_views.xml",
+  "views/im_livechat_chatbot_script_view.xml",
+  "views/website_livechat_view.xml",
+  "views/website_visitor_views.xml",
+  "views/im_livechat_channel_add.xml",
+  "security/ir.model.access.csv",
+  "security/website_livechat.xml",
+  "data/website_livechat_data.xml",
+  "data/website_livechat_chatbot_demo.xml"
+ ],
+ "depends": [
+  "website",
+  "im_livechat"
+ ],
+ "models": {
+  "chatbot.script": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_test_script"
+    }
+   ],
+   "name": "chatbot.script",
+   "transient": false
+  },
+  "chatbot.script.step": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_chatbot_prepare_customer_values"
+    }
+   ],
+   "name": "chatbot.script.step",
+   "transient": false
+  },
+  "discuss.channel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "livechat_visitor_id": {
+     "comodel": "website.visitor",
+     "index": "btree_not_null",
+     "string": "Visitor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "channel_pin"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_visitor_history_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_visitor_history"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_format_visitor_history"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_visitor_leave_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('mail.message', lambda value: value.id)"
+     ],
+     "lines": 11,
+     "name": "message_post"
+    }
+   ],
+   "name": "discuss.channel",
+   "transient": false
+  },
+  "im_livechat.channel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "website_description": {
+     "default": false,
+     "help": "Description of the channel displayed on the website page",
+     "string": "Website description",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    }
+   },
+   "inherit": [
+    "website.published.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_livechat_discuss_channel_vals"
+    }
+   ],
+   "name": "im_livechat.channel",
+   "transient": false
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_translation_frontend_modules_name"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "channel_id": {
+     "comodel": "im_livechat.channel",
+     "readonly": false,
+     "related": "website_id.channel_id",
+     "string": "Website Live Channel",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "channel_id": {
+     "comodel": "im_livechat.channel",
+     "string": "Website Live Chat Channel",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_livechat_channel_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_get_livechat_request_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "get_suggested_controllers"
+    }
+   ],
+   "name": "website",
+   "transient": false
+  },
+  "website.visitor": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "discuss_channel_ids": {
+     "comodel": "discuss.channel",
+     "inverse_name": "livechat_visitor_id",
+     "readonly": true,
+     "string": "Visitor's livechat channels",
+     "type": "One2many"
+    },
+    "livechat_operator_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_livechat_operator_id",
+     "index": "btree_not_null",
+     "store": true,
+     "string": "Speaking with",
+     "type": "Many2one"
+    },
+    "livechat_operator_name": {
+     "related": "livechat_operator_id.name",
+     "string": "Operator Name",
+     "type": "Char"
+    },
+    "session_count": {
+     "compute": "_compute_session_count",
+     "string": "# Sessions",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('discuss_channel_ids.livechat_active', 'discuss_channel_ids.livechat_operator_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_livechat_operator_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('discuss_channel_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_session_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 60,
+     "name": "action_send_chat_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_merge_visitor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_upsert_visitor"
+    }
+   ],
+   "name": "website.visitor",
+   "sel_methods": {
+    "_auto_init": [],
+    "_merge_visitor": []
+   },
+   "transient": false
+  }
+ },
+ "module": "website_livechat",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_livechat",
+ "stats": {
+  "fields": 8,
+  "methods": 21,
+  "models": 8,
+  "py_lines": 588
+ },
+ "summary": "Chat with your website visitors",
+ "title": "Website Live Chat",
+ "version": "1.0"
+}

@@ -1,0 +1,379 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/mail_templates.xml",
+  "views/product_views.xml",
+  "views/sale_order_views.xml",
+  "views/purchase_order_views.xml",
+  "wizards/sale_order_cancel_views.xml"
+ ],
+ "depends": [
+  "sale",
+  "purchase"
+ ],
+ "models": {
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "service_to_purchase": {
+     "copy": false,
+     "help": "If ticked, each time you sell this product through a SO, a RfQ is automatically created to buy the product. Tip: don't forget to set a vendor on the product.",
+     "string": "Subcontract Service",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('service_to_purchase', 'seller_ids', 'type')"
+     ],
+     "lines": 6,
+     "name": "_check_service_to_purchase"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_vendor_for_service_to_purchase"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('type', 'expense_policy')"
+     ],
+     "lines": 3,
+     "name": "_onchange_service_to_purchase"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_count": {
+     "compute": "_compute_sale_order_count",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Number of Source Sale",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.sale_order_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_sale_order_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_view_sale_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "button_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_sale_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_activity_cancel_on_sale"
+    }
+   ],
+   "name": "purchase.order",
+   "transient": false
+  },
+  "purchase.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_line_id": {
+     "comodel": "sale.order.line",
+     "copy": false,
+     "index": "btree_not_null",
+     "string": "Origin Sale Item",
+     "type": "Many2one"
+    },
+    "sale_order_id": {
+     "readonly": true,
+     "related": "sale_line_id.order_id",
+     "store": true,
+     "string": "Sale Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "purchase.order.line",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchase_order_count": {
+     "compute": "_compute_purchase_order_count",
+     "groups": "purchase.group_purchase_user",
+     "string": "Number of Purchase Order Generated",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.purchase_line_ids.order_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_purchase_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_view_purchase_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_purchase_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_activity_cancel_on_purchase"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.cancel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "display_purchase_orders_alert": {
+     "compute": "_compute_display_purchase_orders_alert",
+     "groups": "purchase.group_purchase_user",
+     "string": "Purchase Order Alert",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_purchase_orders_alert"
+    }
+   ],
+   "name": "sale.order.cancel",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchase_line_count": {
+     "compute": "_compute_purchase_count",
+     "string": "Number of generated purchase items",
+     "type": "Integer"
+    },
+    "purchase_line_ids": {
+     "comodel": "purchase.order.line",
+     "help": "Purchase line generated by this Sales item on order confirmation, or when the quantity was increased.",
+     "inverse_name": "sale_line_id",
+     "readonly": true,
+     "string": "Generated Purchase Lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('purchase_line_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_purchase_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_uom_qty')"
+     ],
+     "lines": 11,
+     "name": "_onchange_service_product_uom_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_purchase_decrease_ordered_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_purchase_increase_ordered_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_purchase_get_date_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_purchase_service_get_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_purchase_service_prepare_order_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_purchase_service_get_price_unit_and_taxes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_purchase_service_get_product_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_purchase_service_prepare_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_purchase_service_match_supplier"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_purchase_service_match_purchase_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_purchase_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_match_or_create_purchase_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_retrieve_purchase_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_purchase_service_create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_purchase_service_generation"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  }
+ },
+ "module": "sale_purchase",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_purchase",
+ "stats": {
+  "fields": 8,
+  "methods": 35,
+  "models": 6,
+  "py_lines": 515
+ },
+ "summary": "Sale based on service outsourcing.",
+ "title": "Sale Purchase",
+ "version": "1.0"
+}

@@ -1,0 +1,1656 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Inventory/Inventory",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/repair_security.xml",
+  "wizard/stock_warn_insufficient_qty_views.xml",
+  "views/product_views.xml",
+  "views/stock_move_views.xml",
+  "views/repair_views.xml",
+  "views/sale_order_views.xml",
+  "views/stock_lot_views.xml",
+  "views/stock_picking_views.xml",
+  "views/stock_warehouse_views.xml",
+  "report/repair_reports.xml",
+  "report/repair_templates_repair_order.xml",
+  "data/repair_data.xml",
+  "data/repair_demo.xml"
+ ],
+ "depends": [
+  "sale_stock",
+  "sale_management"
+ ],
+ "models": {
+  "mail.compose.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_send_mail"
+    }
+   ],
+   "name": "mail.compose.message",
+   "sel_methods": {
+    "_action_send_mail": []
+   },
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "product_catalog_product_is_in_repair": {
+     "compute": "_compute_product_is_in_repair",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_product_is_in_repair"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_search_product_is_in_repair"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_count_returned_sn_products_domain"
+    }
+   ],
+   "name": "product.product",
+   "sel_methods": {
+    "_count_returned_sn_products_domain": []
+   },
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "create_repair": {
+     "groups": "stock.group_stock_user",
+     "help": "Create a linked Repair Order on Sale Order confirmation of this product.",
+     "string": "Create Repair",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "copy_data"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "repair.order": {
+   "abstract": false,
+   "description": "Repair Order",
+   "extension": false,
+   "fields": {
+    "allowed_lot_ids": {
+     "comodel": "stock.lot",
+     "compute": "_compute_allowed_lot_ids",
+     "type": "One2many"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "index": true,
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "has_uncomplete_moves": {
+     "compute": "_compute_has_uncomplete_moves",
+     "type": "Boolean"
+    },
+    "internal_notes": {
+     "string": "Internal Notes",
+     "type": "Html"
+    },
+    "is_parts_available": {
+     "compute": "_compute_availability_boolean",
+     "default": false,
+     "store": true,
+     "string": "All Parts are available",
+     "type": "Boolean"
+    },
+    "is_parts_late": {
+     "compute": "_compute_availability_boolean",
+     "default": false,
+     "store": true,
+     "string": "Any Part is late",
+     "type": "Boolean"
+    },
+    "is_returned": {
+     "compute": "_compute_is_returned",
+     "help": "True if this repair is linked to a Return Order and the order is 'Done'. False otherwise.",
+     "string": "Returned",
+     "type": "Boolean"
+    },
+    "location_dest_id": {
+     "comodel": "stock.location",
+     "help": "This is the location where the repaired product is located.",
+     "index": true,
+     "readonly": true,
+     "related": "picking_type_id.default_location_dest_id",
+     "required": true,
+     "store": true,
+     "string": "Added Parts Destination Location",
+     "type": "Many2one"
+    },
+    "location_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_location_id",
+     "help": "This is the location where the components of product to repair is located.",
+     "index": true,
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Component Source Location",
+     "type": "Many2one"
+    },
+    "lot_id": {
+     "comodel": "stock.lot",
+     "compute": "compute_lot_id",
+     "domain": "[('id', 'in', allowed_lot_ids)]",
+     "help": "Products repaired are all belonging to this lot",
+     "store": true,
+     "string": "Lot/Serial",
+     "type": "Many2one"
+    },
+    "move_id": {
+     "comodel": "stock.move",
+     "copy": false,
+     "readonly": true,
+     "string": "Inventory Move",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "move_ids": {
+     "comodel": "stock.move",
+     "copy": true,
+     "domain": [
+      [
+       "repair_line_type",
+       "!=",
+       false
+      ]
+     ],
+     "inverse_name": "repair_id",
+     "string": "Parts",
+     "type": "One2many"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "_('New')"
+     },
+     "index": "trigram",
+     "readonly": true,
+     "required": true,
+     "string": "Repair Reference",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_partner_id",
+     "help": "Choose partner for whom the order will be invoiced and delivered. You can find a partner by its Name, TIN, Email or Internal Reference.",
+     "index": true,
+     "readonly": false,
+     "store": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "parts_availability": {
+     "compute": "_compute_parts_availability",
+     "help": "Latest parts availability status for this RO. If green, then the RO's readiness status is ready.",
+     "string": "Component Status",
+     "type": "Char"
+    },
+    "parts_availability_state": {
+     "compute": "_compute_parts_availability",
+     "selection": [
+      [
+       "available",
+       "Available"
+      ],
+      [
+       "expected",
+       "Expected"
+      ],
+      [
+       "late",
+       "Late"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "parts_location_id": {
+     "comodel": "stock.location",
+     "help": "This is the location where the repair parts are located.",
+     "index": true,
+     "readonly": true,
+     "related": "picking_type_id.default_remove_location_dest_id",
+     "required": true,
+     "store": true,
+     "string": "Removed Parts Destination Location",
+     "type": "Many2one"
+    },
+    "picking_id": {
+     "comodel": "stock.picking",
+     "copy": false,
+     "domain": "[('return_id', '!=', False), ('product_id', '=?', product_id)]",
+     "help": "Return Order from which the product to be repaired comes from.",
+     "string": "Return",
+     "type": "Many2one"
+    },
+    "picking_product_id": {
+     "related": "picking_id.product_id",
+     "type": "Many2one"
+    },
+    "picking_product_ids": {
+     "comodel": "product.product",
+     "compute": "_compute_picking_product_ids",
+     "type": "One2many"
+    },
+    "picking_type_id": {
+     "comodel": "stock.picking.type",
+     "compute": "_compute_picking_type_id",
+     "copy": true,
+     "default": {
+      "$ref": "_default_picking_type_id"
+     },
+     "domain": "[('code', '=', 'repair_operation'), ('company_id', '=', company_id)]",
+     "index": true,
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Operation Type",
+     "type": "Many2one"
+    },
+    "priority": {
+     "default": "0",
+     "selection": [
+      [
+       "0",
+       "Normal"
+      ],
+      [
+       "1",
+       "Urgent"
+      ]
+     ],
+     "string": "Priority",
+     "type": "Selection"
+    },
+    "procurement_group_id": {
+     "comodel": "procurement.group",
+     "copy": false,
+     "string": "Procurement Group",
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": "[('type', '=', 'consu'), '|', ('company_id', '=', company_id), ('company_id', '=', False), '|', ('id', 'in', picking_product_ids), ('id', '=?', picking_product_id)]",
+     "string": "Product to Repair",
+     "type": "Many2one"
+    },
+    "product_location_dest_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_product_location_dest_id",
+     "help": "This is the location where the repaired product is located.",
+     "index": true,
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Product Destination Location",
+     "type": "Many2one"
+    },
+    "product_location_src_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_product_location_src_id",
+     "help": "This is the location where the product to repair is located.",
+     "index": true,
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Product Source Location",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "compute": "_compute_product_qty",
+     "default": 1.0,
+     "digits": "Product Unit of Measure",
+     "readonly": false,
+     "store": true,
+     "string": "Product Quantity",
+     "type": "Float"
+    },
+    "product_uom": {
+     "comodel": "uom.uom",
+     "compute": "compute_product_uom",
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "store": true,
+     "string": "Product Unit of Measure",
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "recycle_location_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_recycle_location_id",
+     "help": "This is the location where the repair parts are located.",
+     "index": true,
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Recycled Parts Destination Location",
+     "type": "Many2one"
+    },
+    "repair_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "repair_request": {
+     "help": "Sale Order Line Description.",
+     "related": "sale_order_line_id.name",
+     "string": "Repair Request",
+     "type": "Text"
+    },
+    "reserve_visible": {
+     "compute": "_compute_unreserve_visible",
+     "help": "Technical field to check when we can reserve quantities",
+     "string": "Allowed to Reserve Production",
+     "type": "Boolean"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "copy": false,
+     "help": "Sale Order from which the Repair Order comes from.",
+     "readonly": true,
+     "string": "Sale Order",
+     "type": "Many2one"
+    },
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "copy": false,
+     "help": "Sale Order Line from which the Repair Order comes from.",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "schedule_date": {
+     "copy": false,
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "index": true,
+     "required": true,
+     "string": "Scheduled Date",
+     "type": "Datetime"
+    },
+    "search_date_category": {
+     "readonly": true,
+     "selection": [
+      [
+       "before",
+       "Before"
+      ],
+      [
+       "yesterday",
+       "Yesterday"
+      ],
+      [
+       "today",
+       "Today"
+      ],
+      [
+       "day_1",
+       "Tomorrow"
+      ],
+      [
+       "day_2",
+       "The day after tomorrow"
+      ],
+      [
+       "after",
+       "After"
+      ]
+     ],
+     "store": false,
+     "string": "Date Category",
+     "type": "Selection"
+    },
+    "state": {
+     "copy": false,
+     "default": "draft",
+     "help": "* The 'New' status is used when a user is encoding a new and unconfirmed repair order.\n* The 'Confirmed' status is used when a user confirms the repair order.\n* The 'Under Repair' status is used when the repair is ongoing.\n* The 'Repaired' status is set when repairing is completed.\n* The 'Cancelled' status is used when user cancel repair order.",
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "New"
+      ],
+      [
+       "confirmed",
+       "Confirmed"
+      ],
+      [
+       "under_repair",
+       "Under Repair"
+      ],
+      [
+       "done",
+       "Repaired"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "tag_ids": {
+     "comodel": "repair.tags",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "tracking": {
+     "readonly": false,
+     "related": "product_id.tracking",
+     "string": "Product Tracking",
+     "type": "Selection"
+    },
+    "under_warranty": {
+     "help": "If ticked, the sales price will be set to 0 for all products transferred from the repair order.",
+     "string": "Under Warranty",
+     "type": "Boolean"
+    },
+    "unreserve_visible": {
+     "compute": "_compute_unreserve_visible",
+     "help": "Technical field to check when we can unreserve",
+     "string": "Allowed to Unreserve Production",
+     "type": "Boolean"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "string": "Responsible",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread",
+    "product.catalog.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_default_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'picking_id', 'lot_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_product_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_picking_product_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'company_id', 'picking_id', 'picking_id.move_ids', 'picking_id.move_ids.lot_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_allowed_lot_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_id.uom_id.category_id', 'product_uom.category_id')"
+     ],
+     "lines": 6,
+     "name": "compute_product_uom"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'lot_id', 'lot_id.product_id', 'picking_id')"
+     ],
+     "lines": 6,
+     "name": "compute_lot_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_location_src_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_location_dest_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_recycle_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'schedule_date', 'move_ids', 'move_ids.forecast_availability', 'move_ids.forecast_expected_date')"
+     ],
+     "lines": 31,
+     "name": "_compute_parts_availability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parts_availability_state')"
+     ],
+     "lines": 9,
+     "name": "_compute_availability_boolean"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_id', 'picking_id.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_returned"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids.quantity', 'move_ids.product_uom_qty', 'move_ids.product_uom.rounding')"
+     ],
+     "lines": 3,
+     "name": "_compute_has_uncomplete_moves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids', 'state', 'move_ids.product_uom_qty')"
+     ],
+     "lines": 10,
+     "name": "_compute_unreserve_visible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_date_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_uom')"
+     ],
+     "lines": 7,
+     "name": "onchange_product_uom"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('location_id', 'picking_id')"
+     ],
+     "lines": 7,
+     "name": "_onchange_location_picking"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 13,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_confirmed"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_assign"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 31,
+     "name": "action_create_sale_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_repair_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_repair_cancel_draft"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 77,
+     "name": "action_repair_done"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_repair_end"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_repair_start"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_unreserve"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 39,
+     "name": "action_validate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_view_sale_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "print_repair_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_action_repair_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_get_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_sale_order_line_price"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_add_from_catalog"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_order_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_product_catalog_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_product_catalog_order_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_product_price_and_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_product_catalog_record_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_update_order_line_info"
+    }
+   ],
+   "name": "repair.order",
+   "order": "priority desc, create_date desc",
+   "transient": false
+  },
+  "repair.tags": {
+   "abstract": false,
+   "description": "Repair Tags",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Tag Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    }
+   ],
+   "name": "repair.tags",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "repair_count": {
+     "compute": "_compute_repair_count",
+     "groups": "stock.group_stock_user",
+     "string": "Repair Order(s)",
+     "type": "Integer"
+    },
+    "repair_order_ids": {
+     "comodel": "repair.order",
+     "groups": "stock.group_stock_user",
+     "inverse_name": "sale_order_id",
+     "string": "Repair Order",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('repair_order_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_repair_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_show_repair"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_qty_delivered"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_launch_stock_rule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_create_repair_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_cancel_repair_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "has_valued_move_ids"
+    }
+   ],
+   "name": "sale.order.line",
+   "sel_methods": {
+    "_action_launch_stock_rule": [],
+    "_compute_qty_delivered": []
+   },
+   "transient": false
+  },
+  "stock.forecasted_product_product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_reservation_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_product_sale_domain"
+    }
+   ],
+   "name": "stock.forecasted_product_product",
+   "sel_methods": {
+    "_get_reservation_data": []
+   },
+   "transient": false
+  },
+  "stock.lot": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "in_repair_count": {
+     "compute": "_compute_in_repair_count",
+     "string": "In repair count",
+     "type": "Integer"
+    },
+    "repair_line_ids": {
+     "comodel": "repair.order",
+     "compute": "_compute_repair_line_ids",
+     "string": "Repair Orders",
+     "type": "Many2many"
+    },
+    "repair_part_count": {
+     "compute": "_compute_repair_line_ids",
+     "string": "Repair part count",
+     "type": "Integer"
+    },
+    "repaired_count": {
+     "compute": "_compute_repaired_count",
+     "string": "Repaired count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 13,
+     "name": "_compute_repair_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_in_repair_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_repaired_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_lot_open_repairs"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_view_ro"
+    }
+   ],
+   "name": "stock.lot",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "repair_id": {
+     "comodel": "repair.order",
+     "copy": false,
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "repair_line_type": {
+     "index": true,
+     "selection": [
+      [
+       "add",
+       "Add"
+      ],
+      [
+       "remove",
+       "Remove"
+      ],
+      [
+       "recycle",
+       "Recycle"
+      ]
+     ],
+     "store": true,
+     "string": "Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('repair_line_type')"
+     ],
+     "lines": 6,
+     "name": "_compute_forecast_information"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('repair_id.picking_type_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('repair_id.location_id', 'repair_line_type')"
+     ],
+     "lines": 10,
+     "name": "_compute_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('repair_id.location_dest_id', 'repair_line_type')"
+     ],
+     "lines": 10,
+     "name": "_compute_location_dest_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_if_draft_or_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 25,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_add_from_catalog_repair"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_prepare_repair_so_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_create_repair_sale_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_clean_repair_sale_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_update_repair_sale_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_consuming"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_repair_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_source_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_set_repair_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_should_be_assigned"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_split"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_show_details"
+    }
+   ],
+   "name": "stock.move",
+   "sel_methods": {
+    "_action_cancel": [],
+    "_compute_forecast_information": [],
+    "_compute_location_dest_id": [],
+    "_compute_location_id": [],
+    "_compute_picking_type_id": [],
+    "_should_be_assigned": [],
+    "_split": [],
+    "_unlink_if_draft_or_cancel": []
+   },
+   "transient": false
+  },
+  "stock.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_show_lot_in_invoice"
+    }
+   ],
+   "name": "stock.move.line",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_repairable": {
+     "compute": "_compute_is_repairable",
+     "type": "Boolean"
+    },
+    "nbr_repairs": {
+     "compute": "_compute_nbr_repairs",
+     "string": "Number of repairs linked to this picking",
+     "type": "Integer"
+    },
+    "repair_ids": {
+     "comodel": "repair.order",
+     "inverse_name": "picking_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id.is_repairable', 'return_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_repairable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('repair_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_nbr_repairs"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_repair_return"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_view_repairs"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "get_action_click_graph"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.picking.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "code": {
+     "ondelete": {
+      "repair_operation": "cascade"
+     },
+     "selection_add": [
+      [
+       "repair_operation",
+       "Repair"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "count_repair_confirmed": {
+     "compute": "_compute_count_repair",
+     "string": "Number of Repair Orders Confirmed",
+     "type": "Integer"
+    },
+    "count_repair_late": {
+     "compute": "_compute_count_repair",
+     "string": "Number of Late Repair Orders",
+     "type": "Integer"
+    },
+    "count_repair_ready": {
+     "compute": "_compute_count_repair",
+     "string": "Number of Repair Orders to Process",
+     "type": "Integer"
+    },
+    "count_repair_under_repair": {
+     "compute": "_compute_count_repair",
+     "string": "Number of Repair Orders Under Repair",
+     "type": "Integer"
+    },
+    "default_product_location_dest_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_default_product_location_id",
+     "help": "This is the default destination location for the product to be repaired in repair orders with this operation type.",
+     "readonly": false,
+     "store": true,
+     "string": "Product Destination Location",
+     "type": "Many2one"
+    },
+    "default_product_location_src_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_default_product_location_id",
+     "help": "This is the default source location for the product to be repaired in repair orders with this operation type.",
+     "readonly": false,
+     "store": true,
+     "string": "Product Source Location",
+     "type": "Many2one"
+    },
+    "default_recycle_location_dest_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_default_recycle_location_dest_id",
+     "help": "This is the default recycle destination location when you create a repair order with this operation type.",
+     "readonly": false,
+     "store": true,
+     "string": "Recycle Destination Location",
+     "type": "Many2one"
+    },
+    "default_remove_location_dest_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_default_remove_location_dest_id",
+     "help": "This is the default remove destination location when you create a repair order with this operation type.",
+     "readonly": false,
+     "store": true,
+     "string": "Remove Destination Location",
+     "type": "Many2one"
+    },
+    "is_repairable": {
+     "compute": "_compute_is_repairable",
+     "default": false,
+     "help": "If ticked, you will be able to directly create repair orders from a return.",
+     "readonly": false,
+     "store": true,
+     "string": "Create Repair Orders from Returns",
+     "type": "Boolean"
+    },
+    "repair_properties_definition": {
+     "string": "Repair Properties",
+     "type": "PropertiesDefinition"
+    },
+    "return_type_of_ids": {
+     "comodel": "stock.picking.type",
+     "inverse_name": "return_picking_type_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_compute_count_repair"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('return_type_of_ids', 'code')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_repairable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_default_location_src_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_default_location_dest_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 6,
+     "name": "_compute_default_product_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 12,
+     "name": "_compute_default_remove_location_dest_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 5,
+     "name": "_compute_default_recycle_location_dest_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_repair_stock_picking_action_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_aggregated_records_by_date"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_repair_overview"
+    }
+   ],
+   "name": "stock.picking.type",
+   "transient": false
+  },
+  "stock.traceability.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_reference"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_linked_move_lines"
+    }
+   ],
+   "name": "stock.traceability.report",
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "repair_mto_pull_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Repair MTO Rule",
+     "type": "Many2one"
+    },
+    "repair_type_id": {
+     "comodel": "stock.picking.type",
+     "copy": false,
+     "string": "Repair Operation Type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_sequence_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_picking_type_create_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_picking_type_update_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_production_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_create_missing_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_generate_global_route_rules_values"
+    }
+   ],
+   "name": "stock.warehouse",
+   "transient": false
+  },
+  "stock.warn.insufficient.qty.repair": {
+   "abstract": false,
+   "description": "Warn Insufficient Repair Quantity",
+   "extension": false,
+   "fields": {
+    "repair_id": {
+     "comodel": "repair.order",
+     "string": "Repair",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "stock.warn.insufficient.qty"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_reference_document_company_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_done"
+    }
+   ],
+   "name": "stock.warn.insufficient.qty.repair",
+   "transient": true
+  }
+ },
+ "module": "repair",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/repair",
+ "stats": {
+  "fields": 73,
+  "methods": 118,
+  "models": 16,
+  "py_lines": 1736
+ },
+ "summary": "Repair damaged products",
+ "title": "Repairs",
+ "version": "1.0"
+}

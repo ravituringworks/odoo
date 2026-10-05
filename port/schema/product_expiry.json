@@ -1,0 +1,489 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Inventory",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/stock_security.xml",
+  "views/production_lot_views.xml",
+  "views/product_template_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/stock_move_views.xml",
+  "views/stock_quant_views.xml",
+  "wizard/confirm_expiry_view.xml",
+  "report/report_deliveryslip.xml",
+  "report/report_lot_barcode.xml",
+  "data/product_expiry_data.xml",
+  "data/mail_activity_type_data.xml"
+ ],
+ "depends": [
+  "stock"
+ ],
+ "models": {
+  "expiry.picking.confirmation": {
+   "abstract": false,
+   "description": "Confirm Expiry",
+   "extension": false,
+   "fields": {
+    "description": {
+     "compute": "_compute_descriptive_fields",
+     "string": "Description",
+     "type": "Char"
+    },
+    "lot_ids": {
+     "comodel": "stock.lot",
+     "readonly": true,
+     "required": true,
+     "type": "Many2many"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "readonly": true,
+     "type": "Many2many"
+    },
+    "show_lots": {
+     "compute": "_compute_descriptive_fields",
+     "string": "Show Lots",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lot_ids')"
+     ],
+     "lines": 17,
+     "name": "_compute_descriptive_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "process_no_expired"
+    }
+   ],
+   "name": "expiry.picking.confirmation",
+   "transient": true
+  },
+  "procurement.group": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_run_scheduler_tasks"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_scheduler_tasks_to_do"
+    }
+   ],
+   "name": "procurement.group",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_open_quants"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "alert_time": {
+     "help": "Number of days before the Expiration Date after which an alert should be raised on the lot/serial number. It will be computed on the lot/serial number.",
+     "string": "Alert Date",
+     "type": "Integer"
+    },
+    "expiration_time": {
+     "help": "Number of days after the receipt of the products (from the vendor or in stock after production) after which the goods may become dangerous and must not be consumed. It will be computed on the lot/serial number.",
+     "string": "Expiration Date",
+     "type": "Integer"
+    },
+    "removal_time": {
+     "help": "Number of days before the Expiration Date after which the goods should be removed from the stock. It will be computed on the lot/serial number.",
+     "string": "Removal Date",
+     "type": "Integer"
+    },
+    "use_expiration_date": {
+     "help": "When this box is ticked, you have the possibility to specify dates to manage product expiration, on the product and on the corresponding lot/serial numbers",
+     "string": "Use Expiration Date",
+     "type": "Boolean"
+    },
+    "use_time": {
+     "help": "Number of days before the Expiration Date after which the goods starts deteriorating, without being dangerous yet. It will be computed on the lot/serial number.",
+     "string": "Best Before Date",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "group_expiry_date_on_delivery_slip": {
+     "string": "Display Expiration Dates on Delivery Slips",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('group_lot_on_delivery_slip')"
+     ],
+     "lines": 3,
+     "name": "_onchange_group_lot_on_delivery_slip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('group_stock_production_lot')"
+     ],
+     "lines": 4,
+     "name": "_onchange_group_stock_production_lot"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('module_product_expiry')"
+     ],
+     "lines": 3,
+     "name": "_onchange_module_product_expiry"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "stock.lot": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "alert_date": {
+     "compute": "_compute_dates",
+     "help": "Date to determine the expired lots and serial numbers using the filter \"Expiration Alerts\".",
+     "readonly": false,
+     "store": true,
+     "string": "Alert Date",
+     "type": "Datetime"
+    },
+    "expiration_date": {
+     "compute": "_compute_expiration_date",
+     "help": "This is the date on which the goods with this Serial Number may become dangerous and must not be consumed.",
+     "readonly": false,
+     "store": true,
+     "string": "Expiration Date",
+     "type": "Datetime"
+    },
+    "product_expiry_alert": {
+     "compute": "_compute_product_expiry_alert",
+     "help": "The Expiration Date has been reached.",
+     "type": "Boolean"
+    },
+    "product_expiry_reminded": {
+     "string": "Expiry has been reminded",
+     "type": "Boolean"
+    },
+    "removal_date": {
+     "compute": "_compute_dates",
+     "help": "This is the date on which the goods with this Serial Number should be removed from the stock. This date will be used in FEFO removal strategy.",
+     "readonly": false,
+     "store": true,
+     "string": "Removal Date",
+     "type": "Datetime"
+    },
+    "use_date": {
+     "compute": "_compute_dates",
+     "help": "This is the date on which the goods with this Serial Number start deteriorating, without being dangerous yet.",
+     "readonly": false,
+     "store": true,
+     "string": "Best before Date",
+     "type": "Datetime"
+    },
+    "use_expiration_date": {
+     "related": "product_id.use_expiration_date",
+     "string": "Use Expiration Date",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expiration_date')"
+     ],
+     "lines": 7,
+     "name": "_compute_product_expiry_alert"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_expiration_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'expiration_date')"
+     ],
+     "lines": 21,
+     "name": "_compute_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_alert_date_exceeded"
+    }
+   ],
+   "name": "stock.lot",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "use_expiration_date": {
+     "related": "product_id.use_expiration_date",
+     "string": "Use Expiration Date",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "action_generate_lot_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_generate_serial_move_line_commands"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_convert_string_into_field_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_formating_options"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_update_reserved_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_available_quantity"
+    }
+   ],
+   "name": "stock.move",
+   "sel_methods": {
+    "_get_available_quantity": [],
+    "_update_reserved_quantity": []
+   },
+   "transient": false
+  },
+  "stock.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expiration_date": {
+     "compute": "_compute_expiration_date",
+     "help": "This is the date on which the goods with this Serial Number may become dangerous and must not be consumed.",
+     "store": true,
+     "string": "Expiration Date",
+     "type": "Datetime"
+    },
+    "is_expired": {
+     "related": "lot_id.product_expiry_alert",
+     "type": "Boolean"
+    },
+    "use_expiration_date": {
+     "related": "product_id.use_expiration_date",
+     "string": "Use Expiration Date",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'lot_id.expiration_date', 'picking_id.scheduled_date', 'quant_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_expiration_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id', 'product_uom_id', 'picking_id')"
+     ],
+     "lines": 9,
+     "name": "_onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_new_lot_vals"
+    }
+   ],
+   "name": "stock.move.line",
+   "sel_methods": {
+    "_auto_init": []
+   },
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_pre_action_done_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_expired_lots"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_action_generate_expired_wizard"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.quant": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expiration_date": {
+     "related": "lot_id.expiration_date",
+     "store": true,
+     "type": "Datetime"
+    },
+    "removal_date": {
+     "related": "lot_id.removal_date",
+     "store": true,
+     "type": "Datetime"
+    },
+    "use_expiration_date": {
+     "related": "product_id.use_expiration_date",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_gs1_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_removal_strategy_order"
+    }
+   ],
+   "name": "stock.quant",
+   "sel_methods": {
+    "_get_removal_strategy_order": []
+   },
+   "transient": false
+  }
+ },
+ "module": "product_expiry",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/product_expiry",
+ "stats": {
+  "fields": 24,
+  "methods": 28,
+  "models": 10,
+  "py_lines": 488
+ },
+ "summary": "Track different dates on products and production lots.",
+ "title": "Products Expiration Date",
+ "version": null
+}

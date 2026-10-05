@@ -1,0 +1,469 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources/Employees",
+ "data_files": [
+  "security/hr_work_entry_security.xml",
+  "security/ir.model.access.csv",
+  "data/hr_work_entry_data.xml",
+  "views/hr_work_entry_views.xml",
+  "views/hr_employee_views.xml",
+  "views/resource_calendar_views.xml"
+ ],
+ "depends": [
+  "hr"
+ ],
+ "models": {
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_work_entries": {
+     "compute": "_compute_has_work_entries",
+     "groups": "base.group_system,hr.group_hr_user",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_has_work_entries"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_work_entries"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.user.work.entry.employee": {
+   "abstract": false,
+   "description": "Work Entries Employees",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "required": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Me",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.user.work.entry.employee",
+   "sql_constraints": [
+    [
+     "user_id_employee_id_unique",
+     "UNIQUE(user_id,employee_id)",
+     "You cannot have the same employee twice."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.work.entry": {
+   "abstract": false,
+   "description": "HR Work Entry",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "code": {
+     "related": "work_entry_type_id.code",
+     "type": "Char"
+    },
+    "color": {
+     "readonly": true,
+     "related": "work_entry_type_id.color",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "conflict": {
+     "compute": "_compute_conflict",
+     "store": true,
+     "string": "Conflicts",
+     "type": "Boolean"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "related": "employee_id.company_id.country_id",
+     "type": "Many2one"
+    },
+    "date_start": {
+     "required": true,
+     "string": "From",
+     "type": "Datetime"
+    },
+    "date_stop": {
+     "compute": "_compute_date_stop",
+     "readonly": false,
+     "store": true,
+     "string": "To",
+     "type": "Datetime"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "related": "employee_id.department_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "duration": {
+     "compute": "_compute_duration",
+     "readonly": false,
+     "store": true,
+     "string": "Duration",
+     "type": "Float"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "index": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "external_code": {
+     "related": "work_entry_type_id.external_code",
+     "type": "Char"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Char"
+    },
+    "state": {
+     "default": "draft",
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "validated",
+       "Validated"
+      ],
+      [
+       "conflict",
+       "Conflict"
+      ],
+      [
+       "cancelled",
+       "Cancelled"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "work_entry_type_id": {
+     "comodel": "hr.work.entry.type",
+     "default": {
+      "$lambda": "self.env['hr.work.entry.type'].search([], limit=1)"
+     },
+     "domain": "['|', ('country_id', '=', False), ('country_id', '=', country_id)]",
+     "index": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('work_entry_type_id', 'employee_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 3,
+     "name": "_compute_conflict"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_stop', 'date_start')"
+     ],
+     "lines": 4,
+     "name": "_compute_duration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_start', 'duration')"
+     ],
+     "lines": 3,
+     "name": "_compute_date_stop"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_duration_batch"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_validate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_if_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_mark_conflicting_work_entries"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 12,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_validated_work_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_reset_conflicting_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_error_checking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_country_id"
+    }
+   ],
+   "name": "hr.work.entry",
+   "order": "conflict desc,state,date_start",
+   "sql_constraints": [
+    [
+     "_work_entry_has_end",
+     "check (date_stop IS NOT NULL)",
+     "Work entry must end. Please define an end date or a duration."
+    ],
+    [
+     "_work_entry_start_before_end",
+     "check (date_stop > date_start)",
+     "Starting time should be before end time."
+    ],
+    [
+     "_work_entries_no_validated_conflict",
+     "\n                EXCLUDE USING GIST (\n                    tsrange(date_start, date_stop, '()') WITH &&,\n                    int4range(employee_id, employee_id, '[]') WITH =\n                )\n                WHERE (state = 'validated' AND active = TRUE)\n            ",
+     "Validated work entries cannot overlap"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.work.entry.type": {
+   "abstract": false,
+   "description": "HR Work Entry Type",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If the active field is set to false, it will allow you to hide the work entry type without removing it.",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "code": {
+     "help": "Careful, the Code is used in many references, changing it could lead to unwanted changes.",
+     "required": true,
+     "string": "Payroll Code",
+     "type": "Char"
+    },
+    "color": {
+     "default": 0,
+     "type": "Integer"
+    },
+    "country_code": {
+     "related": "country_id.code",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "external_code": {
+     "help": "Use this code to export your data to a third party",
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 25,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('country_id')"
+     ],
+     "lines": 5,
+     "name": "_check_work_entry_type_country"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('code', 'country_id')"
+     ],
+     "lines": 12,
+     "name": "_check_code_unicity"
+    }
+   ],
+   "name": "hr.work.entry.type",
+   "transient": false
+  },
+  "resource.calendar.attendance": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "work_entry_type_id": {
+     "comodel": "hr.work.entry.type",
+     "default": {
+      "$ref": "_default_work_entry_type_id"
+     },
+     "groups": "hr.group_hr_user",
+     "string": "Work Entry Type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_work_entry_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_copy_attendance_vals"
+    }
+   ],
+   "name": "resource.calendar.attendance",
+   "transient": false
+  },
+  "resource.calendar.leaves": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "work_entry_type_id": {
+     "comodel": "hr.work.entry.type",
+     "groups": "hr.group_hr_user",
+     "string": "Work Entry Type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_copy_leave_vals"
+    }
+   ],
+   "name": "resource.calendar.leaves",
+   "transient": false
+  }
+ },
+ "module": "hr_work_entry",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_work_entry",
+ "stats": {
+  "fields": 29,
+  "methods": 23,
+  "models": 6,
+  "py_lines": 379
+ },
+ "summary": "Manage work entries",
+ "title": "Work Entries",
+ "version": null
+}

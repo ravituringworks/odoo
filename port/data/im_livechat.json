@@ -1,0 +1,3028 @@
+{
+ "module": "im_livechat",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "module_category_im_livechat",
+   "values": {
+    "name": "Live Chat",
+    "sequence": 20
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "im_livechat_group_user",
+   "values": {
+    "name": "User",
+    "category_id": {
+     "$ref": "base.module_category_website_live_chat"
+    },
+    "comment": "The user will be able to join support channels."
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "im_livechat_group_manager",
+   "values": {
+    "name": "Administrator",
+    "comment": "The user will be able to delete support channels.",
+    "category_id": {
+     "$ref": "base.module_category_website_live_chat"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "im_livechat.im_livechat_group_user"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "mail.group_mail_canned_response_admin"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_discuss_channel_group_im_livechat_group_manager",
+   "values": {
+    "name": "discuss.channel: livechat manager can read all livechat channels",
+    "model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "im_livechat_group_manager"
+      }
+     ]
+    ],
+    "domain_force": "[('channel_type', '=', 'livechat')]",
+    "perm_create": false,
+    "perm_write": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_discuss_channel_member_group_im_livechat_group_manager",
+   "values": {
+    "name": "discuss.channel.member: livechat manager can read all livechat channel members and can invite anyone",
+    "model_id": {
+     "$ref": "mail.model_discuss_channel_member"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "im_livechat_group_manager"
+      }
+     ]
+    ],
+    "domain_force": "[('channel_id.channel_type', '=', 'livechat')]",
+    "perm_write": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "im_livechat.im_livechat_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "im_livechat.channel",
+   "id": "im_livechat_channel_data",
+   "values": {
+    "name": "YourWebsite.com",
+    "default_message": "Hello, how may I help you?"
+   }
+  },
+  {
+   "model": "chatbot.script",
+   "id": "chatbot_script_welcome_bot",
+   "values": {
+    "title": "Welcome Bot",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_welcome",
+   "values": {
+    "message": "Welcome to CompanyName! \ud83d\udc4b",
+    "sequence": "1",
+    "step_type": "text",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    }
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_dispatch",
+   "values": {
+    "message": "What are you looking for?",
+    "sequence": "2",
+    "step_type": "question_selection",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    }
+   }
+  },
+  {
+   "model": "chatbot.script.answer",
+   "id": "chatbot_script_welcome_step_dispatch_answer_pricing",
+   "values": {
+    "name": "I have a pricing question",
+    "sequence": "1",
+    "script_step_id": {
+     "$ref": "chatbot_script_welcome_step_dispatch"
+    }
+   }
+  },
+  {
+   "model": "chatbot.script.answer",
+   "id": "chatbot_script_welcome_step_dispatch_answer_documentation",
+   "values": {
+    "name": "I am looking for your documentation",
+    "redirect_link": "/",
+    "sequence": "2",
+    "script_step_id": {
+     "$ref": "chatbot_script_welcome_step_dispatch"
+    }
+   }
+  },
+  {
+   "model": "chatbot.script.answer",
+   "id": "chatbot_script_welcome_step_dispatch_answer_just_looking",
+   "values": {
+    "name": "I am just looking around",
+    "sequence": "3",
+    "script_step_id": {
+     "$ref": "chatbot_script_welcome_step_dispatch"
+    }
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_pricing",
+   "values": {
+    "message": "Hmmm, let me check if I can find someone that could help you with that...",
+    "sequence": "3",
+    "step_type": "text",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    },
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "chatbot_script_welcome_step_dispatch_answer_pricing"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_pricing_forward_operator",
+   "values": {
+    "sequence": "4",
+    "step_type": "forward_operator",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    },
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "chatbot_script_welcome_step_dispatch_answer_pricing"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_pricing_noone_available",
+   "values": {
+    "message": "Hu-ho, it looks like none of our operators are available \ud83d\ude41",
+    "sequence": "5",
+    "step_type": "text",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    },
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "chatbot_script_welcome_step_dispatch_answer_pricing"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_pricing_email",
+   "values": {
+    "message": "Would you mind leaving your email address so that we can reach you back?",
+    "sequence": "6",
+    "step_type": "question_email",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    },
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "chatbot_script_welcome_step_dispatch_answer_pricing"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_documentation_redirect",
+   "values": {
+    "message": "And tadaaaa here you go! \ud83c\udf1f",
+    "sequence": "7",
+    "step_type": "text",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    },
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "chatbot_script_welcome_step_dispatch_answer_documentation"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_documentation_exit",
+   "values": {
+    "message": "If you need anything else, feel free to get back in touch",
+    "sequence": "8",
+    "step_type": "text",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    },
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "chatbot_script_welcome_step_dispatch_answer_documentation"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "chatbot.script.step",
+   "id": "chatbot_script_welcome_step_just_looking",
+   "values": {
+    "message": "Please do! If there is anything we can help with, let us know",
+    "sequence": "9",
+    "step_type": "text",
+    "chatbot_script_id": {
+     "$ref": "chatbot_script_welcome_bot"
+    },
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "chatbot_script_welcome_step_dispatch_answer_just_looking"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "digest.digest",
+   "id": "digest.digest_digest_default",
+   "values": {
+    "kpi_livechat_rating": "True",
+    "kpi_livechat_conversations": "True",
+    "kpi_livechat_response": "True"
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_im_livechat_0",
+   "values": {
+    "name": "Tip: Use canned responses to chat faster",
+    "sequence": "2900",
+    "group_id": {
+     "$ref": "im_livechat.im_livechat_group_manager"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "chatbot_script_action",
+   "values": {
+    "name": "Chatbot",
+    "res_model": "chatbot.script",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "rating_rating_action_livechat",
+   "values": {
+    "name": "Ratings for livechat channel",
+    "res_model": "rating.rating",
+    "view_mode": "kanban,list,graph,pivot,form",
+    "domain": [
+     [
+      "parent_res_model",
+      "=",
+      "im_livechat.channel"
+     ],
+     [
+      "consumed",
+      "=",
+      true
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "rating_rating_view_search_livechat"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    },
+    "context": {
+     "search_default_rating_last_7_days": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_livechat_view_kanban",
+   "values": {
+    "sequence": 1,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "rating_rating_action_livechat"
+    },
+    "view_id": {
+     "$ref": "im_livechat.rating_rating_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_livechat_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "rating_rating_action_livechat"
+    },
+    "view_id": {
+     "$ref": "im_livechat.rating_rating_view_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_livechat_view_form",
+   "values": {
+    "sequence": "5",
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "rating_rating_action_livechat"
+    },
+    "view_id": {
+     "$ref": "rating.rating_rating_view_form_text"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "rating_rating_action_livechat_report",
+   "values": {
+    "name": "Customer Ratings",
+    "res_model": "rating.rating",
+    "view_mode": "kanban,list,pivot,graph,form",
+    "domain": [
+     [
+      "parent_res_model",
+      "=",
+      "im_livechat.channel"
+     ],
+     [
+      "consumed",
+      "=",
+      true
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "rating_rating_view_search_livechat"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_livechat_report_view_kanban",
+   "values": {
+    "sequence": "1",
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "rating_rating_action_livechat_report"
+    },
+    "view_id": {
+     "$ref": "rating.rating_rating_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_livechat_report_view_form",
+   "values": {
+    "sequence": "5",
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "rating_rating_action_livechat_report"
+    },
+    "view_id": {
+     "$ref": "rating.rating_rating_view_form_text"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "discuss_channel_action",
+   "values": {
+    "name": "History",
+    "res_model": "discuss.channel",
+    "view_mode": "kanban,list,form",
+    "search_view_id": {
+     "$ref": "im_livechat.discuss_channel_view_search"
+    },
+    "domain": [
+     [
+      "livechat_channel_id",
+      "!=",
+      null
+     ]
+    ],
+    "context": {
+     "search_default_session_not_empty": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "discuss_channel_action_kanban",
+   "values": {
+    "sequence": "1",
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_kanban"
+    },
+    "act_window_id": {
+     "$ref": "im_livechat.discuss_channel_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "discuss_channel_action_tree",
+   "values": {
+    "sequence": "2",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_tree"
+    },
+    "act_window_id": {
+     "$ref": "im_livechat.discuss_channel_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "discuss_channel_action_form",
+   "values": {
+    "sequence": "3",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_form"
+    },
+    "act_window_id": {
+     "$ref": "im_livechat.discuss_channel_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "discuss_channel_action_from_livechat_channel",
+   "values": {
+    "name": "Sessions",
+    "res_model": "discuss.channel",
+    "view_mode": "kanban,list,form",
+    "domain": {
+     "$unevaluated": "[('livechat_channel_id', 'in', [active_id])]"
+    },
+    "context": {
+     "$unevaluated": "{\n                'search_default_livechat_channel_id': [active_id],\n                'default_livechat_channel_id': active_id,\n            }"
+    },
+    "search_view_id": {
+     "$ref": "discuss_channel_view_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "discuss_channel_action_livechat_kanban",
+   "values": {
+    "sequence": "1",
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_kanban"
+    },
+    "act_window_id": {
+     "$ref": "im_livechat.discuss_channel_action_from_livechat_channel"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "discuss_channel_action_livechat_tree",
+   "values": {
+    "sequence": "2",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_tree"
+    },
+    "act_window_id": {
+     "$ref": "im_livechat.discuss_channel_action_from_livechat_channel"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "discuss_channel_action_livechat_form",
+   "values": {
+    "sequence": "3",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_form"
+    },
+    "act_window_id": {
+     "$ref": "im_livechat.discuss_channel_action_from_livechat_channel"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "im_livechat_channel_action",
+   "values": {
+    "name": "Website Live Chat Channels",
+    "path": "livechat",
+    "res_model": "im_livechat.channel",
+    "view_mode": "kanban,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "im_livechat_report_channel_action",
+   "values": {
+    "name": "Session Statistics",
+    "res_model": "im_livechat.report.channel",
+    "view_mode": "graph,pivot",
+    "context": {
+     "search_default_last_week": 1,
+     "group_by": "start_date:day"
+    },
+    "help": "Livechat Support Channel Statistics allows you to easily check and analyse your company livechat session performance. Extract information about the missed sessions, the audience, the duration of a session, etc."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "im_livechat_report_channel_time_to_answer_action",
+   "values": {
+    "name": "Session Statistics",
+    "res_model": "im_livechat.report.channel",
+    "view_mode": "graph,pivot",
+    "context": {
+     "graph_measure": "time_to_answer",
+     "search_default_last_week": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "im_livechat_report_operator_action",
+   "values": {
+    "name": "Operator Analysis",
+    "res_model": "im_livechat.report.operator",
+    "view_mode": "graph,pivot",
+    "context": {
+     "search_default_last_month": 1
+    },
+    "help": "Livechat Support Channel Statistics allows you to easily check and analyse your company livechat session performance. Extract information about the missed sessions, the audience, the duration of a session, etc."
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "im_livechat.im_livechat_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "im_livechat.channel.rule",
+   "id": "im_livechat_channel_rule_demo",
+   "values": {
+    "regex_url": "/im_livechat/",
+    "action": "auto_popup",
+    "auto_popup_timer": "3",
+    "channel_id": {
+     "$ref": "im_livechat_channel_data"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "im_livechat.im_livechat_group_user",
+   "values": {
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "im_livechat.channel",
+   "id": "im_livechat_channel_data",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_1",
+   "values": {
+    "channel_type": "livechat",
+    "livechat_channel_id": {
+     "$ref": "im_livechat_channel_data"
+    },
+    "livechat_operator_id": {
+     "$ref": "base.partner_admin"
+    },
+    "name": "Visitor #234, Mitchell Admin",
+    "anonymous_name": "Visitor #234"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_1_member_admin",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "mail.guest",
+   "id": "im_livechat.livechat_channel_session_1_guest",
+   "values": {
+    "name": "Visitor #234"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_1_member_guest",
+   "values": {
+    "guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_1_guest"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_1_message_1",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    },
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Hello, how may I help you?",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-0, minutes=1)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_1_message_2",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_1_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "body": "I'm looking for an application to record my timesheet, any tips?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-0, minutes=2)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_1_message_3",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Yes, you can use our Timesheets application to record your time efficiently!",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-0, minutes=3)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_1_message_4",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_1_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "body": "Great! Thanks for the info",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-0, minutes=4)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_1_message_5",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    },
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "You're welcome, have a nice day!",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-0, minutes=5)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_1_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_1_guest"
+    },
+    "author_id": "",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-0, minutes=5, seconds=25)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_1_rating",
+   "values": {
+    "access_token": "LIVECHAT_1",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_1"
+    },
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "message_id": {
+     "$ref": "livechat_channel_session_1_rating_message"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": false,
+    "consumed": true
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_2",
+   "values": {
+    "channel_type": "livechat",
+    "livechat_channel_id": {
+     "$ref": "im_livechat_channel_data"
+    },
+    "livechat_operator_id": {
+     "$ref": "base.partner_demo"
+    },
+    "name": "Visitor #323, Marc Demo",
+    "anonymous_name": "Visitor #323"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_2_member_demo",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "mail.guest",
+   "id": "im_livechat.livechat_channel_session_2_guest",
+   "values": {
+    "name": "Visitor #323"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_2_member_guest",
+   "values": {
+    "guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_2_guest"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_2_message_1",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-1, minutes=6)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_2_message_2",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_2_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "body": "I was wondering if Odoo has an application to easily manage social media for my business..",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-1, minutes=7)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_2_message_3",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "Yes, we just released a new application called Social Marketing that should fit your needs! Check it out :)",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-1, minutes=8)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_2_message_4",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_2_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "body": "Awesome, thanks!",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-1, minutes=9)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_2_message_5",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "You're welcome, enjoy Odoo!",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-1, minutes=10)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_2_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_2_guest"
+    },
+    "author_id": "",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-1, minutes=11)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_2_rating",
+   "values": {
+    "access_token": "LIVECHAT_2",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_2"
+    },
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "message_id": {
+     "$ref": "im_livechat.livechat_channel_session_2_rating_message"
+    },
+    "partner_id": false,
+    "consumed": true
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_3",
+   "values": {
+    "channel_type": "livechat",
+    "livechat_channel_id": {
+     "$ref": "im_livechat_channel_data"
+    },
+    "livechat_operator_id": {
+     "$ref": "base.partner_admin"
+    },
+    "name": "Joel Willis, Mitchell Admin",
+    "anonymous_name": "Joel Willis"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_3_member_admin",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_3"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_3_member_portal",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_3"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_3_message_1",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_3"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-2, minutes=11)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_3_message_2",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_3"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "body": "Hello, are you single?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-2, minutes=12)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_3_message_3",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_3"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Nope, sorry to disappoint :(",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-2, minutes=13)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_3_message_4",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_3"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "body": "Oh :(",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-2, minutes=14)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_3_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_3"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1, days=-2, minutes=15)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_3_rating",
+   "values": {
+    "access_token": "LIVECHAT_3",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_3"
+    },
+    "message_id": {
+     "$ref": "im_livechat.livechat_channel_session_3_rating_message"
+    },
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "consumed": true
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_4",
+   "values": {
+    "channel_type": "livechat",
+    "livechat_channel_id": {
+     "$ref": "im_livechat_channel_data"
+    },
+    "livechat_operator_id": {
+     "$ref": "base.partner_demo"
+    },
+    "name": "Joel Willis, Marc Demo",
+    "anonymous_name": "Joel Willis"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_4_member_demo",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_4"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_4_member_portal",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_4"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_4_message_1",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_4"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "body": "Hello, I'm looking for a software that can be easily updated with my needs.",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-3, minutes=15)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_4_message_2",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_4"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "Hello Joel Willis, you're at the right place! You can customize Odoo using our Studio application in just a few clicks.",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-3, minutes=16)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_4_message_3",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_4"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "body": "Thanks for the info, I'll look into it!",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-3, minutes=17)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_4_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_4"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-3, minutes=20)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_4_rating",
+   "values": {
+    "access_token": "LIVECHAT_4",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_4"
+    },
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "message_id": {
+     "$ref": "im_livechat.livechat_channel_session_4_rating_message"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "consumed": true
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_5",
+   "values": {
+    "channel_type": "livechat",
+    "livechat_channel_id": {
+     "$ref": "im_livechat_channel_data"
+    },
+    "livechat_operator_id": {
+     "$ref": "base.partner_admin"
+    },
+    "name": "Visitor #532, Mitchell Admin",
+    "anonymous_name": "Visitor #532"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_5_member_admin",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_5"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "mail.guest",
+   "id": "im_livechat.livechat_channel_session_5_guest",
+   "values": {
+    "name": "Visitor #532"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_5_member_guest",
+   "values": {
+    "guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_5_guest"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_5"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_5_message_1",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_5"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-4, minutes=18)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_5_message_2",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_5"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_5_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "body": "Hello, it seems that I can't log in to my database. Can you help?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-4, minutes=19)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_5_message_3",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_5"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Hi, if you need help with your database, feel free to contact our support via http://www.odoo.com/help",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-4, minutes=20)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_5_message_4",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_5"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_5_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "body": "Ok.. Will do, thanks",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-4, minutes=21)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_5_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_5"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_5_guest"
+    },
+    "author_id": "",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-2, days=-4, minutes=33)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_5_rating",
+   "values": {
+    "access_token": "LIVECHAT_5",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_5"
+    },
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "message_id": {
+     "$ref": "im_livechat.livechat_channel_session_5_rating_message"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": false,
+    "consumed": true
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_6",
+   "values": {
+    "channel_type": "livechat",
+    "livechat_channel_id": {
+     "$ref": "im_livechat_channel_data"
+    },
+    "livechat_operator_id": {
+     "$ref": "base.partner_admin"
+    },
+    "name": "Visitor #649, Mitchell Admin",
+    "anonymous_name": "Visitor #649"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_6_member_admin",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_6"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "mail.guest",
+   "id": "im_livechat.livechat_channel_session_6_guest",
+   "values": {
+    "name": "Visitor #649"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_6_member_guest",
+   "values": {
+    "guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_6_guest"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_6"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_6_message_1",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_6"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-5, minutes=22)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_6_message_2",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_6"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_6_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "body": "Hello, I'm a bit lost in the Invetory module, is there some documentation I could find?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-5, minutes=23)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_6_message_3",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_6"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Yes, of course, you can find it here: https://www.odoo.com/documentation/master/",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-5, minutes=24)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_6_message_4",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_6"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_6_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "body": "Thanks!",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-5, minutes=25)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_6_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_6"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_6_guest"
+    },
+    "author_id": "",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-5, minutes=35)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_6_rating",
+   "values": {
+    "access_token": "LIVECHAT_6",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_6"
+    },
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "message_id": {
+     "$ref": "livechat_channel_session_6_rating_message"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": false,
+    "consumed": true
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_7",
+   "values": {
+    "channel_type": "livechat",
+    "livechat_channel_id": {
+     "$ref": "im_livechat_channel_data"
+    },
+    "livechat_operator_id": {
+     "$ref": "base.partner_admin"
+    },
+    "name": "Joel Willis, Mitchell Admin",
+    "anonymous_name": "Joel Willis"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_7_member_admin",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_7"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_7_member_portal",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_7"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_7_message_1",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_7"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-6, minutes=26)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_7_message_2",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_7"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "body": "Hi, I need a software to easily manage my stock, and generate sales orders.",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-6, minutes=27)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_7_message_3",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_7"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": "Joel Willis, you'll need our Inventory and Sales application to do so. You can try them for 15 days, FOR FREE :)",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-6, minutes=28)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_7_message_4",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_7"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "body": "Good to hear, thanks!",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-6, minutes=29)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_7_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_7"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-6, minutes=50)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_7_rating",
+   "values": {
+    "access_token": "LIVECHAT_7",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_7"
+    },
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "message_id": {
+     "$ref": "im_livechat.livechat_channel_session_7_rating_message"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "consumed": true
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_8",
+   "values": {
+    "channel_type": "livechat",
+    "livechat_channel_id": {
+     "$ref": "im_livechat_channel_data"
+    },
+    "livechat_operator_id": {
+     "$ref": "base.partner_demo"
+    },
+    "name": "Visitor #722, Marc Demo",
+    "anonymous_name": "Visitor #722"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_8_member_demo",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_8"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "mail.guest",
+   "id": "im_livechat.livechat_channel_session_8_guest",
+   "values": {
+    "name": "Visitor #722"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_8_member_guest",
+   "values": {
+    "guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_8_guest"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_8"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_8_message_1",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_8"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-7, minutes=30)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_8_message_2",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_8"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_8_guest"
+    },
+    "author_id": "",
+    "body": "Heeeey Marc, how are you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-7, minutes=31)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_8_message_3",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_8"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "I'm fine, and you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-7, minutes=32)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_8_message_4",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_8"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_8_guest"
+    },
+    "author_id": "",
+    "body": "I'm great, thanks for asking!",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-7, minutes=33)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_8_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_8"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_8_guest"
+    },
+    "author_id": "",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-3, days=-7, minutes=52)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_8_rating",
+   "values": {
+    "access_token": "LIVECHAT_8",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_8"
+    },
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "message_id": {
+     "$ref": "livechat_channel_session_8_rating_message"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "partner_id": false,
+    "consumed": true
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_9",
+   "values": {
+    "name": "Visitor, Mitchell Admin",
+    "livechat_operator_id": {
+     "$ref": "base.partner_admin"
+    },
+    "livechat_channel_id": {
+     "$ref": "im_livechat.im_livechat_channel_data"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "channel_type": "livechat",
+    "anonymous_name": "Visitor"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_9_member_admin",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "mail.guest",
+   "id": "im_livechat.livechat_channel_session_9_guest",
+   "values": {
+    "name": "Visitor"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_9_member_guest",
+   "values": {
+    "guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_9_guest"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_9_message_1",
+   "values": {
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_9_guest"
+    },
+    "author_id": "",
+    "record_name": "Visitor",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "body": "Hi",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_9_message_2",
+   "values": {
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-15)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-15)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-15)"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_9_message_3",
+   "values": {
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_9_guest"
+    },
+    "author_id": "",
+    "record_name": "Visitor",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-25)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-25)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-25)"
+    },
+    "body": "I would like to know more about the CRM application",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_9_message_4",
+   "values": {
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-33)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-33)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-33)"
+    },
+    "body": "The CRM application helps you to track leads, close opportunities and get accurate forecasts. You can test it for free on our website.",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_9_message_5",
+   "values": {
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_9_guest"
+    },
+    "author_id": "",
+    "record_name": "Visitor",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-42)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-42)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-42)"
+    },
+    "body": "Great, thanks!",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_9_message_6",
+   "values": {
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_9_guest"
+    },
+    "author_id": "",
+    "record_name": "Visitor",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-53)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-53)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-53)"
+    },
+    "body": "Rating: :-)",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_9_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_9_guest"
+    },
+    "author_id": "",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-60)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_9_rating",
+   "values": {
+    "access_token": "LIVECHAT_9",
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "message_id": {
+     "$ref": "im_livechat.livechat_channel_session_9_rating_message"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-53)"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_9"
+    }
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_10",
+   "values": {
+    "name": "Visitor, Mitchell Admin",
+    "livechat_operator_id": {
+     "$ref": "base.partner_admin"
+    },
+    "livechat_channel_id": {
+     "$ref": "im_livechat.im_livechat_channel_data"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "channel_type": "livechat",
+    "anonymous_name": "Visitor",
+    "country_id": {
+     "$ref": "base.be"
+    }
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_10_member_admin",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_10"
+    },
+    "unpin_dt": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "last_interest_dt": {
+     "$unevaluated": "DateTime.today() + relativedelta(months=-1)"
+    }
+   }
+  },
+  {
+   "model": "mail.guest",
+   "id": "im_livechat.livechat_channel_session_10_guest",
+   "values": {
+    "name": "Visitor"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_10_member_guest",
+   "values": {
+    "guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_10_guest"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_10"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_10_message_1",
+   "values": {
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_10_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "record_name": "Visitor",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "body": "Hi",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_10"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_10_message_2",
+   "values": {
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-15)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-15)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-15)"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_10"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_10_message_3",
+   "values": {
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_10_guest"
+    },
+    "author_id": "",
+    "email_from": "Visitor",
+    "record_name": "Visitor",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-25)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-25)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-25)"
+    },
+    "body": "I would like to know more about the discuss application",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_10"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_10_rating_message",
+   "values": {
+    "model": "discuss.channel",
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_10"
+    },
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_10_guest"
+    },
+    "author_id": "",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "message_type": "notification",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-60)"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "livechat_channel_session_10_rating",
+   "values": {
+    "access_token": "LIVECHAT_10",
+    "res_model_id": {
+     "$ref": "mail.model_discuss_channel"
+    },
+    "message_id": {
+     "$ref": "im_livechat.livechat_channel_session_10_rating_message"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, seconds=-53)"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_10"
+    }
+   }
+  },
+  {
+   "model": "discuss.channel",
+   "id": "livechat_channel_session_11",
+   "values": {
+    "name": "Visitor, Mitchell Admin",
+    "livechat_operator_id": {
+     "$ref": "base.partner_admin"
+    },
+    "livechat_channel_id": {
+     "$ref": "im_livechat.im_livechat_channel_data"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now()"
+    },
+    "channel_type": "livechat",
+    "anonymous_name": "Visitor",
+    "country_id": {
+     "$ref": "base.us"
+    }
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_11_member_admin",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_11"
+    }
+   }
+  },
+  {
+   "model": "mail.guest",
+   "id": "im_livechat.livechat_channel_session_11_guest",
+   "values": {
+    "name": "Visitor"
+   }
+  },
+  {
+   "model": "discuss.channel.member",
+   "id": "im_livechat.livechat_channel_session_11_member_guest",
+   "values": {
+    "guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_11_guest"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.livechat_channel_session_11"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_11_message_1",
+   "values": {
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_11_guest"
+    },
+    "author_id": "",
+    "record_name": "Visitor",
+    "date": {
+     "$unevaluated": "datetime.now()"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now()"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now()"
+    },
+    "body": "Hi",
+    "email_from": "Visitor",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_11"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_11_message_2",
+   "values": {
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(seconds=-15)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(seconds=-15)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(seconds=-15)"
+    },
+    "body": "Hello, how may I help you?",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_11"
+    },
+    "model": "discuss.channel"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "livechat_channel_session_11_message_3",
+   "values": {
+    "author_guest_id": {
+     "$ref": "im_livechat.livechat_channel_session_11_guest"
+    },
+    "author_id": "",
+    "record_name": "Visitor",
+    "date": {
+     "$unevaluated": "datetime.now() - timedelta(seconds=-25)"
+    },
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(seconds=-25)"
+    },
+    "write_date": {
+     "$unevaluated": "datetime.now() - timedelta(seconds=-25)"
+    },
+    "email_from": "Visitor",
+    "body": "I would like to know more about the Discuss application",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "res_id": {
+     "$ref": "im_livechat.livechat_channel_session_11"
+    },
+    "model": "discuss.channel"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_livechat_root",
+   "name": "Live Chat",
+   "sequence": "240",
+   "groups": "im_livechat_group_user",
+   "web_icon": "im_livechat,static/description/icon.png"
+  },
+  {
+   "id": "support_channels",
+   "name": "Channels",
+   "parent": "menu_livechat_root",
+   "action": "im_livechat_channel_action",
+   "sequence": "5",
+   "groups": "im_livechat_group_user"
+  },
+  {
+   "id": "menu_reporting_livechat",
+   "name": "Report",
+   "parent": "menu_livechat_root",
+   "sequence": "50",
+   "groups": "im_livechat_group_manager"
+  },
+  {
+   "id": "session_history",
+   "name": "Sessions History",
+   "parent": "menu_reporting_livechat",
+   "action": "discuss_channel_action",
+   "sequence": "5",
+   "groups": "im_livechat_group_user"
+  },
+  {
+   "id": "rating_rating_menu_livechat",
+   "name": "Customer Ratings",
+   "parent": "menu_reporting_livechat",
+   "action": "rating_rating_action_livechat_report",
+   "sequence": "40"
+  },
+  {
+   "id": "livechat_config",
+   "name": "Configuration",
+   "parent": "menu_livechat_root",
+   "sequence": "55"
+  },
+  {
+   "id": "canned_responses",
+   "name": "Canned Responses",
+   "parent": "livechat_config",
+   "action": "mail.mail_canned_response_action",
+   "sequence": "15",
+   "groups": "im_livechat_group_user"
+  },
+  {
+   "id": "chatbot_config",
+   "name": "Chatbots",
+   "parent": "livechat_config",
+   "action": "chatbot_script_action",
+   "sequence": "20",
+   "groups": "im_livechat_group_user"
+  },
+  {
+   "id": "menu_reporting_livechat_channel",
+   "name": "Session Statistics",
+   "parent": "menu_reporting_livechat",
+   "action": "im_livechat_report_channel_action",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_reporting_livechat_operator",
+   "name": "Operator Analysis",
+   "parent": "menu_reporting_livechat",
+   "action": "im_livechat_report_operator_action",
+   "sequence": "10"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_livechat_channel_public",
+   "model": "im.livechat.channel",
+   "model_xmlid": "model_im_livechat_channel",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_portal",
+   "model": "im.livechat.channel",
+   "model_xmlid": "model_im_livechat_channel",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_employee",
+   "model": "im.livechat.channel",
+   "model_xmlid": "model_im_livechat_channel",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_user",
+   "model": "im.livechat.channel",
+   "model_xmlid": "model_im_livechat_channel",
+   "group": "im_livechat_group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_manager",
+   "model": "im.livechat.channel",
+   "model_xmlid": "model_im_livechat_channel",
+   "group": "im_livechat_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_livechat_support_report_channel",
+   "model": "im.livechat.report.channel",
+   "model_xmlid": "model_im_livechat_report_channel",
+   "group": "im_livechat_group_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_support_report_operator",
+   "model": "im.livechat.report.operator",
+   "model_xmlid": "model_im_livechat_report_operator",
+   "group": "im_livechat_group_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_rule_public",
+   "model": "im.livechat.channel.rule",
+   "model_xmlid": "model_im_livechat_channel_rule",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_rule_portal",
+   "model": "im.livechat.channel.rule",
+   "model_xmlid": "model_im_livechat_channel_rule",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_rule_employee",
+   "model": "im.livechat.channel.rule",
+   "model_xmlid": "model_im_livechat_channel_rule",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_rule_user",
+   "model": "im.livechat.channel.rule",
+   "model_xmlid": "model_im_livechat_channel_rule",
+   "group": "im_livechat_group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_livechat_channel_rule_manager",
+   "model": "im.livechat.channel.rule",
+   "model_xmlid": "model_im_livechat_channel_rule",
+   "group": "im_livechat_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_chatbot_script_user",
+   "model": "chatbot.script",
+   "model_xmlid": "model_chatbot_script",
+   "group": "im_livechat_group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_chatbot_script_step_user",
+   "model": "chatbot.script.step",
+   "model_xmlid": "model_chatbot_script_step",
+   "group": "im_livechat_group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_chatbot_script_answer",
+   "model": "chatbot.script.answer",
+   "model_xmlid": "model_chatbot_script_answer",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_chatbot_script_answer_user",
+   "model": "chatbot.script.answer",
+   "model_xmlid": "model_chatbot_script_answer",
+   "group": "im_livechat_group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_chatbot_message_user",
+   "model": "chatbot.message",
+   "model_xmlid": "model_chatbot_message",
+   "group": "im_livechat_group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

@@ -1,0 +1,170 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "views/account_move_views.xml",
+  "views/account_tax_views.xml",
+  "views/l10n_ke_item_code_views.xml",
+  "data/l10n_ke.item.code.csv",
+  "data/account_tax_report_data.xml",
+  "data/account_wh_tax_report_data.xml",
+  "security/ir.model.access.csv",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "account"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_ke_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_ke_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ke_wh_certificate_date": {
+     "string": "Date of Certificate",
+     "type": "Date"
+    },
+    "l10n_ke_wh_certificate_number": {
+     "help": "Customer withholding certificate number",
+     "string": "Withholding Certificate Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ke_item_code_id": {
+     "comodel": "l10n_ke.item.code",
+     "help": "KRA code that describes a tax rate or exemption on specific products or services.",
+     "string": "KRA Item Code",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('amount')"
+     ],
+     "lines": 5,
+     "name": "_onchange_l10n_ke_item_code_id"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_ke.item.code": {
+   "abstract": false,
+   "description": "KRA defined codes that justify a given tax rate / exemption",
+   "extension": false,
+   "fields": {
+    "code": {
+     "string": "KRA Item Code",
+     "type": "Char"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Char"
+    },
+    "tax_rate": {
+     "selection": [
+      [
+       "C",
+       "Zero Rated"
+      ],
+      [
+       "E",
+       "Exempted"
+      ],
+      [
+       "B",
+       "Taxable at 8%"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code', 'description')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "l10n_ke.item.code",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ke_oscu_is_active": {
+     "compute": "_compute_l10n_ke_oscu_is_active",
+     "help": "Whether this company is set up for OSCU flows.",
+     "string": "Is OSCU active?",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_l10n_ke_oscu_is_active"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "l10n_ke",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_ke",
+ "stats": {
+  "fields": 7,
+  "methods": 5,
+  "models": 5,
+  "py_lines": 120
+ },
+ "summary": "This provides a base chart of accounts and taxes template for use in Odoo.",
+ "title": "Kenya - Accounting",
+ "version": "1.0"
+}

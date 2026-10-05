@@ -1,0 +1,1888 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/ir_actions_server_data.xml",
+  "data/onboarding_data.xml",
+  "data/payment_method_data.xml",
+  "data/payment_provider_data.xml",
+  "data/payment_cron.xml",
+  "views/express_checkout_templates.xml",
+  "views/payment_form_templates.xml",
+  "views/portal_templates.xml",
+  "views/payment_provider_views.xml",
+  "views/payment_method_views.xml",
+  "views/payment_transaction_views.xml",
+  "views/payment_token_views.xml",
+  "views/res_partner_views.xml",
+  "security/ir.model.access.csv",
+  "security/payment_security.xml",
+  "wizards/payment_capture_wizard_views.xml",
+  "wizards/payment_link_wizard_views.xml",
+  "wizards/payment_onboarding_views.xml"
+ ],
+ "depends": [
+  "onboarding",
+  "portal"
+ ],
+ "models": {
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_translation_frontend_modules_name"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "onboarding.onboarding.step": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "action_validate_step_payment_provider"
+    }
+   ],
+   "name": "onboarding.onboarding.step",
+   "transient": false
+  },
+  "payment.capture.wizard": {
+   "abstract": false,
+   "description": "Payment Capture Wizard",
+   "extension": false,
+   "fields": {
+    "amount_to_capture": {
+     "compute": "_compute_amount_to_capture",
+     "readonly": false,
+     "store": true,
+     "type": "Monetary"
+    },
+    "authorized_amount": {
+     "compute": "_compute_authorized_amount",
+     "string": "Authorized Amount",
+     "type": "Monetary"
+    },
+    "available_amount": {
+     "compute": "_compute_available_amount",
+     "string": "Maximum Capture Allowed",
+     "type": "Monetary"
+    },
+    "captured_amount": {
+     "compute": "_compute_captured_amount",
+     "string": "Already Captured",
+     "type": "Monetary"
+    },
+    "currency_id": {
+     "related": "transaction_ids.currency_id",
+     "type": "Many2one"
+    },
+    "has_draft_children": {
+     "compute": "_compute_has_draft_children",
+     "type": "Boolean"
+    },
+    "has_remaining_amount": {
+     "compute": "_compute_has_remaining_amount",
+     "type": "Boolean"
+    },
+    "is_amount_to_capture_valid": {
+     "compute": "_compute_is_amount_to_capture_valid",
+     "type": "Boolean"
+    },
+    "support_partial_capture": {
+     "compute": "_compute_support_partial_capture",
+     "help": "Whether each of the transactions' provider supports the partial capture.",
+     "type": "Boolean"
+    },
+    "transaction_ids": {
+     "comodel": "payment.transaction",
+     "default": {
+      "$lambda": "self.env.context.get('active_ids')"
+     },
+     "readonly": true,
+     "type": "Many2many"
+    },
+    "void_remaining_amount": {
+     "type": "Boolean"
+    },
+    "voided_amount": {
+     "compute": "_compute_voided_amount",
+     "string": "Already Voided",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_authorized_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 11,
+     "name": "_compute_captured_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_voided_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('authorized_amount', 'captured_amount', 'voided_amount')"
+     ],
+     "lines": 5,
+     "name": "_compute_available_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('available_amount')"
+     ],
+     "lines": 4,
+     "name": "_compute_amount_to_capture"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount_to_capture', 'available_amount')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_amount_to_capture_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_support_partial_capture"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_has_draft_children"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('available_amount', 'amount_to_capture')"
+     ],
+     "lines": 5,
+     "name": "_compute_has_remaining_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('amount_to_capture')"
+     ],
+     "lines": 16,
+     "name": "_check_amount_to_capture_within_boundaries"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 24,
+     "name": "action_capture"
+    }
+   ],
+   "name": "payment.capture.wizard",
+   "transient": true
+  },
+  "payment.link.wizard": {
+   "abstract": false,
+   "description": "Generate Payment Link",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "currency_field": "currency_id",
+     "required": true,
+     "type": "Monetary"
+    },
+    "amount_max": {
+     "currency_field": "currency_id",
+     "type": "Monetary"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "type": "Many2one"
+    },
+    "link": {
+     "compute": "_compute_link",
+     "string": "Payment Link",
+     "type": "Char"
+    },
+    "partner_email": {
+     "related": "partner_id.email",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "type": "Many2one"
+    },
+    "res_id": {
+     "required": true,
+     "string": "Related Document ID",
+     "type": "Integer"
+    },
+    "res_model": {
+     "required": true,
+     "string": "Related Document Model",
+     "type": "Char"
+    },
+    "warning_message": {
+     "compute": "_compute_warning_message",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount', 'amount_max')"
+     ],
+     "lines": 9,
+     "name": "_compute_warning_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount', 'currency_id', 'partner_id', 'company_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_query_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_prepare_anchor"
+    }
+   ],
+   "name": "payment.link.wizard",
+   "transient": true
+  },
+  "payment.method": {
+   "abstract": false,
+   "description": "Payment Method",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "brand_ids": {
+     "comodel": "payment.method",
+     "help": "The brands of the payment methods that will be displayed on the payment form.",
+     "inverse_name": "primary_payment_method_id",
+     "string": "Brands",
+     "type": "One2many"
+    },
+    "code": {
+     "help": "The technical code of this payment method.",
+     "required": true,
+     "string": "Code",
+     "type": "Char"
+    },
+    "image": {
+     "help": "The base image used for this payment method; in a 64x64 px format.",
+     "required": true,
+     "string": "Image",
+     "type": "Image"
+    },
+    "image_payment_form": {
+     "related": "image",
+     "store": true,
+     "string": "The resized image displayed on the payment form.",
+     "type": "Image"
+    },
+    "is_primary": {
+     "compute": "_compute_is_primary",
+     "string": "Is Primary Payment Method",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "primary_payment_method_id": {
+     "comodel": "payment.method",
+     "help": "The primary payment method of the current payment method, if the latter is a brand.\nFor example, \"Card\" is the primary payment method of the card brand \"VISA\".",
+     "string": "Primary Payment Method",
+     "type": "Many2one"
+    },
+    "provider_ids": {
+     "comodel": "payment.provider",
+     "help": "The list of providers supporting this payment method.",
+     "string": "Providers",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "support_express_checkout": {
+     "help": "Express checkout allows customers to pay faster by using a payment method that provides all required billing and shipping information, thus allowing to skip the checkout process.",
+     "string": "Express Checkout",
+     "type": "Boolean"
+    },
+    "support_refund": {
+     "default": "none",
+     "help": "Refund is a feature allowing to refund customers directly from the payment in Odoo.",
+     "required": true,
+     "selection": [
+      [
+       "none",
+       "Unsupported"
+      ],
+      [
+       "full_only",
+       "Full Only"
+      ],
+      [
+       "partial",
+       "Full & Partial"
+      ]
+     ],
+     "string": "Refund",
+     "type": "Selection"
+    },
+    "support_tokenization": {
+     "help": "Tokenization is the process of saving the payment details as a token that can later be reused without having to enter the payment details again.",
+     "string": "Tokenization",
+     "type": "Boolean"
+    },
+    "supported_country_ids": {
+     "comodel": "res.country",
+     "help": "The list of countries in which this payment method can be used (if the provider allows it). In other countries, this payment method is not available to customers.",
+     "string": "Countries",
+     "type": "Many2many"
+    },
+    "supported_currency_ids": {
+     "comodel": "res.currency",
+     "help": "The list of currencies for that are supported by this payment method (if the provider allows it). When paying with another currency, this payment method is not available to customers.",
+     "string": "Currencies",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_is_primary"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_is_primary"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('active', 'provider_ids', 'support_tokenization')"
+     ],
+     "lines": 31,
+     "name": "_onchange_warn_before_disabling_tokens"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('provider_ids')"
+     ],
+     "lines": 20,
+     "name": "_onchange_provider_ids_warn_before_attaching_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_if_not_default_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 96,
+     "name": "_get_compatible_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_from_code"
+    }
+   ],
+   "name": "payment.method",
+   "order": "active desc, sequence, name",
+   "transient": false
+  },
+  "payment.provider": {
+   "abstract": false,
+   "description": "Payment Provider",
+   "extension": false,
+   "fields": {
+    "allow_express_checkout": {
+     "help": "This controls whether customers can use express payment methods. Express checkout enables customers to pay with Google Pay and Apple Pay from which address information is collected at payment.",
+     "string": "Allow Express Checkout",
+     "type": "Boolean"
+    },
+    "allow_tokenization": {
+     "help": "This controls whether customers can save their payment methods as payment tokens.\nA payment token is an anonymous link to the payment method details saved in the\nprovider's database, allowing the customer to reuse it for a next purchase.",
+     "string": "Allow Saving Payment Methods",
+     "type": "Boolean"
+    },
+    "auth_msg": {
+     "default": {
+      "$lambda": "_('Your payment has been authorized.')"
+     },
+     "help": "The message displayed if payment is authorized",
+     "string": "Authorize Message",
+     "translate": true,
+     "type": "Html"
+    },
+    "available_country_ids": {
+     "column1": "payment_id",
+     "column2": "country_id",
+     "comodel": "res.country",
+     "help": "The countries in which this payment provider is available. Leave blank to make it available in all countries.",
+     "relation_table": "payment_country_rel",
+     "string": "Countries",
+     "type": "Many2many"
+    },
+    "available_currency_ids": {
+     "column1": "payment_provider_id",
+     "column2": "currency_id",
+     "comodel": "res.currency",
+     "compute": "_compute_available_currency_ids",
+     "help": "The currencies available with this payment provider. Leave empty not to restrict any.",
+     "readonly": false,
+     "relation_table": "payment_currency_rel",
+     "store": true,
+     "string": "Currencies",
+     "type": "Many2many"
+    },
+    "cancel_msg": {
+     "default": {
+      "$lambda": "_('Your payment has been cancelled.')"
+     },
+     "help": "The message displayed if the order is cancelled during the payment process",
+     "string": "Cancelled Message",
+     "translate": true,
+     "type": "Html"
+    },
+    "capture_manually": {
+     "help": "Capture the amount from Odoo, when the delivery is completed.\nUse this if you want to charge your customers cards only when\nyou are sure you can ship the goods to them.",
+     "string": "Capture Amount Manually",
+     "type": "Boolean"
+    },
+    "code": {
+     "default": "none",
+     "help": "The technical code of this payment provider.",
+     "required": true,
+     "selection": [
+      [
+       "none",
+       "No Provider Set"
+      ]
+     ],
+     "string": "Code",
+     "type": "Selection"
+    },
+    "color": {
+     "compute": "_compute_color",
+     "help": "The color of the card in kanban view",
+     "store": true,
+     "string": "Color",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company.id"
+     },
+     "index": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "done_msg": {
+     "default": {
+      "$lambda": "_('Your payment has been successfully processed.')"
+     },
+     "help": "The message displayed if the order is successfully done after the payment process",
+     "string": "Done Message",
+     "translate": true,
+     "type": "Html"
+    },
+    "express_checkout_form_view_id": {
+     "comodel": "ir.ui.view",
+     "domain": [
+      [
+       "type",
+       "=",
+       "qweb"
+      ]
+     ],
+     "help": "The template rendering the express payment methods' form.",
+     "ondelete": "restrict",
+     "string": "Express Checkout Form Template",
+     "type": "Many2one"
+    },
+    "image_128": {
+     "string": "Image",
+     "type": "Image"
+    },
+    "inline_form_view_id": {
+     "comodel": "ir.ui.view",
+     "domain": [
+      [
+       "type",
+       "=",
+       "qweb"
+      ]
+     ],
+     "help": "The template rendering the inline payment form when making a direct payment",
+     "ondelete": "restrict",
+     "string": "Inline Form Template",
+     "type": "Many2one"
+    },
+    "is_published": {
+     "help": "Whether the provider is visible on the website or not. Tokens remain functional but are only visible on manage forms.",
+     "string": "Published",
+     "type": "Boolean"
+    },
+    "main_currency_id": {
+     "help": "The main currency of the company, used to display monetary fields.",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "maximum_amount": {
+     "currency_field": "main_currency_id",
+     "help": "The maximum payment amount that this payment provider is available for. Leave blank to make it available for any payment amount.",
+     "string": "Maximum Amount",
+     "type": "Monetary"
+    },
+    "module_id": {
+     "comodel": "ir.module.module",
+     "string": "Corresponding Module",
+     "type": "Many2one"
+    },
+    "module_state": {
+     "related": "module_id.state",
+     "string": "Installation State",
+     "type": "Selection"
+    },
+    "module_to_buy": {
+     "related": "module_id.to_buy",
+     "string": "Odoo Enterprise Module",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "payment_method_ids": {
+     "comodel": "payment.method",
+     "string": "Supported Payment Methods",
+     "type": "Many2many"
+    },
+    "pending_msg": {
+     "default": {
+      "$lambda": "_('Your payment has been successfully processed but is waiting for approval.')"
+     },
+     "help": "The message displayed if the order pending after the payment process",
+     "string": "Pending Message",
+     "translate": true,
+     "type": "Html"
+    },
+    "pre_msg": {
+     "help": "The message displayed to explain and help the payment process",
+     "string": "Help Message",
+     "translate": true,
+     "type": "Html"
+    },
+    "redirect_form_view_id": {
+     "comodel": "ir.ui.view",
+     "domain": [
+      [
+       "type",
+       "=",
+       "qweb"
+      ]
+     ],
+     "help": "The template rendering a form submitted to redirect the user when making a payment",
+     "ondelete": "restrict",
+     "string": "Redirect Form Template",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "help": "Define the display order",
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "state": {
+     "copy": false,
+     "default": "disabled",
+     "help": "In test mode, a fake payment is processed through a test payment interface.\nThis mode is advised when setting up the provider.",
+     "required": true,
+     "selection": [
+      [
+       "disabled",
+       "Disabled"
+      ],
+      [
+       "enabled",
+       "Enabled"
+      ],
+      [
+       "test",
+       "Test Mode"
+      ]
+     ],
+     "string": "State",
+     "type": "Selection"
+    },
+    "support_express_checkout": {
+     "compute": "_compute_feature_support_fields",
+     "string": "Express Checkout",
+     "type": "Boolean"
+    },
+    "support_manual_capture": {
+     "compute": "_compute_feature_support_fields",
+     "selection": [
+      [
+       "full_only",
+       "Full Only"
+      ],
+      [
+       "partial",
+       "Partial"
+      ]
+     ],
+     "string": "Manual Capture Supported",
+     "type": "Selection"
+    },
+    "support_refund": {
+     "compute": "_compute_feature_support_fields",
+     "help": "Refund is a feature allowing to refund customers directly from the payment in Odoo.",
+     "selection": [
+      [
+       "none",
+       "Unsupported"
+      ],
+      [
+       "full_only",
+       "Full Only"
+      ],
+      [
+       "partial",
+       "Full & Partial"
+      ]
+     ],
+     "string": "Refund",
+     "type": "Selection"
+    },
+    "support_tokenization": {
+     "compute": "_compute_feature_support_fields",
+     "string": "Tokenization",
+     "type": "Boolean"
+    },
+    "token_inline_form_view_id": {
+     "comodel": "ir.ui.view",
+     "domain": [
+      [
+       "type",
+       "=",
+       "qweb"
+      ]
+     ],
+     "help": "The template rendering the inline payment form when making a payment by token.",
+     "ondelete": "restrict",
+     "string": "Token Inline Form Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_valid_field_parameter"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 14,
+     "name": "_compute_available_currency_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'module_state')"
+     ],
+     "lines": 14,
+     "name": "_compute_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 27,
+     "name": "_compute_feature_support_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('state')"
+     ],
+     "lines": 6,
+     "name": "_onchange_state_switch_is_published"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('state')"
+     ],
+     "lines": 23,
+     "name": "_onchange_state_warn_before_disabling_tokens"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 12,
+     "name": "_onchange_company_block_if_existing_transactions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_check_required_if_provider"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_toggle_post_processing_cron"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_archive_linked_tokens"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_deactivate_unsupported_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_activate_default_pms"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 10,
+     "name": "_unlink_except_master_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_immediate_install"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_toggle_is_published"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 111,
+     "name": "_get_compatible_providers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_supported_currencies"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_is_tokenization_required"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_should_build_inline_form"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_validation_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_validation_currency"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_redirect_form_view"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_setup_provider"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_removal_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_remove_provider"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_removal_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_provider_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_default_payment_method_codes"
+    }
+   ],
+   "name": "payment.provider",
+   "order": "module_state, state desc, sequence, name",
+   "sel_methods": {
+    "_get_removal_domain": [
+     [
+      "code",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "payment.provider.onboarding.wizard": {
+   "abstract": false,
+   "description": "Payment provider onboarding wizard",
+   "extension": false,
+   "fields": {
+    "_data_fetched": {
+     "store": false,
+     "type": "Boolean"
+    },
+    "acc_number": {
+     "default": {
+      "$lambda": "self._get_default_payment_provider_onboarding_value('acc_number')"
+     },
+     "string": "Account Number",
+     "type": "Char"
+    },
+    "journal_name": {
+     "default": {
+      "$lambda": "self._get_default_payment_provider_onboarding_value('journal_name')"
+     },
+     "string": "Bank Name",
+     "type": "Char"
+    },
+    "manual_name": {
+     "default": {
+      "$lambda": "self._get_default_payment_provider_onboarding_value('manual_name')"
+     },
+     "string": "Method",
+     "type": "Char"
+    },
+    "manual_post_msg": {
+     "string": "Payment Instructions",
+     "type": "Html"
+    },
+    "payment_method": {
+     "default": {
+      "$lambda": "self._get_default_payment_provider_onboarding_value('payment_method')"
+     },
+     "selection": [
+      [
+       "stripe",
+       "Credit & Debit card (via Stripe)"
+      ],
+      [
+       "paypal",
+       "PayPal"
+      ],
+      [
+       "manual",
+       "Custom payment instructions"
+      ]
+     ],
+     "string": "Payment Method",
+     "type": "Selection"
+    },
+    "paypal_email_account": {
+     "default": {
+      "$lambda": "self._get_default_payment_provider_onboarding_value('paypal_email_account')"
+     },
+     "string": "Email",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('journal_name', 'acc_number')"
+     ],
+     "lines": 7,
+     "name": "_set_manual_post_msg_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_manual_payment_provider"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_get_default_payment_provider_onboarding_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "add_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_start_stripe_onboarding"
+    }
+   ],
+   "name": "payment.provider.onboarding.wizard",
+   "transient": true
+  },
+  "payment.token": {
+   "abstract": false,
+   "description": "Payment Token",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "index": true,
+     "related": "provider_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "required": true,
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "payment_details": {
+     "help": "The clear part of the payment method's payment details.",
+     "string": "Payment Details",
+     "type": "Char"
+    },
+    "payment_method_code": {
+     "related": "payment_method_id.code",
+     "string": "Payment Method Code",
+     "type": "Char"
+    },
+    "payment_method_id": {
+     "comodel": "payment.method",
+     "readonly": true,
+     "required": true,
+     "string": "Payment Method",
+     "type": "Many2one"
+    },
+    "provider_code": {
+     "related": "provider_id.code",
+     "string": "Provider Code",
+     "type": "Selection"
+    },
+    "provider_id": {
+     "comodel": "payment.provider",
+     "required": true,
+     "string": "Provider",
+     "type": "Many2one"
+    },
+    "provider_ref": {
+     "help": "The provider reference of the token of the transaction.",
+     "required": true,
+     "string": "Provider Reference",
+     "type": "Char"
+    },
+    "transaction_ids": {
+     "comodel": "payment.transaction",
+     "inverse_name": "token_id",
+     "string": "Payment Transactions",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_details', 'create_date')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 11,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_get_specific_create_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('partner_id')"
+     ],
+     "lines": 5,
+     "name": "_check_partner_is_never_public"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_handle_archiving"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_available_tokens"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_build_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "get_linked_records_info"
+    }
+   ],
+   "name": "payment.token",
+   "order": "partner_id, id desc",
+   "transient": false
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "description": "Payment Transaction",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "currency_field": "currency_id",
+     "readonly": true,
+     "required": true,
+     "string": "Amount",
+     "type": "Monetary"
+    },
+    "child_transaction_ids": {
+     "comodel": "payment.transaction",
+     "help": "The child transactions of the transaction.",
+     "inverse_name": "source_transaction_id",
+     "readonly": true,
+     "string": "Child Transactions",
+     "type": "One2many"
+    },
+    "company_id": {
+     "index": true,
+     "related": "provider_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "required": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "is_post_processed": {
+     "help": "Has the payment been post-processed",
+     "string": "Is Post-processed",
+     "type": "Boolean"
+    },
+    "landing_route": {
+     "help": "The route the user is redirected to after the transaction",
+     "string": "Landing Route",
+     "type": "Char"
+    },
+    "last_state_change": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "readonly": true,
+     "string": "Last State Change Date",
+     "type": "Datetime"
+    },
+    "operation": {
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "online_redirect",
+       "Online payment with redirection"
+      ],
+      [
+       "online_direct",
+       "Online direct payment"
+      ],
+      [
+       "online_token",
+       "Online payment by token"
+      ],
+      [
+       "validation",
+       "Validation of the payment method"
+      ],
+      [
+       "offline",
+       "Offline payment by token"
+      ],
+      [
+       "refund",
+       "Refund"
+      ]
+     ],
+     "string": "Operation",
+     "type": "Selection"
+    },
+    "partner_address": {
+     "string": "Address",
+     "type": "Char"
+    },
+    "partner_city": {
+     "string": "City",
+     "type": "Char"
+    },
+    "partner_country_id": {
+     "comodel": "res.country",
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "partner_email": {
+     "string": "Email",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "ondelete": "restrict",
+     "readonly": true,
+     "required": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "partner_lang": {
+     "selection": {
+      "$ref": "_lang_get"
+     },
+     "string": "Language",
+     "type": "Selection"
+    },
+    "partner_name": {
+     "string": "Partner Name",
+     "type": "Char"
+    },
+    "partner_phone": {
+     "string": "Phone",
+     "type": "Char"
+    },
+    "partner_state_id": {
+     "comodel": "res.country.state",
+     "string": "State",
+     "type": "Many2one"
+    },
+    "partner_zip": {
+     "string": "Zip Code",
+     "type": "Char"
+    },
+    "payment_method_code": {
+     "related": "payment_method_id.code",
+     "string": "Payment Method Code",
+     "type": "Char"
+    },
+    "payment_method_id": {
+     "comodel": "payment.method",
+     "readonly": true,
+     "required": true,
+     "string": "Payment Method",
+     "type": "Many2one"
+    },
+    "provider_code": {
+     "related": "provider_id.code",
+     "string": "Provider Code",
+     "type": "Selection"
+    },
+    "provider_id": {
+     "comodel": "payment.provider",
+     "readonly": true,
+     "required": true,
+     "string": "Provider",
+     "type": "Many2one"
+    },
+    "provider_reference": {
+     "help": "The provider reference of the transaction",
+     "readonly": true,
+     "string": "Provider Reference",
+     "type": "Char"
+    },
+    "reference": {
+     "help": "The internal reference of the transaction",
+     "readonly": true,
+     "required": true,
+     "string": "Reference",
+     "type": "Char"
+    },
+    "refunds_count": {
+     "compute": "_compute_refunds_count",
+     "string": "Refunds Count",
+     "type": "Integer"
+    },
+    "source_transaction_id": {
+     "comodel": "payment.transaction",
+     "help": "The source transaction of the related child transactions",
+     "readonly": true,
+     "string": "Source Transaction",
+     "type": "Many2one"
+    },
+    "state": {
+     "copy": false,
+     "default": "draft",
+     "index": true,
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "pending",
+       "Pending"
+      ],
+      [
+       "authorized",
+       "Authorized"
+      ],
+      [
+       "done",
+       "Confirmed"
+      ],
+      [
+       "cancel",
+       "Canceled"
+      ],
+      [
+       "error",
+       "Error"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "state_message": {
+     "help": "The complementary information message about the state",
+     "readonly": true,
+     "string": "Message",
+     "type": "Text"
+    },
+    "token_id": {
+     "comodel": "payment.token",
+     "domain": "[(\"provider_id\", \"=\", \"provider_id\")]",
+     "ondelete": "restrict",
+     "readonly": true,
+     "string": "Payment Token",
+     "type": "Many2one"
+    },
+    "tokenize": {
+     "help": "Whether a payment token should be created when post-processing the transaction",
+     "string": "Create Token",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_lang_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_refunds_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('state')"
+     ],
+     "lines": 10,
+     "name": "_check_state_authorized_supported"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('token_id')"
+     ],
+     "lines": 4,
+     "name": "_check_token_is_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 41,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_get_specific_create_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_view_refunds"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 27,
+     "name": "action_capture"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_void"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_refund"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 79,
+     "name": "_compute_reference"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_compute_reference_prefix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 57,
+     "name": "_get_processing_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_specific_processing_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_specific_rendering_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_specific_secret_keys"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_mandate_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_send_payment_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_send_refund_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_send_capture_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_send_void_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_ensure_provider_is_not_disabled"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_create_child_transaction"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_handle_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_tx_from_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_process_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_set_pending"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_set_authorized"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_set_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_set_canceled"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_set_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_update_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_update_source_transaction_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_cron_post_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_post_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_log_sent_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_log_received_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_log_message_on_linked_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_get_sent_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "_get_received_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_last"
+    }
+   ],
+   "name": "payment.transaction",
+   "order": "id desc",
+   "rec_name": "reference",
+   "sql_constraints": [
+    [
+     "reference_uniq",
+     "unique(reference)",
+     "Reference must be unique!"
+    ]
+   ],
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "payment_onboarding_payment_method": {
+     "selection": [
+      [
+       "paypal",
+       "PayPal"
+      ],
+      [
+       "stripe",
+       "Stripe"
+      ],
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "string": "Selected onboarding payment method",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_run_payment_onboarding_step"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_install_modules"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.country": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_stripe_supported_country": {
+     "compute": "_compute_is_stripe_supported_country",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 8,
+     "name": "_compute_is_stripe_supported_country"
+    }
+   ],
+   "name": "res.country",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "payment_token_count": {
+     "compute": "_compute_payment_token_count",
+     "string": "Payment Token Count",
+     "type": "Integer"
+    },
+    "payment_token_ids": {
+     "comodel": "payment.token",
+     "inverse_name": "partner_id",
+     "string": "Payment Tokens",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_token_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_payment_token_count"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "payment",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/payment",
+ "stats": {
+  "fields": 120,
+  "methods": 120,
+  "models": 12,
+  "py_lines": 4000
+ },
+ "summary": "The payment engine used by payment provider modules.",
+ "title": "Payment Engine",
+ "version": "2.0"
+}

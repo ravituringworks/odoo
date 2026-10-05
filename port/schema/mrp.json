@@ -1,0 +1,7848 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Manufacturing/Manufacturing",
+ "data_files": [
+  "security/mrp_security.xml",
+  "security/ir.model.access.csv",
+  "data/digest_data.xml",
+  "data/mail_templates.xml",
+  "data/mrp_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "wizard/change_production_qty_views.xml",
+  "wizard/mrp_workcenter_block_view.xml",
+  "wizard/stock_warn_insufficient_qty_views.xml",
+  "wizard/mrp_production_backorder.xml",
+  "wizard/mrp_consumption_warning_views.xml",
+  "wizard/mrp_batch_produce.xml",
+  "wizard/mrp_production_split.xml",
+  "views/mrp_views_menus.xml",
+  "views/stock_move_views.xml",
+  "views/mrp_workorder_views.xml",
+  "views/mrp_workcenter_views.xml",
+  "views/mrp_bom_views.xml",
+  "views/mrp_production_views.xml",
+  "views/mrp_routing_views.xml",
+  "views/product_document_views.xml",
+  "views/product_views.xml",
+  "views/stock_orderpoint_views.xml",
+  "views/stock_warehouse_views.xml",
+  "views/stock_picking_views.xml",
+  "views/stock_rule_views.xml",
+  "views/mrp_unbuild_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/stock_scrap_views.xml",
+  "report/report_deliveryslip.xml",
+  "report/mrp_report_views_main.xml",
+  "report/mrp_report_bom_structure.xml",
+  "report/mrp_report_mo_overview.xml",
+  "report/mrp_production_templates.xml",
+  "report/report_stock_reception.xml",
+  "report/report_stock_rule.xml",
+  "report/mrp_zebra_production_templates.xml",
+  "report/mrp_workorder_templates.xml",
+  "data/mrp_demo.xml"
+ ],
+ "depends": [
+  "product",
+  "stock",
+  "resource"
+ ],
+ "models": {
+  "change.production.qty": {
+   "abstract": false,
+   "description": "Change Production Qty",
+   "extension": false,
+   "fields": {
+    "mo_id": {
+     "comodel": "mrp.production",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Manufacturing Order",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "digits": "Product Unit of Measure",
+     "required": true,
+     "string": "Quantity To Produce",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "_update_finished_moves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_need_quantity_propagation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "change_prod_qty"
+    }
+   ],
+   "name": "change.production.qty",
+   "transient": true
+  },
+  "mrp.batch.produce": {
+   "abstract": false,
+   "description": "Produce a batch of production order",
+   "extension": false,
+   "fields": {
+    "component_separator": {
+     "default": ",",
+     "required": true,
+     "string": "Component separator",
+     "type": "Char"
+    },
+    "lot_name": {
+     "compute": "_compute_lot_name",
+     "readonly": false,
+     "store": true,
+     "string": "First Lot/SN",
+     "type": "Char"
+    },
+    "lot_qty": {
+     "compute": "_compute_lot_qty",
+     "readonly": false,
+     "store": true,
+     "string": "Number of SN",
+     "type": "Integer"
+    },
+    "lots_quantity_separator": {
+     "default": ";",
+     "required": true,
+     "string": "Lot quantity separator",
+     "type": "Char"
+    },
+    "lots_separator": {
+     "default": "|",
+     "required": true,
+     "string": "Lot separator",
+     "type": "Char"
+    },
+    "production_id": {
+     "comodel": "mrp.production",
+     "string": "Production",
+     "type": "Many2one"
+    },
+    "production_text": {
+     "string": "Batch Production",
+     "type": "Text"
+    },
+    "production_text_help": {
+     "compute": "_compute_production_text_help",
+     "string": "Explanation for batch production",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_lot_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_lot_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id', 'component_separator')"
+     ],
+     "lines": 10,
+     "name": "_compute_production_text_help"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_prepare"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_done"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_generate_production_text"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 63,
+     "name": "_production_text_to_object"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_process_components"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_prepapre_move_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_lot_and_qty"
+    }
+   ],
+   "name": "mrp.batch.produce",
+   "transient": true
+  },
+  "mrp.bom": {
+   "abstract": false,
+   "description": "Bill of Material",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "allow_operation_dependencies": {
+     "help": "Create operation level dependencies that will influence both planning and the status of work orders upon MO confirmation. If this feature is ticked, and nothing is specified, Odoo will assume that all operations can be started simultaneously.",
+     "string": "Operation Dependencies",
+     "type": "Boolean"
+    },
+    "bom_line_ids": {
+     "comodel": "mrp.bom.line",
+     "copy": true,
+     "inverse_name": "bom_id",
+     "string": "BoM Lines",
+     "type": "One2many"
+    },
+    "byproduct_ids": {
+     "comodel": "mrp.bom.byproduct",
+     "copy": true,
+     "inverse_name": "bom_id",
+     "string": "By-products",
+     "type": "One2many"
+    },
+    "code": {
+     "string": "Reference",
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "index": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "consumption": {
+     "default": "warning",
+     "help": "Defines if you can consume more or less components than the quantity defined on the BoM:\n  * Allowed: allowed for all manufacturing users.\n  * Allowed with warning: allowed for all manufacturing users with summary of consumption differences when closing the manufacturing order.\n  Note that in the case of component Highlight Consumption, where consumption is registered manually exclusively, consumption warnings will still be issued when appropriate also.\n  * Blocked: only a manager can close a manufacturing order when the BoM consumption is not respected.",
+     "required": true,
+     "selection": [
+      [
+       "flexible",
+       "Allowed"
+      ],
+      [
+       "warning",
+       "Allowed with warning"
+      ],
+      [
+       "strict",
+       "Blocked"
+      ]
+     ],
+     "string": "Flexible Consumption",
+     "type": "Selection"
+    },
+    "days_to_prepare_mo": {
+     "default": 0,
+     "help": "Create and confirm Manufacturing Orders this many days in advance, to have enough time to replenish components or manufacture semi-finished products.\nNote that security lead times will also be considered when appropriate.",
+     "string": "Days to prepare Manufacturing Order",
+     "type": "Integer"
+    },
+    "operation_ids": {
+     "comodel": "mrp.routing.workcenter",
+     "copy": true,
+     "inverse_name": "bom_id",
+     "string": "Operations",
+     "type": "One2many"
+    },
+    "picking_type_id": {
+     "comodel": "stock.picking.type",
+     "domain": "[('code', '=', 'mrp_operation')]",
+     "help": "When a procurement has a \u2018produce\u2019 route with a operation type set, it will try to create a Manufacturing Order for that product using a BoM of the same operation type. That allows to define stock rules which trigger different manufacturing orders with different BoMs.",
+     "string": "Operation Type",
+     "type": "Many2one"
+    },
+    "possible_product_template_attribute_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "compute": "_compute_possible_product_template_attribute_value_ids",
+     "type": "Many2many"
+    },
+    "produce_delay": {
+     "default": 0,
+     "help": "Average lead time in days to manufacture this product. In the case of multi-level BOM, the manufacturing lead times of the components will be added. In case the product is subcontracted, this can be used to determine the date at which components should be sent to the subcontractor.",
+     "string": "Manufacturing Lead Time",
+     "type": "Integer"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": "['&', ('product_tmpl_id', '=', product_tmpl_id), ('type', '=', 'consu')]",
+     "help": "If a product variant is defined the BOM is available only for this product.",
+     "index": true,
+     "string": "Product Variant",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "default": 1.0,
+     "digits": "Product Unit of Measure",
+     "help": "This should be the smallest quantity that this product can be produced in. If the BOM contains operations, make sure the work center capacity is accurate.",
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "domain": "[('type', '=', 'consu')]",
+     "index": true,
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "related": "product_tmpl_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "default": {
+      "$ref": "_get_default_product_uom_id"
+     },
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "help": "Unit of Measure (Unit of Measure) is the unit of measurement for the inventory control",
+     "required": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "ready_to_produce": {
+     "default": "all_available",
+     "required": true,
+     "selection": [
+      [
+       "all_available",
+       " When all components are available"
+      ],
+      [
+       "asap",
+       "When components for 1st operation are available"
+      ]
+     ],
+     "string": "Manufacturing Readiness",
+     "type": "Selection"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "type": {
+     "default": "normal",
+     "required": true,
+     "selection": [
+      [
+       "normal",
+       "Manufacture this product"
+      ],
+      [
+       "phantom",
+       "Kit"
+      ]
+     ],
+     "string": "BoM Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "product.catalog.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_tmpl_id.attribute_line_ids.value_ids', 'product_tmpl_id.attribute_line_ids.attribute_id.create_variant', 'product_tmpl_id.attribute_line_ids.product_template_value_ids.ptav_active')"
+     ],
+     "lines": 3,
+     "name": "_compute_possible_product_template_attribute_value_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 17,
+     "name": "_onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('active', 'product_id', 'product_tmpl_id', 'bom_line_ids')"
+     ],
+     "lines": 50,
+     "name": "_check_bom_cycle"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('product_id', 'product_tmpl_id', 'bom_line_ids', 'byproduct_ids', 'operation_ids')"
+     ],
+     "lines": 24,
+     "name": "_check_bom_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('bom_line_ids', 'product_qty', 'product_id', 'product_tmpl_id')"
+     ],
+     "lines": 10,
+     "name": "onchange_bom_structure"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_uom_id')"
+     ],
+     "lines": 8,
+     "name": "onchange_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_tmpl_id')"
+     ],
+     "lines": 30,
+     "name": "onchange_product_tmpl_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "name_create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_compute_bom_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('product_tmpl_id', 'product_id', 'type')"
+     ],
+     "lines": 5,
+     "name": "check_kit_has_not_orderpoint"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_running_mo"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_bom_find_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 33,
+     "name": "_bom_find"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 57,
+     "name": "explode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_round_last_line_done"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_import_templates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_set_outdated_bom_in_productions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_order_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_product_catalog_order_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_product_price_and_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_product_catalog_record_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_update_order_line_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_mail_thread_data_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_extra_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 37,
+     "name": "_skip_for_no_variant"
+    }
+   ],
+   "name": "mrp.bom",
+   "order": "sequence, id",
+   "rec_name": "product_tmpl_id",
+   "sql_constraints": [
+    [
+     "qty_positive",
+     "check (product_qty > 0)",
+     "The quantity to produce must be positive!"
+    ]
+   ],
+   "transient": false
+  },
+  "mrp.bom.byproduct": {
+   "abstract": false,
+   "description": "Byproduct",
+   "extension": false,
+   "fields": {
+    "allowed_operation_ids": {
+     "comodel": "mrp.routing.workcenter",
+     "related": "bom_id.operation_ids",
+     "type": "One2many"
+    },
+    "bom_id": {
+     "comodel": "mrp.bom",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "BoM",
+     "type": "Many2one"
+    },
+    "bom_product_template_attribute_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "domain": "[('id', 'in', possible_bom_product_template_attribute_value_ids)]",
+     "help": "BOM Product Variants needed to apply this line.",
+     "ondelete": "restrict",
+     "string": "Apply on Variants",
+     "type": "Many2many"
+    },
+    "company_id": {
+     "index": true,
+     "readonly": true,
+     "related": "bom_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "cost_share": {
+     "digits": [
+      5,
+      2
+     ],
+     "help": "The percentage of the final production cost for this by-product line (divided between the quantity produced).The total of all by-products' cost share must be less than or equal to 100.",
+     "string": "Cost Share (%)",
+     "type": "Float"
+    },
+    "operation_id": {
+     "comodel": "mrp.routing.workcenter",
+     "domain": "[('id', 'in', allowed_operation_ids)]",
+     "string": "Produced in Operation",
+     "type": "Many2one"
+    },
+    "possible_bom_product_template_attribute_value_ids": {
+     "related": "bom_id.possible_product_template_attribute_value_ids",
+     "type": "Many2many"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "required": true,
+     "string": "By-product",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "default": 1.0,
+     "digits": "Product Unit of Measure",
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_product_uom_id",
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_skip_byproduct_line"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_add_from_catalog"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_product_catalog_lines_data"
+    }
+   ],
+   "name": "mrp.bom.byproduct",
+   "order": "sequence, id",
+   "rec_name": "product_id",
+   "transient": false
+  },
+  "mrp.bom.line": {
+   "abstract": false,
+   "description": "Bill of Material Line",
+   "extension": false,
+   "fields": {
+    "allowed_operation_ids": {
+     "comodel": "mrp.routing.workcenter",
+     "related": "bom_id.operation_ids",
+     "type": "One2many"
+    },
+    "attachments_count": {
+     "compute": "_compute_attachments_count",
+     "string": "Attachments Count",
+     "type": "Integer"
+    },
+    "bom_id": {
+     "comodel": "mrp.bom",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Parent BoM",
+     "type": "Many2one"
+    },
+    "bom_product_template_attribute_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "domain": "[('id', 'in', possible_bom_product_template_attribute_value_ids)]",
+     "help": "BOM Product Variants needed to apply this line.",
+     "ondelete": "restrict",
+     "string": "Apply on Variants",
+     "type": "Many2many"
+    },
+    "child_bom_id": {
+     "comodel": "mrp.bom",
+     "compute": "_compute_child_bom_id",
+     "string": "Sub BoM",
+     "type": "Many2one"
+    },
+    "child_line_ids": {
+     "comodel": "mrp.bom.line",
+     "compute": "_compute_child_line_ids",
+     "string": "BOM lines of the referred bom",
+     "type": "One2many"
+    },
+    "company_id": {
+     "index": true,
+     "readonly": true,
+     "related": "bom_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "manual_consumption": {
+     "copy": true,
+     "default": false,
+     "help": "When activated, then the registration of consumption for that component is recorded manually exclusively.\nIf not activated, and any of the components consumption is edited manually on the manufacturing order, Odoo assumes manual consumption also.",
+     "readonly": false,
+     "store": true,
+     "string": "Highlight Consumption",
+     "type": "Boolean"
+    },
+    "operation_id": {
+     "comodel": "mrp.routing.workcenter",
+     "domain": "[('id', 'in', allowed_operation_ids)]",
+     "help": "The operation where the components are consumed, or the finished products created.",
+     "string": "Consumed in Operation",
+     "type": "Many2one"
+    },
+    "parent_product_tmpl_id": {
+     "comodel": "product.template",
+     "related": "bom_id.product_tmpl_id",
+     "string": "Parent Product Template",
+     "type": "Many2one"
+    },
+    "possible_bom_product_template_attribute_value_ids": {
+     "related": "bom_id.possible_product_template_attribute_value_ids",
+     "type": "Many2many"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "required": true,
+     "string": "Component",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "default": 1.0,
+     "digits": "Product Unit of Measure",
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "index": true,
+     "related": "product_id.product_tmpl_id",
+     "store": true,
+     "string": "Product Template",
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "default": {
+      "$ref": "_get_default_product_uom_id"
+     },
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "help": "Unit of Measure (Unit of Measure) is the unit of measurement for the inventory control",
+     "required": true,
+     "string": "Product Unit of Measure",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 1,
+     "help": "Gives the sequence order when displaying.",
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "tracking": {
+     "related": "product_id.tracking",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'bom_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_child_bom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_attachments_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('child_bom_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_child_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_uom_id')"
+     ],
+     "lines": 8,
+     "name": "onchange_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 3,
+     "name": "onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_skip_bom_line"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 32,
+     "name": "action_see_attachments"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_add_from_catalog"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_product_catalog_lines_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_prepare_bom_done_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_prepare_line_done_values"
+    }
+   ],
+   "name": "mrp.bom.line",
+   "order": "sequence, id",
+   "rec_name": "product_id",
+   "sql_constraints": [
+    [
+     "bom_qty_zero",
+     "CHECK (product_qty>=0)",
+     "All product quantities must be greater or equal to 0.\nLines with 0 quantities can be used as optional lines. \nYou should install the mrp_byproduct module if you want to manage extra products on BoMs!"
+    ]
+   ],
+   "transient": false
+  },
+  "mrp.consumption.warning": {
+   "abstract": false,
+   "description": "Wizard in case of consumption in warning/strict and more component has been used for a MO (related to the bom)",
+   "extension": false,
+   "fields": {
+    "consumption": {
+     "compute": "_compute_consumption",
+     "selection": [
+      [
+       "flexible",
+       "Allowed"
+      ],
+      [
+       "warning",
+       "Allowed with warning"
+      ],
+      [
+       "strict",
+       "Blocked"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "mrp_consumption_warning_line_ids": {
+     "comodel": "mrp.consumption.warning.line",
+     "inverse_name": "mrp_consumption_warning_id",
+     "type": "One2many"
+    },
+    "mrp_production_count": {
+     "compute": "_compute_mrp_production_count",
+     "type": "Integer"
+    },
+    "mrp_production_ids": {
+     "comodel": "mrp.production",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mrp_production_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_mrp_production_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mrp_consumption_warning_line_ids.consumption')"
+     ],
+     "lines": 4,
+     "name": "_compute_consumption"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 40,
+     "name": "action_set_qty"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_cancel"
+    }
+   ],
+   "name": "mrp.consumption.warning",
+   "transient": true
+  },
+  "mrp.consumption.warning.line": {
+   "abstract": false,
+   "description": "Line of issue consumption",
+   "extension": false,
+   "fields": {
+    "consumption": {
+     "related": "mrp_production_id.consumption",
+     "type": "Selection"
+    },
+    "mrp_consumption_warning_id": {
+     "comodel": "mrp.consumption.warning",
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "string": "Parent Wizard",
+     "type": "Many2one"
+    },
+    "mrp_production_id": {
+     "comodel": "mrp.production",
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "string": "Manufacturing Order",
+     "type": "Many2one"
+    },
+    "product_consumed_qty_uom": {
+     "readonly": true,
+     "string": "Consumed",
+     "type": "Float"
+    },
+    "product_expected_qty_uom": {
+     "readonly": true,
+     "string": "To Consume",
+     "type": "Float"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "readonly": true,
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "readonly": true,
+     "related": "product_id.uom_id",
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "mrp.consumption.warning.line",
+   "transient": true
+  },
+  "mrp.production": {
+   "abstract": false,
+   "description": "Manufacturing Order",
+   "extension": false,
+   "fields": {
+    "all_move_ids": {
+     "comodel": "stock.move",
+     "inverse_name": "production_id",
+     "type": "One2many"
+    },
+    "all_move_raw_ids": {
+     "comodel": "stock.move",
+     "inverse_name": "raw_material_production_id",
+     "type": "One2many"
+    },
+    "allow_workorder_dependencies": {
+     "string": "Allow Work Order Dependencies",
+     "type": "Boolean"
+    },
+    "backorder_sequence": {
+     "copy": false,
+     "default": 0,
+     "help": "Backorder sequence, if equals to 0 means there is not related backorder",
+     "string": "Backorder Sequence",
+     "type": "Integer"
+    },
+    "bom_id": {
+     "comodel": "mrp.bom",
+     "compute": "_compute_bom_id",
+     "domain": "[\n        '&',\n            '|',\n                ('company_id', '=', False),\n                ('company_id', '=', company_id),\n            '&',\n                '|',\n                    ('product_id','=',product_id),\n                    '&',\n                        ('product_tmpl_id.product_variant_ids','=',product_id),\n                        ('product_id','=',False),\n        ('type', '=', 'normal')]",
+     "help": "Bills of Materials, also called recipes, are used to autocomplete components and work order instructions.",
+     "readonly": false,
+     "store": true,
+     "string": "Bill of Material",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "index": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "components_availability": {
+     "compute": "_compute_components_availability",
+     "help": "Latest component availability status for this MO. If green, then the MO's readiness status is ready, as per BOM configuration.",
+     "string": "Component Status",
+     "type": "Char"
+    },
+    "components_availability_state": {
+     "compute": "_compute_components_availability",
+     "selection": [
+      [
+       "available",
+       "Available"
+      ],
+      [
+       "expected",
+       "Expected"
+      ],
+      [
+       "late",
+       "Late"
+      ],
+      [
+       "unavailable",
+       "Not Available"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "consumption": {
+     "default": "flexible",
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "flexible",
+       "Allowed"
+      ],
+      [
+       "warning",
+       "Allowed with warning"
+      ],
+      [
+       "strict",
+       "Blocked"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "date_deadline": {
+     "compute": "_compute_date_deadline",
+     "copy": false,
+     "help": "Informative date allowing to define when the manufacturing order should be processed at the latest to fulfill delivery on time.",
+     "readonly": true,
+     "store": true,
+     "string": "Deadline",
+     "type": "Datetime"
+    },
+    "date_finished": {
+     "compute": "_compute_date_finished",
+     "copy": false,
+     "default": {
+      "$ref": "_get_default_date_finished"
+     },
+     "help": "Date you expect to finish production or actual date you finished production.",
+     "store": true,
+     "string": "End",
+     "type": "Datetime"
+    },
+    "date_start": {
+     "copy": false,
+     "default": {
+      "$ref": "_get_default_date_start"
+     },
+     "help": "Date you plan to start production or date you actually started production.",
+     "index": true,
+     "required": true,
+     "string": "Start",
+     "type": "Datetime"
+    },
+    "delay_alert_date": {
+     "compute": "_compute_delay_alert_date",
+     "string": "Delay Alert Date",
+     "type": "Datetime"
+    },
+    "delivery_count": {
+     "compute": "_compute_picking_ids",
+     "string": "Delivery Orders",
+     "type": "Integer"
+    },
+    "duration": {
+     "compute": "_compute_duration",
+     "help": "Total real duration (in minutes)",
+     "string": "Real Duration",
+     "type": "Float"
+    },
+    "duration_expected": {
+     "compute": "_compute_duration_expected",
+     "help": "Total expected duration (in minutes)",
+     "string": "Expected Duration",
+     "type": "Float"
+    },
+    "finished_move_line_ids": {
+     "comodel": "stock.move.line",
+     "compute": "_compute_lines",
+     "string": "Finished Product",
+     "type": "One2many"
+    },
+    "forecasted_issue": {
+     "compute": "_compute_forecasted_issue",
+     "type": "Boolean"
+    },
+    "is_delayed": {
+     "compute": "_compute_is_delayed",
+     "type": "Boolean"
+    },
+    "is_locked": {
+     "copy": false,
+     "default": {
+      "$ref": "_get_default_is_locked"
+     },
+     "string": "Is Locked",
+     "type": "Boolean"
+    },
+    "is_outdated_bom": {
+     "help": "The BoM has been updated since creation of the MO",
+     "string": "Outdated BoM",
+     "type": "Boolean"
+    },
+    "is_planned": {
+     "compute": "_compute_is_planned",
+     "store": true,
+     "string": "Its Operations are Planned",
+     "type": "Boolean"
+    },
+    "json_popover": {
+     "compute": "_compute_json_popover",
+     "string": "JSON data for the popover widget",
+     "type": "Char"
+    },
+    "location_dest_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_locations",
+     "domain": "[('usage','=','internal')]",
+     "help": "Location where the system will stock the finished products.",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Finished Products Location",
+     "type": "Many2one"
+    },
+    "location_final_id": {
+     "comodel": "stock.location",
+     "string": "Final Location from procurement",
+     "type": "Many2one"
+    },
+    "location_src_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_locations",
+     "domain": "[('usage','=','internal')]",
+     "help": "Location where the system will look for components.",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Components Location",
+     "type": "Many2one"
+    },
+    "lot_producing_id": {
+     "comodel": "stock.lot",
+     "copy": false,
+     "domain": "[('product_id', '=', product_id)]",
+     "string": "Lot/Serial Number",
+     "type": "Many2one"
+    },
+    "move_byproduct_ids": {
+     "comodel": "stock.move",
+     "compute": "_compute_move_byproduct_ids",
+     "type": "One2many"
+    },
+    "move_dest_ids": {
+     "comodel": "stock.move",
+     "inverse_name": "created_production_id",
+     "string": "Stock Movements of Produced Goods",
+     "type": "One2many"
+    },
+    "move_finished_ids": {
+     "comodel": "stock.move",
+     "compute": "_compute_move_finished_ids",
+     "copy": false,
+     "domain": [
+      [
+       "scrapped",
+       "=",
+       false
+      ]
+     ],
+     "inverse_name": "production_id",
+     "readonly": false,
+     "store": true,
+     "string": "Finished Products",
+     "type": "One2many"
+    },
+    "move_raw_ids": {
+     "comodel": "stock.move",
+     "compute": "_compute_move_raw_ids",
+     "copy": false,
+     "domain": [
+      [
+       "scrapped",
+       "=",
+       false
+      ]
+     ],
+     "inverse_name": "raw_material_production_id",
+     "readonly": false,
+     "store": true,
+     "string": "Components",
+     "type": "One2many"
+    },
+    "mrp_production_backorder_count": {
+     "compute": "_compute_mrp_production_backorder",
+     "string": "Count of linked backorder",
+     "type": "Integer"
+    },
+    "mrp_production_child_count": {
+     "compute": "_compute_mrp_production_child_count",
+     "string": "Number of generated MO",
+     "type": "Integer"
+    },
+    "mrp_production_source_count": {
+     "compute": "_compute_mrp_production_source_count",
+     "string": "Number of source MO",
+     "type": "Integer"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "_('New')"
+     },
+     "readonly": true,
+     "string": "Reference",
+     "type": "Char"
+    },
+    "never_product_template_attribute_value_ids": {
+     "column1": "production_id",
+     "column2": "template_attribute_value_id",
+     "comodel": "product.template.attribute.value",
+     "domain": "[\n            '&',\n                ('attribute_line_id', 'in', valid_product_template_attribute_line_ids),\n                ('attribute_id.create_variant', '=', 'no_variant')]",
+     "relation_table": "template_attribute_value_mrp_production_rel",
+     "string": "Never attribute values",
+     "type": "Many2many"
+    },
+    "orderpoint_id": {
+     "comodel": "stock.warehouse.orderpoint",
+     "copy": false,
+     "index": "btree_not_null",
+     "string": "Orderpoint",
+     "type": "Many2one"
+    },
+    "origin": {
+     "copy": false,
+     "help": "Reference of the document that generated this production order request.",
+     "string": "Source",
+     "type": "Char"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "compute": "_compute_picking_ids",
+     "string": "Picking associated to this manufacturing order",
+     "type": "Many2many"
+    },
+    "picking_type_id": {
+     "comodel": "stock.picking.type",
+     "compute": "_compute_picking_type_id",
+     "copy": true,
+     "domain": "[('code', '=', 'mrp_operation')]",
+     "index": true,
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Operation Type",
+     "type": "Many2one"
+    },
+    "priority": {
+     "default": "0",
+     "help": "Components will be reserved first for the MO with the highest priorities.",
+     "selection": [
+      [
+       "0",
+       "Normal"
+      ],
+      [
+       "1",
+       "Urgent"
+      ]
+     ],
+     "string": "Priority",
+     "type": "Selection"
+    },
+    "procurement_group_id": {
+     "comodel": "procurement.group",
+     "copy": false,
+     "string": "Procurement Group",
+     "type": "Many2one"
+    },
+    "product_description_variants": {
+     "string": "Custom Description",
+     "type": "Char"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "compute": "_compute_product_id",
+     "copy": true,
+     "domain": "[('type', '=', 'consu')]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "compute": "_compute_product_qty",
+     "copy": true,
+     "digits": "Product Unit of Measure",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Quantity To Produce",
+     "tracking": true,
+     "type": "Float"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "related": "product_id.product_tmpl_id",
+     "string": "Product Template",
+     "type": "Many2one"
+    },
+    "product_tracking": {
+     "related": "product_id.tracking",
+     "type": "Selection"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_uom_id",
+     "copy": true,
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Product Unit of Measure",
+     "type": "Many2one"
+    },
+    "product_uom_qty": {
+     "compute": "_compute_product_uom_qty",
+     "store": true,
+     "string": "Total Quantity",
+     "type": "Float"
+    },
+    "product_variant_attributes": {
+     "comodel": "product.template.attribute.value",
+     "related": "product_id.product_template_attribute_value_ids",
+     "type": "Many2many"
+    },
+    "production_capacity": {
+     "compute": "_compute_production_capacity",
+     "help": "Quantity that can be produced with the current stock of components",
+     "type": "Float"
+    },
+    "production_location_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_production_location",
+     "store": true,
+     "string": "Production Location",
+     "type": "Many2one"
+    },
+    "propagate_cancel": {
+     "help": "If checked, when the previous move of the move (which was generated by a next procurement) is cancelled or split, the move generated by this move will too",
+     "string": "Propagate cancel and split",
+     "type": "Boolean"
+    },
+    "qty_produced": {
+     "compute": "_get_produced_qty",
+     "string": "Quantity Produced",
+     "type": "Float"
+    },
+    "qty_producing": {
+     "copy": false,
+     "digits": "Product Unit of Measure",
+     "string": "Quantity Producing",
+     "type": "Float"
+    },
+    "reservation_state": {
+     "compute": "_compute_reservation_state",
+     "copy": false,
+     "help": "Manufacturing readiness for this MO, as per bill of material configuration:\n            * Ready: The material is available to start the production.\n            * Waiting: The material is not available to start the production.\n",
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "confirmed",
+       "Waiting"
+      ],
+      [
+       "assigned",
+       "Ready"
+      ],
+      [
+       "waiting",
+       "Waiting Another Operation"
+      ]
+     ],
+     "store": true,
+     "string": "MO Readiness",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "reserve_visible": {
+     "compute": "_compute_unreserve_visible",
+     "help": "Technical field to check when we can reserve quantities",
+     "string": "Allowed to Reserve Production",
+     "type": "Boolean"
+    },
+    "scrap_count": {
+     "compute": "_compute_scrap_move_count",
+     "string": "Scrap Move",
+     "type": "Integer"
+    },
+    "scrap_ids": {
+     "comodel": "stock.scrap",
+     "inverse_name": "production_id",
+     "string": "Scraps",
+     "type": "One2many"
+    },
+    "search_date_category": {
+     "readonly": true,
+     "selection": [
+      [
+       "before",
+       "Before"
+      ],
+      [
+       "yesterday",
+       "Yesterday"
+      ],
+      [
+       "today",
+       "Today"
+      ],
+      [
+       "day_1",
+       "Tomorrow"
+      ],
+      [
+       "day_2",
+       "The day after tomorrow"
+      ],
+      [
+       "after",
+       "After"
+      ]
+     ],
+     "store": false,
+     "string": "Date Category",
+     "type": "Selection"
+    },
+    "show_allocation": {
+     "compute": "_compute_show_allocation",
+     "help": "Technical Field used to decide whether the button \"Allocation\" should be displayed.",
+     "type": "Boolean"
+    },
+    "show_final_lots": {
+     "compute": "_compute_show_lots",
+     "string": "Show Final Lots",
+     "type": "Boolean"
+    },
+    "show_lock": {
+     "compute": "_compute_show_lock",
+     "string": "Show Lock/unlock buttons",
+     "type": "Boolean"
+    },
+    "show_lot_ids": {
+     "compute": "_compute_show_lot_ids",
+     "string": "Display the serial number shortcut on the moves",
+     "type": "Boolean"
+    },
+    "show_produce": {
+     "compute": "_compute_show_produce",
+     "help": "Technical field to check if produce button can be shown",
+     "type": "Boolean"
+    },
+    "show_produce_all": {
+     "compute": "_compute_show_produce",
+     "help": "Technical field to check if produce all button can be shown",
+     "type": "Boolean"
+    },
+    "state": {
+     "compute": "_compute_state",
+     "copy": false,
+     "help": " * Draft: The MO is not confirmed yet.\n * Confirmed: The MO is confirmed, the stock rules and the reordering of the components are trigerred.\n * In Progress: The production has started (on the MO or on the WO).\n * To Close: The production is done, the MO has to be closed.\n * Done: The MO is closed, the stock moves are posted. \n * Cancelled: The MO has been cancelled, can't be confirmed anymore.",
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "confirmed",
+       "Confirmed"
+      ],
+      [
+       "progress",
+       "In Progress"
+      ],
+      [
+       "to_close",
+       "To Close"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "store": true,
+     "string": "State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "unbuild_count": {
+     "compute": "_compute_unbuild_count",
+     "string": "Number of Unbuilds",
+     "type": "Integer"
+    },
+    "unbuild_ids": {
+     "comodel": "mrp.unbuild",
+     "inverse_name": "mo_id",
+     "string": "Unbuilds",
+     "type": "One2many"
+    },
+    "unreserve_visible": {
+     "compute": "_compute_unreserve_visible",
+     "help": "Technical field to check when we can unreserve",
+     "string": "Allowed to Unreserve Production",
+     "type": "Boolean"
+    },
+    "use_create_components_lots": {
+     "related": "picking_type_id.use_create_components_lots",
+     "type": "Boolean"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "domain": {
+      "$lambda": "[('groups_id', 'in', self.env.ref('mrp.group_mrp_user').id)]"
+     },
+     "string": "Responsible",
+     "type": "Many2one"
+    },
+    "valid_product_template_attribute_line_ids": {
+     "related": "product_tmpl_id.valid_product_template_attribute_line_ids",
+     "type": "Many2many"
+    },
+    "warehouse_id": {
+     "related": "location_src_id.warehouse_id",
+     "type": "Many2one"
+    },
+    "workcenter_id": {
+     "comodel": "mrp.workcenter",
+     "store": false,
+     "type": "Many2one"
+    },
+    "workorder_ids": {
+     "comodel": "mrp.workorder",
+     "compute": "_compute_workorder_ids",
+     "copy": true,
+     "inverse_name": "production_id",
+     "readonly": false,
+     "store": true,
+     "string": "Work Orders",
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread",
+    "product.catalog.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_default_date_start"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_default_date_finished"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_default_is_locked"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('procurement_group_id.stock_move_ids.created_production_id.procurement_group_id.mrp_production_ids', 'procurement_group_id.stock_move_ids.move_orig_ids.created_production_id.procurement_group_id.mrp_production_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_mrp_production_child_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('procurement_group_id.mrp_production_ids.move_dest_ids.group_id.mrp_production_ids', 'procurement_group_id.stock_move_ids.move_dest_ids.group_id.mrp_production_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_mrp_production_source_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('procurement_group_id.mrp_production_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_mrp_production_backorder"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'bom_id')"
+     ],
+     "lines": 22,
+     "name": "_compute_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('bom_id', 'product_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_locations"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "_search_components_availability_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'reservation_state', 'date_start', 'move_raw_ids', 'move_raw_ids.forecast_availability', 'move_raw_ids.forecast_expected_date')"
+     ],
+     "lines": 31,
+     "name": "_compute_components_availability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('bom_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'never_product_template_attribute_value_ids')"
+     ],
+     "lines": 17,
+     "name": "_compute_bom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('bom_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_product_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_raw_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_production_capacity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_finished_ids.date_deadline')"
+     ],
+     "lines": 3,
+     "name": "_compute_date_deadline"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('workorder_ids.duration_expected')"
+     ],
+     "lines": 3,
+     "name": "_compute_duration_expected"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('workorder_ids.duration')"
+     ],
+     "lines": 3,
+     "name": "_compute_duration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('workorder_ids.date_start', 'workorder_ids.date_finished', 'date_start')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_planned"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_raw_ids.delay_alert_date')"
+     ],
+     "lines": 5,
+     "name": "_compute_delay_alert_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_compute_json_popover"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('procurement_group_id', 'procurement_group_id.stock_move_ids.group_id')"
+     ],
+     "lines": 13,
+     "name": "_compute_picking_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_uom_id', 'product_qty', 'product_id.uom_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_product_uom_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'company_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_production_location"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.tracking')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_lots"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_finished_ids.move_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_raw_ids.state', 'move_raw_ids.quantity', 'move_finished_ids.state', 'workorder_ids.state', 'product_qty', 'qty_producing', 'move_raw_ids.picked')"
+     ],
+     "lines": 31,
+     "name": "_compute_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('bom_id', 'product_id', 'product_qty', 'product_uom_id', 'never_product_template_attribute_value_ids')"
+     ],
+     "lines": 55,
+     "name": "_compute_workorder_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'move_raw_ids.state')"
+     ],
+     "lines": 27,
+     "name": "_compute_reservation_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_raw_ids', 'state', 'move_raw_ids.product_uom_qty')"
+     ],
+     "lines": 7,
+     "name": "_compute_unreserve_visible"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('workorder_ids.state', 'move_finished_ids', 'move_finished_ids.quantity')"
+     ],
+     "lines": 6,
+     "name": "_get_produced_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_scrap_move_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('unbuild_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_unbuild_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_finished_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_move_byproduct_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_set_move_byproduct_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 7,
+     "name": "_compute_show_lock"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'move_raw_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_lot_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'move_finished_ids')"
+     ],
+     "lines": 22,
+     "name": "_compute_show_allocation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_uom_qty', 'date_start')"
+     ],
+     "lines": 10,
+     "name": "_compute_forecasted_issue"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_search_delay_alert_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'date_start', 'is_planned', 'product_id', 'workorder_ids.duration_expected')"
+     ],
+     "lines": 10,
+     "name": "_compute_date_finished"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_calculate_expected_finished_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'bom_id', 'product_id', 'product_qty', 'product_uom_id', 'location_src_id', 'never_product_template_attribute_value_ids')"
+     ],
+     "lines": 24,
+     "name": "_compute_move_raw_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'bom_id', 'product_qty', 'product_uom_id', 'location_dest_id', 'date_finished', 'move_dest_ids', 'never_product_template_attribute_value_ids')"
+     ],
+     "lines": 33,
+     "name": "_compute_move_finished_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'product_qty', 'qty_producing')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_produce"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_search_is_delayed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('delay_alert_date', 'state', 'date_deadline', 'date_finished')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_delayed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_date_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('qty_producing', 'lot_producing_id')"
+     ],
+     "lines": 6,
+     "name": "_onchange_producing"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('lot_producing_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_lot_producing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_can_produce_serial_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id', 'move_raw_ids', 'never_product_template_attribute_value_ids')"
+     ],
+     "lines": 6,
+     "name": "_onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('move_finished_ids')"
+     ],
+     "lines": 6,
+     "name": "_check_byproducts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 84,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 40,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=True)"
+     ],
+     "lines": 3,
+     "name": "_unlink_if_not_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "copy_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 23,
+     "name": "action_generate_bom"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_view_mo_delivery"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_toggle_is_locked"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_product_forecast_report"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_update_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_get_bom_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_default_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_move_finished_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_moves_finished_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_create_update_move_finished"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_moves_raw_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_get_move_raw_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_origin"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mark_byproducts_as_produced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_set_qty_producing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_should_postpone_date_finished"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_update_raw_moves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 7,
+     "name": "_unlink_except_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_ready_to_produce_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_autoconfirm_production"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_children"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_sources"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "set_qty_producing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_lot_producing"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_view_mrp_production_childs"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_view_mrp_production_sources"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_view_mrp_production_backorders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_prepare_stock_lot_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_generate_serial"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 42,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_link_workorders_and_moves"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_assign"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "button_plan"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_plan_workorders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_unplan"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_get_consumption_issues"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_action_generate_consumption_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_quantity_produced_issues"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_action_generate_backorder_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_document_iterate_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cal_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_post_inventory"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_name_backorder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_backorder_mo_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 235,
+     "name": "_split_productions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_action_confirm_mo_backorders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 121,
+     "name": "button_mark_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "pre_button_mark_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_button_mark_done_sanity_checks"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_auto_production_checks"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_should_return_records"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "do_unreserve"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_scrap"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_see_move_scrap"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_view_reception_report"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_view_mrp_production_unbuilds"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_log_downside_manufactured_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_log_manufacture_exception"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "button_unbuild"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_mass_produce"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_split"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 54,
+     "name": "action_merge"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_plan_with_components_availability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_has_workorders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 162,
+     "name": "_link_bom"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_prepare_procurement_group_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_quantity_to_backorder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_ratio_between_mo_and_bom_quantities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_check_sn_uniqueness"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_is_finished_sn_already_produced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_pre_action_split_merge_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_prepare_merge_orig_links"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_set_quantities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_check_missing_lot_id_in_raw_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "_get_autoprint_done_report_actions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_autoprint_generated_lot"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_autoprint_mass_generated_lots"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_finished_extra_vals"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_label_layout"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_label_type"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_start"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_order_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_product_catalog_order_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_product_price_and_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_product_catalog_record_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_update_order_line_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_product_catalog_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_update_catalog_line_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_new_catalog_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_post_run_manufacture"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_resequence_workorders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_get_fields"
+    }
+   ],
+   "name": "mrp.production",
+   "order": "priority desc, date_start asc,id",
+   "sel_methods": {
+    "_search_components_availability_state": [
+     [
+      "id",
+      "in"
+     ]
+    ],
+    "_track_subtype": []
+   },
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique(name, company_id)",
+     "Reference must be unique per Company!"
+    ],
+    [
+     "qty_positive",
+     "check (product_qty > 0)",
+     "The quantity to produce must be positive!"
+    ]
+   ],
+   "transient": false
+  },
+  "mrp.production.backorder": {
+   "abstract": false,
+   "description": "Wizard to mark as done or create back order",
+   "extension": false,
+   "fields": {
+    "mrp_production_backorder_line_ids": {
+     "comodel": "mrp.production.backorder.line",
+     "inverse_name": "mrp_production_backorder_id",
+     "string": "Backorder Confirmation Lines",
+     "type": "One2many"
+    },
+    "mrp_production_ids": {
+     "comodel": "mrp.production",
+     "type": "Many2many"
+    },
+    "show_backorder_lines": {
+     "compute": "_compute_show_backorder_lines",
+     "string": "Show backorder lines",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mrp_production_backorder_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_backorder_lines"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_close_mo"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_backorder"
+    }
+   ],
+   "name": "mrp.production.backorder",
+   "transient": true
+  },
+  "mrp.production.backorder.line": {
+   "abstract": false,
+   "description": "Backorder Confirmation Line",
+   "extension": false,
+   "fields": {
+    "mrp_production_backorder_id": {
+     "comodel": "mrp.production.backorder",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "MO Backorder",
+     "type": "Many2one"
+    },
+    "mrp_production_id": {
+     "comodel": "mrp.production",
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "string": "Manufacturing Order",
+     "type": "Many2one"
+    },
+    "to_backorder": {
+     "string": "To Backorder",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "mrp.production.backorder.line",
+   "transient": true
+  },
+  "mrp.production.split": {
+   "abstract": false,
+   "description": "Wizard to Split a Production",
+   "extension": false,
+   "fields": {
+    "counter": {
+     "compute": "_compute_counter",
+     "default": 2,
+     "readonly": false,
+     "store": true,
+     "string": "Split #",
+     "type": "Integer"
+    },
+    "product_id": {
+     "related": "production_id.product_id",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "related": "production_id.product_qty",
+     "type": "Float"
+    },
+    "product_uom_id": {
+     "related": "production_id.product_uom_id",
+     "type": "Many2one"
+    },
+    "production_capacity": {
+     "related": "production_id.production_capacity",
+     "type": "Float"
+    },
+    "production_detailed_vals_ids": {
+     "comodel": "mrp.production.split.line",
+     "compute": "_compute_details",
+     "inverse_name": "mrp_production_split_id",
+     "readonly": false,
+     "store": true,
+     "string": "Split Details",
+     "type": "One2many"
+    },
+    "production_id": {
+     "comodel": "mrp.production",
+     "readonly": true,
+     "string": "Manufacturing Order",
+     "type": "Many2one"
+    },
+    "production_split_multi_id": {
+     "comodel": "mrp.production.split.multi",
+     "string": "Split Productions",
+     "type": "Many2one"
+    },
+    "valid_details": {
+     "compute": "_compute_valid_details",
+     "string": "Valid",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_detailed_vals_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_counter"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('counter')"
+     ],
+     "lines": 21,
+     "name": "_compute_details"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_detailed_vals_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_valid_details"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_split"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_prepare_split"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_return_to_list"
+    }
+   ],
+   "name": "mrp.production.split",
+   "transient": true
+  },
+  "mrp.production.split.line": {
+   "abstract": false,
+   "description": "Split Production Detail",
+   "extension": false,
+   "fields": {
+    "date": {
+     "string": "Schedule Date",
+     "type": "Datetime"
+    },
+    "mrp_production_split_id": {
+     "comodel": "mrp.production.split",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Split Production",
+     "type": "Many2one"
+    },
+    "quantity": {
+     "digits": "Product Unit of Measure",
+     "required": true,
+     "string": "Quantity To Produce",
+     "type": "Float"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "domain": {
+      "$lambda": "[('groups_id', 'in', self.env.ref('mrp.group_mrp_user').id)]"
+     },
+     "string": "Responsible",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "mrp.production.split.line",
+   "transient": true
+  },
+  "mrp.production.split.multi": {
+   "abstract": false,
+   "description": "Wizard to Split Multiple Productions",
+   "extension": false,
+   "fields": {
+    "production_ids": {
+     "comodel": "mrp.production.split",
+     "inverse_name": "production_split_multi_id",
+     "string": "Productions To Split",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "mrp.production.split.multi",
+   "transient": true
+  },
+  "mrp.routing.workcenter": {
+   "abstract": false,
+   "description": "Work Center Usage",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "allow_operation_dependencies": {
+     "related": "bom_id.allow_operation_dependencies",
+     "type": "Boolean"
+    },
+    "blocked_by_operation_ids": {
+     "column1": "operation_id",
+     "column2": "blocked_by_id",
+     "comodel": "mrp.routing.workcenter",
+     "copy": false,
+     "domain": "[('allow_operation_dependencies', '=', True), ('id', '!=', id), ('bom_id', '=', bom_id)]",
+     "help": "Operations that need to be completed before this operation can start.",
+     "relation_table": "mrp_routing_workcenter_dependencies_rel",
+     "string": "Blocked By",
+     "type": "Many2many"
+    },
+    "bom_id": {
+     "comodel": "mrp.bom",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Bill of Material",
+     "type": "Many2one"
+    },
+    "bom_product_template_attribute_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "domain": "[('id', 'in', possible_bom_product_template_attribute_value_ids)]",
+     "help": "BOM Product Variants needed to apply this line.",
+     "ondelete": "restrict",
+     "string": "Apply on Variants",
+     "type": "Many2many"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "related": "bom_id.company_id",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Operation",
+     "type": "Char"
+    },
+    "needed_by_operation_ids": {
+     "column1": "blocked_by_id",
+     "column2": "operation_id",
+     "comodel": "mrp.routing.workcenter",
+     "copy": false,
+     "domain": "[('allow_operation_dependencies', '=', True), ('id', '!=', id), ('bom_id', '=', bom_id)]",
+     "help": "Operations that cannot start before this operation is completed.",
+     "relation_table": "mrp_routing_workcenter_dependencies_rel",
+     "string": "Blocks",
+     "type": "Many2many"
+    },
+    "note": {
+     "string": "Description",
+     "type": "Html"
+    },
+    "possible_bom_product_template_attribute_value_ids": {
+     "related": "bom_id.possible_product_template_attribute_value_ids",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "default": 100,
+     "help": "Gives the sequence order when displaying a list of routing Work Centers.",
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "time_computed_on": {
+     "compute": "_compute_time_computed_on",
+     "string": "Computed on last",
+     "type": "Char"
+    },
+    "time_cycle": {
+     "compute": "_compute_time_cycle",
+     "string": "Duration",
+     "type": "Float"
+    },
+    "time_cycle_manual": {
+     "default": 60,
+     "help": "Time in minutes:- In manual mode, time used- In automatic mode, supposed first time when there aren't any work orders yet",
+     "string": "Manual Duration",
+     "tracking": true,
+     "type": "Float"
+    },
+    "time_mode": {
+     "default": "manual",
+     "selection": [
+      [
+       "auto",
+       "Compute based on tracked time"
+      ],
+      [
+       "manual",
+       "Set duration manually"
+      ]
+     ],
+     "string": "Duration Computation",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "time_mode_batch": {
+     "default": 10,
+     "string": "Based on",
+     "type": "Integer"
+    },
+    "workcenter_id": {
+     "comodel": "mrp.workcenter",
+     "required": true,
+     "string": "Work Center",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "workorder_count": {
+     "compute": "_compute_workorder_count",
+     "string": "# Work Orders",
+     "type": "Integer"
+    },
+    "workorder_ids": {
+     "comodel": "mrp.workorder",
+     "inverse_name": "operation_id",
+     "string": "Work Orders",
+     "type": "One2many"
+    },
+    "worksheet": {
+     "string": "PDF",
+     "type": "Binary"
+    },
+    "worksheet_google_slide": {
+     "help": "Paste the url of your Google Slide. Make sure the access to the document is public.",
+     "string": "Google Slide",
+     "tracking": true,
+     "type": "Char"
+    },
+    "worksheet_type": {
+     "default": "text",
+     "selection": [
+      [
+       "pdf",
+       "PDF"
+      ],
+      [
+       "google_slide",
+       "Google Slide"
+      ],
+      [
+       "text",
+       "Text"
+      ]
+     ],
+     "string": "Worksheet",
+     "tracking": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('time_mode', 'time_mode_batch')"
+     ],
+     "lines": 3,
+     "name": "_compute_time_computed_on"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('time_cycle_manual', 'time_mode', 'workorder_ids')"
+     ],
+     "lines": 27,
+     "name": "_compute_time_cycle"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_workorder_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('blocked_by_operation_ids')"
+     ],
+     "lines": 3,
+     "name": "_check_no_cyclic_dependencies"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_archive"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_unarchive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "copy_to_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "copy_existing_operations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_skip_operation_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_duration_expected"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_operation_cost"
+    }
+   ],
+   "name": "mrp.routing.workcenter",
+   "order": "bom_id, sequence, id",
+   "transient": false
+  },
+  "mrp.unbuild": {
+   "abstract": false,
+   "description": "Unbuild Order",
+   "extension": false,
+   "fields": {
+    "bom_id": {
+     "comodel": "mrp.bom",
+     "compute": "_compute_bom_id",
+     "domain": "[\n        '|',\n            ('product_id', '=', product_id),\n            '&',\n                ('product_tmpl_id.product_variant_ids', '=', product_id),\n                ('product_id','=',False),\n        ('type', '=', 'normal'),\n        '|',\n            ('company_id', '=', company_id),\n            ('company_id', '=', False)\n        ]",
+     "store": true,
+     "string": "Bill of Material",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "s.env.company"
+     },
+     "index": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "consume_line_ids": {
+     "comodel": "stock.move",
+     "inverse_name": "consume_unbuild_id",
+     "readonly": true,
+     "string": "Consumed Disassembly Lines",
+     "type": "One2many"
+    },
+    "has_tracking": {
+     "readonly": true,
+     "related": "product_id.tracking",
+     "type": "Selection"
+    },
+    "location_dest_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_location_id",
+     "domain": "[('usage','=','internal')]",
+     "help": "Location where you want to send the components resulting from the unbuild order.",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Destination Location",
+     "type": "Many2one"
+    },
+    "location_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_location_id",
+     "domain": "[('usage','=','internal')]",
+     "help": "Location where the product you want to unbuild is.",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Source Location",
+     "type": "Many2one"
+    },
+    "lot_id": {
+     "comodel": "stock.lot",
+     "compute": "_compute_lot_id",
+     "domain": "[('product_id', '=', product_id)]",
+     "store": true,
+     "string": "Lot/Serial Number",
+     "type": "Many2one"
+    },
+    "mo_bom_id": {
+     "comodel": "mrp.bom",
+     "related": "mo_id.bom_id",
+     "string": "Bill of Material used on the Production Order",
+     "type": "Many2one"
+    },
+    "mo_id": {
+     "comodel": "mrp.production",
+     "domain": "[('state', '=', 'done'), ('product_id', '=?', product_id), ('bom_id', '=?', bom_id)]",
+     "string": "Manufacturing Order",
+     "type": "Many2one"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "s.env._('New')"
+     },
+     "readonly": true,
+     "string": "Reference",
+     "type": "Char"
+    },
+    "produce_line_ids": {
+     "comodel": "stock.move",
+     "inverse_name": "unbuild_id",
+     "readonly": true,
+     "string": "Processed Disassembly Lines",
+     "type": "One2many"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "compute": "_compute_product_id",
+     "domain": "[('type', '=', 'consu')]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "compute": "_compute_product_qty",
+     "default": 1.0,
+     "digits": "Product Unit of Measure",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_product_uom_id",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "state": {
+     "default": "draft",
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mo_id', 'product_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mo_id', 'product_id', 'company_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_bom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mo_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_lot_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mo_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mo_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_product_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_prepare_finished_move_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_prepare_move_line_vals"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 77,
+     "name": "action_unbuild"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_generate_consume_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_generate_produce_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_generate_move_from_existing_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_generate_move_from_bom_line"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 23,
+     "name": "action_validate"
+    }
+   ],
+   "name": "mrp.unbuild",
+   "order": "id desc",
+   "sql_constraints": [
+    [
+     "qty_positive",
+     "check (product_qty > 0)",
+     "The quantity to unbuild must be positive!"
+    ]
+   ],
+   "transient": false
+  },
+  "mrp.workcenter": {
+   "abstract": false,
+   "description": "Work Center",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "readonly": false,
+     "related": "resource_id.active",
+     "store": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "alternative_workcenter_ids": {
+     "column1": "workcenter_id",
+     "column2": "alternative_workcenter_id",
+     "comodel": "mrp.workcenter",
+     "domain": "[('id', '!=', id), '|', ('company_id', '=', company_id), ('company_id', '=', False)]",
+     "help": "Alternative workcenters that can be substituted to this one in order to dispatch production",
+     "relation_table": "mrp_workcenter_alternative_rel",
+     "string": "Alternative Workcenters",
+     "type": "Many2many"
+    },
+    "blocked_time": {
+     "compute": "_compute_blocked_time",
+     "digits": [
+      16,
+      2
+     ],
+     "help": "Blocked hours over the last month",
+     "string": "Blocked Time",
+     "type": "Float"
+    },
+    "capacity_ids": {
+     "comodel": "mrp.workcenter.capacity",
+     "copy": true,
+     "help": "Specific number of pieces that can be produced in parallel per product.",
+     "inverse_name": "workcenter_id",
+     "string": "Product Capacities",
+     "type": "One2many"
+    },
+    "code": {
+     "copy": false,
+     "string": "Code",
+     "type": "Char"
+    },
+    "color": {
+     "string": "Color",
+     "type": "Integer"
+    },
+    "costs_hour": {
+     "default": 0.0,
+     "help": "Hourly processing cost.",
+     "string": "Cost per hour",
+     "tracking": true,
+     "type": "Float"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "required": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "default_capacity": {
+     "default": 1.0,
+     "help": "Default number of pieces (in product UoM) that can be produced in parallel (at the same time) at this work center. For example: the capacity is 5 and you need to produce 10 units, then the operation time listed on the BOM will be multiplied by two. However, note that both time before and after production will only be counted once.",
+     "string": "Capacity",
+     "type": "Float"
+    },
+    "has_routing_lines": {
+     "compute": "_compute_has_routing_lines",
+     "help": "Technical field for workcenter views",
+     "type": "Boolean"
+    },
+    "kanban_dashboard_graph": {
+     "compute": "_compute_kanban_dashboard_graph",
+     "type": "Text"
+    },
+    "name": {
+     "readonly": false,
+     "related": "resource_id.name",
+     "store": true,
+     "string": "Work Center",
+     "type": "Char"
+    },
+    "note": {
+     "string": "Description",
+     "type": "Html"
+    },
+    "oee": {
+     "compute": "_compute_oee",
+     "help": "Overall Equipment Effectiveness, based on the last month",
+     "type": "Float"
+    },
+    "oee_target": {
+     "default": 90,
+     "help": "Overall Effective Efficiency Target in percentage",
+     "string": "OEE Target",
+     "type": "Float"
+    },
+    "order_ids": {
+     "comodel": "mrp.workorder",
+     "inverse_name": "workcenter_id",
+     "string": "Orders",
+     "type": "One2many"
+    },
+    "performance": {
+     "compute": "_compute_performance",
+     "help": "Performance over the last month",
+     "string": "Performance",
+     "type": "Integer"
+    },
+    "productive_time": {
+     "compute": "_compute_productive_time",
+     "digits": [
+      16,
+      2
+     ],
+     "help": "Productive hours over the last month",
+     "string": "Productive Time",
+     "type": "Float"
+    },
+    "resource_calendar_id": {
+     "type": "Many2one"
+    },
+    "routing_line_ids": {
+     "comodel": "mrp.routing.workcenter",
+     "inverse_name": "workcenter_id",
+     "string": "Routing Lines",
+     "type": "One2many"
+    },
+    "sequence": {
+     "default": 1,
+     "help": "Gives the sequence order when displaying a list of work centers.",
+     "required": true,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "tag_ids": {
+     "comodel": "mrp.workcenter.tag",
+     "type": "Many2many"
+    },
+    "time_efficiency": {
+     "default": 100,
+     "readonly": false,
+     "related": "resource_id.time_efficiency",
+     "store": true,
+     "string": "Time Efficiency",
+     "type": "Float"
+    },
+    "time_ids": {
+     "comodel": "mrp.workcenter.productivity",
+     "inverse_name": "workcenter_id",
+     "string": "Time Logs",
+     "type": "One2many"
+    },
+    "time_start": {
+     "string": "Setup Time",
+     "type": "Float"
+    },
+    "time_stop": {
+     "string": "Cleanup Time",
+     "type": "Float"
+    },
+    "workcenter_load": {
+     "compute": "_compute_workorder_count",
+     "string": "Work Center Load",
+     "type": "Float"
+    },
+    "working_state": {
+     "compute": "_compute_working_state",
+     "selection": [
+      [
+       "normal",
+       "Normal"
+      ],
+      [
+       "blocked",
+       "Blocked"
+      ],
+      [
+       "done",
+       "In Progress"
+      ]
+     ],
+     "store": true,
+     "string": "Workcenter Status",
+     "type": "Selection"
+    },
+    "workorder_count": {
+     "compute": "_compute_workorder_count",
+     "string": "# Work Orders",
+     "type": "Integer"
+    },
+    "workorder_late_count": {
+     "compute": "_compute_workorder_count",
+     "string": "Total Late Orders",
+     "type": "Integer"
+    },
+    "workorder_pending_count": {
+     "compute": "_compute_workorder_count",
+     "string": "Total Pending Orders",
+     "type": "Integer"
+    },
+    "workorder_progress_count": {
+     "compute": "_compute_workorder_count",
+     "string": "Total Running Orders",
+     "type": "Integer"
+    },
+    "workorder_ready_count": {
+     "compute": "_compute_workorder_count",
+     "string": "# Ready Work Orders",
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "resource.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('alternative_workcenter_ids')"
+     ],
+     "lines": 4,
+     "name": "_check_alternative_workcenter"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_kanban_dashboard_graph"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_get_week_range_and_first_last_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_workcenter_load_per_week"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_graph_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_ids.duration_expected', 'order_ids.workcenter_id', 'order_ids.state', 'order_ids.date_start')"
+     ],
+     "lines": 24,
+     "name": "_compute_workorder_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('time_ids', 'time_ids.date_end', 'time_ids.loss_type')"
+     ],
+     "lines": 18,
+     "name": "_compute_working_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_blocked_time"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_productive_time"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('blocked_time', 'productive_time')"
+     ],
+     "lines": 23,
+     "name": "_compute_oee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_performance"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('routing_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_has_routing_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('default_capacity')"
+     ],
+     "lines": 3,
+     "name": "_check_capacity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "unblock"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_show_operations"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_work_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_work_order_alternatives"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_unavailability_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 69,
+     "name": "_get_first_available_slot"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_archive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_capacity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_expected_duration"
+    }
+   ],
+   "name": "mrp.workcenter",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "mrp.workcenter.capacity": {
+   "abstract": false,
+   "description": "Work Center Capacity",
+   "extension": false,
+   "fields": {
+    "capacity": {
+     "default": 1.0,
+     "help": "Number of pieces that can be produced in parallel for this product.",
+     "string": "Capacity",
+     "type": "Float"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "related": "product_id.uom_id",
+     "string": "Product UoM",
+     "type": "Many2one"
+    },
+    "time_start": {
+     "default": {
+      "$ref": "_default_time_start"
+     },
+     "help": "Time in minutes for the setup.",
+     "string": "Setup Time (minutes)",
+     "type": "Float"
+    },
+    "time_stop": {
+     "default": {
+      "$ref": "_default_time_stop"
+     },
+     "help": "Time in minutes for the cleaning.",
+     "string": "Cleanup Time (minutes)",
+     "type": "Float"
+    },
+    "workcenter_id": {
+     "comodel": "mrp.workcenter",
+     "required": true,
+     "string": "Work Center",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_default_time_start"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_default_time_stop"
+    }
+   ],
+   "name": "mrp.workcenter.capacity",
+   "sql_constraints": [
+    [
+     "positive_capacity",
+     "CHECK(capacity > 0)",
+     "Capacity should be a positive number."
+    ],
+    [
+     "unique_product",
+     "UNIQUE(workcenter_id, product_id)",
+     "Product capacity should be unique for each workcenter."
+    ]
+   ],
+   "transient": false
+  },
+  "mrp.workcenter.productivity": {
+   "abstract": false,
+   "description": "Workcenter Productivity Log",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self._get_default_company_id()"
+     },
+     "index": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "date_end": {
+     "string": "End Date",
+     "type": "Datetime"
+    },
+    "date_start": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "required": true,
+     "string": "Start Date",
+     "type": "Datetime"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Text"
+    },
+    "duration": {
+     "compute": "_compute_duration",
+     "store": true,
+     "string": "Duration",
+     "type": "Float"
+    },
+    "loss_id": {
+     "comodel": "mrp.workcenter.productivity.loss",
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Loss Reason",
+     "type": "Many2one"
+    },
+    "loss_type": {
+     "readonly": false,
+     "related": "loss_id.loss_type",
+     "store": true,
+     "string": "Effectiveness",
+     "type": "Selection"
+    },
+    "production_id": {
+     "comodel": "mrp.production",
+     "readonly": true,
+     "related": "workorder_id.production_id",
+     "string": "Manufacturing Order",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.uid"
+     },
+     "string": "User",
+     "type": "Many2one"
+    },
+    "workcenter_id": {
+     "comodel": "mrp.workcenter",
+     "index": true,
+     "required": true,
+     "string": "Work Center",
+     "type": "Many2one"
+    },
+    "workorder_id": {
+     "comodel": "mrp.workorder",
+     "index": true,
+     "string": "Work Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_default_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_end', 'date_start')"
+     ],
+     "lines": 6,
+     "name": "_compute_duration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('duration')"
+     ],
+     "lines": 5,
+     "name": "_duration_changed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('date_start')"
+     ],
+     "lines": 5,
+     "name": "_date_start_changed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('date_end')"
+     ],
+     "lines": 5,
+     "name": "_date_end_changed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('workorder_id')"
+     ],
+     "lines": 8,
+     "name": "_check_open_time_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "button_block"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_loss_type_change"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_close"
+    }
+   ],
+   "name": "mrp.workcenter.productivity",
+   "order": "id desc",
+   "rec_name": "loss_id",
+   "transient": false
+  },
+  "mrp.workcenter.productivity.loss": {
+   "abstract": false,
+   "description": "Workcenter Productivity Losses",
+   "extension": false,
+   "fields": {
+    "loss_id": {
+     "comodel": "mrp.workcenter.productivity.loss.type",
+     "domain": [
+      [
+       "loss_type",
+       "in",
+       [
+        "quality",
+        "availability"
+       ]
+      ]
+     ],
+     "string": "Category",
+     "type": "Many2one"
+    },
+    "loss_type": {
+     "readonly": false,
+     "related": "loss_id.loss_type",
+     "store": true,
+     "string": "Effectiveness Category",
+     "type": "Selection"
+    },
+    "manual": {
+     "default": true,
+     "string": "Is a Blocking Reason",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Blocking Reason",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_convert_to_duration"
+    }
+   ],
+   "name": "mrp.workcenter.productivity.loss",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "mrp.workcenter.productivity.loss.type": {
+   "abstract": false,
+   "description": "MRP Workorder productivity losses",
+   "extension": false,
+   "fields": {
+    "loss_type": {
+     "default": "availability",
+     "required": true,
+     "selection": [
+      [
+       "availability",
+       "Availability"
+      ],
+      [
+       "performance",
+       "Performance"
+      ],
+      [
+       "quality",
+       "Quality"
+      ],
+      [
+       "productive",
+       "Productive"
+      ]
+     ],
+     "string": "Category",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "mrp.workcenter.productivity.loss.type",
+   "rec_name": "loss_type",
+   "transient": false
+  },
+  "mrp.workcenter.tag": {
+   "abstract": false,
+   "description": "Add tag for the workcenter",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Tag Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    }
+   ],
+   "name": "mrp.workcenter.tag",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "tag_name_unique",
+     "unique(name)",
+     "The tag name must be unique."
+    ]
+   ],
+   "transient": false
+  },
+  "mrp.workorder": {
+   "abstract": false,
+   "description": "Work Order",
+   "extension": false,
+   "fields": {
+    "allow_workorder_dependencies": {
+     "related": "production_id.allow_workorder_dependencies",
+     "type": "Boolean"
+    },
+    "barcode": {
+     "compute": "_compute_barcode",
+     "store": true,
+     "type": "Char"
+    },
+    "blocked_by_workorder_ids": {
+     "column1": "workorder_id",
+     "column2": "blocked_by_id",
+     "comodel": "mrp.workorder",
+     "copy": false,
+     "domain": "[('allow_workorder_dependencies', '=', True), ('id', '!=', id), ('production_id', '=', production_id)]",
+     "relation_table": "mrp_workorder_dependencies_rel",
+     "string": "Blocked By",
+     "type": "Many2many"
+    },
+    "company_id": {
+     "related": "production_id.company_id",
+     "type": "Many2one"
+    },
+    "consumption": {
+     "related": "production_id.consumption",
+     "type": "Selection"
+    },
+    "costs_hour": {
+     "default": 0.0,
+     "string": "Cost per hour",
+     "type": "Float"
+    },
+    "date_finished": {
+     "compute": "_compute_dates",
+     "copy": false,
+     "store": true,
+     "string": "End",
+     "type": "Datetime"
+    },
+    "date_start": {
+     "compute": "_compute_dates",
+     "copy": false,
+     "store": true,
+     "string": "Start",
+     "type": "Datetime"
+    },
+    "duration": {
+     "compute": "_compute_duration",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Real Duration",
+     "type": "Float"
+    },
+    "duration_expected": {
+     "compute": "_compute_duration_expected",
+     "digits": [
+      16,
+      2
+     ],
+     "readonly": false,
+     "store": true,
+     "string": "Expected Duration",
+     "type": "Float"
+    },
+    "duration_percent": {
+     "compute": "_compute_duration",
+     "readonly": true,
+     "store": true,
+     "string": "Duration Deviation (%)",
+     "type": "Integer"
+    },
+    "duration_unit": {
+     "compute": "_compute_duration",
+     "readonly": true,
+     "store": true,
+     "string": "Duration Per Unit",
+     "type": "Float"
+    },
+    "finished_lot_id": {
+     "comodel": "stock.lot",
+     "domain": "[('product_id', '=', product_id), ('company_id', '=', company_id)]",
+     "readonly": false,
+     "related": "production_id.lot_producing_id",
+     "string": "Lot/Serial Number",
+     "type": "Many2one"
+    },
+    "has_worksheet": {
+     "compute": "_compute_has_worksheet",
+     "type": "Boolean"
+    },
+    "is_planned": {
+     "related": "production_id.is_planned",
+     "type": "Boolean"
+    },
+    "is_produced": {
+     "compute": "_compute_is_produced",
+     "string": "Has Been Produced",
+     "type": "Boolean"
+    },
+    "is_user_working": {
+     "compute": "_compute_working_users",
+     "string": "Is the Current User Working",
+     "type": "Boolean"
+    },
+    "json_popover": {
+     "compute": "_compute_json_popover",
+     "string": "Popover Data JSON",
+     "type": "Char"
+    },
+    "last_working_user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_working_users",
+     "string": "Last user that worked on this work order.",
+     "type": "One2many"
+    },
+    "leave_id": {
+     "comodel": "resource.calendar.leaves",
+     "copy": false,
+     "help": "Slot into workcenter calendar once planned",
+     "type": "Many2one"
+    },
+    "move_finished_ids": {
+     "comodel": "stock.move",
+     "domain": [
+      [
+       "raw_material_production_id",
+       "=",
+       false
+      ],
+      [
+       "production_id",
+       "!=",
+       false
+      ]
+     ],
+     "inverse_name": "workorder_id",
+     "string": "Finished Moves",
+     "type": "One2many"
+    },
+    "move_line_ids": {
+     "comodel": "stock.move.line",
+     "help": "Inventory moves for which you must scan a lot number at this work order",
+     "inverse_name": "workorder_id",
+     "string": "Moves to Track",
+     "type": "One2many"
+    },
+    "move_raw_ids": {
+     "comodel": "stock.move",
+     "domain": [
+      [
+       "raw_material_production_id",
+       "!=",
+       false
+      ],
+      [
+       "production_id",
+       "=",
+       false
+      ]
+     ],
+     "inverse_name": "workorder_id",
+     "string": "Raw Moves",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Work Order",
+     "type": "Char"
+    },
+    "needed_by_workorder_ids": {
+     "column1": "blocked_by_id",
+     "column2": "workorder_id",
+     "comodel": "mrp.workorder",
+     "copy": false,
+     "domain": "[('allow_workorder_dependencies', '=', True), ('id', '!=', id), ('production_id', '=', production_id)]",
+     "relation_table": "mrp_workorder_dependencies_rel",
+     "string": "Blocks",
+     "type": "Many2many"
+    },
+    "operation_id": {
+     "comodel": "mrp.routing.workcenter",
+     "string": "Operation",
+     "type": "Many2one"
+    },
+    "operation_note": {
+     "readonly": true,
+     "related": "operation_id.note",
+     "string": "Description",
+     "type": "Html"
+    },
+    "product_id": {
+     "readonly": true,
+     "related": "production_id.product_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "product_tracking": {
+     "related": "product_id.tracking",
+     "type": "Selection"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "readonly": true,
+     "required": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "production_availability": {
+     "readonly": true,
+     "related": "production_id.reservation_state",
+     "store": true,
+     "string": "Stock Availability",
+     "type": "Selection"
+    },
+    "production_bom_id": {
+     "comodel": "mrp.bom",
+     "related": "production_id.bom_id",
+     "type": "Many2one"
+    },
+    "production_date": {
+     "compute": "_compute_production_date",
+     "store": true,
+     "string": "Production Date",
+     "type": "Datetime"
+    },
+    "production_id": {
+     "comodel": "mrp.production",
+     "index": "btree",
+     "readonly": true,
+     "required": true,
+     "string": "Manufacturing Order",
+     "type": "Many2one"
+    },
+    "production_state": {
+     "readonly": true,
+     "related": "production_id.state",
+     "string": "Production State",
+     "type": "Selection"
+    },
+    "progress": {
+     "compute": "_compute_progress",
+     "digits": [
+      16,
+      2
+     ],
+     "string": "Progress Done (%)",
+     "type": "Float"
+    },
+    "qty_produced": {
+     "copy": false,
+     "default": 0.0,
+     "digits": "Product Unit of Measure",
+     "help": "The number of products already handled by this work order",
+     "readonly": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "qty_producing": {
+     "compute": "_compute_qty_producing",
+     "digits": "Product Unit of Measure",
+     "string": "Currently Produced Quantity",
+     "type": "Float"
+    },
+    "qty_production": {
+     "readonly": true,
+     "related": "production_id.product_qty",
+     "string": "Original Production Quantity",
+     "type": "Float"
+    },
+    "qty_remaining": {
+     "compute": "_compute_qty_remaining",
+     "digits": "Product Unit of Measure",
+     "string": "Quantity To Be Produced",
+     "type": "Float"
+    },
+    "qty_reported_from_previous_wo": {
+     "copy": false,
+     "digits": "Product Unit of Measure",
+     "help": "The quantity already produced awaiting allocation in the backorders chain.",
+     "string": "Carried Quantity",
+     "type": "Float"
+    },
+    "scrap_count": {
+     "compute": "_compute_scrap_move_count",
+     "string": "Scrap Move",
+     "type": "Integer"
+    },
+    "scrap_ids": {
+     "comodel": "stock.scrap",
+     "inverse_name": "workorder_id",
+     "type": "One2many"
+    },
+    "sequence": {
+     "default": {
+      "$ref": "_default_sequence"
+     },
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "show_json_popover": {
+     "compute": "_compute_json_popover",
+     "string": "Show Popover?",
+     "type": "Boolean"
+    },
+    "state": {
+     "compute": "_compute_state",
+     "copy": false,
+     "default": "pending",
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "pending",
+       "Waiting for another WO"
+      ],
+      [
+       "waiting",
+       "Waiting for components"
+      ],
+      [
+       "ready",
+       "Ready"
+      ],
+      [
+       "progress",
+       "In Progress"
+      ],
+      [
+       "done",
+       "Finished"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "store": true,
+     "string": "Status",
+     "type": "Selection"
+    },
+    "time_ids": {
+     "comodel": "mrp.workcenter.productivity",
+     "copy": false,
+     "inverse_name": "workorder_id",
+     "type": "One2many"
+    },
+    "workcenter_id": {
+     "comodel": "mrp.workcenter",
+     "required": true,
+     "string": "Work Center",
+     "type": "Many2one"
+    },
+    "working_state": {
+     "related": "workcenter_id.working_state",
+     "string": "Workcenter Status",
+     "type": "Selection"
+    },
+    "working_user_ids": {
+     "comodel": "res.users",
+     "compute": "_compute_working_users",
+     "string": "Working user on this work order.",
+     "type": "One2many"
+    },
+    "worksheet": {
+     "readonly": true,
+     "related": "operation_id.worksheet",
+     "string": "Worksheet",
+     "type": "Binary"
+    },
+    "worksheet_google_slide": {
+     "readonly": true,
+     "related": "operation_id.worksheet_google_slide",
+     "string": "Worksheet URL",
+     "type": "Char"
+    },
+    "worksheet_type": {
+     "readonly": true,
+     "related": "operation_id.worksheet_type",
+     "string": "Worksheet Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_read_group_workcenter_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_availability', 'blocked_by_workorder_ids.state')"
+     ],
+     "lines": 17,
+     "name": "_compute_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id.date_start', 'date_start')"
+     ],
+     "lines": 3,
+     "name": "_compute_production_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_state', 'date_start', 'date_finished')"
+     ],
+     "lines": 48,
+     "name": "_compute_json_popover"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id.qty_producing')"
+     ],
+     "lines": 3,
+     "name": "_compute_qty_producing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_set_qty_producing"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('leave_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_dates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_set_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('blocked_by_workorder_ids')"
+     ],
+     "lines": 3,
+     "name": "_check_no_cyclic_dependencies"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id.name')"
+     ],
+     "lines": 3,
+     "name": "_compute_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id', 'product_id')",
+      "api.depends_context('prefix_product')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id.product_qty', 'qty_produced', 'production_id.product_uom_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_is_produced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('operation_id', 'workcenter_id', 'qty_producing', 'qty_production')"
+     ],
+     "lines": 7,
+     "name": "_compute_duration_expected"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('time_ids.duration', 'time_ids.loss_type', 'qty_produced')"
+     ],
+     "lines": 8,
+     "name": "_compute_duration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "_set_duration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('duration', 'duration_expected', 'state')"
+     ],
+     "lines": 8,
+     "name": "_compute_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_has_worksheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_compute_working_users"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_scrap_move_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('operation_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_operation_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('date_start', 'duration_expected', 'workcenter_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_date_start"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_calculate_date_finished"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('date_finished')"
+     ],
+     "lines": 6,
+     "name": "_onchange_date_finished"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_calculate_duration_expected"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('finished_lot_id')"
+     ],
+     "lines": 5,
+     "name": "_onchange_finished_lot_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 17,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_byproduct_move_to_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_plan_workorder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_cal_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 51,
+     "name": "button_start"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "button_finish"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "end_previous"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "end_all"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "button_pending"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "button_unblock"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_replan"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "button_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_scrap"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_see_move_scrap"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_open_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('qty_production', 'qty_reported_from_previous_wo', 'qty_produced', 'production_id.product_uom_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_qty_remaining"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_duration_expected"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_conflicted_workorder_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_operation_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_prepare_timeline_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_update_finished_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_start_timer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_update_qty_producing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_working_duration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_intervals_duration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_duration"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_mark_as_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_expected_operation_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_current_operation_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_current_theorical_operation_cost"
+    }
+   ],
+   "name": "mrp.workorder",
+   "order": "sequence, leave_id, date_start, id",
+   "transient": false
+  },
+  "picking.label.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "production_ids": {
+     "comodel": "mrp.production",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "process"
+    }
+   ],
+   "name": "picking.label.type",
+   "transient": false
+  },
+  "procurement.group": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mrp_production_ids": {
+     "comodel": "mrp.production",
+     "inverse_name": "procurement_group_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "run"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_moves_to_assign_domain"
+    }
+   ],
+   "name": "procurement.group",
+   "transient": false
+  },
+  "product.document": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "attached_on_mrp": {
+     "default": {
+      "$lambda": "self._default_attached_on_mrp()"
+     },
+     "help": "Leave hidden if document only accessible on product form.\nSelect Bill of Materials to visualise this document as a product attachment when this product is in a bill of material.",
+     "required": true,
+     "selection": [
+      [
+       "hidden",
+       "Hidden"
+      ],
+      [
+       "bom",
+       "Bill of Materials"
+      ]
+     ],
+     "string": "MRP : Visible at",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_attached_on_mrp"
+    }
+   ],
+   "name": "product.document",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bom_count": {
+     "compute": "_compute_bom_count",
+     "string": "# Bill of Material",
+     "type": "Integer"
+    },
+    "bom_line_ids": {
+     "comodel": "mrp.bom.line",
+     "inverse_name": "product_id",
+     "string": "BoM Components",
+     "type": "One2many"
+    },
+    "is_kits": {
+     "compute": "_compute_is_kits",
+     "type": "Boolean"
+    },
+    "mrp_product_qty": {
+     "compute": "_compute_mrp_product_qty",
+     "digits": "Product Unit of Measure",
+     "string": "Manufactured",
+     "type": "Float"
+    },
+    "product_catalog_product_is_in_bom": {
+     "compute": "_compute_product_is_in_bom_and_mo",
+     "type": "Boolean"
+    },
+    "product_catalog_product_is_in_mo": {
+     "compute": "_compute_product_is_in_bom_and_mo",
+     "type": "Boolean"
+    },
+    "used_in_bom_count": {
+     "compute": "_compute_used_in_bom_count",
+     "string": "# BoM Where Used",
+     "type": "Integer"
+    },
+    "variant_bom_ids": {
+     "comodel": "mrp.bom",
+     "inverse_name": "product_id",
+     "string": "BOM Product Variants",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_bom_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')"
+     ],
+     "lines": 17,
+     "name": "_compute_is_kits"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_search_is_kits"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_show_qty_status_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_used_in_bom_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('order_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_is_in_bom_and_mo"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_search_product_is_in_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_search_product_is_in_mo"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_components"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_used_in_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_compute_mrp_product_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 91,
+     "name": "_compute_quantities_dict"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_bom"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_view_mos"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_open_quants"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_match_all_variant_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_count_returned_sn_products_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_search_qty_available_new"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_archive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_backend_root_menu_ids"
+    }
+   ],
+   "name": "product.product",
+   "sel_methods": {
+    "_count_returned_sn_products_domain": []
+   },
+   "transient": false
+  },
+  "product.replenish": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('route_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_date_planned"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_record_to_notify"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_replenishment_order_notification_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_date_planned"
+    }
+   ],
+   "name": "product.replenish",
+   "sel_methods": {
+    "_get_replenishment_order_notification_link": []
+   },
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bom_count": {
+     "compute": "_compute_bom_count",
+     "string": "# Bill of Material",
+     "type": "Integer"
+    },
+    "bom_ids": {
+     "comodel": "mrp.bom",
+     "inverse_name": "product_tmpl_id",
+     "string": "Bill of Materials",
+     "type": "One2many"
+    },
+    "bom_line_ids": {
+     "comodel": "mrp.bom.line",
+     "inverse_name": "product_tmpl_id",
+     "string": "BoM Components",
+     "type": "One2many"
+    },
+    "is_kits": {
+     "compute": "_compute_is_kits",
+     "type": "Boolean"
+    },
+    "mrp_product_qty": {
+     "compute": "_compute_mrp_product_qty",
+     "digits": "Product Unit of Measure",
+     "string": "Manufactured",
+     "type": "Float"
+    },
+    "used_in_bom_count": {
+     "compute": "_compute_used_in_bom_count",
+     "string": "# of BoM Where is Used",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_bom_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_kits"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_search_is_kits"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_show_qty_status_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_used_in_bom_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_used_in_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_mrp_product_qty"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_view_mos"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_archive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_backend_root_menu_ids"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "report.mrp.report_bom_structure": {
+   "abstract": true,
+   "description": "BOM Overview Report",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "get_html"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "get_warehouses"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_compute_current_production_capacity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "_compute_production_capacities"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_get_report_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_pdf_doc"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 45,
+     "name": "_get_report_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 58,
+     "name": "_get_components_closest_forecasted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 147,
+     "name": "_get_bom_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 57,
+     "name": "_get_component_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_quantities_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_update_product_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 30,
+     "name": "_get_byproducts_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_operation_cost"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 48,
+     "name": "_get_operation_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_get_pdf_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 78,
+     "name": "_get_bom_array_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_resupply_route_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_resupply_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_need_special_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_find_special_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_format_route_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 34,
+     "name": "_get_availabilities"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_get_stock_availability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_resupply_availability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_max_component_delay"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_format_date_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_has_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_merge_components"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_last_availability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_format_availability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_simulate_bom_planning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 49,
+     "name": "_simulate_operation_planning"
+    }
+   ],
+   "name": "report.mrp.report_bom_structure",
+   "transient": false
+  },
+  "report.mrp.report_mo_overview": {
+   "abstract": true,
+   "description": "MO Overview Report",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "get_report_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_report_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_include_pdf_specifics"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_display_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_get_report_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_report_extra_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_get_cost_breakdown_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_format_cost_breakdown_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_get_mo_summary"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_unit_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_format_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_uom_precision"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_comparison_decorator"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_bom_operation_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 76,
+     "name": "_get_operations_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_kit_operations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_kit_bom_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "_get_finished_operation_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_get_byproducts_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_cost_sums"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_components_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "_format_component_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_component_real_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_planned_start"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_get_component_receipt"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 120,
+     "name": "_get_replenishment_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_add_transit_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_production_started"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_replenishment_mo_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_doc_in_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_replenishment_receipt"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_format_receipt_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_replenishments_from_forecast"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_replenishment_from_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_set_replenish_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_resupply_rules"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_add_origins_to_forecast"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_origin"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_add_extra_in_forecast"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_extra_replenishments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_resupply_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_warehouse_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_reserved_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_sum_bom_cost"
+    }
+   ],
+   "name": "report.mrp.report_mo_overview",
+   "sel_methods": {
+    "_get_extra_replenishments": []
+   },
+   "transient": false
+  },
+  "report.stock.report_reception": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_docs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_doc_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_doc_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_extra_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_formatted_scheduled_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_action_assign"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_action_unassign"
+    }
+   ],
+   "name": "report.stock.report_reception",
+   "sel_methods": {
+    "_get_doc_model": [],
+    "_get_docs": [],
+    "_get_extra_domain": [],
+    "_get_formatted_scheduled_date": [],
+    "_get_moves": []
+   },
+   "transient": false
+  },
+  "report.stock.report_stock_rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_rule_loc"
+    }
+   ],
+   "name": "report.stock.report_stock_rule",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "manufacturing_lead": {
+     "default": 0.0,
+     "help": "Security days for each manufacturing operation.",
+     "required": true,
+     "string": "Manufacturing Lead Time",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_create_unbuild_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "create_missing_unbuild_sequences"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_per_company_sequences"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "group_mrp_byproducts": {
+     "string": "By-Products",
+     "type": "Boolean"
+    },
+    "group_mrp_reception_report": {
+     "string": "Allocation Report for Manufacturing Orders",
+     "type": "Boolean"
+    },
+    "group_mrp_routings": {
+     "string": "MRP Work Orders",
+     "type": "Boolean"
+    },
+    "group_mrp_workorder_dependencies": {
+     "string": "Work Order Dependencies",
+     "type": "Boolean"
+    },
+    "group_unlocked_by_default": {
+     "string": "Unlock Manufacturing Orders",
+     "type": "Boolean"
+    },
+    "manufacturing_lead": {
+     "readonly": false,
+     "related": "company_id.manufacturing_lead",
+     "string": "Manufacturing Lead Time",
+     "type": "Float"
+    },
+    "module_mrp_mps": {
+     "string": "Master Production Schedule",
+     "type": "Boolean"
+    },
+    "module_mrp_plm": {
+     "string": "Product Lifecycle Management (PLM)",
+     "type": "Boolean"
+    },
+    "module_mrp_subcontracting": {
+     "string": "Subcontracting",
+     "type": "Boolean"
+    },
+    "module_quality_control": {
+     "string": "Quality",
+     "type": "Boolean"
+    },
+    "module_quality_control_worksheet": {
+     "string": "Quality Worksheet",
+     "type": "Boolean"
+    },
+    "use_manufacturing_lead": {
+     "string": "Default Manufacturing Lead Time",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "set_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('use_manufacturing_lead')"
+     ],
+     "lines": 3,
+     "name": "_onchange_use_manufacturing_lead"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('group_unlocked_by_default')"
+     ],
+     "lines": 6,
+     "name": "_onchange_group_unlocked_by_default"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "stock.forecasted_product_product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_report_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_move_draft_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_report_header"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_reservation_data"
+    }
+   ],
+   "name": "stock.forecasted_product_product",
+   "transient": false
+  },
+  "stock.lot": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_check_create"
+    }
+   ],
+   "name": "stock.lot",
+   "sel_methods": {
+    "_check_create": []
+   },
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allowed_operation_ids": {
+     "comodel": "mrp.routing.workcenter",
+     "related": "raw_material_production_id.bom_id.operation_ids",
+     "type": "One2many"
+    },
+    "bom_line_id": {
+     "comodel": "mrp.bom.line",
+     "string": "BoM Line",
+     "type": "Many2one"
+    },
+    "byproduct_id": {
+     "comodel": "mrp.bom.byproduct",
+     "help": "By-product line that generated the move in a manufacturing order",
+     "string": "By-products",
+     "type": "Many2one"
+    },
+    "consume_unbuild_id": {
+     "comodel": "mrp.unbuild",
+     "string": "Consumed Disassembly Order",
+     "type": "Many2one"
+    },
+    "cost_share": {
+     "digits": 0,
+     "help": "The percentage of the final production cost for this by-product. The total of all by-products' cost share must be smaller or equal to 100.",
+     "string": "Cost Share (%)",
+     "type": "Float"
+    },
+    "created_production_id": {
+     "comodel": "mrp.production",
+     "index": true,
+     "string": "Created Production Order",
+     "type": "Many2one"
+    },
+    "description_bom_line": {
+     "compute": "_compute_description_bom_line",
+     "string": "Kit",
+     "type": "Char"
+    },
+    "is_done": {
+     "compute": "_compute_is_done",
+     "store": true,
+     "string": "Done",
+     "type": "Boolean"
+    },
+    "manual_consumption": {
+     "compute": "_compute_manual_consumption",
+     "help": "When activated, then the registration of consumption for that component is recorded manually exclusively.\nIf not activated, and any of the components consumption is edited manually on the manufacturing order, Odoo assumes manual consumption also.",
+     "readonly": false,
+     "store": true,
+     "string": "Manual Consumption",
+     "type": "Boolean"
+    },
+    "operation_id": {
+     "comodel": "mrp.routing.workcenter",
+     "domain": "[('id', 'in', allowed_operation_ids)]",
+     "string": "Operation To Consume",
+     "type": "Many2one"
+    },
+    "order_finished_lot_id": {
+     "comodel": "stock.lot",
+     "index": "btree_not_null",
+     "related": "raw_material_production_id.lot_producing_id",
+     "store": true,
+     "string": "Finished Lot/Serial Number",
+     "type": "Many2one"
+    },
+    "product_qty_available": {
+     "related": "product_id.qty_available",
+     "string": "Product On Hand Quantity",
+     "type": "Float"
+    },
+    "product_virtual_available": {
+     "related": "product_id.virtual_available",
+     "string": "Product Forecasted Quantity",
+     "type": "Float"
+    },
+    "production_id": {
+     "comodel": "mrp.production",
+     "index": "btree_not_null",
+     "string": "Production Order for finished products",
+     "type": "Many2one"
+    },
+    "raw_material_production_id": {
+     "comodel": "mrp.production",
+     "index": "btree_not_null",
+     "string": "Production Order for components",
+     "type": "Many2one"
+    },
+    "should_consume_qty": {
+     "compute": "_compute_should_consume_qty",
+     "digits": "Product Unit of Measure",
+     "string": "Quantity To Consume",
+     "type": "Float"
+    },
+    "unbuild_id": {
+     "comodel": "mrp.unbuild",
+     "string": "Disassembly Order",
+     "type": "Many2one"
+    },
+    "unit_factor": {
+     "compute": "_compute_unit_factor",
+     "store": true,
+     "string": "Unit Factor",
+     "type": "Float"
+    },
+    "workorder_id": {
+     "comodel": "mrp.workorder",
+     "copy": false,
+     "index": "btree_not_null",
+     "string": "Work Order To Consume",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_manual_consumption"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('raw_material_production_id.location_src_id', 'production_id.location_src_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('raw_material_production_id.location_dest_id', 'production_id.location_dest_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_location_dest_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('bom_line_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_description_bom_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('raw_material_production_id.priority')"
+     ],
+     "lines": 4,
+     "name": "_compute_priority"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('raw_material_production_id.picking_type_id', 'production_id.picking_type_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('raw_material_production_id.is_locked', 'production_id.is_locked')"
+     ],
+     "lines": 7,
+     "name": "_compute_is_locked"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_done"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_uom_qty', 'raw_material_production_id', 'raw_material_production_id.product_qty', 'raw_material_production_id.qty_produced', 'production_id', 'production_id.product_qty', 'production_id.qty_produced')"
+     ],
+     "lines": 7,
+     "name": "_compute_unit_factor"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('raw_material_production_id', 'raw_material_production_id.name', 'production_id', 'production_id.name')"
+     ],
+     "lines": 10,
+     "name": "_compute_reference"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('raw_material_production_id.qty_producing', 'product_uom_qty', 'product_uom')"
+     ],
+     "lines": 7,
+     "name": "_compute_should_consume_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('byproduct_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_show_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id.use_create_components_lots')"
+     ],
+     "lines": 8,
+     "name": "_compute_display_assign_serial"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_uom_qty', 'product_uom')"
+     ],
+     "lines": 5,
+     "name": "_onchange_product_uom_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('quantity', 'product_uom', 'picked')"
+     ],
+     "lines": 4,
+     "name": "_onchange_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('quantity', 'raw_material_production_id')"
+     ],
+     "lines": 4,
+     "name": "_check_negative_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 49,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_run_procurement"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_action_assign"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_action_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_bypass_reservation"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 34,
+     "name": "action_explode"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_show_details"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_add_from_catalog_raw"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_add_from_catalog_byproduct"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_log_cancel_activity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_move_split_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_procurement_origin"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_prepare_phantom_move_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_generate_all_phantom_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_generate_move_phantom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_consuming"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_backorder_move_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_source_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_upstream_documents_and_responsibles"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_delay_alert_get_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_should_be_assigned"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_should_bypass_set_qty_producing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_move_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_key_assign_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_moves_to_propagate_date_deadline"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_prepare_merge_moves_distinct_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_prepare_merge_negative_moves_excluded_distinct_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_compute_kit_quantities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_update_candidate_moves_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_open_reference"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_manual_consumption"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_determine_is_manual_consumption"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_relevant_state_among_moves"
+    }
+   ],
+   "name": "stock.move",
+   "sel_methods": {
+    "_action_confirm": [],
+    "_action_done": [],
+    "_compute_location_dest_id": [],
+    "_compute_location_id": [],
+    "_generate_move_phantom": [],
+    "_prepare_procurement_origin": []
+   },
+   "transient": false
+  },
+  "stock.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "description_bom_line": {
+     "related": "move_id.description_bom_line",
+     "type": "Char"
+    },
+    "production_id": {
+     "comodel": "mrp.production",
+     "string": "Production Order",
+     "type": "Many2one"
+    },
+    "workorder_id": {
+     "comodel": "mrp.workorder",
+     "string": "Work Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_search_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 17,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_similar_move_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_aggregated_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_aggregated_line_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_aggregated_properties"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_compute_product_packaging_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 44,
+     "name": "_compute_packaging_qtys"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_aggregated_product_quantities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_stock_move_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_linkable_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_exclude_requiring_lot"
+    }
+   ],
+   "name": "stock.move.line",
+   "sel_methods": {
+    "_compute_picking_type_id": []
+   },
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_kits": {
+     "compute": "_compute_has_kits",
+     "type": "Boolean"
+    },
+    "production_count": {
+     "compute": "_compute_mrp_production_ids",
+     "groups": "mrp.group_mrp_user",
+     "string": "Count of MO generated",
+     "type": "Integer"
+    },
+    "production_ids": {
+     "comodel": "mrp.production",
+     "compute": "_compute_mrp_production_ids",
+     "groups": "mrp.group_mrp_user",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_has_kits"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('group_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_mrp_production_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_detailed_operations"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_view_mrp_production"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_less_quantities_than_expected_add_documents"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "get_action_click_graph"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.picking.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "auto_print_done_mrp_lot": {
+     "help": "If this checkbox is ticked, Odoo will automatically print the lot/SN label of a MO when it is done.",
+     "string": "Auto Print Produced Lot Label",
+     "type": "Boolean"
+    },
+    "auto_print_done_mrp_product_labels": {
+     "help": "If this checkbox is ticked, Odoo will automatically print the product labels of a MO when it is done.",
+     "string": "Auto Print Produced Product Labels",
+     "type": "Boolean"
+    },
+    "auto_print_done_production_order": {
+     "help": "If this checkbox is ticked, Odoo will automatically print the production order of a MO when it is done.",
+     "string": "Auto Print Done Production Order",
+     "type": "Boolean"
+    },
+    "auto_print_generated_mrp_lot": {
+     "help": "Automatically print the lot/SN label when the \"Create a new serial/lot number\" button is used.",
+     "string": "Auto Print Generated Lot/SN Label",
+     "type": "Boolean"
+    },
+    "auto_print_mrp_reception_report": {
+     "help": "If this checkbox is ticked, Odoo will automatically print the allocation report of a MO when it is done and has assigned moves.",
+     "string": "Auto Print Allocation Report",
+     "type": "Boolean"
+    },
+    "auto_print_mrp_reception_report_labels": {
+     "help": "If this checkbox is ticked, Odoo will automatically print the allocation report labels of a MO when it is done.",
+     "string": "Auto Print Allocation Report Labels",
+     "type": "Boolean"
+    },
+    "code": {
+     "ondelete": {
+      "$expr": "{'mrp_operation': lambda recs: recs.write({'code': 'incoming', 'active': False})}"
+     },
+     "selection_add": [
+      [
+       "mrp_operation",
+       "Manufacturing"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "count_mo_in_progress": {
+     "compute": "_get_mo_count",
+     "string": "Number of Manufacturing Orders In Progress",
+     "type": "Integer"
+    },
+    "count_mo_late": {
+     "compute": "_get_mo_count",
+     "string": "Number of Manufacturing Orders Late",
+     "type": "Integer"
+    },
+    "count_mo_to_close": {
+     "compute": "_get_mo_count",
+     "string": "Number of Manufacturing Orders To Close",
+     "type": "Integer"
+    },
+    "count_mo_todo": {
+     "compute": "_get_mo_count",
+     "string": "Number of Manufacturing Orders to Process",
+     "type": "Integer"
+    },
+    "count_mo_waiting": {
+     "compute": "_get_mo_count",
+     "string": "Number of Manufacturing Orders Waiting",
+     "type": "Integer"
+    },
+    "done_mrp_lot_label_to_print": {
+     "default": "pdf",
+     "selection": [
+      [
+       "pdf",
+       "PDF"
+      ],
+      [
+       "zpl",
+       "ZPL"
+      ]
+     ],
+     "string": "Lot/SN Label to Print",
+     "type": "Selection"
+    },
+    "generated_mrp_lot_label_to_print": {
+     "default": "pdf",
+     "selection": [
+      [
+       "pdf",
+       "PDF"
+      ],
+      [
+       "zpl",
+       "ZPL"
+      ]
+     ],
+     "string": "Generated Lot/SN Label to Print",
+     "type": "Selection"
+    },
+    "mrp_product_label_to_print": {
+     "default": "pdf",
+     "selection": [
+      [
+       "pdf",
+       "PDF"
+      ],
+      [
+       "zpl",
+       "ZPL"
+      ]
+     ],
+     "string": "Product Label to Print",
+     "type": "Selection"
+    },
+    "use_create_components_lots": {
+     "default": false,
+     "help": "Allow to create new lot/serial numbers for the components",
+     "string": "Create New Lots/Serial Numbers for Components",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 5,
+     "name": "_compute_use_create_lots"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 5,
+     "name": "_compute_use_existing_lots"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_mo_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_mrp_stock_picking_action_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_aggregated_records_by_date"
+    }
+   ],
+   "name": "stock.picking.type",
+   "transient": false
+  },
+  "stock.quant": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('product_id')"
+     ],
+     "lines": 3,
+     "name": "_check_kits"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_bypass_product"
+    }
+   ],
+   "name": "stock.quant",
+   "transient": false
+  },
+  "stock.replenish.mixin": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bom_id": {
+     "comodel": "mrp.bom",
+     "string": "Bill of Material",
+     "type": "Many2one"
+    },
+    "show_bom": {
+     "compute": "_compute_show_bom",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('route_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_show_bom"
+    }
+   ],
+   "name": "stock.replenish.mixin",
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "action": {
+     "ondelete": {
+      "manufacture": "cascade"
+     },
+     "selection_add": [
+      [
+       "manufacture",
+       "Manufacture"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_message_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_picking_type_code_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_should_auto_confirm_procurement_mo"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 39,
+     "name": "_run_manufacture"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_run_pull"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_custom_move_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_matching_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_make_mo_get_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_prepare_mo_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_date_planned"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_get_lead_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_push_prepare_move_copy_values"
+    }
+   ],
+   "name": "stock.rule",
+   "sel_methods": {
+    "_run_pull": []
+   },
+   "transient": false
+  },
+  "stock.scrap": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bom_id": {
+     "comodel": "mrp.bom",
+     "domain": "[('type', '=', 'phantom'), '|', ('product_id', '=', product_id), '&', ('product_id', '=', False), ('product_tmpl_id', '=', product_template)]",
+     "string": "Kit",
+     "type": "Many2one"
+    },
+    "product_is_kit": {
+     "related": "product_id.is_kits",
+     "type": "Boolean"
+    },
+    "product_template": {
+     "related": "product_id.product_tmpl_id",
+     "type": "Many2one"
+    },
+    "production_id": {
+     "comodel": "mrp.production",
+     "string": "Manufacturing Order",
+     "type": "Many2one"
+    },
+    "workorder_id": {
+     "comodel": "mrp.workorder",
+     "string": "Work Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('workorder_id', 'production_id')"
+     ],
+     "lines": 16,
+     "name": "_compute_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_prepare_move_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('lot_id')"
+     ],
+     "lines": 14,
+     "name": "_onchange_serial_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 5,
+     "name": "_onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids', 'move_ids.move_line_ids.quantity', 'product_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_scrap_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_check_available_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "do_replenish"
+    }
+   ],
+   "name": "stock.scrap",
+   "transient": false
+  },
+  "stock.traceability.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_get_reference"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_linked_move_lines"
+    }
+   ],
+   "name": "stock.traceability.report",
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "manu_type_id": {
+     "comodel": "stock.picking.type",
+     "copy": false,
+     "domain": "[('code', '=', 'mrp_operation'), ('company_id', '=', company_id)]",
+     "string": "Manufacturing Operation Type",
+     "type": "Many2one"
+    },
+    "manufacture_mto_pull_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Manufacture MTO Rule",
+     "type": "Many2one"
+    },
+    "manufacture_pull_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Manufacture Rule",
+     "type": "Many2one"
+    },
+    "manufacture_steps": {
+     "default": "mrp_one_step",
+     "help": "1 Step: Consume components from stock and produce.\n              2 Steps: Pick components from stock and then produce.\n              3 Steps: Pick components from stock, produce, and then move final product(s) from production area to stock.",
+     "required": true,
+     "selection": [
+      [
+       "mrp_one_step",
+       "Manufacture (1 step)"
+      ],
+      [
+       "pbm",
+       "Pick components then manufacture (2 steps)"
+      ],
+      [
+       "pbm_sam",
+       "Pick components, manufacture, then store products (3 steps)"
+      ]
+     ],
+     "string": "Manufacture",
+     "type": "Selection"
+    },
+    "manufacture_to_resupply": {
+     "default": true,
+     "help": "When products are manufactured, they can be manufactured in this warehouse.",
+     "string": "Manufacture to Resupply",
+     "type": "Boolean"
+    },
+    "pbm_loc_id": {
+     "comodel": "stock.location",
+     "string": "Picking before Manufacturing Location",
+     "type": "Many2one"
+    },
+    "pbm_mto_pull_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Picking Before Manufacturing MTO Rule",
+     "type": "Many2one"
+    },
+    "pbm_route_id": {
+     "comodel": "stock.route",
+     "copy": false,
+     "ondelete": "restrict",
+     "string": "Picking Before Manufacturing Route",
+     "type": "Many2one"
+    },
+    "pbm_type_id": {
+     "comodel": "stock.picking.type",
+     "copy": false,
+     "string": "Picking Before Manufacturing Operation Type",
+     "type": "Many2one"
+    },
+    "sam_loc_id": {
+     "comodel": "stock.location",
+     "string": "Stock after Manufacturing Location",
+     "type": "Many2one"
+    },
+    "sam_rule_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Stock After Manufacturing Rule",
+     "type": "Many2one"
+    },
+    "sam_type_id": {
+     "comodel": "stock.picking.type",
+     "copy": false,
+     "string": "Stock After Manufacturing Operation Type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "get_rules_dict"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_production_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_routes_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_route_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_generate_global_route_rules_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_locations_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_sequence_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_get_picking_type_create_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_picking_type_update_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_create_missing_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_all_routes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_update_location_manufacture"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_name_and_code"
+    }
+   ],
+   "name": "stock.warehouse",
+   "transient": false
+  },
+  "stock.warehouse.orderpoint": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bom_id": {
+     "comodel": "mrp.bom",
+     "domain": "[('type', '=', 'normal'), '&', '|', ('company_id', '=', company_id), ('company_id', '=', False), '|', ('product_id', '=', product_id), '&', ('product_id', '=', False), ('product_tmpl_id', '=', product_tmpl_id)]",
+     "string": "Bill of Materials",
+     "type": "Many2one"
+    },
+    "manufacturing_visibility_days": {
+     "default": 0.0,
+     "help": "Visibility Days applied on the manufacturing routes.",
+     "type": "Float"
+    },
+    "show_bom": {
+     "compute": "_compute_show_bom",
+     "string": "Show BoM column",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_replenishment_order_notification"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('route_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_visibility_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_set_visibility_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_days_to_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 63,
+     "name": "_quantity_in_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_qty_multiple_to_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_set_default_route_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_post_process_scheduler"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('product_id')"
+     ],
+     "lines": 13,
+     "name": "check_product_is_not_kit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_orderpoint_products"
+    }
+   ],
+   "name": "stock.warehouse.orderpoint",
+   "sel_methods": {
+    "_get_replenishment_order_notification": [],
+    "_post_process_scheduler": [],
+    "_set_default_route_id": []
+   },
+   "transient": false
+  },
+  "stock.warn.insufficient.qty.unbuild": {
+   "abstract": false,
+   "description": "Warn Insufficient Unbuild Quantity",
+   "extension": false,
+   "fields": {
+    "unbuild_id": {
+     "comodel": "mrp.unbuild",
+     "string": "Unbuild",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "stock.warn.insufficient.qty"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_reference_document_company_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_done"
+    }
+   ],
+   "name": "stock.warn.insufficient.qty.unbuild",
+   "transient": true
+  }
+ },
+ "module": "mrp",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/mrp",
+ "stats": {
+  "fields": 411,
+  "methods": 627,
+  "models": 48,
+  "py_lines": 11447
+ },
+ "summary": "Manufacturing Orders & BOMs",
+ "title": "Manufacturing",
+ "version": "2.0"
+}

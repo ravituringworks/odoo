@@ -1,0 +1,244 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Payment Providers",
+ "data_files": [
+  "views/payment_adyen_templates.xml",
+  "views/payment_form_templates.xml",
+  "views/payment_provider_views.xml",
+  "data/payment_provider_data.xml",
+  "wizards/payment_capture_wizard_views.xml"
+ ],
+ "depends": [
+  "payment"
+ ],
+ "models": {
+  "payment.capture.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_adyen_tx": {
+     "compute": "_compute_has_adyen_tx",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_has_adyen_tx"
+    }
+   ],
+   "name": "payment.capture.wizard",
+   "transient": false
+  },
+  "payment.provider": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "adyen_api_key": {
+     "groups": "base.group_system",
+     "help": "The API key of the webservice user",
+     "string": "API Key",
+     "type": "Char"
+    },
+    "adyen_api_url_prefix": {
+     "help": "The base URL for the API endpoints",
+     "string": "API URL Prefix",
+     "type": "Char"
+    },
+    "adyen_client_key": {
+     "help": "The client key of the webservice user",
+     "string": "Client Key",
+     "type": "Char"
+    },
+    "adyen_hmac_key": {
+     "groups": "base.group_system",
+     "help": "The HMAC key of the webhook",
+     "string": "HMAC Key",
+     "type": "Char"
+    },
+    "adyen_merchant_account": {
+     "groups": "base.group_system",
+     "help": "The code of the merchant account to use with this provider",
+     "string": "Merchant Account",
+     "type": "Char"
+    },
+    "code": {
+     "ondelete": {
+      "adyen": "set default"
+     },
+     "selection_add": [
+      [
+       "adyen",
+       "Adyen"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_adyen_extract_prefix_from_api_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_feature_support_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_adyen_make_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_adyen_compute_shopper_reference"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_adyen_get_inline_form_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_adyen_get_formatted_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_payment_method_codes"
+    }
+   ],
+   "name": "payment.provider",
+   "transient": false
+  },
+  "payment.token": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "adyen_shopper_reference": {
+     "help": "The unique reference of the partner owning this token",
+     "readonly": true,
+     "string": "Shopper Reference",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "payment.token",
+   "transient": false
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_specific_processing_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 88,
+     "name": "_send_payment_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_send_refund_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_send_capture_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_send_void_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 91,
+     "name": "_get_tx_from_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_adyen_create_child_tx_from_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 116,
+     "name": "_process_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_adyen_tokenize_from_notification_data"
+    }
+   ],
+   "name": "payment.transaction",
+   "transient": false
+  }
+ },
+ "module": "payment_adyen",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/payment_adyen",
+ "stats": {
+  "fields": 8,
+  "methods": 19,
+  "models": 4,
+  "py_lines": 1290
+ },
+ "summary": "A Dutch payment provider covering Europe and the US.",
+ "title": "Payment Provider: Adyen",
+ "version": "2.0"
+}

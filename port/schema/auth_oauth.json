@@ -1,0 +1,246 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden/Tools",
+ "data_files": [
+  "data/auth_oauth_data.xml",
+  "views/auth_oauth_views.xml",
+  "views/res_users_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/auth_oauth_templates.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "base",
+  "web",
+  "base_setup",
+  "auth_signup"
+ ],
+ "models": {
+  "auth.oauth.provider": {
+   "abstract": false,
+   "description": "OAuth2 provider",
+   "extension": false,
+   "fields": {
+    "auth_endpoint": {
+     "required": true,
+     "string": "Authorization URL",
+     "type": "Char"
+    },
+    "body": {
+     "help": "Link text in Login Dialog",
+     "required": true,
+     "string": "Login button label",
+     "translate": true,
+     "type": "Char"
+    },
+    "client_id": {
+     "string": "Client ID",
+     "type": "Char"
+    },
+    "css_class": {
+     "default": "fa fa-fw fa-sign-in text-primary",
+     "string": "CSS class",
+     "type": "Char"
+    },
+    "data_endpoint": {
+     "type": "Char"
+    },
+    "enabled": {
+     "string": "Allowed",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Provider name",
+     "type": "Char"
+    },
+    "scope": {
+     "default": "openid profile email",
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "validation_endpoint": {
+     "required": true,
+     "string": "UserInfo URL",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "auth.oauth.provider",
+   "order": "sequence, name",
+   "transient": false
+  },
+  "ir.config_parameter": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "init"
+    }
+   ],
+   "name": "ir.config_parameter",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "auth_oauth_google_client_id": {
+     "string": "Client ID",
+     "type": "Char"
+    },
+    "auth_oauth_google_enabled": {
+     "string": "Allow users to sign in with Google",
+     "type": "Boolean"
+    },
+    "server_uri_google": {
+     "string": "Server uri",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "get_uri"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "set_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "oauth_access_token": {
+     "copy": false,
+     "readonly": true,
+     "string": "OAuth Access Token",
+     "type": "Char"
+    },
+    "oauth_provider_id": {
+     "comodel": "auth.oauth.provider",
+     "string": "OAuth Provider",
+     "type": "Many2one"
+    },
+    "oauth_uid": {
+     "copy": false,
+     "help": "Oauth Provider user_id",
+     "string": "OAuth User ID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_auth_oauth_rpc"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 25,
+     "name": "_auth_oauth_validate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_generate_signup_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "_auth_oauth_signin"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "auth_oauth"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_check_credentials"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_session_token_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "USER_PRIVATE_FIELDS"
+    }
+   ],
+   "name": "res.users",
+   "sql_constraints": [
+    [
+     "uniq_users_oauth_provider_oauth_uid",
+     "unique(oauth_provider_id, oauth_uid)",
+     "OAuth UID must be unique per provider"
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "auth_oauth",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/auth_oauth",
+ "stats": {
+  "fields": 16,
+  "methods": 12,
+  "models": 4,
+  "py_lines": 457
+ },
+ "summary": "Allow users to login through OAuth2 Provider.",
+ "title": "OAuth2 Authentication",
+ "version": null
+}

@@ -1,0 +1,709 @@
+{
+ "module": "resource",
+ "records": [
+  {
+   "model": "resource.calendar",
+   "id": "resource_calendar_std",
+   "values": {
+    "name": "Standard 40 hours/week",
+    "company_id": {
+     "$ref": "base.main_company"
+    },
+    "full_time_required_hours": "40"
+   }
+  },
+  {
+   "model": "res.company",
+   "id": "base.main_company",
+   "values": {
+    "resource_calendar_id": {
+     "$ref": "resource_calendar_std"
+    }
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "resource_calendar_leaves_rule_group_user_create",
+   "values": {
+    "name": "resource.calendar.leaves: employee reads own or global",
+    "model_id": {
+     "$ref": "model_resource_calendar_leaves"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "domain_force": "['|', ('resource_id', '=', False), ('resource_id.user_id', 'in', [False, user.id])]",
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "resource_calendar_leaves_rule_group_user_modify",
+   "values": {
+    "name": "resource.calendar.leaves: employee modifies own",
+    "model_id": {
+     "$ref": "model_resource_calendar_leaves"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "domain_force": "[('resource_id', '!=', False), ('resource_id.user_id', 'in', [False, user.id])]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "resource_calendar_leaves_rule_group_admin_modify",
+   "values": {
+    "name": "resource.calendar.leaves: admin modifies global",
+    "model_id": {
+     "$ref": "model_resource_calendar_leaves"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_erp_manager"
+      }
+     ]
+    ],
+    "domain_force": "[('resource_id', '=', False)]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "resource_resource_multi_company",
+   "values": {
+    "name": "resource.resource multi-company",
+    "model_id": {
+     "$ref": "model_resource_resource"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "resource_calendar_leaves_rule_multi_company",
+   "values": {
+    "name": "resource.calendar.leaves: multi-company rule",
+    "model_id": {
+     "$ref": "model_resource_calendar_leaves"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_resource_resource_tree",
+   "values": {
+    "name": "Resources",
+    "res_model": "resource.resource",
+    "view_mode": "list,form",
+    "context": {},
+    "search_view_id": {
+     "$ref": "view_resource_resource_search"
+    },
+    "help": "Resources allow you to create and manage resources that should be involved in a specific project phase. You can also set their efficiency level and workload based on their weekly working hours."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "resource_resource_action_from_calendar",
+   "values": {
+    "name": "Resources",
+    "res_model": "resource.resource",
+    "view_mode": "list,form",
+    "context": {
+     "$unevaluated": "{\n            'default_calendar_id': active_id,\n            'search_default_calendar_id': active_id}"
+    },
+    "search_view_id": {
+     "$ref": "view_resource_resource_search"
+    },
+    "help": "Resources allow you to create and manage resources that should be involved in a specific project phase. You can also set their efficiency level and workload based on their weekly working hours."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_resource_calendar_leave_tree",
+   "values": {
+    "name": "Resource Time Off",
+    "res_model": "resource.calendar.leaves",
+    "view_mode": "list,form,calendar",
+    "search_view_id": {
+     "$ref": "view_resource_calendar_leaves_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "resource_calendar_leaves_action_from_calendar",
+   "values": {
+    "name": "Resource Time Off",
+    "res_model": "resource.calendar.leaves",
+    "view_mode": "list,form,calendar",
+    "context": {
+     "$unevaluated": "{\n            'default_calendar_id': active_id,\n            'search_default_calendar_id': active_id}"
+    },
+    "search_view_id": {
+     "$ref": "view_resource_calendar_leaves_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "resource_calendar_closing_days",
+   "values": {
+    "name": "Closing Days",
+    "res_model": "resource.calendar.leaves",
+    "view_mode": "calendar,list,form",
+    "domain": {
+     "$unevaluated": "[('calendar_id','=',active_id), ('resource_id','=',False)]"
+    },
+    "context": {
+     "$unevaluated": "{'default_calendar_id': active_id}"
+    },
+    "binding_model_id": {
+     "$ref": "model_resource_calendar"
+    },
+    "binding_view_types": "form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "resource_calendar_resources_leaves",
+   "values": {
+    "name": "Resources Time Off",
+    "res_model": "resource.calendar.leaves",
+    "view_mode": "calendar,list,form",
+    "domain": {
+     "$unevaluated": "[('calendar_id','=',active_id), ('resource_id','!=',False)]"
+    },
+    "context": {
+     "$unevaluated": "{'default_calendar_id': active_id}"
+    },
+    "binding_model_id": {
+     "$ref": "model_resource_calendar"
+    },
+    "binding_view_types": "form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_resource_calendar_form",
+   "values": {
+    "name": "Working Schedules",
+    "res_model": "resource.calendar",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "['|', ('company_id', '=', False), ('company_id', 'in', allowed_company_ids)]"
+    },
+    "view_id": false,
+    "search_view_id": {
+     "$ref": "view_resource_calendar_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "resource.calendar",
+   "id": "resource_calendar_std_35h",
+   "values": {
+    "name": "Standard 35 hours/week",
+    "company_id": {
+     "$ref": "base.main_company"
+    },
+    "attendance_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Monday Morning",
+       "dayofweek": "0",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Monday Lunch",
+       "dayofweek": "0",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Monday Afternoon",
+       "dayofweek": "0",
+       "hour_from": 13,
+       "hour_to": 16,
+       "day_period": "afternoon"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Tuesday Morning",
+       "dayofweek": "1",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Tuesday Lunch",
+       "dayofweek": "1",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Tuesday Afternoon",
+       "dayofweek": "1",
+       "hour_from": 13,
+       "hour_to": 16,
+       "day_period": "afternoon"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Wednesday Morning",
+       "dayofweek": "2",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Wednesday Lunch",
+       "dayofweek": "2",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Wednesday Afternoon",
+       "dayofweek": "2",
+       "hour_from": 13,
+       "hour_to": 16,
+       "day_period": "afternoon"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Thursday Morning",
+       "dayofweek": "3",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Thursday Lunch",
+       "dayofweek": "3",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Thursday Afternoon",
+       "dayofweek": "3",
+       "hour_from": 13,
+       "hour_to": 16,
+       "day_period": "afternoon"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Friday Morning",
+       "dayofweek": "4",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Friday Lunch",
+       "dayofweek": "4",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Friday Afternoon",
+       "dayofweek": "4",
+       "hour_from": 13,
+       "hour_to": 16,
+       "day_period": "afternoon"
+      }
+     ]
+    ],
+    "full_time_required_hours": "35"
+   }
+  },
+  {
+   "model": "resource.calendar",
+   "id": "resource_calendar_std_38h",
+   "values": {
+    "name": "Standard 38 hours/week",
+    "company_id": false,
+    "hours_per_day": "7.6",
+    "attendance_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Monday Morning",
+       "dayofweek": "0",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Monday Lunch",
+       "dayofweek": "0",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Monday Afternoon",
+       "dayofweek": "0",
+       "hour_from": 13,
+       "hour_to": 16.6,
+       "day_period": "afternoon"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Tuesday Morning",
+       "dayofweek": "1",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Tuesday Lunch",
+       "dayofweek": "1",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Tuesday Afternoon",
+       "dayofweek": "1",
+       "hour_from": 13,
+       "hour_to": 16.6,
+       "day_period": "afternoon"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Wednesday Morning",
+       "dayofweek": "2",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Wednesday Lunch",
+       "dayofweek": "2",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Wednesday Afternoon",
+       "dayofweek": "2",
+       "hour_from": 13,
+       "hour_to": 16.6,
+       "day_period": "afternoon"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Thursday Morning",
+       "dayofweek": "3",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Thursday Lunch",
+       "dayofweek": "3",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Thursday Afternoon",
+       "dayofweek": "3",
+       "hour_from": 13,
+       "hour_to": 16.6,
+       "day_period": "afternoon"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Friday Morning",
+       "dayofweek": "4",
+       "hour_from": 8,
+       "hour_to": 12,
+       "day_period": "morning"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Friday Lunch",
+       "dayofweek": "4",
+       "hour_from": 12,
+       "hour_to": 13,
+       "day_period": "lunch"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "name": "Friday Afternoon",
+       "dayofweek": "4",
+       "hour_from": 13,
+       "hour_to": 16.6,
+       "day_period": "afternoon"
+      }
+     ]
+    ],
+    "full_time_required_hours": "38"
+   }
+  },
+  {
+   "model": "resource.calendar",
+   "id": "resource_calendar_flex_40h",
+   "values": {
+    "name": "Flexible 40 hours/week",
+    "company_id": {
+     "$ref": "base.main_company"
+    },
+    "hours_per_day": "8",
+    "flexible_hours": true,
+    "full_time_required_hours": "40"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_resource_config",
+   "name": "Resource",
+   "parent": "base.menu_custom",
+   "sequence": "30"
+  },
+  {
+   "id": "menu_resource_calendar",
+   "parent": "menu_resource_config",
+   "action": "action_resource_calendar_form",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_view_resource_calendar_leaves_search",
+   "parent": "menu_resource_config",
+   "action": "action_resource_calendar_leave_tree",
+   "sequence": "2"
+  },
+  {
+   "id": "menu_resource_resource",
+   "parent": "menu_resource_config",
+   "action": "action_resource_resource_tree",
+   "sequence": "3"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_resource_calendar_user",
+   "model": "resource.calendar",
+   "model_xmlid": "model_resource_calendar",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_calendar_system",
+   "model": "resource.calendar",
+   "model_xmlid": "model_resource_calendar",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_resource_calendar_attendance_user",
+   "model": "resource.calendar.attendance",
+   "model_xmlid": "model_resource_calendar_attendance",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_calendar_attendance_system",
+   "model": "resource.calendar.attendance",
+   "model_xmlid": "model_resource_calendar_attendance",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_resource_resource",
+   "model": "resource.resource",
+   "model_xmlid": "model_resource_resource",
+   "group": "base.group_system",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_resource_all",
+   "model": "resource.resource",
+   "model_xmlid": "model_resource_resource",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_calendar_leaves_user",
+   "model": "resource.calendar.leaves",
+   "model_xmlid": "model_resource_calendar_leaves",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_resource_calendar_leaves",
+   "model": "resource.calendar.leaves",
+   "model_xmlid": "model_resource_calendar_leaves",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

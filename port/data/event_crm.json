@@ -1,0 +1,201 @@
+{
+ "module": "event_crm",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_event_crm",
+   "values": {
+    "name": "Event CRM: Multi Company",
+    "model_id": {
+     "$ref": "model_event_lead_rule"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_multi_company"
+      }
+     ]
+    ],
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "event_registration_action_from_lead",
+   "values": {
+    "name": "Event registrations",
+    "res_model": "event.registration",
+    "view_mode": "list,kanban,form,calendar,graph",
+    "domain": {
+     "$unevaluated": "[('lead_ids', '=', active_id)]"
+    },
+    "context": {
+     "create": false
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_action_from_registration",
+   "values": {
+    "name": "Leads",
+    "res_model": "crm.lead",
+    "view_mode": "list,kanban,graph,pivot,calendar,form,activity",
+    "domain": {
+     "$unevaluated": "[('registration_ids', 'in', active_id)]"
+    },
+    "context": {
+     "create": false
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_action_from_event",
+   "values": {
+    "name": "Leads",
+    "res_model": "crm.lead",
+    "view_mode": "list,kanban,graph,pivot,calendar,form,activity",
+    "domain": {
+     "$unevaluated": "[('event_id', '=', active_id)]"
+    },
+    "context": {
+     "create": false
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "event_lead_rule_action",
+   "values": {
+    "name": "Lead Generation Rule",
+    "res_model": "event.lead.rule",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "event.lead.rule",
+   "id": "event_lead_rule_0",
+   "values": {
+    "name": "Rule on @example.com",
+    "event_id": {
+     "$ref": "event.event_5"
+    },
+    "event_registration_filter": "[('email','ilike','@example.com')]",
+    "lead_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "lead_tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor8"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "event.registration",
+   "id": "event_registration_0_rule_0",
+   "values": {
+    "name": "Barney Lonny",
+    "email": "barney.lonny@example.com",
+    "phone": "+1 202 555 0122",
+    "event_id": {
+     "$ref": "event.event_5"
+    }
+   }
+  },
+  {
+   "model": "event.registration",
+   "id": "event_registration_1_rule_0",
+   "values": {
+    "name": "Tom Harper",
+    "email": "tom.harper@example.com",
+    "phone": "+1 202 555 0161",
+    "event_id": {
+     "$ref": "event.event_5"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "event_lead_rule_menu",
+   "name": "Lead Generation",
+   "parent": "event.menu_event_configuration",
+   "action": "event_lead_rule_action",
+   "sequence": "10",
+   "groups": "event.group_event_manager"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_event_crm_registration",
+   "model": "event.lead.rule",
+   "model_xmlid": "model_event_lead_rule",
+   "group": "event.group_event_registration_desk",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_crm_user",
+   "model": "event.lead.rule",
+   "model_xmlid": "model_event_lead_rule",
+   "group": "event.group_event_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_crm_manager",
+   "model": "event.lead.rule",
+   "model_xmlid": "model_event_lead_rule",
+   "group": "event.group_event_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_event_crm_salesman",
+   "model": "event.lead.rule",
+   "model_xmlid": "model_event_lead_rule",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_lead_request_system",
+   "model": "event.lead.request",
+   "model_xmlid": "model_event_lead_request",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

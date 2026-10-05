@@ -1,0 +1,826 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Marketing/Email Marketing",
+ "data_files": [
+  "data/utm.xml",
+  "security/ir.model.access.csv",
+  "report/mailing_trace_report_views.xml",
+  "views/mailing_list_views.xml",
+  "views/mailing_contact_views.xml",
+  "views/mailing_trace_views.xml",
+  "views/mailing_mailing_views.xml",
+  "views/mass_mailing_sms_templates_portal.xml",
+  "views/utm_campaign_views.xml",
+  "views/mailing_sms_menus.xml",
+  "wizard/sms_composer_views.xml",
+  "wizard/mailing_sms_test_views.xml",
+  "demo/mailing_list_contact.xml",
+  "demo/mailing_subscription.xml",
+  "demo/mailing_mailing.xml",
+  "demo/mailing_trace.xml"
+ ],
+ "depends": [
+  "portal",
+  "mass_mailing",
+  "sms"
+ ],
+ "models": {
+  "mailing.contact": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "mobile": {
+     "string": "Mobile",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread.phone"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mailing.contact",
+   "transient": false
+  },
+  "mailing.list": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "contact_count_sms": {
+     "compute": "_compute_mailing_list_statistics",
+     "string": "SMS Contacts",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_view_mailings"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_view_contacts_sms"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_send_mailing_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_contact_statistics_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_contact_statistics_joins"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_mailing_get_opt_out_list_sms"
+    }
+   ],
+   "name": "mailing.list",
+   "transient": false
+  },
+  "mailing.mailing": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "ab_testing_mailings_sms_count": {
+     "related": "campaign_id.ab_testing_mailings_sms_count",
+     "type": "Integer"
+    },
+    "ab_testing_sms_winner_selection": {
+     "copy": true,
+     "default": "clicks_ratio",
+     "readonly": false,
+     "related": "campaign_id.ab_testing_sms_winner_selection",
+     "type": "Selection"
+    },
+    "body_plaintext": {
+     "compute": "_compute_body_plaintext",
+     "readonly": false,
+     "store": true,
+     "string": "SMS Body",
+     "type": "Text"
+    },
+    "mailing_type": {
+     "ondelete": {
+      "sms": "set default"
+     },
+     "selection_add": [
+      [
+       "sms",
+       "SMS"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "sms_allow_unsubscribe": {
+     "default": false,
+     "string": "Include opt-out link",
+     "type": "Boolean"
+    },
+    "sms_force_send": {
+     "help": "Immediately send the SMS Mailing instead of queuing up. Use at your own risk.",
+     "string": "Send Directly",
+     "type": "Boolean"
+    },
+    "sms_has_insufficient_credit": {
+     "compute": "_compute_sms_has_iap_failure",
+     "string": "Insufficient IAP credits",
+     "type": "Boolean"
+    },
+    "sms_has_unregistered_account": {
+     "compute": "_compute_sms_has_iap_failure",
+     "string": "Unregistered IAP account",
+     "type": "Boolean"
+    },
+    "sms_subject": {
+     "help": "For an email, the subject your recipients will see in their inbox.\nFor an SMS, the internal title of the message.",
+     "readonly": false,
+     "related": "subject",
+     "string": "Title",
+     "translate": false,
+     "type": "Char"
+    },
+    "sms_template_id": {
+     "comodel": "sms.template",
+     "ondelete": "set null",
+     "string": "SMS Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mailing_type')"
+     ],
+     "lines": 7,
+     "name": "_compute_medium_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sms_template_id', 'mailing_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_body_plaintext"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mailing_trace_ids.failure_type')"
+     ],
+     "lines": 13,
+     "name": "_compute_sms_has_iap_failure"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_retry_failed"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_retry_failed_sms"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_test"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_action_view_traces_filtered"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_buy_sms_credits"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_opt_out_list_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_get_seen_list_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_send_sms_get_composer_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_action_send_mail"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_send_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_prepare_statistics_email_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_pretty_mailing_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_mailing_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "convert_links"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "get_sms_link_replacements_placeholders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_ab_testing_description_modifying_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_ab_testing_description_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_ab_testing_winner_selection"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_ab_testing_siblings_mailings"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_default_ab_testing_campaign_values"
+    }
+   ],
+   "name": "mailing.mailing",
+   "sel_methods": {
+    "_action_send_mail": [],
+    "_get_opt_out_list_sms": [],
+    "_get_pretty_mailing_type": []
+   },
+   "transient": false
+  },
+  "mailing.sms.test": {
+   "abstract": false,
+   "description": "Test SMS Mailing",
+   "extension": false,
+   "fields": {
+    "mailing_id": {
+     "comodel": "mailing.mailing",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Mailing",
+     "type": "Many2one"
+    },
+    "numbers": {
+     "default": {
+      "$ref": "_default_numbers"
+     },
+     "help": "Carriage-return-separated list of phone numbers",
+     "required": true,
+     "string": "Number(s)",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_numbers"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 50,
+     "name": "action_send_sms"
+    }
+   ],
+   "name": "mailing.sms.test",
+   "transient": true
+  },
+  "mailing.trace": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "failure_type": {
+     "selection_add": [
+      [
+       "sms_number_missing",
+       "Missing Number"
+      ],
+      [
+       "sms_number_format",
+       "Wrong Number Format"
+      ],
+      [
+       "sms_credit",
+       "Insufficient Credit"
+      ],
+      [
+       "sms_country_not_supported",
+       "Country Not Supported"
+      ],
+      [
+       "sms_registration_needed",
+       "Country-specific Registration Required"
+      ],
+      [
+       "sms_server",
+       "Server Error"
+      ],
+      [
+       "sms_acc",
+       "Unregistered Account"
+      ],
+      [
+       "sms_blacklist",
+       "Blacklisted"
+      ],
+      [
+       "sms_duplicate",
+       "Duplicate"
+      ],
+      [
+       "sms_optout",
+       "Opted Out"
+      ],
+      [
+       "sms_expired",
+       "Expired"
+      ],
+      [
+       "sms_invalid_destination",
+       "Invalid Destination"
+      ],
+      [
+       "sms_not_allowed",
+       "Not Allowed"
+      ],
+      [
+       "sms_not_delivered",
+       "Not Delivered"
+      ],
+      [
+       "sms_rejected",
+       "Rejected"
+      ],
+      [
+       "twilio_authentication",
+       "Authentication Error\""
+      ],
+      [
+       "twilio_callback",
+       "Incorrect callback URL"
+      ],
+      [
+       "twilio_from_missing",
+       "Missing From Number"
+      ],
+      [
+       "twilio_from_to",
+       "From / To identic"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "sms_code": {
+     "string": "Code",
+     "type": "Char"
+    },
+    "sms_id": {
+     "comodel": "sms.sms",
+     "compute": "_compute_sms_id",
+     "store": false,
+     "string": "SMS",
+     "type": "Many2one"
+    },
+    "sms_id_int": {
+     "index": "btree_not_null",
+     "string": "SMS ID",
+     "type": "Integer"
+    },
+    "sms_number": {
+     "string": "Number",
+     "type": "Char"
+    },
+    "sms_tracker_ids": {
+     "comodel": "sms.tracker",
+     "inverse_name": "mailing_trace_id",
+     "string": "SMS Trackers",
+     "type": "One2many"
+    },
+    "trace_type": {
+     "ondelete": {
+      "sms": "set default"
+     },
+     "selection_add": [
+      [
+       "sms",
+       "SMS"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sms_id_int', 'trace_type')"
+     ],
+     "lines": 10,
+     "name": "_compute_sms_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "fields_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_random_code"
+    }
+   ],
+   "name": "mailing.trace",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 61,
+     "name": "_get_activity_groups"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "sms.composer": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mailing_id": {
+     "comodel": "mailing.mailing",
+     "string": "Mailing",
+     "type": "Many2one"
+    },
+    "mass_sms_allow_unsubscribe": {
+     "default": true,
+     "string": "Include opt-out link",
+     "type": "Boolean"
+    },
+    "utm_campaign_id": {
+     "comodel": "utm.campaign",
+     "ondelete": "set null",
+     "string": "Campaign",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_unsubscribe_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_unsubscribe_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_prepare_mass_sms_trace_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_optout_record_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_done_record_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_body_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_mass_sms_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_mass_sms"
+    }
+   ],
+   "name": "sms.composer",
+   "transient": false
+  },
+  "sms.sms": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mailing_id": {
+     "comodel": "mailing.mailing",
+     "string": "Mass Mailing",
+     "type": "Many2one"
+    },
+    "mailing_trace_ids": {
+     "comodel": "mailing.trace",
+     "inverse_name": "sms_id_int",
+     "string": "Statistics",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_update_body_short_links"
+    }
+   ],
+   "name": "sms.sms",
+   "transient": false
+  },
+  "sms.tracker": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mailing_trace_id": {
+     "comodel": "mailing.trace",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_update_from_provider_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_action_update_from_sms_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_update_sms_traces"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_update_sms_mailings"
+    }
+   ],
+   "name": "sms.tracker",
+   "transient": false
+  },
+  "utm.campaign": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "ab_testing_mailings_sms_count": {
+     "compute": "_compute_mailing_sms_count",
+     "string": "A/B Test Mailings SMS #",
+     "type": "Integer"
+    },
+    "ab_testing_sms_winner_selection": {
+     "default": "clicks_ratio",
+     "selection": [
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "clicks_ratio",
+       "Highest Click Rate"
+      ]
+     ],
+     "string": "SMS Winner Selection",
+     "type": "Selection"
+    },
+    "mailing_sms_count": {
+     "compute": "_compute_mailing_sms_count",
+     "groups": "mass_mailing.group_mass_mailing_user",
+     "string": "Number of Mass SMS",
+     "type": "Integer"
+    },
+    "mailing_sms_ids": {
+     "comodel": "mailing.mailing",
+     "domain": [
+      [
+       "mailing_type",
+       "=",
+       "sms"
+      ]
+     ],
+     "groups": "mass_mailing.group_mass_mailing_user",
+     "inverse_name": "campaign_id",
+     "string": "Mass SMS",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mailing_sms_ids')"
+     ],
+     "lines": 16,
+     "name": "_compute_mailing_sms_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_create_mass_sms"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_redirect_to_mailing_sms"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_cron_process_mass_mailing_ab_testing"
+    }
+   ],
+   "name": "utm.campaign",
+   "transient": false
+  },
+  "utm.medium": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 8,
+     "name": "_unlink_except_utm_medium_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_REQUIRED_UTM_MEDIUMS_REF"
+    }
+   ],
+   "name": "utm.medium",
+   "transient": false
+  }
+ },
+ "module": "mass_mailing_sms",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/mass_mailing_sms",
+ "stats": {
+  "fields": 31,
+  "methods": 57,
+  "models": 11,
+  "py_lines": 1184
+ },
+ "summary": "Design, send and track SMS",
+ "title": "SMS Marketing",
+ "version": "1.1"
+}

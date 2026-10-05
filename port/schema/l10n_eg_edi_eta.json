@@ -1,0 +1,689 @@
+{
+ "application": false,
+ "author": "Odoo S.A., Plementus",
+ "category": "account",
+ "data_files": [
+  "data/account_edi_data.xml",
+  "data/l10n_eg_edi.activity.type.csv",
+  "data/l10n_eg_edi.uom.code.csv",
+  "data/uom.uom.csv",
+  "security/ir.model.access.csv",
+  "security/eta_thumb_drive_security.xml",
+  "views/uom_uom_view.xml",
+  "views/account_move_view.xml",
+  "views/account_journal_view.xml",
+  "views/eta_thumb_drive.xml",
+  "views/product_template_views.xml",
+  "views/res_config_settings_view.xml",
+  "views/report_invoice.xml",
+  "data/res_country_data.xml"
+ ],
+ "depends": [
+  "account_edi",
+  "l10n_eg"
+ ],
+ "models": {
+  "account.edi.format": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_l10n_eg_get_eta_qr_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_l10n_eg_get_eta_api_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_l10n_eg_get_eta_token_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_l10n_eg_eta_connect_to_server"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_l10n_eg_edi_round"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 33,
+     "name": "_l10n_eg_edi_post_invoice_web_service"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "_cancel_invoice_edi_eta"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_l10n_eg_get_einvoice_document_summary"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_l10n_eg_get_einvoice_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_l10n_eg_eta_get_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_l10n_eg_get_eta_invoice_pdf"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_l10n_eg_validate_info_address"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 77,
+     "name": "_l10n_eg_eta_prepare_eta_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 51,
+     "name": "_l10n_eg_eta_prepare_invoice_lines_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_l10n_eg_get_partner_tax_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_l10n_eg_eta_prepare_address_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_needs_web_services"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_move_applicability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_check_move_configuration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_l10n_eg_edi_post_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_l10n_eg_edi_cancel_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_l10n_eg_edi_xml_invoice_content"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_is_compatible_with_journal"
+    }
+   ],
+   "name": "account.edi.format",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_eg_activity_type_id": {
+     "comodel": "l10n_eg_edi.activity.type",
+     "copy": false,
+     "help": "This is the activity type of the branch according to Egyptian Tax Authority",
+     "string": "ETA Activity Code",
+     "type": "Many2one"
+    },
+    "l10n_eg_branch_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "help": "Address of the subdivision of the company.  You can just put the company partner if this is used for the main branch.",
+     "string": "Branch",
+     "type": "Many2one"
+    },
+    "l10n_eg_branch_identifier": {
+     "copy": false,
+     "help": "This number can be found on the taxpayer profile on the eInvoicing portal. ",
+     "string": "ETA Branch ID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_eg_eta_json_doc_id": {
+     "comodel": "ir.attachment",
+     "copy": false,
+     "type": "Many2one"
+    },
+    "l10n_eg_is_signed": {
+     "copy": false,
+     "type": "Boolean"
+    },
+    "l10n_eg_long_id": {
+     "compute": "_compute_eta_long_id",
+     "string": "ETA Long ID",
+     "type": "Char"
+    },
+    "l10n_eg_qr_code": {
+     "compute": "_compute_eta_qr_code_str",
+     "string": "ETA QR Code",
+     "type": "Char"
+    },
+    "l10n_eg_signing_time": {
+     "copy": false,
+     "string": "Signing Time",
+     "type": "Datetime"
+    },
+    "l10n_eg_submission_number": {
+     "compute": "_compute_eta_response_data",
+     "copy": false,
+     "store": true,
+     "string": "Submission ID",
+     "type": "Char"
+    },
+    "l10n_eg_uuid": {
+     "compute": "_compute_eta_response_data",
+     "copy": false,
+     "store": true,
+     "string": "Document UUID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_eg_eta_json_doc_id.raw')"
+     ],
+     "lines": 7,
+     "name": "_compute_eta_long_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_date', 'l10n_eg_uuid', 'l10n_eg_long_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_eta_qr_code_str"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_eg_eta_json_doc_id.raw')"
+     ],
+     "lines": 9,
+     "name": "_compute_eta_response_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "button_draft"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 36,
+     "name": "action_post_sign_invoices"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_get_eta_invoice_pdf"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_eg_edi_exchange_currency_rate"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_auto_init": []
+   },
+   "transient": false
+  },
+  "l10n_eg_edi.activity.type": {
+   "abstract": false,
+   "description": "ETA code for activity type",
+   "extension": false,
+   "fields": {
+    "code": {
+     "required": true,
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "l10n_eg_edi.activity.type",
+   "rec_name": "name",
+   "transient": false
+  },
+  "l10n_eg_edi.thumb.drive": {
+   "abstract": false,
+   "description": "Thumb drive used to sign invoices in Egypt",
+   "extension": false,
+   "fields": {
+    "access_token": {
+     "required": true,
+     "type": "Char"
+    },
+    "certificate": {
+     "string": "ETA Certificate",
+     "type": "Binary"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "pin": {
+     "required": true,
+     "string": "ETA USB Pin",
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_sign_invoices"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_set_certificate_from_usb"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "set_certificate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "set_signature_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_host"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_serialize_for_signing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_generate_signed_attrs__"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_generate_signer_info__"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_generate_cades_bes_signature"
+    }
+   ],
+   "name": "l10n_eg_edi.thumb.drive",
+   "sql_constraints": [
+    [
+     "user_drive_uniq",
+     "unique (user_id, company_id)",
+     "You can only have one thumb drive per user per company!"
+    ]
+   ],
+   "transient": false
+  },
+  "l10n_eg_edi.uom.code": {
+   "abstract": false,
+   "description": "ETA code for the unit of measures",
+   "extension": false,
+   "fields": {
+    "code": {
+     "required": true,
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "l10n_eg_edi.uom.code",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_eg_eta_code": {
+     "copy": false,
+     "help": "This can be an EGS or GS1 product code, which is needed for the e-invoice.  The best practice however is to use that code also as barcode and in that case, you should put it in the Barcode field instead and leave this field empty. ",
+     "string": "ETA Code",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_eg_eta_code": {
+     "compute": "_compute_l10n_eg_eta_code",
+     "help": "This can be an EGS or GS1 product code, which is needed for the e-invoice.  The best practice however is to use that code also as barcode and in that case, you should put it in the Barcode field instead and leave this field empty.",
+     "string": "ETA Item code",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.l10n_eg_eta_code')"
+     ],
+     "lines": 5,
+     "name": "_compute_l10n_eg_eta_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_l10n_eg_eta_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 11,
+     "name": "create"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_eg_client_identifier": {
+     "groups": "base.group_erp_manager",
+     "string": "ETA Client ID",
+     "type": "Char"
+    },
+    "l10n_eg_client_secret": {
+     "groups": "base.group_erp_manager",
+     "string": "ETA Secret",
+     "type": "Char"
+    },
+    "l10n_eg_invoicing_threshold": {
+     "default": 0.0,
+     "help": "Threshold at which you are required to give the VAT number of the customer. ",
+     "string": "Invoicing Threshold",
+     "type": "Float"
+    },
+    "l10n_eg_production_env": {
+     "string": "In Production Environment",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_eg_client_identifier": {
+     "readonly": false,
+     "related": "company_id.l10n_eg_client_identifier",
+     "type": "Char"
+    },
+    "l10n_eg_client_secret": {
+     "readonly": false,
+     "related": "company_id.l10n_eg_client_secret",
+     "type": "Char"
+    },
+    "l10n_eg_invoicing_threshold": {
+     "readonly": false,
+     "related": "company_id.l10n_eg_invoicing_threshold",
+     "type": "Float"
+    },
+    "l10n_eg_production_env": {
+     "readonly": false,
+     "related": "company_id.l10n_eg_production_env",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.currency.rate": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_rate')"
+     ],
+     "lines": 16,
+     "name": "_onchange_rate_warning"
+    }
+   ],
+   "name": "res.currency.rate",
+   "sel_methods": {
+    "_onchange_rate_warning": []
+   },
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_eg_building_no": {
+     "string": "Building No.",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_commercial_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_address_fields"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "uom.uom": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_eg_unit_code_id": {
+     "comodel": "l10n_eg_edi.uom.code",
+     "help": "This is the type of unit according to egyptian tax authority",
+     "string": "ETA Unit Code",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "uom.uom",
+   "transient": false
+  }
+ },
+ "module": "l10n_eg_edi_eta",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_eg_edi_eta",
+ "stats": {
+  "fields": 31,
+  "methods": 46,
+  "models": 13,
+  "py_lines": 947
+ },
+ "summary": "Egypt Tax Authority Invoice Integration",
+ "title": "Egypt E-Invoicing",
+ "version": "0.2"
+}

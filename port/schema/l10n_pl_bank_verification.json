@@ -1,0 +1,313 @@
+{
+ "application": false,
+ "author": null,
+ "category": null,
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/account_payment_view.xml",
+  "wizard/account_payment_register_views.xml"
+ ],
+ "depends": [
+  "l10n_pl"
+ ],
+ "models": {
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_verification_id": {
+     "comodel": "l10n_pl.bank.account.verification",
+     "compute": "_compute_l10n_pl_verification_id",
+     "copy": false,
+     "readonly": true,
+     "store": true,
+     "string": "PL Bank Verification",
+     "type": "Many2one"
+    },
+    "l10n_pl_verification_request_id": {
+     "related": "l10n_pl_verification_id.verification_request_id",
+     "type": "Char"
+    },
+    "l10n_pl_verification_status": {
+     "related": "l10n_pl_verification_id.verification_status",
+     "type": "Selection"
+    },
+    "l10n_pl_verification_timestamp": {
+     "related": "l10n_pl_verification_id.verification_timestamp",
+     "type": "Datetime"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_payment_need_check"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'date', 'partner_id', 'partner_bank_id')"
+     ],
+     "lines": 36,
+     "name": "_compute_l10n_pl_verification_id"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "account.payment.register": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_bank_verification_ids": {
+     "comodel": "l10n_pl.bank.account.verification",
+     "compute": "_compute_l10n_pl_bank_verification",
+     "type": "Many2many"
+    },
+    "l10n_pl_bank_verification_invalid_bank_account_ids": {
+     "comodel": "res.partner.bank",
+     "compute": "_compute_l10n_pl_bank_verification",
+     "type": "Many2many"
+    },
+    "l10n_pl_incomplete_data_partner_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_l10n_pl_bank_verification",
+     "type": "Many2many"
+    },
+    "l10n_pl_not_found_partner_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_l10n_pl_bank_verification",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids', 'partner_bank_id')"
+     ],
+     "lines": 28,
+     "name": "_compute_l10n_pl_bank_verification"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_batch_need_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_create_payment_vals_from_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_create_payment_vals_from_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_update_payment_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_partner_bank_from_batch"
+    }
+   ],
+   "name": "account.payment.register",
+   "transient": false
+  },
+  "l10n_pl.bank.account.verification": {
+   "abstract": false,
+   "description": "PL Bank Account Verification",
+   "extension": false,
+   "fields": {
+    "partner_bank_account_number": {
+     "compute": "_compute_partner_bank_account_number",
+     "index": false,
+     "readonly": true,
+     "store": true,
+     "type": "Char"
+    },
+    "partner_bank_id": {
+     "comodel": "res.partner.bank",
+     "readonly": true,
+     "string": "Bank Account",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "partner_vat": {
+     "compute": "_compute_partner_vat",
+     "index": false,
+     "readonly": true,
+     "store": true,
+     "type": "Char"
+    },
+    "verification_date": {
+     "compute": "_compute_verification_date",
+     "index": false,
+     "store": true,
+     "type": "Date"
+    },
+    "verification_request_id": {
+     "readonly": true,
+     "string": "Correlation ID",
+     "type": "Char"
+    },
+    "verification_status": {
+     "help": "Flag the payment verification status with one of the following:\n- Valid: The partner VAT is linked to the bank account used for this payment.\n- Invalid: The partner VAT is not linked to the bank account used for this payment.\n- Incomplete partner: The partner has no VAT or no bank account.\n- Partner not found: Partner VAT not found in Government files.\n- Error: An error occurred during check with Government API.\n",
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "valid",
+       "Valid"
+      ],
+      [
+       "invalid",
+       "Invalid"
+      ],
+      [
+       "incomplete_partner",
+       "Incomplete partner"
+      ],
+      [
+       "not_found_partner",
+       "Partner not found"
+      ],
+      [
+       "error",
+       "An error occurred during check with Government API"
+      ]
+     ],
+     "string": "Verification Status",
+     "type": "Selection"
+    },
+    "verification_timestamp": {
+     "readonly": true,
+     "string": "Verification Timestamp",
+     "type": "Datetime"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 27,
+     "name": "_gc_bank_account_verification"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('verification_timestamp')"
+     ],
+     "lines": 3,
+     "name": "_compute_verification_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_bank_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_partner_bank_account_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_partner_vat"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 147,
+     "name": "_l10n_pl_get_verification"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_make_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_handle_response"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_creation_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_partner_from_identifier"
+    }
+   ],
+   "name": "l10n_pl.bank.account.verification",
+   "transient": false
+  }
+ },
+ "module": "l10n_pl_bank_verification",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_pl_bank_verification",
+ "stats": {
+  "fields": 16,
+  "methods": 19,
+  "models": 3,
+  "py_lines": 515
+ },
+ "summary": "This is the module to manage the accounting bank account verification for Poland in Odoo.",
+ "title": "Poland - Accounting - Bank Account Verification",
+ "version": "1.0"
+}

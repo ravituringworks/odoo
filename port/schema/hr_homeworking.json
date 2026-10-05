@@ -1,0 +1,330 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources/Remote Work",
+ "data_files": [
+  "security/security.xml",
+  "security/ir.model.access.csv",
+  "views/hr_employee_views.xml",
+  "views/res_users.xml"
+ ],
+ "depends": [
+  "hr"
+ ],
+ "models": {
+  "hr.employee.base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "exceptional_location_id": {
+     "comodel": "hr.work.location",
+     "compute": "_compute_exceptional_location_id",
+     "help": "This is the exceptional, non-weekly, location set for today.",
+     "string": "Current",
+     "type": "Many2one"
+    },
+    "friday_location_id": {
+     "comodel": "hr.work.location",
+     "string": "Friday",
+     "type": "Many2one"
+    },
+    "hr_icon_display": {
+     "selection_add": [
+      [
+       "presence_home",
+       "At Home"
+      ],
+      [
+       "presence_office",
+       "At Office"
+      ],
+      [
+       "presence_other",
+       "At Other"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "monday_location_id": {
+     "comodel": "hr.work.location",
+     "string": "Monday",
+     "type": "Many2one"
+    },
+    "saturday_location_id": {
+     "comodel": "hr.work.location",
+     "string": "Saturday",
+     "type": "Many2one"
+    },
+    "sunday_location_id": {
+     "comodel": "hr.work.location",
+     "string": "Sunday",
+     "type": "Many2one"
+    },
+    "thursday_location_id": {
+     "comodel": "hr.work.location",
+     "string": "Thursday",
+     "type": "Many2one"
+    },
+    "today_location_name": {
+     "type": "Char"
+    },
+    "tuesday_location_id": {
+     "comodel": "hr.work.location",
+     "string": "Tuesday",
+     "type": "Many2one"
+    },
+    "wednesday_location_id": {
+     "comodel": "hr.work.location",
+     "string": "Wednesday",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_current_day_location_field"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "get_views"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('work_location_id.name', 'work_location_id.location_type', 'exceptional_location_id', *DAYS)"
+     ],
+     "lines": 7,
+     "name": "_compute_work_location_name_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_exceptional_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends(*DAYS, 'exceptional_location_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_presence_icon"
+    }
+   ],
+   "name": "hr.employee.base",
+   "transient": false
+  },
+  "hr.employee.location": {
+   "abstract": false,
+   "description": "Employee Location",
+   "extension": false,
+   "fields": {
+    "date": {
+     "string": "Date",
+     "type": "Date"
+    },
+    "day_week_string": {
+     "compute": "_compute_day_week_string",
+     "type": "Char"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "default": {
+      "$lambda": "self.env.user.employee_id"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "employee_name": {
+     "related": "employee_id.name",
+     "type": "Char"
+    },
+    "work_location_id": {
+     "comodel": "hr.work.location",
+     "required": true,
+     "string": "Location",
+     "type": "Many2one"
+    },
+    "work_location_name": {
+     "related": "work_location_id.name",
+     "string": "Location name",
+     "type": "Char"
+    },
+    "work_location_type": {
+     "related": "work_location_id.location_type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date')"
+     ],
+     "lines": 3,
+     "name": "_compute_day_week_string"
+    }
+   ],
+   "name": "hr.employee.location",
+   "sql_constraints": [
+    [
+     "uniq_exceptional_per_day",
+     "unique(employee_id, date)",
+     "Only one default work location and one exceptional work location per day per employee."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.work.location": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 7,
+     "name": "_unlink_except_used_by_employee"
+    }
+   ],
+   "name": "hr.work.location",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_im_status"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "friday_location_id": {
+     "comodel": "hr.work.location",
+     "readonly": false,
+     "related": "employee_id.friday_location_id",
+     "string": "Friday",
+     "type": "Many2one"
+    },
+    "monday_location_id": {
+     "comodel": "hr.work.location",
+     "readonly": false,
+     "related": "employee_id.monday_location_id",
+     "string": "Monday",
+     "type": "Many2one"
+    },
+    "saturday_location_id": {
+     "comodel": "hr.work.location",
+     "readonly": false,
+     "related": "employee_id.saturday_location_id",
+     "string": "Saturday",
+     "type": "Many2one"
+    },
+    "sunday_location_id": {
+     "comodel": "hr.work.location",
+     "readonly": false,
+     "related": "employee_id.sunday_location_id",
+     "string": "Sunday",
+     "type": "Many2one"
+    },
+    "thursday_location_id": {
+     "comodel": "hr.work.location",
+     "readonly": false,
+     "related": "employee_id.thursday_location_id",
+     "string": "Thursday",
+     "type": "Many2one"
+    },
+    "tuesday_location_id": {
+     "comodel": "hr.work.location",
+     "readonly": false,
+     "related": "employee_id.tuesday_location_id",
+     "string": "Tuesday",
+     "type": "Many2one"
+    },
+    "wednesday_location_id": {
+     "comodel": "hr.work.location",
+     "readonly": false,
+     "related": "employee_id.wednesday_location_id",
+     "string": "Wednesday",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_employee_fields_to_sync"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_WRITEABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_im_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_user_available"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "hr_homeworking",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_homeworking",
+ "stats": {
+  "fields": 24,
+  "methods": 13,
+  "models": 5,
+  "py_lines": 187
+ },
+ "summary": "",
+ "title": "Remote Work",
+ "version": "2.0"
+}

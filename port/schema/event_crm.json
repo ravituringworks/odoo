@@ -1,0 +1,470 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "security/event_crm_security.xml",
+  "security/ir.model.access.csv",
+  "data/crm_lead_merge_template.xml",
+  "data/ir_cron_data.xml",
+  "views/crm_lead_views.xml",
+  "views/event_registration_views.xml",
+  "views/event_lead_rule_views.xml",
+  "views/event_event_views.xml",
+  "data/event_crm_demo.xml"
+ ],
+ "depends": [
+  "event",
+  "crm"
+ ],
+ "models": {
+  "crm.lead": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_id": {
+     "comodel": "event.event",
+     "help": "Event triggering the rule that created this lead",
+     "index": "btree_not_null",
+     "string": "Source Event",
+     "type": "Many2one"
+    },
+    "event_lead_rule_id": {
+     "comodel": "event.lead.rule",
+     "help": "Rule that created this lead",
+     "string": "Registration Rule",
+     "type": "Many2one"
+    },
+    "registration_count": {
+     "compute": "_compute_registration_count",
+     "groups": "event.group_event_registration_desk",
+     "help": "Counter for the registrations linked to this lead",
+     "string": "# Registrations",
+     "type": "Integer"
+    },
+    "registration_ids": {
+     "comodel": "event.registration",
+     "groups": "event.group_event_registration_desk",
+     "help": "Registrations triggering the rule that created this lead",
+     "string": "Source Registrations",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('registration_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_registration_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_merge_dependences"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_merge_get_fields"
+    }
+   ],
+   "name": "crm.lead",
+   "transient": false
+  },
+  "event.event": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "has_lead_request": {
+     "compute": "_compute_has_lead_request",
+     "help": "Set to True when a Lead Generation Request is currently running.",
+     "string": "Ongoing Generation Request",
+     "type": "Boolean"
+    },
+    "lead_count": {
+     "compute": "_compute_lead_count",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "# Leads",
+     "type": "Integer"
+    },
+    "lead_ids": {
+     "comodel": "crm.lead",
+     "groups": "sales_team.group_sale_salesman",
+     "help": "Leads generated from this event",
+     "inverse_name": "event_id",
+     "string": "Leads",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('registration_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_has_lead_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_lead_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 38,
+     "name": "action_generate_leads"
+    }
+   ],
+   "name": "event.event",
+   "transient": false
+  },
+  "event.lead.request": {
+   "abstract": false,
+   "description": "Event Lead Request",
+   "extension": false,
+   "fields": {
+    "event_id": {
+     "comodel": "event.event",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "processed_registration_id": {
+     "help": "The ID of the last processed event.registration, used to know where to resume.",
+     "string": "Processed Registration",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 45,
+     "name": "_cron_generate_leads"
+    }
+   ],
+   "name": "event.lead.request",
+   "order": "id asc",
+   "rec_name": "event_id",
+   "sql_constraints": [
+    [
+     "uniq_event",
+     "unique(event_id)",
+     "You can only have one generation request per event at a time."
+    ]
+   ],
+   "transient": false
+  },
+  "event.lead.rule": {
+   "abstract": false,
+   "description": "Event Lead Rules",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "help": "Restrict the trigger of this rule to events belonging to a specific company.\nIf not set, no company restriction will be applied.",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "domain": "[('company_id', 'in', [company_id or current_company_id, False])]",
+     "help": "Filter the attendees to include those of this specific event. If not set, no event restriction will be applied.",
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_registration_filter": {
+     "help": "Filter the attendees that will or not generate leads.",
+     "string": "Registrations Domain",
+     "type": "Text"
+    },
+    "event_type_ids": {
+     "comodel": "event.type",
+     "help": "Filter the attendees to include those of this specific event category. If not set, no event category restriction will be applied.",
+     "string": "Event Templates",
+     "type": "Many2many"
+    },
+    "lead_creation_basis": {
+     "default": "attendee",
+     "help": "Per Attendee: A Lead is created for each Attendee (B2C).\nPer Order: A single Lead is created per Ticket Batch/Sale Order (B2B)",
+     "required": true,
+     "selection": [
+      [
+       "attendee",
+       "Per Attendee"
+      ],
+      [
+       "order",
+       "Per Order"
+      ]
+     ],
+     "string": "Create",
+     "type": "Selection"
+    },
+    "lead_creation_trigger": {
+     "default": "create",
+     "help": "Creation: at attendee creation;\nRegistered: at attendee registration, manually or automatically;\nAttended: when attendance is confirmed and registration set to done;",
+     "required": true,
+     "selection": [
+      [
+       "create",
+       "Attendees are created"
+      ],
+      [
+       "confirm",
+       "Attendees are registered"
+      ],
+      [
+       "done",
+       "Attendees attended"
+      ]
+     ],
+     "string": "When",
+     "type": "Selection"
+    },
+    "lead_ids": {
+     "comodel": "crm.lead",
+     "groups": "sales_team.group_sale_salesman",
+     "inverse_name": "event_lead_rule_id",
+     "string": "Created Leads",
+     "type": "One2many"
+    },
+    "lead_sales_team_id": {
+     "comodel": "crm.team",
+     "help": "Automatically assign the created leads to this Sales Team.",
+     "ondelete": "set null",
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "lead_tag_ids": {
+     "comodel": "crm.tag",
+     "help": "Automatically add these tags to the created leads.",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "lead_type": {
+     "default": {
+      "$lambda": "'lead' if self.env.user.has_group('crm.group_use_lead') else 'opportunity'"
+     },
+     "help": "Default lead type when this rule is applied.",
+     "required": true,
+     "selection": [
+      [
+       "lead",
+       "Lead"
+      ],
+      [
+       "opportunity",
+       "Opportunity"
+      ]
+     ],
+     "string": "Lead Type",
+     "type": "Selection"
+    },
+    "lead_user_id": {
+     "comodel": "res.users",
+     "help": "Automatically assign the created leads to this Salesperson.",
+     "string": "Salesperson",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Rule Name",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 75,
+     "name": "_run_on_registrations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_filter_registrations"
+    }
+   ],
+   "name": "event.lead.rule",
+   "transient": false
+  },
+  "event.registration": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "lead_count": {
+     "compute": "_compute_lead_count",
+     "string": "# Leads",
+     "type": "Integer"
+    },
+    "lead_ids": {
+     "comodel": "crm.lead",
+     "copy": false,
+     "groups": "sales_team.group_sale_salesman",
+     "readonly": true,
+     "string": "Leads",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_lead_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 11,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_load_records_create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_load_records_write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_apply_lead_generation_rules"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_update_leads"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_lead_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 66,
+     "name": "_get_lead_contact_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_lead_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_lead_description_registration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_lead_tracked_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_get_lead_grouping"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_lead_contact_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_lead_description_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_find_first_notnull"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_convert_value"
+    }
+   ],
+   "name": "event.registration",
+   "sel_methods": {
+    "_load_records_create": [],
+    "_load_records_write": []
+   },
+   "transient": false
+  }
+ },
+ "module": "event_crm",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/event_crm",
+ "stats": {
+  "fields": 24,
+  "methods": 26,
+  "models": 5,
+  "py_lines": 795
+ },
+ "summary": "Create leads from event registrations.",
+ "title": "Event CRM",
+ "version": "1.0"
+}

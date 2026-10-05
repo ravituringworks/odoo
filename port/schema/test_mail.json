@@ -1,0 +1,1581 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/test_mail_security.xml",
+  "data/data.xml",
+  "data/mail_template_data.xml",
+  "data/subtype_data.xml"
+ ],
+ "depends": [
+  "mail",
+  "test_performance"
+ ],
+ "models": {
+  "mail.performance.thread": {
+   "abstract": false,
+   "description": "Performance: mail.thread",
+   "extension": false,
+   "fields": {
+    "name": {
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "track": {
+     "default": "test",
+     "tracking": true,
+     "type": "Char"
+    },
+    "value": {
+     "type": "Integer"
+    },
+    "value_pc": {
+     "compute": "_value_pc",
+     "store": true,
+     "type": "Float"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('value')"
+     ],
+     "lines": 3,
+     "name": "_value_pc"
+    }
+   ],
+   "name": "mail.performance.thread",
+   "transient": false
+  },
+  "mail.performance.tracking": {
+   "abstract": false,
+   "description": "Performance: multi tracking",
+   "extension": false,
+   "fields": {
+    "field_0": {
+     "tracking": true,
+     "type": "Char"
+    },
+    "field_1": {
+     "tracking": true,
+     "type": "Char"
+    },
+    "field_2": {
+     "tracking": true,
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "tracking": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.performance.tracking",
+   "transient": false
+  },
+  "mail.test.access": {
+   "abstract": false,
+   "description": "Mail Access Test",
+   "extension": false,
+   "fields": {
+    "access": {
+     "default": "public",
+     "selection": [
+      [
+       "public",
+       "public"
+      ],
+      [
+       "logged",
+       "Logged"
+      ],
+      [
+       "logged_ro",
+       "Logged readonly for portal"
+      ],
+      [
+       "followers",
+       "Followers"
+      ],
+      [
+       "internal",
+       "Internal"
+      ],
+      [
+       "internal_ro",
+       "Internal readonly"
+      ],
+      [
+       "admin",
+       "Admin"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "phone": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    }
+   ],
+   "name": "mail.test.access",
+   "order": "id DESC",
+   "transient": false
+  },
+  "mail.test.access.custo": {
+   "abstract": false,
+   "description": "Mail Access Test with Custo",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "is_locked": {
+     "type": "Boolean"
+    },
+    "is_readonly": {
+     "type": "Boolean"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "phone": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_mail_message_access"
+    }
+   ],
+   "name": "mail.test.access.custo",
+   "order": "id DESC",
+   "sel_methods": {
+    "_get_mail_message_access": []
+   },
+   "transient": false
+  },
+  "mail.test.activity": {
+   "abstract": false,
+   "description": "Activity Model",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "date": {
+     "type": "Date"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_start"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_close"
+    }
+   ],
+   "name": "mail.test.activity",
+   "transient": false
+  },
+  "mail.test.alias.optional": {
+   "abstract": false,
+   "description": "Chatter Model using Optional Alias Mixin",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.alias.mixin.optional"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_alias_get_creation_values"
+    }
+   ],
+   "name": "mail.test.alias.optional",
+   "transient": false
+  },
+  "mail.test.cc": {
+   "abstract": false,
+   "description": "Test Email CC Thread",
+   "extension": false,
+   "fields": {
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread.cc"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.cc",
+   "transient": false
+  },
+  "mail.test.composer.mixin": {
+   "abstract": false,
+   "description": "Invite-like Wizard",
+   "extension": false,
+   "fields": {
+    "author_id": {
+     "comodel": "res.partner",
+     "type": "Many2one"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Html"
+    },
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    },
+    "source_ids": {
+     "comodel": "mail.test.composer.source",
+     "string": "Invite source",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "mail.composer.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_render_model"
+    }
+   ],
+   "name": "mail.test.composer.mixin",
+   "transient": false
+  },
+  "mail.test.composer.source": {
+   "abstract": false,
+   "description": "Invite-like Source",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Main customer",
+     "type": "Many2one"
+    },
+    "email_from": {
+     "compute": "_compute_email_from",
+     "readonly": false,
+     "store": true,
+     "string": "Email",
+     "type": "Char"
+    },
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('customer_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_email_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    }
+   ],
+   "name": "mail.test.composer.source",
+   "transient": false
+  },
+  "mail.test.container": {
+   "abstract": false,
+   "description": "Project-like model with alias",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "description": {
+     "type": "Text"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.alias.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_message_get_default_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_alias_get_creation_values"
+    }
+   ],
+   "name": "mail.test.container",
+   "transient": false
+  },
+  "mail.test.container.mc": {
+   "abstract": false,
+   "description": "Project-like model with alias (MC)",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.test.container"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_alias_get_creation_values"
+    }
+   ],
+   "name": "mail.test.container.mc",
+   "transient": false
+  },
+  "mail.test.field.type": {
+   "abstract": false,
+   "description": "Test Field Type",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "datetime": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "type": "Datetime"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "type": {
+     "selection": [
+      [
+       "first",
+       "First"
+      ],
+      [
+       "second",
+       "Second"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    }
+   ],
+   "name": "mail.test.field.type",
+   "transient": false
+  },
+  "mail.test.gateway": {
+   "abstract": false,
+   "description": "Simple Chatter Model for Mail Gateway",
+   "extension": false,
+   "fields": {
+    "custom_field": {
+     "type": "Char"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "message_new"
+    }
+   ],
+   "name": "mail.test.gateway",
+   "transient": false
+  },
+  "mail.test.gateway.company": {
+   "abstract": false,
+   "description": "Simple Chatter Model for Mail Gateway with company",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "string": "Company",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.test.gateway"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.gateway.company",
+   "transient": false
+  },
+  "mail.test.gateway.groups": {
+   "abstract": false,
+   "description": "Channel/Group-like Chatter Model for Mail Gateway",
+   "extension": false,
+   "fields": {
+    "custom_field": {
+     "type": "Char"
+    },
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.alias.mixin",
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_alias_get_creation_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_message_get_default_recipients"
+    }
+   ],
+   "name": "mail.test.gateway.groups",
+   "transient": false
+  },
+  "mail.test.gateway.main.attachment": {
+   "abstract": false,
+   "description": "Simple Chatter Model for Mail Gateway with company",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "string": "Company",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.test.gateway",
+    "mail.thread.main.attachment"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.gateway.main.attachment",
+   "transient": false
+  },
+  "mail.test.lang": {
+   "abstract": false,
+   "description": "Lang Chatter Model",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "lang": {
+     "string": "Lang",
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_notify_get_recipients_groups"
+    }
+   ],
+   "name": "mail.test.lang",
+   "transient": false
+  },
+  "mail.test.lead": {
+   "abstract": false,
+   "description": "Lead-like model",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "customer_name": {
+     "type": "Char"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "lang_code": {
+     "type": "Char"
+    },
+    "mobile": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "tracking": 2,
+     "type": "Many2one"
+    },
+    "phone": {
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "tracking": 1,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.blacklist",
+    "mail.thread.cc"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_creation_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_customer_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_message_get_suggested_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_message_post_after_hook"
+    }
+   ],
+   "name": "mail.test.lead",
+   "sel_methods": {
+    "_message_post_after_hook": []
+   },
+   "transient": false
+  },
+  "mail.test.mail.tracking.duration": {
+   "abstract": false,
+   "description": "Fake model to test the mixin mail.tracking.duration.mixin",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "mail.tracking.duration.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    }
+   ],
+   "name": "mail.test.mail.tracking.duration",
+   "transient": false
+  },
+  "mail.test.multi.company": {
+   "abstract": false,
+   "description": "Test Multi Company Mail",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread.main.attachment"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.multi.company",
+   "transient": false
+  },
+  "mail.test.multi.company.read": {
+   "abstract": false,
+   "description": "Simple Chatter Model ",
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.test.multi.company"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.multi.company.read",
+   "transient": false
+  },
+  "mail.test.multi.company.with.activity": {
+   "abstract": false,
+   "description": "Test Multi Company Mail With Activity",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.multi.company.with.activity",
+   "transient": false
+  },
+  "mail.test.nothread": {
+   "abstract": false,
+   "description": "NoThread Model",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "customer_id": {
+     "comodel": "res.partner",
+     "type": "Many2one"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.nothread",
+   "transient": false
+  },
+  "mail.test.properties": {
+   "abstract": false,
+   "description": "Mail Test Properties",
+   "extension": false,
+   "fields": {
+    "definition_properties": {
+     "string": "Definitions",
+     "type": "PropertiesDefinition"
+    },
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    },
+    "parent_id": {
+     "comodel": "mail.test.properties",
+     "string": "Parent",
+     "type": "Many2one"
+    },
+    "properties": {
+     "string": "Properties",
+     "type": "Properties"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.properties",
+   "transient": false
+  },
+  "mail.test.public": {
+   "abstract": false,
+   "description": "Portal Public Thread",
+   "extension": false,
+   "fields": {
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.public",
+   "transient": false
+  },
+  "mail.test.simple": {
+   "abstract": false,
+   "description": "Simple Chatter Model",
+   "extension": false,
+   "fields": {
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_message_compute_subject"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_notify_by_email_get_final_mail_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_notify_by_email_get_headers"
+    }
+   ],
+   "name": "mail.test.simple",
+   "transient": false
+  },
+  "mail.test.simple.main.attachment": {
+   "abstract": false,
+   "description": "Simple Chatter Model With Main Attachment Management",
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "mail.test.simple",
+    "mail.thread.main.attachment"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.simple.main.attachment",
+   "transient": false
+  },
+  "mail.test.simple.unfollow": {
+   "abstract": false,
+   "description": "Simple Chatter Model",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.simple.unfollow",
+   "transient": false
+  },
+  "mail.test.simple.unnamed": {
+   "abstract": false,
+   "description": "Simple Chatter Model without \"name\" field",
+   "extension": false,
+   "fields": {
+    "description": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.simple.unnamed",
+   "rec_name": "description",
+   "transient": false
+  },
+  "mail.test.ticket": {
+   "abstract": false,
+   "description": "Ticket-like model",
+   "extension": false,
+   "fields": {
+    "container_id": {
+     "comodel": "mail.test.container",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "count": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "tracking": 2,
+     "type": "Many2one"
+    },
+    "datetime": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "type": "Datetime"
+    },
+    "email_from": {
+     "tracking": true,
+     "type": "Char"
+    },
+    "mail_template": {
+     "comodel": "mail.template",
+     "string": "Template",
+     "type": "Many2one"
+    },
+    "mobile_number": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "phone_number": {
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "tracking": 1,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_message_compute_subject"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_message_get_default_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_track_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_creation_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_customer_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_message_get_suggested_recipients"
+    }
+   ],
+   "name": "mail.test.ticket",
+   "sel_methods": {
+    "_creation_subtype": [],
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "mail.test.ticket.el": {
+   "abstract": false,
+   "description": "Ticket-like model with exclusion list",
+   "extension": false,
+   "fields": {
+    "email_from": {
+     "compute": "_compute_email_from",
+     "readonly": false,
+     "store": true,
+     "string": "Email",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.test.ticket",
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('customer_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_email_from"
+    }
+   ],
+   "name": "mail.test.ticket.el",
+   "transient": false
+  },
+  "mail.test.ticket.mc": {
+   "abstract": false,
+   "description": "Ticket-like model",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "container_id": {
+     "comodel": "mail.test.container.mc",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.test.ticket"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_notify_get_reply_to"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_creation_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    }
+   ],
+   "name": "mail.test.ticket.mc",
+   "sel_methods": {
+    "_creation_subtype": [],
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "mail.test.track": {
+   "abstract": false,
+   "description": "Standard Chatter Model",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "container_id": {
+     "comodel": "mail.test.container",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "track_enable_default_log": {
+     "default": false,
+     "type": "Boolean"
+    },
+    "track_fields_tofilter": {
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_track_filter_for_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_get_default_log_message"
+    }
+   ],
+   "name": "mail.test.track",
+   "sel_methods": {
+    "_track_get_default_log_message": []
+   },
+   "transient": false
+  },
+  "mail.test.track.all": {
+   "abstract": false,
+   "description": "Test tracking on all field types",
+   "extension": false,
+   "fields": {
+    "boolean_field": {
+     "string": "Boolean",
+     "tracking": 1,
+     "type": "Boolean"
+    },
+    "char_field": {
+     "string": "Char",
+     "tracking": 2,
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "date_field": {
+     "string": "Date",
+     "tracking": 3,
+     "type": "Date"
+    },
+    "datetime_field": {
+     "string": "Datetime",
+     "tracking": 4,
+     "type": "Datetime"
+    },
+    "float_field": {
+     "string": "Float",
+     "tracking": 5,
+     "type": "Float"
+    },
+    "float_field_with_digits": {
+     "digits": [
+      10,
+      8
+     ],
+     "string": "Precise Float",
+     "tracking": 5,
+     "type": "Float"
+    },
+    "html_field": {
+     "string": "Html",
+     "tracking": false,
+     "type": "Html"
+    },
+    "integer_field": {
+     "string": "Integer",
+     "tracking": 7,
+     "type": "Integer"
+    },
+    "many2many_field": {
+     "comodel": "mail.test.track.all.m2m",
+     "string": "Many2Many",
+     "tracking": 8,
+     "type": "Many2many"
+    },
+    "many2one_field_id": {
+     "comodel": "res.partner",
+     "string": "Many2one",
+     "tracking": 9,
+     "type": "Many2one"
+    },
+    "monetary_field": {
+     "string": "Monetary",
+     "tracking": 10,
+     "type": "Monetary"
+    },
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    },
+    "one2many_field": {
+     "comodel": "mail.test.track.all.o2m",
+     "inverse_name": "mail_track_all_id",
+     "string": "One2Many",
+     "tracking": 11,
+     "type": "One2many"
+    },
+    "selection_field": {
+     "selection": [
+      [
+       "first",
+       "FIRST"
+      ],
+      [
+       "second",
+       "SECOND"
+      ]
+     ],
+     "string": "Selection",
+     "tracking": 12,
+     "type": "Selection"
+    },
+    "text_field": {
+     "string": "Text",
+     "tracking": 13,
+     "type": "Text"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.track.all",
+   "transient": false
+  },
+  "mail.test.track.all.m2m": {
+   "abstract": false,
+   "description": "Sub-model: pseudo tags for tracking",
+   "extension": false,
+   "fields": {
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.track.all.m2m",
+   "transient": false
+  },
+  "mail.test.track.all.o2m": {
+   "abstract": false,
+   "description": "Sub-model: pseudo tags for tracking",
+   "extension": false,
+   "fields": {
+    "mail_track_all_id": {
+     "comodel": "mail.test.track.all",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.track.all.o2m",
+   "transient": false
+  },
+  "mail.test.track.compute": {
+   "abstract": false,
+   "description": "Test tracking with computed fields",
+   "extension": false,
+   "fields": {
+    "partner_email": {
+     "related": "partner_id.email",
+     "store": true,
+     "tracking": true,
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "partner_name": {
+     "related": "partner_id.name",
+     "store": true,
+     "tracking": true,
+     "type": "Char"
+    },
+    "partner_phone": {
+     "related": "partner_id.phone",
+     "tracking": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.track.compute",
+   "transient": false
+  },
+  "mail.test.track.groups": {
+   "abstract": false,
+   "description": "Test tracking with groups",
+   "extension": false,
+   "fields": {
+    "name": {
+     "tracking": 1,
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "groups": "base.group_user",
+     "tracking": 2,
+     "type": "Many2one"
+    },
+    "secret": {
+     "groups": "base.group_user",
+     "tracking": 3,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.track.groups",
+   "transient": false
+  },
+  "mail.test.track.monetary": {
+   "abstract": false,
+   "description": "Test tracking monetary field",
+   "extension": false,
+   "fields": {
+    "company_currency": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "revenue": {
+     "currency_field": "company_currency",
+     "string": "Revenue",
+     "tracking": true,
+     "type": "Monetary"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.track.monetary",
+   "transient": false
+  },
+  "mail.test.track.selection": {
+   "abstract": false,
+   "description": "Test Selection Tracking",
+   "extension": false,
+   "fields": {
+    "name": {
+     "type": "Char"
+    },
+    "selection_type": {
+     "selection": [
+      [
+       "first",
+       "First"
+      ],
+      [
+       "second",
+       "Second"
+      ]
+     ],
+     "tracking": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.test.track.selection",
+   "transient": false
+  }
+ },
+ "module": "test_mail",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/test_mail",
+ "stats": {
+  "fields": 140,
+  "methods": 46,
+  "models": 40,
+  "py_lines": 2329
+ },
+ "summary": "Mail Tests: performances and tests specific to mail",
+ "title": "Mail Tests",
+ "version": "1.0"
+}

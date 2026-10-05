@@ -1,0 +1,132 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "views/sale_order_views.xml",
+  "data/sale_margin_demo.xml"
+ ],
+ "depends": [
+  "sale_management"
+ ],
+ "models": {
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "margin": {
+     "compute": "_compute_margin",
+     "groups": "base.group_user",
+     "store": true,
+     "string": "Margin",
+     "type": "Monetary"
+    },
+    "margin_percent": {
+     "compute": "_compute_margin",
+     "groups": "base.group_user",
+     "store": true,
+     "string": "Margin (%)",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.margin', 'amount_untaxed')"
+     ],
+     "lines": 18,
+     "name": "_compute_margin"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "margin": {
+     "compute": "_compute_margin",
+     "groups": "base.group_user",
+     "store": true,
+     "string": "Margin",
+     "type": "Float"
+    },
+    "margin_percent": {
+     "compute": "_compute_margin",
+     "groups": "base.group_user",
+     "store": true,
+     "string": "Margin (%)",
+     "type": "Float"
+    },
+    "purchase_price": {
+     "compute": "_compute_purchase_price",
+     "copy": false,
+     "groups": "base.group_user",
+     "readonly": false,
+     "store": true,
+     "string": "Cost",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'company_id', 'currency_id', 'product_uom')"
+     ],
+     "lines": 16,
+     "name": "_compute_purchase_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('price_subtotal', 'product_uom_qty', 'purchase_price')"
+     ],
+     "lines": 10,
+     "name": "_compute_margin"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  },
+  "sale.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "margin": {
+     "string": "Margin",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_select_additional_fields"
+    }
+   ],
+   "name": "sale.report",
+   "transient": false
+  }
+ },
+ "module": "sale_margin",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_margin",
+ "stats": {
+  "fields": 6,
+  "methods": 4,
+  "models": 3,
+  "py_lines": 112
+ },
+ "summary": "This module adds the 'Margin' on sales order.",
+ "title": "Margins in Sales Orders",
+ "version": "1.0"
+}

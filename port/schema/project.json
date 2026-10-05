@@ -1,0 +1,4422 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Services/Project",
+ "data_files": [
+  "security/project_security.xml",
+  "security/ir.model.access.csv",
+  "security/ir.model.access.xml",
+  "data/digest_data.xml",
+  "report/project_task_burndown_chart_report_views.xml",
+  "views/account_analytic_account_views.xml",
+  "views/digest_digest_views.xml",
+  "views/rating_rating_views.xml",
+  "views/project_update_views.xml",
+  "views/project_update_templates.xml",
+  "views/project_project_stage_views.xml",
+  "wizard/project_share_wizard_views.xml",
+  "views/project_task_type_views.xml",
+  "views/project_project_views.xml",
+  "views/project_task_views.xml",
+  "views/project_tags_views.xml",
+  "views/project_milestone_views.xml",
+  "views/res_partner_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/mail_activity_plan_views.xml",
+  "views/mail_activity_type_views.xml",
+  "views/project_sharing_project_task_views.xml",
+  "views/project_portal_project_project_templates.xml",
+  "views/project_portal_project_task_templates.xml",
+  "views/project_task_templates.xml",
+  "views/project_sharing_project_task_templates.xml",
+  "report/project_report_views.xml",
+  "data/ir_cron_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/mail_template_data.xml",
+  "data/project_data.xml",
+  "data/project_tour.xml",
+  "wizard/project_task_type_delete_views.xml",
+  "wizard/project_project_stage_delete_views.xml",
+  "views/project_menus.xml",
+  "data/mail_template_demo.xml",
+  "data/project_demo.xml"
+ ],
+ "depends": [
+  "analytic",
+  "base_setup",
+  "mail",
+  "portal",
+  "rating",
+  "resource",
+  "web",
+  "web_tour",
+  "digest"
+ ],
+ "models": {
+  "account.analytic.account": {
+   "abstract": false,
+   "description": "Analytic Account",
+   "extension": true,
+   "fields": {
+    "project_count": {
+     "compute": "_compute_project_count",
+     "string": "Project Count",
+     "type": "Integer"
+    },
+    "project_ids": {
+     "comodel": "project.project",
+     "inverse_name": "account_id",
+     "string": "Projects",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_project_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 5,
+     "name": "_unlink_except_existing_tasks"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_view_projects"
+    }
+   ],
+   "name": "account.analytic.account",
+   "transient": false
+  },
+  "digest.digest": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "kpi_project_task_opened": {
+     "string": "Open Tasks",
+     "type": "Boolean"
+    },
+    "kpi_project_task_opened_value": {
+     "compute": "_compute_project_task_opened_value",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_project_task_opened_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_kpis_actions"
+    }
+   ],
+   "name": "digest.digest",
+   "transient": false
+  },
+  "ir.ui.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_load_menus_blacklist"
+    }
+   ],
+   "name": "ir.ui.menu",
+   "transient": false
+  },
+  "mail.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "init"
+    }
+   ],
+   "name": "mail.message",
+   "transient": false
+  },
+  "project.collaborator": {
+   "abstract": false,
+   "description": "Collaborators in project shared",
+   "extension": false,
+   "fields": {
+    "limited_access": {
+     "default": false,
+     "string": "Limited Access",
+     "type": "Boolean"
+    },
+    "partner_email": {
+     "related": "partner_id.email",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "required": true,
+     "string": "Collaborator",
+     "type": "Many2one"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "domain": [
+      [
+       "privacy_visibility",
+       "=",
+       "portal"
+      ]
+     ],
+     "readonly": true,
+     "required": true,
+     "string": "Project Shared",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id', 'partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_toggle_project_sharing_portal_rules"
+    }
+   ],
+   "name": "project.collaborator",
+   "sql_constraints": [
+    [
+     "unique_collaborator",
+     "UNIQUE(project_id, partner_id)",
+     "A collaborator cannot be selected more than once in the project sharing access. Please remove duplicate(s) and try again."
+    ]
+   ],
+   "transient": false
+  },
+  "project.milestone": {
+   "abstract": false,
+   "description": "Project Milestone",
+   "extension": false,
+   "fields": {
+    "can_be_marked_as_done": {
+     "compute": "_compute_can_be_marked_as_done",
+     "type": "Boolean"
+    },
+    "deadline": {
+     "copy": false,
+     "tracking": true,
+     "type": "Date"
+    },
+    "done_task_count": {
+     "compute": "_compute_task_count",
+     "groups": "project.group_project_milestone",
+     "string": "# of Done Tasks",
+     "type": "Integer"
+    },
+    "is_deadline_exceeded": {
+     "compute": "_compute_is_deadline_exceeded",
+     "type": "Boolean"
+    },
+    "is_deadline_future": {
+     "compute": "_compute_is_deadline_future",
+     "type": "Boolean"
+    },
+    "is_reached": {
+     "copy": false,
+     "default": false,
+     "string": "Reached",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "default": {
+      "$ref": "_get_default_project_id"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "reached_date": {
+     "compute": "_compute_reached_date",
+     "store": true,
+     "type": "Date"
+    },
+    "task_count": {
+     "compute": "_compute_task_count",
+     "groups": "project.group_project_milestone",
+     "string": "# of Tasks",
+     "type": "Integer"
+    },
+    "task_ids": {
+     "comodel": "project.task",
+     "inverse_name": "milestone_id",
+     "string": "Tasks",
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_reached')"
+     ],
+     "lines": 3,
+     "name": "_compute_reached_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_reached', 'deadline')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_deadline_exceeded"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('deadline')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_deadline_future"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('task_ids.milestone_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_task_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_compute_can_be_marked_as_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "toggle_is_reached"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_tasks"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_fields_to_export"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_data_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "project.milestone",
+   "order": "deadline, is_reached desc, name",
+   "transient": false
+  },
+  "project.project": {
+   "abstract": false,
+   "description": "Project",
+   "extension": false,
+   "fields": {
+    "access_instruction_message": {
+     "compute": "_compute_access_instruction_message",
+     "string": "Access Instruction Message",
+     "type": "Char"
+    },
+    "account_id": {
+     "comodel": "account.analytic.account",
+     "copy": false,
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=?', company_id)]",
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "active": {
+     "copy": false,
+     "default": true,
+     "type": "Boolean"
+    },
+    "alias_id": {
+     "help": "Internal email associated with this project. Incoming emails are automatically synchronized with Tasks (or optionally Issues if the Issue Tracker module is installed).",
+     "type": "Many2one"
+    },
+    "allow_milestones": {
+     "default": {
+      "$lambda": "self.env.user.has_group('project.group_project_milestone')"
+     },
+     "string": "Milestones",
+     "type": "Boolean"
+    },
+    "allow_task_dependencies": {
+     "default": {
+      "$lambda": "self.env.user.has_group('project.group_project_task_dependencies')"
+     },
+     "string": "Task Dependencies",
+     "type": "Boolean"
+    },
+    "analytic_account_balance": {
+     "related": "account_id.balance",
+     "type": "Monetary"
+    },
+    "can_mark_milestone_as_done": {
+     "compute": "_compute_next_milestone_id",
+     "groups": "project.group_project_milestone",
+     "type": "Boolean"
+    },
+    "closed_task_count": {
+     "compute": "_compute_closed_task_count",
+     "type": "Integer"
+    },
+    "collaborator_count": {
+     "compute": "_compute_collaborator_count",
+     "string": "# Collaborators",
+     "type": "Integer"
+    },
+    "collaborator_ids": {
+     "comodel": "project.collaborator",
+     "copy": false,
+     "inverse_name": "project_id",
+     "string": "Collaborators",
+     "type": "One2many"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "readonly": false,
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "readonly": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date": {
+     "help": "Date on which this project ends. The timeframe defined on the project is taken into account when viewing its planning.",
+     "index": true,
+     "string": "Expiration Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "date_start": {
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "description": {
+     "help": "Description to provide more information and context about this project",
+     "type": "Html"
+    },
+    "duration_tracking": {
+     "groups": "project.group_project_stages",
+     "type": "Json"
+    },
+    "favorite_user_ids": {
+     "column1": "project_id",
+     "column2": "user_id",
+     "comodel": "res.users",
+     "copy": false,
+     "relation_table": "project_favorite_user_rel",
+     "string": "Members",
+     "type": "Many2many"
+    },
+    "is_favorite": {
+     "compute": "_compute_is_favorite",
+     "readonly": false,
+     "string": "Show Project on Dashboard",
+     "type": "Boolean"
+    },
+    "is_milestone_deadline_exceeded": {
+     "compute": "_compute_next_milestone_id",
+     "groups": "project.group_project_milestone",
+     "type": "Boolean"
+    },
+    "is_milestone_exceeded": {
+     "compute": "_compute_is_milestone_exceeded",
+     "type": "Boolean"
+    },
+    "label_tasks": {
+     "default": {
+      "$lambda": "s.env._('Tasks')"
+     },
+     "help": "Name used to refer to the tasks of your project e.g. tasks, tickets, sprints, etc...",
+     "string": "Use Tasks as",
+     "translate": true,
+     "type": "Char"
+    },
+    "last_update_color": {
+     "compute": "_compute_last_update_color",
+     "type": "Integer"
+    },
+    "last_update_id": {
+     "comodel": "project.update",
+     "copy": false,
+     "string": "Last Update",
+     "type": "Many2one"
+    },
+    "last_update_status": {
+     "compute": "_compute_last_update_status",
+     "default": "to_define",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "on_track",
+       "On Track"
+      ],
+      [
+       "at_risk",
+       "At Risk"
+      ],
+      [
+       "off_track",
+       "Off Track"
+      ],
+      [
+       "on_hold",
+       "On Hold"
+      ],
+      [
+       "to_define",
+       "Set Status"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "milestone_count": {
+     "compute": "_compute_milestone_count",
+     "groups": "project.group_project_milestone",
+     "type": "Integer"
+    },
+    "milestone_count_reached": {
+     "compute": "_compute_milestone_reached_count",
+     "groups": "project.group_project_milestone",
+     "type": "Integer"
+    },
+    "milestone_ids": {
+     "comodel": "project.milestone",
+     "copy": true,
+     "inverse_name": "project_id",
+     "type": "One2many"
+    },
+    "milestone_progress": {
+     "compute": "_compute_milestone_reached_count",
+     "groups": "project.group_project_milestone",
+     "string": "Milestones Reached",
+     "type": "Integer"
+    },
+    "name": {
+     "index": "trigram",
+     "required": true,
+     "string": "Name",
+     "tracking": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "next_milestone_id": {
+     "comodel": "project.milestone",
+     "compute": "_compute_next_milestone_id",
+     "groups": "project.group_project_milestone",
+     "type": "Many2one"
+    },
+    "open_task_count": {
+     "compute": "_compute_open_task_count",
+     "string": "Open Task Count",
+     "type": "Integer"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "domain": "['|', ('company_id', '=?', company_id), ('company_id', '=', False)]",
+     "string": "Customer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "privacy_visibility": {
+     "default": "portal",
+     "help": "People to whom this project and its tasks will be visible.\n\n- Invited internal users: when following a project, internal users will get access to all of its tasks without distinction. Otherwise, they will only get access to the specific tasks they are following.\n A user with the project > administrator access right level can still access this project and its tasks, even if they are not explicitly part of the followers.\n\n- All internal users: all internal users can access the project and all of its tasks without distinction.\n\n- Invited portal users and all internal users: all internal users can access the project and all of its tasks without distinction.\nWhen following a project, portal users will only get access to the specific tasks they are following.\n\nWhen a project is shared in read-only, the portal user is redirected to their portal. They can view the tasks they are following, but not edit them.\nWhen a project is shared in edit, the portal user is redirected to the kanban and list views of the tasks. They can modify a selected number of fields on the tasks.\n\nIn any case, an internal user with no project access rights can still access a task, provided that they are given the corresponding URL (and that they are part of the followers if the project is private).",
+     "required": true,
+     "selection": [
+      [
+       "followers",
+       "Invited internal users (private)"
+      ],
+      [
+       "employees",
+       "All internal users"
+      ],
+      [
+       "portal",
+       "Invited portal users and all internal users (public)"
+      ]
+     ],
+     "string": "Visibility",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "privacy_visibility_warning": {
+     "compute": "_compute_privacy_visibility_warning",
+     "string": "Privacy Visibility Warning",
+     "type": "Char"
+    },
+    "rating_active": {
+     "default": {
+      "$lambda": "self.env.user.has_group('project.group_project_rating')"
+     },
+     "string": "Customer Ratings",
+     "type": "Boolean"
+    },
+    "rating_request_deadline": {
+     "compute": "_compute_rating_request_deadline",
+     "store": true,
+     "type": "Datetime"
+    },
+    "rating_status": {
+     "default": "stage",
+     "help": "Collect feedback from your customers by sending them a rating request when a task enters a certain stage. To do so, define a rating email template on the corresponding stages.\nRating when changing stage: an email will be automatically sent when the task reaches the stage on which the rating email template is set.\nPeriodic rating: an email will be automatically sent at regular intervals as long as the task remains in the stage in which the rating email template is set.",
+     "required": true,
+     "selection": [
+      [
+       "stage",
+       "when reaching a given stage"
+      ],
+      [
+       "periodic",
+       "on a periodic basis"
+      ]
+     ],
+     "string": "Customer Ratings Status",
+     "type": "Selection"
+    },
+    "rating_status_period": {
+     "default": "monthly",
+     "required": true,
+     "selection": [
+      [
+       "daily",
+       "Daily"
+      ],
+      [
+       "weekly",
+       "Weekly"
+      ],
+      [
+       "bimonthly",
+       "Twice a Month"
+      ],
+      [
+       "monthly",
+       "Once a Month"
+      ],
+      [
+       "quarterly",
+       "Quarterly"
+      ],
+      [
+       "yearly",
+       "Yearly"
+      ]
+     ],
+     "string": "Rating Frequency",
+     "type": "Selection"
+    },
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "compute": "_compute_resource_calendar_id",
+     "string": "Working Time",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "stage_id": {
+     "comodel": "project.project.stage",
+     "copy": false,
+     "default": {
+      "$ref": "_default_stage_id"
+     },
+     "groups": "project.group_project_stages",
+     "index": true,
+     "ondelete": "restrict",
+     "string": "Stage",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "tag_ids": {
+     "comodel": "project.tags",
+     "relation_table": "project_project_project_tags_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "task_completion_percentage": {
+     "compute": "_compute_task_completion_percentage",
+     "type": "Float"
+    },
+    "task_count": {
+     "compute": "_compute_task_count",
+     "string": "Task Count",
+     "type": "Integer"
+    },
+    "task_ids": {
+     "comodel": "project.task",
+     "domain": {
+      "$lambda": "[('is_closed', '=', False)]"
+     },
+     "inverse_name": "project_id",
+     "string": "Tasks",
+     "type": "One2many"
+    },
+    "task_properties_definition": {
+     "string": "Task Properties",
+     "type": "PropertiesDefinition"
+    },
+    "tasks": {
+     "comodel": "project.task",
+     "inverse_name": "project_id",
+     "string": "Task Activities",
+     "type": "One2many"
+    },
+    "type_ids": {
+     "column1": "project_id",
+     "column2": "type_id",
+     "comodel": "project.task.type",
+     "relation_table": "project_task_type_rel",
+     "string": "Tasks Stages",
+     "type": "Many2many"
+    },
+    "update_count": {
+     "compute": "_compute_total_update_ids",
+     "type": "Integer"
+    },
+    "update_ids": {
+     "comodel": "project.update",
+     "inverse_name": "project_id",
+     "type": "One2many"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "string": "Project Manager",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "analytic.plan.fields.mixin",
+    "mail.activity.mixin",
+    "mail.alias.mixin",
+    "mail.thread",
+    "mail.tracking.duration.mixin",
+    "portal.mixin",
+    "rating.parent.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_task_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_open_task_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_closed_task_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_default_stage_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_search_is_favorite"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_is_favorite"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_set_favorite_user_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 8,
+     "name": "_onchange_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('milestone_ids', 'milestone_ids.is_reached', 'milestone_ids.deadline')"
+     ],
+     "lines": 10,
+     "name": "_compute_next_milestone_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_access_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_access_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_id.company_id', 'partner_id.company_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('company_id', 'company_id.resource_calendar_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_resource_calendar_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_inverse_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating_status', 'rating_status_period')"
+     ],
+     "lines": 4,
+     "name": "_compute_rating_request_deadline"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('last_update_id.status')"
+     ],
+     "lines": 3,
+     "name": "_compute_last_update_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('last_update_status')"
+     ],
+     "lines": 3,
+     "name": "_compute_last_update_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('milestone_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_milestone_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('milestone_ids.is_reached', 'milestone_count')"
+     ],
+     "lines": 10,
+     "name": "_compute_milestone_reached_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('milestone_ids', 'milestone_ids.is_reached', 'milestone_ids.deadline', 'allow_milestones')"
+     ],
+     "lines": 9,
+     "name": "_compute_is_milestone_exceeded"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_search_is_milestone_exceeded"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('collaborator_ids', 'privacy_visibility')"
+     ],
+     "lines": 10,
+     "name": "_compute_collaborator_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('privacy_visibility')"
+     ],
+     "lines": 10,
+     "name": "_compute_privacy_visibility_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('privacy_visibility')"
+     ],
+     "lines": 8,
+     "name": "_compute_access_instruction_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('update_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_total_update_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_inverse_allow_task_dependencies"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_map_tasks_default_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "map_tasks"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "name_create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 33,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 72,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_order_field_to_sql"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "message_subscribe"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "message_unsubscribe"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_alias_get_creation_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('stage_id')"
+     ],
+     "lines": 13,
+     "name": "_ensure_stage_has_same_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_track_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_mail_get_message_subtypes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_project_task_burndown_chart_report"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "project_update_all_action"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_open_share_project_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "toggle_favorite"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_view_tasks"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_view_all_rating"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_view_tasks_analysis"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_get_list_view"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_profitability_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_last_update_or_default"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "get_panel_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "get_milestones"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_profitability_labels"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_profitability_sequence_per_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_already_included_profitability_invoice_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_user_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_show_profitability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_show_profitability_helper"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_profitability_aal_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_profitability_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_items_from_aal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_milestones"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "_get_stat_buttons"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_hide_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_values_analytic_account_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_create_analytic_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_projects_to_make_billable_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains(lambda self: self._get_plan_fnames())"
+     ],
+     "lines": 3,
+     "name": "_check_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_plan_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_account_node_context"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_send_rating_all"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_change_privacy_visibility"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_project_sharing_access"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_add_collaborators"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_new_collaborators"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_add_followers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_thread_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('task_count', 'open_task_count')"
+     ],
+     "lines": 3,
+     "name": "_compute_task_completion_percentage"
+    }
+   ],
+   "name": "project.project",
+   "order": "sequence, name, id",
+   "sel_methods": {
+    "_get_already_included_profitability_invoice_line_ids": [],
+    "_get_profitability_aal_domain": [
+     [
+      "account_id",
+      "in"
+     ]
+    ],
+    "_get_projects_to_make_billable_domain": [
+     [
+      "partner_id",
+      "!="
+     ]
+    ],
+    "_order_field_to_sql": [],
+    "_track_subtype": []
+   },
+   "sql_constraints": [
+    [
+     "project_date_greater",
+     "check(date >= date_start)",
+     "The project's start date must be before its end date."
+    ]
+   ],
+   "transient": false
+  },
+  "project.project.stage": {
+   "abstract": false,
+   "description": "Project Stage",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "fold": {
+     "help": "If enabled, this stage will be displayed as folded in the Kanban view of your projects. Projects in a folded stage are considered as closed.",
+     "string": "Folded in Kanban",
+     "type": "Boolean"
+    },
+    "mail_template_id": {
+     "comodel": "mail.template",
+     "domain": [
+      [
+       "model",
+       "=",
+       "project.project"
+      ]
+     ],
+     "help": "If set, an email will be automatically sent to the customer when the project reaches this stage.",
+     "string": "Email Template",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 50,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "unlink_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "toggle_active"
+    }
+   ],
+   "name": "project.project.stage",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "project.project.stage.delete.wizard": {
+   "abstract": false,
+   "description": "Project Stage Delete Wizard",
+   "extension": false,
+   "fields": {
+    "projects_count": {
+     "compute": "_compute_projects_count",
+     "string": "Number of Projects",
+     "type": "Integer"
+    },
+    "stage_ids": {
+     "comodel": "project.project.stage",
+     "ondelete": "cascade",
+     "string": "Stages To Delete",
+     "type": "Many2many"
+    },
+    "stages_active": {
+     "compute": "_compute_stages_active",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_projects_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('stage_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_stages_active"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_archive"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_unarchive_project"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_action"
+    }
+   ],
+   "name": "project.project.stage.delete.wizard",
+   "transient": true
+  },
+  "project.share.collaborator.wizard": {
+   "abstract": false,
+   "description": "Project Sharing Collaborator Wizard",
+   "extension": false,
+   "fields": {
+    "access_mode": {
+     "default": "read",
+     "help": "Read: collaborators can view tasks but cannot edit them.\nEdit with limited access: collaborators can view and edit tasks they follow in the Kanban view.\nEdit: collaborators can view and edit all tasks in the Kanban view. Additionally, they can choose which tasks they want to follow.",
+     "required": true,
+     "selection": [
+      [
+       "read",
+       "Read"
+      ],
+      [
+       "edit_limited",
+       "Edit with limited access"
+      ],
+      [
+       "edit",
+       "Edit"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "parent_wizard_id": {
+     "comodel": "project.share.wizard",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "required": true,
+     "string": "Collaborator",
+     "type": "Many2one"
+    },
+    "send_invitation": {
+     "compute": "_compute_send_invitation",
+     "default": true,
+     "readonly": false,
+     "store": true,
+     "string": "Send Invitation",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'access_mode')"
+     ],
+     "lines": 8,
+     "name": "_compute_send_invitation"
+    }
+   ],
+   "name": "project.share.collaborator.wizard",
+   "transient": true
+  },
+  "project.share.wizard": {
+   "abstract": false,
+   "description": "Project Sharing",
+   "extension": false,
+   "fields": {
+    "collaborator_ids": {
+     "comodel": "project.share.collaborator.wizard",
+     "inverse_name": "parent_wizard_id",
+     "string": "Collaborators",
+     "type": "One2many"
+    },
+    "existing_partner_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_existing_partner_ids",
+     "type": "Many2many"
+    },
+    "share_link": {
+     "help": "Anyone with this link can access the project in read mode.",
+     "string": "Public Link",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "portal.share"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 35,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_selection_target_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_resource_ref"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('collaborator_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_existing_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 61,
+     "name": "create"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_share_record"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 29,
+     "name": "action_send_mail"
+    }
+   ],
+   "name": "project.share.wizard",
+   "transient": true
+  },
+  "project.tags": {
+   "abstract": false,
+   "description": "Project Tags",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "help": "Transparent tags are not visible in the kanban view of your projects and tasks.",
+     "string": "Color",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "project_ids": {
+     "comodel": "project.project",
+     "relation_table": "project_project_project_tags_rel",
+     "string": "Projects",
+     "type": "Many2many"
+    },
+    "task_ids": {
+     "comodel": "project.task",
+     "string": "Tasks",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_project_tags_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "read_group"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "search_read"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "arrange_tag_list_by_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "name_search"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "name_create"
+    }
+   ],
+   "name": "project.tags",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "A tag with the same name already exists."
+    ]
+   ],
+   "transient": false
+  },
+  "project.task": {
+   "abstract": false,
+   "description": "Task",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "allocated_hours": {
+     "string": "Allocated Time",
+     "tracking": true,
+     "type": "Float"
+    },
+    "allow_milestones": {
+     "related": "project_id.allow_milestones",
+     "type": "Boolean"
+    },
+    "allow_task_dependencies": {
+     "related": "project_id.allow_task_dependencies",
+     "type": "Boolean"
+    },
+    "attachment_ids": {
+     "comodel": "ir.attachment",
+     "compute": "_compute_attachment_ids",
+     "help": "Attachments that don't come from a message",
+     "string": "Attachments",
+     "type": "One2many"
+    },
+    "child_ids": {
+     "comodel": "project.task",
+     "domain": "[('recurring_task', '=', False)]",
+     "inverse_name": "parent_id",
+     "string": "Sub-tasks",
+     "type": "One2many"
+    },
+    "closed_depend_on_count": {
+     "compute": "_compute_depend_on_count",
+     "string": "Closed Depending on Tasks",
+     "type": "Integer"
+    },
+    "closed_subtask_count": {
+     "compute": "_compute_subtask_count",
+     "string": "Closed Sub-tasks Count",
+     "type": "Integer"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "copy": true,
+     "default": {
+      "$ref": "_default_company_id"
+     },
+     "readonly": false,
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "create_date": {
+     "index": true,
+     "readonly": true,
+     "string": "Created On",
+     "type": "Datetime"
+    },
+    "current_user_same_company_partner": {
+     "compute": "_compute_current_user_same_company_partner",
+     "type": "Boolean"
+    },
+    "date_assign": {
+     "copy": false,
+     "help": "Date on which this task was last assigned (or unassigned). Based on this, you can get statistics on the time it usually takes to assign tasks.",
+     "readonly": true,
+     "string": "Assigning Date",
+     "type": "Datetime"
+    },
+    "date_deadline": {
+     "index": true,
+     "string": "Deadline",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "date_end": {
+     "copy": false,
+     "index": true,
+     "string": "Ending Date",
+     "type": "Datetime"
+    },
+    "date_last_stage_update": {
+     "copy": false,
+     "help": "Date on which the state of your task has last been modified.\nBased on this information you can identify tasks that are stalling and get statistics on the time it usually takes to move tasks from one stage/state to another.",
+     "index": true,
+     "readonly": true,
+     "string": "Last Stage Update",
+     "type": "Datetime"
+    },
+    "depend_on_count": {
+     "compute": "_compute_depend_on_count",
+     "string": "Depending on Tasks",
+     "type": "Integer"
+    },
+    "depend_on_ids": {
+     "column1": "task_id",
+     "column2": "depends_on_id",
+     "comodel": "project.task",
+     "copy": false,
+     "domain": "[('project_id', '!=', False), ('id', '!=', id)]",
+     "relation_table": "task_dependencies_rel",
+     "string": "Blocked By",
+     "tracking": true,
+     "type": "Many2many"
+    },
+    "dependent_ids": {
+     "column1": "depends_on_id",
+     "column2": "task_id",
+     "comodel": "project.task",
+     "copy": false,
+     "domain": "[('project_id', '!=', False), ('id', '!=', id)]",
+     "relation_table": "task_dependencies_rel",
+     "string": "Block",
+     "type": "Many2many"
+    },
+    "dependent_tasks_count": {
+     "compute": "_compute_dependent_tasks_count",
+     "string": "Dependent Tasks",
+     "type": "Integer"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Html"
+    },
+    "display_follow_button": {
+     "compute": "_compute_display_follow_button",
+     "type": "Boolean"
+    },
+    "display_in_project": {
+     "compute": "_compute_display_in_project",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    },
+    "display_name": {
+     "compute": "_compute_display_name",
+     "help": "Use these keywords in the title to set new tasks:\n\n            #tags Set tags on the task\n            @user Assign the task to a user\n            !\u00a0Set the task a high priority\n\n            Make sure to use the right format and order\u00a0e.g. Improve the configuration screen #feature #v16 @Mitchell !",
+     "type": "Char"
+    },
+    "display_parent_task_button": {
+     "compute": "_compute_display_parent_task_button",
+     "type": "Boolean"
+    },
+    "displayed_image_id": {
+     "comodel": "ir.attachment",
+     "domain": "[('res_model', '=', 'project.task'), ('res_id', '=', id), ('mimetype', 'ilike', 'image')]",
+     "string": "Cover Image",
+     "type": "Many2one"
+    },
+    "email_cc": {
+     "help": "Email addresses that were in the CC of the incoming emails from this task and that are not currently linked to an existing customer.",
+     "type": "Char"
+    },
+    "has_late_and_unreached_milestone": {
+     "compute": "_compute_has_late_and_unreached_milestone",
+     "type": "Boolean"
+    },
+    "is_closed": {
+     "compute": "_compute_is_closed",
+     "string": "Closed state",
+     "type": "Boolean"
+    },
+    "link_preview_name": {
+     "compute": "_compute_link_preview_name",
+     "type": "Char"
+    },
+    "milestone_id": {
+     "comodel": "project.milestone",
+     "compute": "_compute_milestone_id",
+     "domain": "[('project_id', '=', project_id)]",
+     "help": "Deliver your services automatically when a milestone is reached by linking it to a sales order item.",
+     "index": "btree_not_null",
+     "readonly": false,
+     "store": true,
+     "string": "Milestone",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "index": "trigram",
+     "required": true,
+     "string": "Title",
+     "tracking": true,
+     "type": "Char"
+    },
+    "parent_id": {
+     "comodel": "project.task",
+     "domain": "['!', ('id', 'child_of', id), ('project_id', '!=', False)]",
+     "index": true,
+     "string": "Parent Task",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_partner_id",
+     "domain": "['|', ('company_id', '=?', company_id), ('company_id', '=', False)]",
+     "readonly": false,
+     "store": true,
+     "string": "Customer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "personal_stage_id": {
+     "comodel": "project.task.stage.personal",
+     "compute": "_compute_personal_stage_id",
+     "help": "The current user's personal stage.",
+     "string": "Personal Stage State",
+     "type": "Many2one"
+    },
+    "personal_stage_type_id": {
+     "comodel": "project.task.type",
+     "compute": "_compute_personal_stage_type_id",
+     "default": {
+      "$ref": "_default_personal_stage_type_id"
+     },
+     "domain": "[('user_id', '=', uid)]",
+     "help": "The current user's personal task stage.",
+     "store": false,
+     "string": "Personal Stage",
+     "type": "Many2one"
+    },
+    "personal_stage_type_ids": {
+     "column1": "task_id",
+     "column2": "stage_id",
+     "comodel": "project.task.type",
+     "copy": false,
+     "domain": "[('user_id', '=', uid)]",
+     "ondelete": "restrict",
+     "relation_table": "project_task_user_rel",
+     "string": "Personal Stages",
+     "type": "Many2many"
+    },
+    "portal_user_names": {
+     "compute": "_compute_portal_user_names",
+     "type": "Char"
+    },
+    "priority": {
+     "default": "0",
+     "index": true,
+     "selection": [
+      [
+       "0",
+       "Low"
+      ],
+      [
+       "1",
+       "High"
+      ]
+     ],
+     "string": "Priority",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "compute": "_compute_project_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=?',  company_id)]",
+     "index": true,
+     "readonly": false,
+     "store": true,
+     "string": "Project",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "project_privacy_visibility": {
+     "related": "project_id.privacy_visibility",
+     "string": "Project Visibility",
+     "tracking": false,
+     "type": "Selection"
+    },
+    "rating_active": {
+     "related": "project_id.rating_active",
+     "string": "Project Rating Status",
+     "type": "Boolean"
+    },
+    "recurrence_id": {
+     "comodel": "project.task.recurrence",
+     "copy": false,
+     "type": "Many2one"
+    },
+    "recurring_count": {
+     "compute": "_compute_recurring_count",
+     "string": "Tasks in Recurrence",
+     "type": "Integer"
+    },
+    "recurring_task": {
+     "string": "Recurrent",
+     "type": "Boolean"
+    },
+    "repeat_interval": {
+     "compute": "_compute_repeat",
+     "default": 1,
+     "readonly": false,
+     "string": "Repeat Every",
+     "type": "Integer"
+    },
+    "repeat_type": {
+     "compute": "_compute_repeat",
+     "default": "forever",
+     "readonly": false,
+     "selection": [
+      [
+       "forever",
+       "Forever"
+      ],
+      [
+       "until",
+       "Until"
+      ]
+     ],
+     "string": "Until",
+     "type": "Selection"
+    },
+    "repeat_unit": {
+     "compute": "_compute_repeat",
+     "default": "week",
+     "readonly": false,
+     "selection": [
+      [
+       "day",
+       "Days"
+      ],
+      [
+       "week",
+       "Weeks"
+      ],
+      [
+       "month",
+       "Months"
+      ],
+      [
+       "year",
+       "Years"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "repeat_until": {
+     "compute": "_compute_repeat",
+     "readonly": false,
+     "string": "End Date",
+     "type": "Date"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "show_display_in_project": {
+     "compute": "_compute_show_display_in_project",
+     "type": "Boolean"
+    },
+    "stage_id": {
+     "comodel": "project.task.type",
+     "compute": "_compute_stage_id",
+     "default": {
+      "$ref": "_get_default_stage_id"
+     },
+     "domain": "[('project_ids', '=', project_id)]",
+     "index": true,
+     "ondelete": "restrict",
+     "readonly": false,
+     "store": true,
+     "string": "Stage",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "state": {
+     "compute": "_compute_state",
+     "copy": false,
+     "default": "01_in_progress",
+     "index": true,
+     "readonly": false,
+     "required": true,
+     "selection": {
+      "$expr": "[('01_in_progress', 'In Progress'), ('02_changes_requested', 'Changes Requested'), ('03_approved', 'Approved'), *CLOSED_STATES.items(), ('04_waiting_normal', 'Waiting')]"
+     },
+     "store": true,
+     "string": "State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "subtask_allocated_hours": {
+     "compute": "_compute_subtask_allocated_hours",
+     "help": "Sum of the hours allocated for all the sub-tasks (and their own sub-tasks) linked to this task. Usually less than or equal to the allocated hours of this task.",
+     "string": "Sub-tasks Allocated Time",
+     "type": "Float"
+    },
+    "subtask_completion_percentage": {
+     "compute": "_compute_subtask_completion_percentage",
+     "type": "Float"
+    },
+    "subtask_count": {
+     "compute": "_compute_subtask_count",
+     "string": "Sub-task Count",
+     "type": "Integer"
+    },
+    "tag_ids": {
+     "comodel": "project.tags",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "task_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "user_ids": {
+     "column1": "task_id",
+     "column2": "user_id",
+     "comodel": "res.users",
+     "default": {
+      "$ref": "_default_user_ids"
+     },
+     "domain": "[('share', '=', False), ('active', '=', True)]",
+     "relation_table": "project_task_user_rel",
+     "string": "Assignees",
+     "tracking": true,
+     "type": "Many2many"
+    },
+    "website_message_ids": {
+     "domain": {
+      "$lambda": "[('model', '=', self._name), ('message_type', 'in', ['email', 'comment', 'email_outgoing', 'auto_comment'])]"
+     },
+     "type": "One2many"
+    },
+    "working_days_close": {
+     "compute": "_compute_elapsed",
+     "store": true,
+     "string": "Working Days to Close",
+     "type": "Float"
+    },
+    "working_days_open": {
+     "compute": "_compute_elapsed",
+     "store": true,
+     "string": "Working Days to Assign",
+     "type": "Float"
+    },
+    "working_hours_close": {
+     "compute": "_compute_elapsed",
+     "digits": [
+      16,
+      2
+     ],
+     "store": true,
+     "string": "Working Hours to Close",
+     "type": "Float"
+    },
+    "working_hours_open": {
+     "compute": "_compute_elapsed",
+     "digits": [
+      16,
+      2
+     ],
+     "store": true,
+     "string": "Working Hours to Assign",
+     "type": "Float"
+    },
+    "write_date": {
+     "readonly": true,
+     "string": "Last Updated On",
+     "type": "Datetime"
+    }
+   },
+   "inherit": [
+    "html.field.history.mixin",
+    "mail.activity.mixin",
+    "mail.thread.cc",
+    "mail.tracking.duration.mixin",
+    "portal.mixin",
+    "rating.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_versioned_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_default_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_stage_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_default_personal_stage_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_default_user_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_default_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_read_group_stage_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_read_group_personal_stage_type_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id', 'partner_id')"
+     ],
+     "lines": 5,
+     "name": "_ensure_company_consistency_with_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('child_ids', 'project_id')"
+     ],
+     "lines": 5,
+     "name": "_ensure_super_task_is_not_private"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_WRITABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id.project_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('parent_id')"
+     ],
+     "lines": 7,
+     "name": "_onchange_parent_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_in_project"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id', 'parent_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_display_in_project"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('stage_id', 'depend_on_ids.state')"
+     ],
+     "lines": 13,
+     "name": "_compute_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_closed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_search_is_closed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "OPEN_STATES"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('project_id')"
+     ],
+     "lines": 12,
+     "name": "_onchange_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "is_blocked_by_dependences"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inverse_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('user_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_personal_stage_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('personal_stage_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_personal_stage_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_personal_stage_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_search_personal_stage_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_default_personal_stage_create_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_populate_missing_personal_stages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "message_subscribe"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('depend_on_ids')"
+     ],
+     "lines": 3,
+     "name": "_check_no_cyclic_dependencies"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_recurrence_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurring_task')"
+     ],
+     "lines": 12,
+     "name": "_compute_repeat"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_recurrence_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurrence_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_recurring_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('depend_on_ids')"
+     ],
+     "lines": 22,
+     "name": "_compute_depend_on_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('dependent_ids')"
+     ],
+     "lines": 14,
+     "name": "_compute_dependent_tasks_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('parent_id')"
+     ],
+     "lines": 3,
+     "name": "_check_parent_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_attachments_search_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_attachment_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('create_date', 'date_end', 'date_assign')"
+     ],
+     "lines": 27,
+     "name": "_compute_elapsed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_access_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_access_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('child_ids.allocated_hours')"
+     ],
+     "lines": 3,
+     "name": "_compute_subtask_allocated_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('child_ids')"
+     ],
+     "lines": 15,
+     "name": "_compute_subtask_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_task_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id.company_id', 'parent_id.company_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_stage_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_ids')"
+     ],
+     "lines": 16,
+     "name": "_compute_portal_user_names"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_search_portal_user_names"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_display_parent_task_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_current_user_same_company_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_display_follow_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_group_pattern"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_pattern_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_groups_patterns"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_cannot_start_with_patterns"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_extract_tags_and_users"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_extract_priority"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_inverse_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_link_preview_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_create_task_mapping"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_portal_get_parent_hash_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "stage_find"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "fields_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_view_cache_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 32,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_ensure_fields_write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_ensure_fields_are_accessible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_determine_fields_to_fetch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_portal_sudo_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_portal_sudo_context"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "check_field_access_rights"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_set_stage_on_project_from_task"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_load_records_create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 103,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 161,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "update_date_end"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "_search_on_comodel"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id.partner_id', 'project_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_milestone_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_has_late_and_unreached_milestone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_search_has_late_and_unreached_milestone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_notify_by_email_prepare_rendering_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_send_email_notify_to_cc"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "_task_message_auto_subscribe_notify"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_message_auto_subscribe"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_message_auto_subscribe_followers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_track_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_creation_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_creation_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_mail_get_message_subtypes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_notify_get_reply_to"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_ensure_personal_stages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "email_split"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 33,
+     "name": "message_new"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "message_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_message_get_suggested_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_notify_by_email_get_headers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_message_post_after_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_projects_to_make_billable_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_all_subtasks"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_get_subtask_ids_per_task_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_subtasks_recursively"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_parent_task"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 22,
+     "name": "action_project_sharing_view_parent_task"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_task"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_project_sharing_open_task"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_project_sharing_open_subtasks"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_project_sharing_open_blocking"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_dependent_tasks"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_recurring_tasks"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 20,
+     "name": "action_project_sharing_recurring_tasks"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_open_ratings"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_unlink_recurrence"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_convert_to_subtask"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_archive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_send_task_rating_mail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_rating_get_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "rating_apply"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_rating_apply_get_default_subtype_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_rating_get_parent_field_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_rating_get_operator"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_unsubscribe_portal_users"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "get_unusual_days"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_redirect_to_project_task_form"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "read_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "project_sharing_toggle_is_follower"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('subtask_count', 'closed_subtask_count')"
+     ],
+     "lines": 3,
+     "name": "_compute_subtask_completion_percentage"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_thread_with_access"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "get_mention_suggestions"
+    }
+   ],
+   "name": "project.task",
+   "order": "priority desc, sequence, date_deadline asc, id desc",
+   "sel_methods": {
+    "_determine_fields_to_fetch": [],
+    "_get_attachments_search_domain": [
+     [
+      "res_id",
+      "="
+     ],
+     [
+      "res_model",
+      "="
+     ]
+    ],
+    "_get_thread_with_access": [],
+    "_message_auto_subscribe": [],
+    "_message_post_after_hook": [],
+    "_search_has_late_and_unreached_milestone": [
+     [
+      "allow_milestones",
+      "="
+     ],
+     [
+      "milestone_id",
+      "!="
+     ],
+     [
+      "milestone_id.is_reached",
+      "="
+     ],
+     [
+      "milestone_id.deadline",
+      "!="
+     ],
+     [
+      "milestone_id.deadline",
+      "<"
+     ]
+    ],
+    "_search_is_closed": [
+     [
+      "state",
+      "in"
+     ]
+    ],
+    "_search_portal_user_names": [
+     [
+      "id",
+      "in"
+     ]
+    ],
+    "_track_subtype": []
+   },
+   "sql_constraints": [
+    [
+     "recurring_task_has_no_parent",
+     "CHECK (NOT (recurring_task IS TRUE AND parent_id IS NOT NULL))",
+     "A subtask cannot be recurrent."
+    ],
+    [
+     "private_task_has_no_parent",
+     "CHECK (NOT (project_id IS NULL AND parent_id IS NOT NULL))",
+     "A private task cannot have a parent."
+    ]
+   ],
+   "transient": false
+  },
+  "project.task.burndown.chart.report": {
+   "abstract": true,
+   "description": "Burndown Chart",
+   "extension": false,
+   "fields": {
+    "allocated_hours": {
+     "readonly": true,
+     "string": "Allocated Time",
+     "type": "Float"
+    },
+    "date": {
+     "readonly": true,
+     "string": "Date",
+     "type": "Datetime"
+    },
+    "date_assign": {
+     "readonly": true,
+     "string": "Assignment Date",
+     "type": "Datetime"
+    },
+    "date_deadline": {
+     "readonly": true,
+     "string": "Deadline",
+     "type": "Date"
+    },
+    "date_last_stage_update": {
+     "readonly": true,
+     "string": "Last Stage Update",
+     "type": "Date"
+    },
+    "is_closed": {
+     "readonly": true,
+     "selection": [
+      [
+       "closed",
+       "Closed tasks"
+      ],
+      [
+       "open",
+       "Open tasks"
+      ]
+     ],
+     "string": "Closing Stage",
+     "type": "Selection"
+    },
+    "milestone_id": {
+     "comodel": "project.milestone",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "stage_id": {
+     "comodel": "project.task.type",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "01_in_progress",
+       "In Progress"
+      ],
+      [
+       "1_done",
+       "Done"
+      ],
+      [
+       "04_waiting_normal",
+       "Waiting"
+      ],
+      [
+       "03_approved",
+       "Approved"
+      ],
+      [
+       "1_canceled",
+       "Cancelled"
+      ],
+      [
+       "02_changes_requested",
+       "Changes Requested"
+      ]
+     ],
+     "string": "State",
+     "type": "Selection"
+    },
+    "tag_ids": {
+     "column1": "project_task_id",
+     "column2": "project_tags_id",
+     "comodel": "project.tags",
+     "readonly": true,
+     "relation_table": "project_tags_project_task_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "user_ids": {
+     "column1": "task_id",
+     "column2": "user_id",
+     "comodel": "res.users",
+     "readonly": true,
+     "relation_table": "project_task_user_rel",
+     "string": "Assignees",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "task_specific_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 146,
+     "name": "_where_calc"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_validate_group_by"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_determine_domains"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_read_group_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_read_group"
+    }
+   ],
+   "name": "project.task.burndown.chart.report",
+   "order": "date",
+   "sel_methods": {
+    "_read_group": [],
+    "_read_group_select": []
+   },
+   "transient": false
+  },
+  "project.task.recurrence": {
+   "abstract": false,
+   "description": "Task Recurrence",
+   "extension": false,
+   "fields": {
+    "repeat_interval": {
+     "default": 1,
+     "string": "Repeat Every",
+     "type": "Integer"
+    },
+    "repeat_type": {
+     "default": "forever",
+     "selection": [
+      [
+       "forever",
+       "Forever"
+      ],
+      [
+       "until",
+       "Until"
+      ]
+     ],
+     "string": "Until",
+     "type": "Selection"
+    },
+    "repeat_unit": {
+     "default": "week",
+     "selection": [
+      [
+       "day",
+       "Days"
+      ],
+      [
+       "week",
+       "Weeks"
+      ],
+      [
+       "month",
+       "Months"
+      ],
+      [
+       "year",
+       "Years"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "repeat_until": {
+     "string": "End Date",
+     "type": "Date"
+    },
+    "task_ids": {
+     "comodel": "project.task",
+     "copy": false,
+     "inverse_name": "recurrence_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('repeat_interval')"
+     ],
+     "lines": 3,
+     "name": "_check_repeat_interval"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('repeat_type', 'repeat_until')"
+     ],
+     "lines": 4,
+     "name": "_check_repeat_until_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_recurring_fields_to_copy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_recurring_fields_to_postpone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_last_task_id_per_recurrence_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_recurrence_delta"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_create_next_occurrence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_create_next_occurrence_values"
+    }
+   ],
+   "name": "project.task.recurrence",
+   "transient": false
+  },
+  "project.task.stage.personal": {
+   "abstract": false,
+   "description": "Personal Task Stage",
+   "extension": false,
+   "fields": {
+    "stage_id": {
+     "comodel": "project.task.type",
+     "domain": "[('user_id', '=', user_id)]",
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "task_id": {
+     "comodel": "project.task",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "project.task.stage.personal",
+   "rec_name": "stage_id",
+   "sql_constraints": [
+    [
+     "project_personal_stage_unique",
+     "UNIQUE (task_id, user_id)",
+     "A task can only have a single personal stage per user."
+    ]
+   ],
+   "table": "project_task_user_rel",
+   "transient": false
+  },
+  "project.task.type": {
+   "abstract": false,
+   "description": "Task Stage",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "auto_validation_state": {
+     "default": false,
+     "help": "Automatically modify the state when the customer replies to the feedback for this stage.\n * Good feedback from the customer will update the state to 'Approved' (green bullet).\n * Neutral or bad feedback will set the kanban state to 'Changes Requested' (orange bullet).\n",
+     "string": "Automatic Kanban Status",
+     "type": "Boolean"
+    },
+    "disabled_rating_warning": {
+     "compute": "_compute_disabled_rating_warning",
+     "type": "Text"
+    },
+    "fold": {
+     "string": "Folded in Kanban",
+     "type": "Boolean"
+    },
+    "mail_template_id": {
+     "comodel": "mail.template",
+     "domain": [
+      [
+       "model",
+       "=",
+       "project.task"
+      ]
+     ],
+     "help": "If set, an email will be automatically sent to the customer when the task reaches this stage.",
+     "string": "Email Template",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "project_ids": {
+     "column1": "type_id",
+     "column2": "project_id",
+     "comodel": "project.project",
+     "default": {
+      "$lambda": "self._get_default_project_ids()"
+     },
+     "help": "Projects in which this stage is present. If you follow a similar workflow in several projects, you can share this stage among them and get consolidated information this way.",
+     "relation_table": "project_task_type_rel",
+     "string": "Projects",
+     "type": "Many2many"
+    },
+    "rating_template_id": {
+     "comodel": "mail.template",
+     "domain": [
+      [
+       "model",
+       "=",
+       "project.task"
+      ]
+     ],
+     "help": "If set, a rating request will automatically be sent by email to the customer when the task reaches this stage. \nAlternatively, it will be sent at a regular interval as long as the task remains in this stage, depending on the configuration of your project. \nTo use this feature make sure that the 'Customer Ratings' option is enabled on your project.",
+     "string": "Rating Email Template",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_user_id",
+     "default": {
+      "$ref": "_default_user_id"
+     },
+     "index": true,
+     "store": true,
+     "string": "Stage Owner",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_default_project_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "unlink_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 27,
+     "name": "_unlink_if_remaining_personal_stages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_prepare_personal_stages_deletion"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_ids', 'project_ids.rating_active')"
+     ],
+     "lines": 7,
+     "name": "_compute_disabled_rating_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('user_id', 'project_ids')"
+     ],
+     "lines": 3,
+     "name": "_check_personal_stage_not_linked_to_projects"
+    }
+   ],
+   "name": "project.task.type",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "project.task.type.delete.wizard": {
+   "abstract": false,
+   "description": "Project Task Stage Delete Wizard",
+   "extension": false,
+   "fields": {
+    "project_ids": {
+     "comodel": "project.project",
+     "domain": "['|', ('active', '=', False), ('active', '=', True)]",
+     "ondelete": "cascade",
+     "string": "Projects",
+     "type": "Many2many"
+    },
+    "stage_ids": {
+     "comodel": "project.task.type",
+     "ondelete": "cascade",
+     "string": "Stages To Delete",
+     "type": "Many2many"
+    },
+    "stages_active": {
+     "compute": "_compute_stages_active",
+     "type": "Boolean"
+    },
+    "tasks_count": {
+     "compute": "_compute_tasks_count",
+     "string": "Number of Tasks",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_tasks_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('stage_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_stages_active"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_archive"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_unarchive_task"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_action"
+    }
+   ],
+   "name": "project.task.type.delete.wizard",
+   "transient": true
+  },
+  "project.update": {
+   "abstract": false,
+   "description": "Project Update",
+   "extension": false,
+   "fields": {
+    "closed_task_count": {
+     "readonly": true,
+     "string": "Closed Task Count",
+     "type": "Integer"
+    },
+    "closed_task_percentage": {
+     "compute": "_compute_closed_task_percentage",
+     "string": "Closed Task Percentage",
+     "type": "Integer"
+    },
+    "color": {
+     "compute": "_compute_color",
+     "type": "Integer"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "tracking": true,
+     "type": "Date"
+    },
+    "description": {
+     "type": "Html"
+    },
+    "name": {
+     "required": true,
+     "string": "Title",
+     "tracking": true,
+     "type": "Char"
+    },
+    "name_cropped": {
+     "compute": "_compute_name_cropped",
+     "type": "Char"
+    },
+    "progress": {
+     "tracking": true,
+     "type": "Integer"
+    },
+    "progress_percentage": {
+     "compute": "_compute_progress_percentage",
+     "type": "Float"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "required": true,
+     "type": "Many2one"
+    },
+    "status": {
+     "required": true,
+     "selection": [
+      [
+       "on_track",
+       "On Track"
+      ],
+      [
+       "at_risk",
+       "At Risk"
+      ],
+      [
+       "off_track",
+       "Off Track"
+      ],
+      [
+       "on_hold",
+       "On Hold"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "tracking": true,
+     "type": "Selection"
+    },
+    "task_count": {
+     "readonly": true,
+     "string": "Task Count",
+     "type": "Integer"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "required": true,
+     "string": "Author",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.cc"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('status')"
+     ],
+     "lines": 3,
+     "name": "_compute_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('progress')"
+     ],
+     "lines": 3,
+     "name": "_compute_progress_percentage"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 3,
+     "name": "_compute_name_cropped"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_closed_task_percentage"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_build_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_template_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 25,
+     "name": "_get_milestone_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 41,
+     "name": "_get_last_updated_milestone"
+    }
+   ],
+   "name": "project.update",
+   "order": "id desc",
+   "transient": false
+  },
+  "report.project.task.user": {
+   "abstract": false,
+   "description": "Tasks Analysis",
+   "extension": false,
+   "fields": {
+    "active": {
+     "readonly": true,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "create_date": {
+     "readonly": true,
+     "string": "Create Date",
+     "type": "Datetime"
+    },
+    "date_assign": {
+     "readonly": true,
+     "string": "Assignment Date",
+     "type": "Datetime"
+    },
+    "date_deadline": {
+     "readonly": true,
+     "string": "Deadline",
+     "type": "Datetime"
+    },
+    "date_end": {
+     "readonly": true,
+     "string": "Ending Date",
+     "type": "Datetime"
+    },
+    "date_last_stage_update": {
+     "readonly": true,
+     "string": "Last Stage Update",
+     "type": "Datetime"
+    },
+    "delay_endings_days": {
+     "digits": [
+      16,
+      2
+     ],
+     "readonly": true,
+     "string": "Days to Deadline",
+     "type": "Float"
+    },
+    "dependent_ids": {
+     "column1": "depends_on_id",
+     "column2": "task_id",
+     "comodel": "project.task",
+     "domain": "[('allow_task_dependencies', '=', True), ('id', '!=', id)]",
+     "readonly": true,
+     "relation_table": "task_dependencies_rel",
+     "string": "Block",
+     "type": "Many2many"
+    },
+    "description": {
+     "readonly": true,
+     "type": "Text"
+    },
+    "is_closed": {
+     "readonly": true,
+     "string": "Closed state",
+     "type": "Boolean"
+    },
+    "message_is_follower": {
+     "related": "task_id.message_is_follower",
+     "type": "Boolean"
+    },
+    "milestone_id": {
+     "comodel": "project.milestone",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "readonly": true,
+     "string": "Task",
+     "type": "Char"
+    },
+    "nbr": {
+     "readonly": true,
+     "string": "# of Tasks",
+     "type": "Integer"
+    },
+    "parent_id": {
+     "comodel": "project.task",
+     "readonly": true,
+     "string": "Parent Task",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "personal_stage_type_ids": {
+     "column1": "task_id",
+     "column2": "stage_id",
+     "comodel": "project.task.type",
+     "readonly": true,
+     "relation_table": "project_task_user_rel",
+     "string": "Personal Stage",
+     "type": "Many2many"
+    },
+    "priority": {
+     "readonly": true,
+     "selection": [
+      [
+       "0",
+       "Low"
+      ],
+      [
+       "1",
+       "High"
+      ]
+     ],
+     "string": "Priority",
+     "type": "Selection"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "readonly": true,
+     "string": "Project",
+     "type": "Many2one"
+    },
+    "rating_avg": {
+     "groups": "project.group_project_rating",
+     "readonly": true,
+     "string": "Average Rating (1-5)",
+     "type": "Float"
+    },
+    "rating_last_value": {
+     "groups": "project.group_project_rating",
+     "readonly": true,
+     "string": "Last Rating (1-5)",
+     "type": "Float"
+    },
+    "stage_id": {
+     "comodel": "project.task.type",
+     "readonly": true,
+     "string": "Stage",
+     "type": "Many2one"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "01_in_progress",
+       "In Progress"
+      ],
+      [
+       "1_done",
+       "Done"
+      ],
+      [
+       "04_waiting_normal",
+       "Waiting"
+      ],
+      [
+       "03_approved",
+       "Approved"
+      ],
+      [
+       "1_canceled",
+       "Cancelled"
+      ],
+      [
+       "02_changes_requested",
+       "Changes Requested"
+      ]
+     ],
+     "string": "State",
+     "type": "Selection"
+    },
+    "tag_ids": {
+     "column1": "project_task_id",
+     "column2": "project_tags_id",
+     "comodel": "project.tags",
+     "readonly": true,
+     "relation_table": "project_tags_project_task_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "task_id": {
+     "comodel": "project.task",
+     "readonly": true,
+     "string": "Tasks",
+     "type": "Many2one"
+    },
+    "user_ids": {
+     "column1": "task_id",
+     "column2": "user_id",
+     "comodel": "res.users",
+     "readonly": true,
+     "relation_table": "project_task_user_rel",
+     "string": "Assignees",
+     "type": "Many2many"
+    },
+    "working_days_close": {
+     "digits": [
+      16,
+      2
+     ],
+     "readonly": true,
+     "string": "Working Days to Close",
+     "type": "Float"
+    },
+    "working_days_open": {
+     "digits": [
+      16,
+      2
+     ],
+     "readonly": true,
+     "string": "Working Days to Assign",
+     "type": "Float"
+    },
+    "working_hours_close": {
+     "digits": [
+      16,
+      2
+     ],
+     "readonly": true,
+     "string": "Working Hours to Close",
+     "type": "Float"
+    },
+    "working_hours_open": {
+     "digits": [
+      16,
+      2
+     ],
+     "readonly": true,
+     "string": "Working Hours to Assign",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_group_by"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_where"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "init"
+    }
+   ],
+   "name": "report.project.task.user",
+   "order": "name desc, project_id",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "group_project_milestone": {
+     "string": "Milestones",
+     "type": "Boolean"
+    },
+    "group_project_rating": {
+     "string": "Customer Ratings",
+     "type": "Boolean"
+    },
+    "group_project_recurring_tasks": {
+     "string": "Recurring Tasks",
+     "type": "Boolean"
+    },
+    "group_project_stages": {
+     "string": "Project Stages",
+     "type": "Boolean"
+    },
+    "group_project_task_dependencies": {
+     "string": "Task Dependencies",
+     "type": "Boolean"
+    },
+    "module_hr_timesheet": {
+     "string": "Task Logs",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_basic_project_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "set_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "sel_methods": {
+    "_get_basic_project_domain": []
+   },
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "project_ids": {
+     "comodel": "project.project",
+     "inverse_name": "partner_id",
+     "string": "Projects",
+     "type": "One2many"
+    },
+    "task_count": {
+     "compute": "_compute_task_count",
+     "string": "# Tasks",
+     "type": "Integer"
+    },
+    "task_ids": {
+     "comodel": "project.task",
+     "inverse_name": "partner_id",
+     "string": "Tasks",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id', 'project_ids')"
+     ],
+     "lines": 4,
+     "name": "_ensure_same_company_than_projects"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id', 'task_ids')"
+     ],
+     "lines": 4,
+     "name": "_ensure_same_company_than_tasks"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_compute_task_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_create_portal_users"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_view_tasks"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "project",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/project",
+ "stats": {
+  "fields": 245,
+  "methods": 324,
+  "models": 22,
+  "py_lines": 5809
+ },
+ "summary": "Organize and plan your projects",
+ "title": "Project",
+ "version": "1.3"
+}

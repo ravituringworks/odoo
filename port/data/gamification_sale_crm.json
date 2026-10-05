@@ -1,0 +1,429 @@
+{
+ "module": "gamification_sale_crm",
+ "records": [
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_tot_invoices",
+   "values": {
+    "name": "Total Invoiced",
+    "description": "",
+    "computation_mode": "sum",
+    "monetary": "True",
+    "model_id": {
+     "$ref": "account.model_account_invoice_report"
+    },
+    "field_id": {
+     "$ref": "account.field_account_invoice_report__price_subtotal"
+    },
+    "field_date_id": {
+     "$ref": "account.field_account_invoice_report__invoice_date"
+    },
+    "domain": [
+     [
+      "state",
+      "!=",
+      "cancel"
+     ],
+     [
+      "move_type",
+      "=",
+      "out_invoice"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "account.field_account_invoice_report__invoice_user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_nbr_new_leads",
+   "values": {
+    "name": "New Leads",
+    "description": "Based on the creation date",
+    "computation_mode": "count",
+    "suffix": "leads",
+    "model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "field_date_id": {
+     "$unevaluated": "search"
+    },
+    "domain": [
+     "|",
+     [
+      "type",
+      "=",
+      "lead"
+     ],
+     [
+      "type",
+      "=",
+      "opportunity"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "crm.field_crm_lead__user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_lead_delay_open",
+   "values": {
+    "name": "Time to Qualify a Lead",
+    "description": "The average number of days to open the case (lower than)",
+    "computation_mode": "sum",
+    "condition": "lower",
+    "suffix": "days",
+    "model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "field_id": {
+     "$ref": "crm.field_crm_lead__day_close"
+    },
+    "field_date_id": {
+     "$ref": "crm.field_crm_lead__date_closed"
+    },
+    "domain": [
+     [
+      "type",
+      "=",
+      "lead"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "crm.field_crm_lead__user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_lead_delay_close",
+   "values": {
+    "name": "Days to Close a Deal",
+    "description": "The average number of days to close the case (lower than)",
+    "computation_mode": "sum",
+    "condition": "lower",
+    "suffix": "days",
+    "model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "field_id": {
+     "$ref": "crm.field_crm_lead__day_open"
+    },
+    "field_date_id": {
+     "$ref": "crm.field_crm_lead__date_open"
+    },
+    "domain": [],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "crm.field_crm_lead__user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_nbr_new_opportunities",
+   "values": {
+    "name": "New Opportunities",
+    "description": "Based on the opening date",
+    "computation_mode": "count",
+    "suffix": "opportunities",
+    "model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "field_date_id": {
+     "$ref": "crm.field_crm_lead__date_open"
+    },
+    "domain": [
+     [
+      "type",
+      "=",
+      "opportunity"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "crm.field_crm_lead__user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_nbr_sale_order_created",
+   "values": {
+    "name": "New Sales Orders",
+    "description": "Based on the creation date",
+    "computation_mode": "count",
+    "suffix": "orders",
+    "model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "field_date_id": {
+     "$ref": "sale.field_sale_order__date_order"
+    },
+    "domain": [
+     [
+      "state",
+      "not in",
+      [
+       "draft",
+       "sent",
+       "cancel"
+      ]
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "sale.field_sale_order__user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_nbr_paid_sale_order",
+   "values": {
+    "name": "Paid Sales Orders",
+    "description": "Based on the invoice date",
+    "computation_mode": "count",
+    "suffix": "orders",
+    "model_id": {
+     "$ref": "account.model_account_invoice_report"
+    },
+    "field_date_id": {
+     "$ref": "account.field_account_invoice_report__invoice_date"
+    },
+    "domain": [
+     [
+      "payment_state",
+      "in",
+      [
+       "paid",
+       "in_payment"
+      ]
+     ],
+     [
+      "move_type",
+      "=",
+      "out_invoice"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "account.field_account_invoice_report__invoice_user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_tot_paid_sale_order",
+   "values": {
+    "name": "Total Paid Sales Orders",
+    "description": "Based on the invoice date",
+    "computation_mode": "count",
+    "monetary": "True",
+    "model_id": {
+     "$ref": "account.model_account_invoice_report"
+    },
+    "field_id": {
+     "$ref": "account.field_account_invoice_report__price_subtotal"
+    },
+    "field_date_id": {
+     "$ref": "account.field_account_invoice_report__invoice_date"
+    },
+    "domain": [
+     [
+      "payment_state",
+      "in",
+      [
+       "paid",
+       "in_payment"
+      ]
+     ],
+     [
+      "move_type",
+      "=",
+      "out_invoice"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "account.field_account_invoice_report__invoice_user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_nbr_customer_refunds",
+   "values": {
+    "name": "Customer Credit Notes",
+    "description": "Add credit note to the least customers (lower than)",
+    "computation_mode": "count",
+    "condition": "lower",
+    "suffix": "invoices",
+    "model_id": {
+     "$ref": "account.model_account_invoice_report"
+    },
+    "field_date_id": {
+     "$ref": "account.field_account_invoice_report__invoice_date"
+    },
+    "domain": [
+     [
+      "state",
+      "!=",
+      "cancel"
+     ],
+     [
+      "move_type",
+      "=",
+      "out_refund"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "account.field_account_invoice_report__invoice_user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_crm_tot_customer_refunds",
+   "values": {
+    "name": "Total Customer Credit Notes",
+    "description": "The total credit note value is negative. Validated when higher (min credit note value).",
+    "computation_mode": "sum",
+    "condition": "higher",
+    "monetary": "True",
+    "model_id": {
+     "$ref": "account.model_account_invoice_report"
+    },
+    "field_id": {
+     "$ref": "account.field_account_invoice_report__price_subtotal"
+    },
+    "field_date_id": {
+     "$ref": "account.field_account_invoice_report__invoice_date"
+    },
+    "domain": [
+     [
+      "state",
+      "!=",
+      "cancel"
+     ],
+     [
+      "move_type",
+      "=",
+      "out_refund"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "account.field_account_invoice_report__invoice_user_id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "challenge_crm_sale",
+   "values": {
+    "name": "Monthly Sales Targets",
+    "period": "monthly",
+    "visibility_mode": "ranking",
+    "user_domain": {
+     "$unevaluated": "str([('groups_id', 'in', [ref('sales_team.group_sale_salesman')])])"
+    },
+    "report_message_frequency": "weekly"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "challenge_crm_marketing",
+   "values": {
+    "name": "Lead Acquisition",
+    "period": "monthly",
+    "visibility_mode": "ranking",
+    "user_domain": {
+     "$unevaluated": "str([('groups_id', 'in', [ref('sales_team.group_sale_salesman')])])"
+    },
+    "report_message_frequency": "weekly"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "line_crm_sale1",
+   "values": {
+    "definition_id": {
+     "$ref": "definition_crm_tot_invoices"
+    },
+    "target_goal": "20000",
+    "challenge_id": {
+     "$ref": "challenge_crm_sale"
+    }
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "line_crm_marketing1",
+   "values": {
+    "definition_id": {
+     "$ref": "definition_crm_nbr_new_leads"
+    },
+    "target_goal": "7",
+    "challenge_id": {
+     "$ref": "challenge_crm_marketing"
+    },
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "line_crm_marketing2",
+   "values": {
+    "definition_id": {
+     "$ref": "definition_crm_lead_delay_open"
+    },
+    "target_goal": "15",
+    "challenge_id": {
+     "$ref": "challenge_crm_marketing"
+    },
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "line_crm_marketing3",
+   "values": {
+    "definition_id": {
+     "$ref": "definition_crm_nbr_new_opportunities"
+    },
+    "target_goal": "5",
+    "challenge_id": {
+     "$ref": "challenge_crm_marketing"
+    },
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "challenge_crm_sale",
+   "values": {
+    "state": "inprogress"
+   }
+  }
+ ],
+ "menus": [],
+ "access": []
+}

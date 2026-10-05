@@ -1,0 +1,860 @@
+{
+ "module": "calendar",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "calendar_event_rule_my",
+   "values": {
+    "name": "Own events",
+    "model_id": {
+     "$ref": "model_calendar_event"
+    },
+    "domain_force": "[('partner_ids', 'in', user.partner_id.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "calendar_event_rule_employee",
+   "values": {
+    "model_id": {
+     "$ref": "model_calendar_event"
+    },
+    "name": "All Calendar Event for employees",
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "calendar_attendee_rule_my",
+   "values": {
+    "name": "Own attendees",
+    "model_id": {
+     "$ref": "model_calendar_attendee"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "calendar_event_rule_private",
+   "values": {
+    "model_id": {
+     "$ref": "model_calendar_event"
+    },
+    "name": "Private events",
+    "domain_force": "['|', ('privacy', '!=', 'private'), '&', ('privacy', '=', 'private'), '|', ('user_id', '=', user.id), ('partner_ids', 'in', user.partner_id.id)]",
+    "perm_read": false,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "calendar.alarm",
+   "id": "alarm_notif_1",
+   "values": {
+    "name": "Notification - 15 Minutes",
+    "duration": 15,
+    "interval": "minutes",
+    "alarm_type": "notification"
+   }
+  },
+  {
+   "model": "calendar.alarm",
+   "id": "alarm_notif_2",
+   "values": {
+    "name": "Notification - 30 Minutes",
+    "duration": 30,
+    "interval": "minutes",
+    "alarm_type": "notification"
+   }
+  },
+  {
+   "model": "calendar.alarm",
+   "id": "alarm_notif_3",
+   "values": {
+    "name": "Notification - 1 Hours",
+    "duration": 1,
+    "interval": "hours",
+    "alarm_type": "notification"
+   }
+  },
+  {
+   "model": "calendar.alarm",
+   "id": "alarm_notif_4",
+   "values": {
+    "name": "Notification - 2 Hours",
+    "duration": 2,
+    "interval": "hours",
+    "alarm_type": "notification"
+   }
+  },
+  {
+   "model": "calendar.alarm",
+   "id": "alarm_notif_5",
+   "values": {
+    "name": "Notification - 1 Days",
+    "duration": 1,
+    "interval": "days",
+    "alarm_type": "notification"
+   }
+  },
+  {
+   "model": "calendar.alarm",
+   "id": "alarm_mail_1",
+   "values": {
+    "name": "Email - 3 Hours",
+    "duration": 3,
+    "interval": "hours",
+    "alarm_type": "email",
+    "mail_template_id": {
+     "$ref": "calendar.calendar_template_meeting_reminder"
+    }
+   }
+  },
+  {
+   "model": "calendar.alarm",
+   "id": "alarm_mail_2",
+   "values": {
+    "name": "Email - 6 Hours",
+    "duration": 6,
+    "interval": "hours",
+    "alarm_type": "email",
+    "mail_template_id": {
+     "$ref": "calendar.calendar_template_meeting_reminder"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail.mail_activity_data_meeting",
+   "values": {
+    "category": "meeting"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "calendar.subtype_invitation",
+   "values": {
+    "name": "Invitation",
+    "res_model": "calendar.event",
+    "description": false,
+    "default": false
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_calendar_event_type",
+   "values": {
+    "name": "Meeting Types",
+    "res_model": "calendar.event.type",
+    "view_id": {
+     "$ref": "view_calendar_event_type_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_calendar_alarm",
+   "values": {
+    "name": "Calendar Alarm",
+    "res_model": "calendar.alarm",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "view_calendar_alarm_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_calendar_event",
+   "values": {
+    "name": "Meetings",
+    "path": "calendar",
+    "res_model": "calendar.event",
+    "view_mode": "calendar,list,form",
+    "view_id": {
+     "$ref": "view_calendar_event_calendar"
+    },
+    "search_view_id": {
+     "$ref": "view_calendar_event_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_view_calendar_event_calendar",
+   "values": {
+    "act_window_id": {
+     "$ref": "action_calendar_event"
+    },
+    "sequence": 1,
+    "view_mode": "calendar",
+    "view_id": {
+     "$ref": "view_calendar_event_calendar"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_view_calendar_event_tree",
+   "values": {
+    "act_window_id": {
+     "$ref": "action_calendar_event"
+    },
+    "sequence": 2,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_calendar_event_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_view_calendar_event_form",
+   "values": {
+    "act_window_id": {
+     "$ref": "action_calendar_event"
+    },
+    "sequence": 3,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_calendar_event_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "calendar_settings_action",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "calendar",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "calendar.filters",
+   "id": "cal_contact_1",
+   "values": {
+    "active": true,
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    }
+   }
+  },
+  {
+   "model": "calendar.filters",
+   "id": "cal_contact_2",
+   "values": {
+    "active": true,
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    }
+   }
+  },
+  {
+   "model": "calendar.event.type",
+   "id": "categ_meet1",
+   "values": {
+    "name": "Customer Meeting"
+   }
+  },
+  {
+   "model": "calendar.event.type",
+   "id": "categ_meet2",
+   "values": {
+    "name": "Internal Meeting"
+   }
+  },
+  {
+   "model": "calendar.event.type",
+   "id": "categ_meet3",
+   "values": {
+    "name": "Off-site Meeting"
+   }
+  },
+  {
+   "model": "calendar.event.type",
+   "id": "categ_meet4",
+   "values": {
+    "name": "Open Discussion"
+   }
+  },
+  {
+   "model": "calendar.event.type",
+   "id": "categ_meet5",
+   "values": {
+    "name": "Feedback Meeting"
+   }
+  },
+  {
+   "model": "calendar.event",
+   "id": "calendar_event_1",
+   "values": {
+    "active": true,
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "partner_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.res_partner_1"
+       }
+      ]
+     ]
+    ],
+    "name": "Follow-up for Project proposal",
+    "description": "Meeting to discuss project plan and hash out the details of implementation.",
+    "start": {
+     "$unevaluated": "time.strftime('%Y-%m-03 10:20:00')"
+    },
+    "categ_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "categ_meet1"
+       }
+      ]
+     ]
+    ],
+    "stop": {
+     "$unevaluated": "time.strftime('%Y-%m-03 16:30:00')"
+    },
+    "duration": 6.3,
+    "allday": false
+   }
+  },
+  {
+   "model": "calendar.event",
+   "id": "calendar_event_2",
+   "values": {
+    "active": true,
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "partner_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.partner_root"
+       },
+       {
+        "$ref": "base.res_partner_4"
+       },
+       {
+        "$ref": "base.res_partner_3"
+       }
+      ]
+     ]
+    ],
+    "name": "Initial discussion",
+    "description": "Discussion with partner for product.",
+    "categ_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "categ_meet3"
+       }
+      ]
+     ]
+    ],
+    "start": {
+     "$unevaluated": "time.strftime('%Y-%m-05 12:00:00')"
+    },
+    "stop": {
+     "$unevaluated": "time.strftime('%Y-%m-05 19:00:00')"
+    },
+    "allday": false,
+    "duration": 7.0
+   }
+  },
+  {
+   "model": "calendar.event",
+   "id": "calendar_event_3",
+   "values": {
+    "active": true,
+    "partner_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.partner_admin"
+       }
+      ]
+     ]
+    ],
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "name": "Pricing Discussion",
+    "description": "Internal meeting for discussion for new pricing for product and services.",
+    "categ_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "categ_meet1"
+       },
+       {
+        "$ref": "categ_meet2"
+       }
+      ]
+     ]
+    ],
+    "start": {
+     "$unevaluated": "time.strftime('%Y-%m-12 15:55:05')"
+    },
+    "stop": {
+     "$unevaluated": "time.strftime('%Y-%m-12 18:55:05')"
+    },
+    "duration": 3.0,
+    "allday": false
+   }
+  },
+  {
+   "model": "calendar.event",
+   "id": "calendar_event_4",
+   "values": {
+    "active": true,
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "partner_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.partner_demo"
+       },
+       {
+        "$ref": "base.res_partner_1"
+       }
+      ]
+     ]
+    ],
+    "name": "Requirements review",
+    "categ_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "categ_meet3"
+       }
+      ]
+     ]
+    ],
+    "start": {
+     "$unevaluated": "time.strftime('%Y-%m-20 08:00:00')"
+    },
+    "stop": {
+     "$unevaluated": "time.strftime('%Y-%m-20 10:30:00')"
+    },
+    "duration": 2.5,
+    "allday": false
+   }
+  },
+  {
+   "model": "calendar.event",
+   "id": "calendar_event_5",
+   "values": {
+    "active": true,
+    "partner_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.partner_admin"
+       },
+       {
+        "$ref": "base.res_partner_12"
+       }
+      ]
+     ]
+    ],
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "name": "Changes in Designing",
+    "categ_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "categ_meet1"
+       }
+      ]
+     ]
+    ],
+    "start": {
+     "$unevaluated": "time.strftime('%Y-%m-22')"
+    },
+    "stop": {
+     "$unevaluated": "time.strftime('%Y-%m-22')"
+    },
+    "allday": true
+   }
+  },
+  {
+   "model": "calendar.event",
+   "id": "calendar_event_6",
+   "values": {
+    "active": true,
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "partner_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.partner_root"
+       },
+       {
+        "$ref": "base.res_partner_4"
+       },
+       {
+        "$ref": "base.res_partner_1"
+       },
+       {
+        "$ref": "base.res_partner_12"
+       }
+      ]
+     ]
+    ],
+    "name": "Presentation for new Services",
+    "categ_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "categ_meet1"
+       },
+       {
+        "$ref": "categ_meet2"
+       }
+      ]
+     ]
+    ],
+    "start": {
+     "$unevaluated": "time.strftime('%Y-%m-18 02:00:00')"
+    },
+    "stop": {
+     "$unevaluated": "time.strftime('%Y-%m-18 10:30:00')"
+    },
+    "duration": 8.5,
+    "allday": false
+   }
+  },
+  {
+   "model": "calendar.event",
+   "id": "calendar_event_7",
+   "values": {
+    "active": true,
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "partner_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.res_partner_4"
+       }
+      ]
+     ]
+    ],
+    "name": "Presentation of the new Calendar",
+    "categ_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "categ_meet1"
+       },
+       {
+        "$ref": "categ_meet2"
+       }
+      ]
+     ]
+    ],
+    "start": {
+     "$unevaluated": "time.strftime('%Y-%m-16')"
+    },
+    "stop": {
+     "$unevaluated": "time.strftime('%Y-%m-16')"
+    },
+    "duration": 8.5,
+    "allday": true
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "mail_menu_calendar",
+   "name": "Calendar",
+   "sequence": "10",
+   "groups": "base.group_user",
+   "web_icon": "calendar,static/description/icon.png"
+  },
+  {
+   "id": "calendar_event_menu",
+   "name": "Calendar",
+   "parent": "mail_menu_calendar",
+   "action": "action_calendar_event",
+   "sequence": "1",
+   "groups": "base.group_user"
+  },
+  {
+   "id": "calendar_menu_config",
+   "name": "Configuration",
+   "parent": "calendar.mail_menu_calendar",
+   "action": "calendar.action_calendar_event",
+   "sequence": "40",
+   "groups": "base.group_system,base.group_no_one"
+  },
+  {
+   "id": "menu_calendar_settings",
+   "name": "Settings",
+   "parent": "calendar_menu_config",
+   "action": "calendar_settings_action",
+   "sequence": "45",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "calendar_submenu_reminders",
+   "name": "Reminders",
+   "parent": "calendar_menu_config",
+   "action": "action_calendar_alarm",
+   "sequence": "50",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_calendar_configuration",
+   "name": "Calendar",
+   "parent": "base.menu_custom",
+   "sequence": "30",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_calendar_event_type",
+   "parent": "menu_calendar_configuration",
+   "action": "action_calendar_event_type",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_calendar_alarm",
+   "parent": "menu_calendar_configuration",
+   "action": "action_calendar_alarm",
+   "groups": "base.group_no_one"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_calendar_attendee_portal",
+   "model": "calendar.attendee",
+   "model_xmlid": "model_calendar_attendee",
+   "group": "base.group_portal",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_calendar_attendee_employee",
+   "model": "calendar.attendee",
+   "model_xmlid": "model_calendar_attendee",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_attendee_employee_delete_wizard",
+   "model": "calendar.popover.delete.wizard",
+   "model_xmlid": "model_calendar_popover_delete_wizard",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_alarm",
+   "model": "calendar.alarm",
+   "model_xmlid": "model_calendar_alarm",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_event_all_user",
+   "model": "calendar.event",
+   "model_xmlid": "model_calendar_event",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_calendar_event_all_employee",
+   "model": "calendar.event",
+   "model_xmlid": "model_calendar_event",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_event_partner_manager",
+   "model": "calendar.event",
+   "model_xmlid": "model_calendar_event",
+   "group": "base.group_partner_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_event_type_all",
+   "model": "calendar.event.type",
+   "model_xmlid": "model_calendar_event_type",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_calendar_event_type_manager",
+   "model": "calendar.event.type",
+   "model_xmlid": "model_calendar_event_type",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_alarm_manager",
+   "model": "calendar.alarm.manager",
+   "model_xmlid": "model_calendar_alarm_manager",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_filters_all",
+   "model": "calendar.filters",
+   "model_xmlid": "model_calendar_filters",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_filters",
+   "model": "calendar.filters",
+   "model_xmlid": "model_calendar_filters",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_recurrence",
+   "model": "calendar.recurrence",
+   "model_xmlid": "model_calendar_recurrence",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_provider_config_all",
+   "model": "calendar.provider.config",
+   "model_xmlid": "model_calendar_provider_config",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_calendar_provider_config_manager",
+   "model": "calendar.provider.config",
+   "model_xmlid": "model_calendar_provider_config",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

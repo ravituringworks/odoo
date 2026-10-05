@@ -1,0 +1,1526 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/sale_project_security.xml",
+  "views/product_views.xml",
+  "views/project_task_views.xml",
+  "views/sale_order_line_views.xml",
+  "views/sale_order_views.xml",
+  "views/sale_project_portal_templates.xml",
+  "views/project_update_template.xml",
+  "views/project_sharing_views.xml",
+  "views/project_views.xml",
+  "data/sale_project_data.xml",
+  "data/sale_project_demo.xml"
+ ],
+ "depends": [
+  "sale_management",
+  "sale_service",
+  "project_account"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_action_per_item"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_so_mapping_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_get_so_mapping_from_project"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_sale_determine_order"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('service_tracking')"
+     ],
+     "lines": 8,
+     "name": "_onchange_service_tracking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inverse_service_policy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "project_id": {
+     "comodel": "project.project",
+     "copy": true,
+     "string": "Project",
+     "type": "Many2one"
+    },
+    "project_template_id": {
+     "comodel": "project.project",
+     "copy": true,
+     "string": "Project Template",
+     "type": "Many2one"
+    },
+    "service_policy": {
+     "compute": "_compute_service_policy",
+     "selection_method": "_selection_service_policy",
+     "string": "Service Invoicing Policy",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "service_tracking": {
+     "ondelete": {
+      "project_only": "set default",
+      "task_global_project": "set default",
+      "task_in_project": "set default"
+     },
+     "selection_add": [
+      [
+       "task_global_project",
+       "Task"
+      ],
+      [
+       "task_in_project",
+       "Project & Task"
+      ],
+      [
+       "project_only",
+       "Project"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "service_type": {
+     "selection_add": [
+      [
+       "milestones",
+       "Project Milestones"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_selection_service_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_policy', 'service_type', 'type')"
+     ],
+     "lines": 5,
+     "name": "_compute_service_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('service_policy')"
+     ],
+     "lines": 2,
+     "name": "_compute_product_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_service_tracking_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_invoicing_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_service_to_general_map"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_general_to_service_map"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_service_to_general"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_general_to_service"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('service_policy')"
+     ],
+     "lines": 4,
+     "name": "_inverse_service_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('project_id', 'project_template_id')"
+     ],
+     "lines": 12,
+     "name": "_check_project_and_template"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('service_tracking')"
+     ],
+     "lines": 8,
+     "name": "_onchange_service_tracking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_saleable_tracking_types"
+    }
+   ],
+   "name": "product.template",
+   "sel_methods": {
+    "_prepare_invoicing_tooltip": [],
+    "_prepare_service_tracking_tooltip": [],
+    "_selection_service_policy": [
+     [
+      "ordered_prepaid",
+      "Prepaid/Fixed Price"
+     ],
+     [
+      "delivered_manual",
+      "Based on Delivered Quantity (Manual)"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "project.milestone": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "allow_billable": {
+     "related": "project_id.allow_billable",
+     "type": "Boolean"
+    },
+    "product_uom": {
+     "related": "sale_line_id.product_uom",
+     "type": "Many2one"
+    },
+    "product_uom_qty": {
+     "compute": "_compute_product_uom_qty",
+     "readonly": false,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "project_partner_id": {
+     "related": "project_id.partner_id",
+     "type": "Many2one"
+    },
+    "quantity_percentage": {
+     "compute": "_compute_quantity_percentage",
+     "help": "Percentage of the ordered quantity that will automatically be delivered once the milestone is reached.",
+     "store": true,
+     "string": "Quantity (%)",
+     "type": "Float"
+    },
+    "sale_line_display_name": {
+     "related": "sale_line_id.display_name",
+     "string": "Sale Line Display Name",
+     "type": "Char"
+    },
+    "sale_line_id": {
+     "comodel": "sale.order.line",
+     "default": {
+      "$ref": "_default_sale_line_id"
+     },
+     "domain": "[('order_partner_id', '=?', project_partner_id), ('qty_delivered_method', '=', 'milestones')]",
+     "help": "Sales Order Item that will be updated once the milestone is reached.",
+     "string": "Sales Order Item",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_default_sale_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id.product_uom_qty', 'product_uom_qty')"
+     ],
+     "lines": 3,
+     "name": "_compute_quantity_percentage"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id', 'quantity_percentage')"
+     ],
+     "lines": 6,
+     "name": "_compute_product_uom_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_fields_to_export"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_view_sale_order"
+    }
+   ],
+   "name": "project.milestone",
+   "transient": false
+  },
+  "project.project": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allow_billable": {
+     "string": "Billable",
+     "type": "Boolean"
+    },
+    "display_sales_stat_buttons": {
+     "compute": "_compute_display_sales_stat_buttons",
+     "type": "Boolean"
+    },
+    "has_any_so_to_invoice": {
+     "compute": "_compute_has_any_so_to_invoice",
+     "string": "Has SO to Invoice",
+     "type": "Boolean"
+    },
+    "has_any_so_with_nothing_to_invoice": {
+     "compute": "_compute_has_any_so_with_nothing_to_invoice",
+     "string": "Has a SO with an invoice status of No",
+     "type": "Boolean"
+    },
+    "invoice_count": {
+     "compute": "_compute_invoice_count",
+     "groups": "account.group_account_readonly",
+     "type": "Integer"
+    },
+    "partner_id": {
+     "compute": "_compute_partner_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "reinvoiced_sale_order_id": {
+     "comodel": "sale.order",
+     "copy": false,
+     "domain": "[('partner_id', '=', partner_id)]",
+     "groups": "sales_team.group_sale_salesman",
+     "help": "Products added to stock pickings, whose operation type is configured to generate analytic costs, will be re-invoiced in this sales order if they are set up for it.",
+     "index": "btree_not_null",
+     "string": "Sales Order",
+     "type": "Many2one"
+    },
+    "sale_line_id": {
+     "comodel": "sale.order.line",
+     "compute": "_compute_sale_line_id",
+     "copy": false,
+     "domain": {
+      "$lambda": "str(self._domain_sale_line_id())"
+     },
+     "help": "Sales order item that will be selected by default on the tasks and timesheets of this project, except if the employee set on the timesheets is explicitely linked to another sales order item on the project.\nIt can be modified on each task and timesheet entry individually if necessary.",
+     "index": "btree_not_null",
+     "readonly": false,
+     "store": true,
+     "string": "Sales Order Item",
+     "type": "Many2one"
+    },
+    "sale_order_count": {
+     "compute": "_compute_sale_order_count",
+     "groups": "sales_team.group_sale_salesman",
+     "type": "Integer"
+    },
+    "sale_order_id": {
+     "related": "sale_line_id.order_id",
+     "type": "Many2one"
+    },
+    "sale_order_line_count": {
+     "compute": "_compute_sale_order_count",
+     "groups": "sales_team.group_sale_salesman",
+     "type": "Integer"
+    },
+    "sale_order_state": {
+     "related": "sale_order_id.state",
+     "tracking": false,
+     "type": "Selection"
+    },
+    "vendor_bill_count": {
+     "groups": "account.group_account_readonly",
+     "related": "account_id.vendor_bill_count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_domain_sale_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_map_tasks_default_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allow_billable', 'partner_id.company_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_sale_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_projects_for_invoice_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id.invoice_status', 'tasks.sale_order_id.invoice_status')"
+     ],
+     "lines": 9,
+     "name": "_compute_has_any_so_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id', 'task_ids.sale_order_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_sale_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_invoice_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allow_billable', 'partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_sales_stat_buttons"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_customer_preview"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('reinvoiced_sale_order_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_reinvoiced_sale_order_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('sale_line_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_sale_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_ensure_sale_order_linked"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 29,
+     "name": "action_view_sols"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 33,
+     "name": "action_view_sos"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_get_list_view"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 44,
+     "name": "action_profitability_items"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id.invoice_status', 'tasks.sale_order_id.invoice_status')"
+     ],
+     "lines": 9,
+     "name": "_compute_has_any_so_with_nothing_to_invoice"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_create_invoice"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 28,
+     "name": "action_open_project_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_fetch_sale_order_items_per_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_fetch_sale_order_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_fetch_sale_order_item_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_sale_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_sale_order_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_get_sale_order_items_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "get_panel_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_foldable_section"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "get_sale_items_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_sale_items_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_domain_from_section_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_show_profitability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_show_profitability_helper"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_profitability_labels"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_profitability_sequence_per_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_service_policy_to_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_profitability_sale_order_items_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 102,
+     "name": "_get_revenues_items_from_sol"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_revenues_items_from_invoices_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 75,
+     "name": "_get_revenues_items_from_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_add_invoice_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_get_profitability_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 49,
+     "name": "_get_stat_buttons"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_hide_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_projects_to_make_billable_domain"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_view_tasks"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 28,
+     "name": "action_open_project_vendor_bills"
+    }
+   ],
+   "name": "project.project",
+   "transient": false
+  },
+  "project.task": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allow_billable": {
+     "related": "project_id.allow_billable",
+     "type": "Boolean"
+    },
+    "display_sale_order_button": {
+     "compute": "_compute_display_sale_order_button",
+     "string": "Display Sales Order",
+     "type": "Boolean"
+    },
+    "partner_id": {
+     "type": "Many2one"
+    },
+    "project_sale_order_id": {
+     "comodel": "sale.order",
+     "related": "project_id.sale_order_id",
+     "string": "Project's sale order",
+     "type": "Many2one"
+    },
+    "sale_line_id": {
+     "comodel": "sale.order.line",
+     "compute": "_compute_sale_line",
+     "copy": true,
+     "domain": {
+      "$lambda": "str(self._domain_sale_line_id())"
+     },
+     "help": "Sales Order Item to which the time spent on this task will be added in order to be invoiced to your customer.\nBy default the sales order item set on the project will be selected. In the absence of one, the last prepaid sales order item that has time remaining will be used.\nRemove the sales order item in order to make this task non billable. You can also change or remove the sales order item of each timesheet entry individually.",
+     "index": "btree_not_null",
+     "readonly": false,
+     "store": true,
+     "string": "Sales Order Item",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "compute": "_compute_sale_order_id",
+     "help": "Sales order to which the task is linked.",
+     "store": true,
+     "string": "Sales Order",
+     "type": "Many2one"
+    },
+    "sale_order_state": {
+     "related": "sale_order_id.state",
+     "tracking": false,
+     "type": "Selection"
+    },
+    "task_to_invoice": {
+     "compute": "_compute_task_to_invoice",
+     "groups": "sales_team.group_sale_salesman_all_leads",
+     "string": "To invoice",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_domain_sale_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_group_expand_sales_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id', 'project_id', 'allow_billable')"
+     ],
+     "lines": 21,
+     "name": "_compute_sale_order_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allow_billable')"
+     ],
+     "lines": 4,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_inverse_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id.order_partner_id', 'parent_id.sale_line_id', 'project_id.sale_line_id', 'milestone_id.sale_line_id', 'allow_billable')"
+     ],
+     "lines": 17,
+     "name": "_compute_sale_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_display_sale_order_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('sale_line_id')"
+     ],
+     "lines": 9,
+     "name": "_check_sale_line_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_ensure_sale_order_linked"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_action_view_so_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_view_so"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_project_sharing_view_so"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_rating_get_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id.invoice_status', 'sale_order_id.order_line')"
+     ],
+     "lines": 6,
+     "name": "_compute_task_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_search_task_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('sale_line_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_projects_to_make_billable_domain"
+    }
+   ],
+   "name": "project.task",
+   "transient": false
+  },
+  "project.task.recurrence": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_recurring_fields_to_copy"
+    }
+   ],
+   "name": "project.task.recurrence",
+   "transient": false
+  },
+  "report.project.task.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_line_id": {
+     "comodel": "sale.order.line",
+     "readonly": true,
+     "string": "Sales Order Item",
+     "type": "Many2one"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "readonly": true,
+     "string": "Sales Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_group_by"
+    }
+   ],
+   "name": "report.project.task.user",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "set_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "closed_task_count": {
+     "compute": "_compute_tasks_ids",
+     "type": "Integer"
+    },
+    "completed_task_percentage": {
+     "compute": "_compute_completed_task_percentage",
+     "type": "Float"
+    },
+    "is_product_milestone": {
+     "compute": "_compute_is_product_milestone",
+     "type": "Boolean"
+    },
+    "milestone_count": {
+     "compute": "_compute_milestone_count",
+     "type": "Integer"
+    },
+    "project_account_id": {
+     "comodel": "account.analytic.account",
+     "related": "project_id.account_id",
+     "type": "Many2one"
+    },
+    "project_count": {
+     "compute": "_compute_project_ids",
+     "groups": "project.group_project_user",
+     "string": "Number of Projects",
+     "type": "Integer"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "copy": false,
+     "domain": [
+      [
+       "allow_billable",
+       "=",
+       true
+      ]
+     ],
+     "help": "A task will be created for the project upon sales order confirmation. The analytic distribution of this project will also serve as a reference for newly created sales order items.",
+     "index": "btree_not_null",
+     "type": "Many2one"
+    },
+    "project_ids": {
+     "comodel": "project.project",
+     "compute": "_compute_project_ids",
+     "copy": false,
+     "groups": "project.group_project_user,project.group_project_milestone",
+     "string": "Projects",
+     "type": "Many2many"
+    },
+    "show_create_project_button": {
+     "compute": "_compute_show_project_and_task_button",
+     "groups": "project.group_project_user",
+     "type": "Boolean"
+    },
+    "show_project_button": {
+     "compute": "_compute_show_project_and_task_button",
+     "groups": "project.group_project_user",
+     "type": "Boolean"
+    },
+    "show_task_button": {
+     "compute": "_compute_show_project_and_task_button",
+     "groups": "project.group_project_user",
+     "type": "Boolean"
+    },
+    "tasks_count": {
+     "compute": "_compute_tasks_ids",
+     "groups": "project.group_project_user",
+     "string": "Tasks",
+     "type": "Integer"
+    },
+    "tasks_ids": {
+     "comodel": "project.task",
+     "compute": "_compute_tasks_ids",
+     "string": "Tasks associated with this sale",
+     "type": "Many2many"
+    },
+    "visible_project": {
+     "compute": "_compute_visible_project",
+     "readonly": true,
+     "string": "Display project",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_milestone_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_is_product_milestone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_compute_show_project_and_task_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_search_tasks_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.product_id.project_id')"
+     ],
+     "lines": 26,
+     "name": "_compute_tasks_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.product_id.service_tracking')"
+     ],
+     "lines": 7,
+     "name": "_compute_visible_project"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.product_id', 'order_line.project_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_project_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 47,
+     "name": "action_view_task"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_tasks_ids_domain"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 30,
+     "name": "action_create_project"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 26,
+     "name": "action_view_project_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 28,
+     "name": "action_view_milestone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_completed_task_percentage"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_action_confirm": []
+   },
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "project_id": {
+     "comodel": "project.project",
+     "copy": false,
+     "index": true,
+     "string": "Generated Project",
+     "type": "Many2one"
+    },
+    "qty_delivered_method": {
+     "selection_add": [
+      [
+       "milestones",
+       "Milestones"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "reached_milestones_ids": {
+     "comodel": "project.milestone",
+     "domain": [
+      [
+       "is_reached",
+       "=",
+       true
+      ]
+     ],
+     "inverse_name": "sale_line_id",
+     "string": "Reached Milestones",
+     "type": "One2many"
+    },
+    "task_id": {
+     "comodel": "project.task",
+     "copy": false,
+     "index": true,
+     "string": "Generated Task",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_product_from_sol_name_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "name_create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_add_missing_default_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.type')"
+     ],
+     "lines": 5,
+     "name": "_compute_product_updatable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_qty_delivered_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('qty_delivered_method', 'product_uom_qty', 'reached_milestones_ids.quantity_percentage')"
+     ],
+     "lines": 16,
+     "name": "_compute_qty_delivered"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id.partner_id', 'product_id', 'order_id.project_id')"
+     ],
+     "lines": 21,
+     "name": "_compute_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 21,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_convert_qty_company_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_timesheet_create_project_prepare_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_timesheet_create_project"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_timesheet_create_project_account_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_timesheet_create_task_prepare_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_timesheet_create_task"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_so_lines_task_global_project"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_so_lines_new_project"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 90,
+     "name": "_timesheet_service_generation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_handle_milestones"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_prepare_invoice_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_action_per_item"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_procurement_values"
+    }
+   ],
+   "name": "sale.order.line",
+   "sel_methods": {
+    "_get_product_from_sol_name_domain": [
+     [
+      "name",
+      "ilike"
+     ],
+     [
+      "type",
+      "="
+     ],
+     [
+      "company_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "sale.order.template.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_order_line_values"
+    }
+   ],
+   "name": "sale.order.template.line",
+   "transient": false
+  },
+  "sale.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "project_id": {
+     "comodel": "project.project",
+     "readonly": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_select_additional_fields"
+    }
+   ],
+   "name": "sale.report",
+   "transient": false
+  }
+ },
+ "module": "sale_project",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_project",
+ "stats": {
+  "fields": 54,
+  "methods": 142,
+  "models": 14,
+  "py_lines": 2391
+ },
+ "summary": "Task Generation from Sales Orders",
+ "title": "Sales - Project",
+ "version": null
+}

@@ -1,0 +1,313 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "views/account_move_views.xml",
+  "views/report_invoice.xml"
+ ],
+ "depends": [
+  "account_edi_proxy_client",
+  "l10n_gr_edi"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_state": {
+     "ondelete": {
+      "invoice_pending": "set null"
+     },
+     "selection_add": [
+      [
+       "invoice_pending",
+       "Invoice submission pending"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_document_ids', 'l10n_gr_edi_document_ids.attachment_id', 'l10n_gr_edi_document_ids.mydata_cls_mark', 'l10n_gr_edi_document_ids.mydata_mark', 'l10n_gr_edi_document_ids.state')"
+     ],
+     "lines": 17,
+     "name": "_compute_from_l10n_gr_edi_document_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_state')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_check_draftable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'l10n_gr_edi_state')"
+     ],
+     "lines": 5,
+     "name": "_compute_l10n_gr_edi_enable_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_gr_edi_get_pre_error_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_l10n_gr_edi_get_provider_invoice_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_l10n_gr_edi_prepare_invoice_proxy_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_l10n_gr_edi_prepare_invoice_submission"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 78,
+     "name": "_l10n_gr_edi_handle_invoice_proxy_result"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_l10n_gr_edi_get_extra_invoice_report_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_l10n_gr_edi_send_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "l10n_gr_edi_try_send_invoices"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_check_draftable": []
+   },
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 57,
+     "name": "_l10n_gr_edi_try_upload_final_pdf"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_call_web_service_after_invoice_pdf_render"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "account_edi_proxy_client.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "proxy_type": {
+     "ondelete": {
+      "$expr": "{L10N_GR_EDI_PROXY_TYPE: 'cascade'}"
+     },
+     "selection_add": {
+      "$expr": "[(L10N_GR_EDI_PROXY_TYPE, 'Greek EDI')]"
+     },
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_proxy_urls"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_proxy_identification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_gr_edi_proxy_request"
+    }
+   ],
+   "name": "account_edi_proxy_client.user",
+   "sel_methods": {
+    "_get_proxy_identification": []
+   },
+   "sql_constraints": [
+    [
+     "unique_identification_l10n_gr_edi",
+     "",
+     "This EDI identification is already assigned to an active user."
+    ]
+   ],
+   "transient": false
+  },
+  "l10n_gr_edi.document": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mydata_authentication_code": {
+     "copy": false,
+     "string": "myDATA Authentication Code",
+     "type": "Char"
+    },
+    "mydata_uid": {
+     "copy": false,
+     "string": "myDATA UID",
+     "type": "Char"
+    },
+    "provider_invoice_identifier": {
+     "copy": false,
+     "string": "Invoice Identifier",
+     "type": "Char"
+    },
+    "provider_pdf_error": {
+     "copy": false,
+     "type": "Text"
+    },
+    "provider_pdf_state": {
+     "copy": false,
+     "selection": [
+      [
+       "pending",
+       "Pending"
+      ],
+      [
+       "sent",
+       "Sent"
+      ],
+      [
+       "error",
+       "Failed"
+      ]
+     ],
+     "string": "Final PDF Status",
+     "type": "Selection"
+    },
+    "provider_qr_url": {
+     "copy": false,
+     "string": "Provider QR URL",
+     "type": "Char"
+    },
+    "provider_uid": {
+     "copy": false,
+     "type": "Char"
+    },
+    "state": {
+     "ondelete": {
+      "invoice_pending": "cascade"
+     },
+     "selection_add": [
+      [
+       "invoice_pending",
+       "Invoice submission pending"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_gr_edi_get_provider_parent_token"
+    }
+   ],
+   "name": "l10n_gr_edi.document",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_l10n_gr_edi_get_or_create_proxy_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_gr_edi_get_proxy_user"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "l10n_gr_edi_e_invoo",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_gr_edi_e_invoo",
+ "stats": {
+  "fields": 10,
+  "methods": 21,
+  "models": 5,
+  "py_lines": 561
+ },
+ "summary": "",
+ "title": "Greece - myDATA E-invoicing through e-invoo",
+ "version": null
+}

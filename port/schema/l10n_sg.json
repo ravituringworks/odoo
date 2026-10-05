@@ -1,0 +1,204 @@
+{
+ "application": false,
+ "author": "Tech Receptives",
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "data/l10n_sg_chart_data.xml",
+  "data/account_tax_report_data.xml",
+  "views/account_invoice_view.xml",
+  "views/res_bank_views.xml",
+  "views/res_company_view.xml",
+  "views/res_partner_view.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "account_qr_code_emv",
+  "account"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_sg_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_sg_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_sg_permit_number": {
+     "string": "Permit No.",
+     "type": "Char"
+    },
+    "l10n_sg_permit_number_date": {
+     "string": "Date of permit number",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.move",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "description": "Companies",
+   "extension": false,
+   "fields": {
+    "l10n_sg_unique_entity_number": {
+     "readonly": false,
+     "related": "partner_id.l10n_sg_unique_entity_number",
+     "string": "UEN",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_view"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "l10n_sg_unique_entity_number": {
+     "string": "UEN",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_deduce_country_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_peppol_eas_endpoint_depends"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_deduce_country_code": []
+   },
+   "transient": false
+  },
+  "res.partner.bank": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "proxy_type": {
+     "ondelete": {
+      "mobile": "set default",
+      "uen": "set default"
+     },
+     "selection_add": [
+      [
+       "mobile",
+       "Mobile Number"
+      ],
+      [
+       "uen",
+       "UEN"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('proxy_type', 'proxy_value', 'partner_id')"
+     ],
+     "lines": 4,
+     "name": "_check_sg_proxy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_qr_setting"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_merchant_account_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_additional_data_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_error_messages_for_qr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_check_for_qr_code_errors"
+    }
+   ],
+   "name": "res.partner.bank",
+   "sel_methods": {
+    "_check_for_qr_code_errors": [],
+    "_get_additional_data_field": [],
+    "_get_error_messages_for_qr": [],
+    "_get_merchant_account_info": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_sg",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_sg",
+ "stats": {
+  "fields": 5,
+  "methods": 11,
+  "models": 5,
+  "py_lines": 155
+ },
+ "summary": "Singapore accounting chart and localization.",
+ "title": "Singapore - Accounting",
+ "version": "2.2"
+}

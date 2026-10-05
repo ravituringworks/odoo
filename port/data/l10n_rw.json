@@ -1,0 +1,496 @@
+{
+ "module": "l10n_rw",
+ "records": [
+  {
+   "model": "account.report",
+   "id": "tax_report",
+   "values": {
+    "name": "Tax Report",
+    "root_report_id": {
+     "$ref": "account.generic_tax_report"
+    },
+    "country_id": {
+     "$ref": "base.rw"
+    },
+    "filter_fiscal_position": true,
+    "availability_condition": "country",
+    "column_ids": {
+     "$unevaluated": "xml"
+    },
+    "line_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "tax_report_base",
+   "values": {
+    "name": "base",
+    "expression_label": "base"
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "tax_report_tax",
+   "values": {
+    "name": "tax",
+    "expression_label": "tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_value_supplies_during_month",
+   "values": {
+    "name": "5- Value of Supplies During the month (VAT Exclusive)",
+    "code": "rw_value_supplies",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_value_supplies_during_month_expr",
+   "values": {
+    "label": "base",
+    "engine": "tax_tags",
+    "formula": "5.base"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_exempted_sales",
+   "values": {
+    "name": "10- Exempted Sales",
+    "code": "rw_exempted_sales",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_exempted_sales_expr",
+   "values": {
+    "label": "base",
+    "engine": "tax_tags",
+    "formula": "10.base"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_zero_rated_sales",
+   "values": {
+    "name": "15- Zero Rated Sales",
+    "code": "rw_zero_rated_sales",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_zero_rated_sales_expr",
+   "values": {
+    "label": "base",
+    "engine": "tax_tags",
+    "formula": "15.base"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_export",
+   "values": {
+    "name": "20- Exports",
+    "code": "rw_export",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_export_expr",
+   "values": {
+    "label": "base",
+    "engine": "tax_tags",
+    "formula": "20.base"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_total_not_taxable",
+   "values": {
+    "name": "25- Total Not Taxable (Line 10 + 15 + 20)",
+    "code": "rw_not_taxable",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_total_not_taxable_expr",
+   "values": {
+    "label": "base",
+    "engine": "aggregation",
+    "formula": "rw_exempted_sales.base + rw_zero_rated_sales.base + rw_export.base"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_taxable_sales_subject_vat",
+   "values": {
+    "name": "30- Taxable Sales Subject to VAT ( Line 5 - Line 25)",
+    "code": "rw_taxable_sales_subject_vat",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_taxable_sales_subject_vat_expr",
+   "values": {
+    "label": "base",
+    "engine": "aggregation",
+    "formula": "rw_value_supplies.base - rw_not_taxable.base"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_taxable_sales",
+   "values": {
+    "name": "35- VAT on Taxable Sales (18% of Line 30)",
+    "code": "rw_vat_taxable_sales",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_taxable_sales_expr",
+   "values": {
+    "label": "tax",
+    "engine": "tax_tags",
+    "formula": "35.tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_reverse_charge",
+   "values": {
+    "name": "40- VAT Reverse Charge",
+    "code": "rw_reverse_charge",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_reverse_charge_expr",
+   "values": {
+    "label": "tax",
+    "engine": "tax_tags",
+    "formula": "40.base"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_payable",
+   "values": {
+    "name": "45- VAT Payable (Line 35 + Line 40)",
+    "code": "rw_vat_payable",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_payable_expr",
+   "values": {
+    "label": "tax",
+    "engine": "aggregation",
+    "formula": "rw_vat_taxable_sales.tax + rw_reverse_charge.tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_paid_on_imports",
+   "values": {
+    "name": "50- VAT paid on imports",
+    "code": "rw_vat_paid_import",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_paid_on_imports_expr",
+   "values": {
+    "label": "tax",
+    "engine": "tax_tags",
+    "formula": "50.tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_paid_on_local_purchase",
+   "values": {
+    "name": "55- VAT paid on Local Purchase",
+    "code": "rw_vat_paid_purchase",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_paid_on_local_purchase_expr",
+   "values": {
+    "label": "tax",
+    "engine": "tax_tags",
+    "formula": "55.tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_paid_on_input",
+   "values": {
+    "name": "60- VAT paid on Input (Line 50 + Line 55)",
+    "code": "rw_vat_paid_on_input",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_paid_on_input_expr",
+   "values": {
+    "label": "tax",
+    "engine": "aggregation",
+    "formula": "rw_vat_paid_import.tax + rw_vat_paid_purchase.tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_reverse_charge_deductible",
+   "values": {
+    "name": "65- VAT Reverse Charge deductible",
+    "code": "rw_vat_reverse_charge_deductible",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_reverse_charge_deductible_expr",
+   "values": {
+    "label": "tax",
+    "engine": "tax_tags",
+    "formula": "65.tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_refund",
+   "values": {
+    "name": "70- VAT Payable/Credit Refundable [(Line 45 - (Line 60 + Line 65)]",
+    "code": "rw_vat_refund",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_refund_expr",
+   "values": {
+    "label": "tax",
+    "engine": "aggregation",
+    "formula": "rw_vat_payable.tax - (rw_vat_paid_on_input.tax + rw_vat_reverse_charge_deductible.tax)"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_carry_over",
+   "values": {
+    "name": "75- Credit carried over from previous month(s) (Not already claimed)",
+    "code": "rw_carry_over",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_carry_over_tag_expr",
+   "values": {
+    "label": "tag",
+    "engine": "tax_tags",
+    "formula": "75.tax"
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_carry_over_applied_carryover",
+   "values": {
+    "label": "_applied_carryover_balance",
+    "engine": "external",
+    "formula": "most_recent",
+    "date_scope": "previous_tax_period"
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_22_balance",
+   "values": {
+    "label": "tax",
+    "engine": "aggregation",
+    "formula": "rw_carry_over.tag + rw_carry_over._applied_carryover_balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_withholding_retained",
+   "values": {
+    "name": "80- VAT Withholding retained by MINECOFIN (not refunded)",
+    "code": "rw_withholding_retained",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_withholding_retained_expr",
+   "values": {
+    "label": "tax",
+    "engine": "external",
+    "formula": "sum",
+    "subformula": "editable"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_due_credit",
+   "values": {
+    "name": "85- VAT Due / Credit Refundable (Line 70 - Line 75)",
+    "code": "rw_vat_due_credit",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_due_credit_expr",
+   "values": {
+    "label": "tax",
+    "engine": "aggregation",
+    "formula": "rw_vat_refund.tax - rw_carry_over.tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_refund_claim",
+   "values": {
+    "name": "90- VAT Refund Claim",
+    "hierarchy_level": "0",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_refund_claim_expr",
+   "values": {
+    "label": "tax",
+    "engine": "aggregation",
+    "formula": "rw_vat_refund.tax - rw_carry_over.tax",
+    "subformula": "if_below(RWF(0))"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_due",
+   "values": {
+    "name": "95- VAT Due",
+    "hierarchy_level": "0",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_due_expr",
+   "values": {
+    "label": "tax",
+    "engine": "aggregation",
+    "formula": "rw_vat_refund.tax - rw_carry_over.tax",
+    "subformula": "if_above(RWF(0))"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "partner_demo_company_rw",
+   "values": {
+    "name": "RW Company",
+    "vat": "RW000111111",
+    "street": "KN 4 St",
+    "city": "Kigali",
+    "country_id": {
+     "$ref": "base.rw"
+    },
+    "zip": "00000",
+    "phone": "+250 534 567",
+    "email": "info@company.rwexample.com",
+    "website": "www.rwexample.com",
+    "is_company": true
+   }
+  },
+  {
+   "model": "res.company",
+   "id": "demo_company_rw",
+   "values": {
+    "name": "RW Company",
+    "partner_id": {
+     "$ref": "partner_demo_company_rw"
+    }
+   }
+  },
+  {
+   "model": "res.partner.bank",
+   "id": "demo_bank_rw",
+   "values": {
+    "acc_number": "BKIGRWRR",
+    "partner_id": {
+     "$ref": "partner_demo_company_rw"
+    },
+    "company_id": {
+     "$ref": "demo_company_rw"
+    },
+    "allow_out_payment": true
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "account_reports_rw_statements_menu",
+   "name": "Rwanda",
+   "parent": "account.menu_finance_reports",
+   "sequence": "0",
+   "groups": "account.group_account_readonly"
+  }
+ ],
+ "access": []
+}

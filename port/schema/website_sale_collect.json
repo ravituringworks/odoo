@@ -1,0 +1,332 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/Website",
+ "data_files": [
+  "data/payment_method_data.xml",
+  "data/payment_provider_data.xml",
+  "data/product_product_data.xml",
+  "data/delivery_carrier_data.xml",
+  "views/delivery_carrier_views.xml",
+  "views/delivery_form_templates.xml",
+  "views/res_config_settings_views.xml",
+  "views/stock_picking_views.xml",
+  "views/stock_warehouse_views.xml",
+  "views/templates.xml",
+  "data/demo.xml"
+ ],
+ "depends": [
+  "base_geolocalize",
+  "payment_custom",
+  "website_sale_stock"
+ ],
+ "models": {
+  "delivery.carrier": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "delivery_type": {
+     "ondelete": {
+      "in_store": "set default"
+     },
+     "selection_add": [
+      [
+       "in_store",
+       "Pick up in store"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "warehouse_ids": {
+     "comodel": "stock.warehouse",
+     "string": "Stores",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('delivery_type', 'is_published', 'warehouse_ids')"
+     ],
+     "lines": 9,
+     "name": "_check_in_store_dm_has_warehouses_when_published"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('delivery_type', 'company_id', 'warehouse_ids')"
+     ],
+     "lines": 8,
+     "name": "_check_warehouses_have_same_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 68,
+     "name": "_in_store_get_close_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "in_store_rate_shipment"
+    }
+   ],
+   "name": "delivery.carrier",
+   "transient": false
+  },
+  "payment.provider": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "custom_mode": {
+     "selection_add": [
+      [
+       "on_site",
+       "Pay on site"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 40,
+     "name": "_get_compatible_providers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_payment_method_codes"
+    }
+   ],
+   "name": "payment.provider",
+   "transient": false
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_post_process"
+    }
+   ],
+   "name": "payment.transaction",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_get_additionnal_combination_info"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_view_in_store_delivery_methods"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_warehouse_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_set_delivery_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_set_pickup_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_pickup_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_cart_and_free_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_check_cart_is_ready_to_be_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_is_in_stock"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_unavailable_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_verify_updated_quantity"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_check_cart_is_ready_to_be_paid": [],
+    "_get_pickup_locations": [],
+    "_verify_updated_quantity": []
+   },
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "opening_hours": {
+     "comodel": "resource.calendar",
+     "string": "Opening Hours",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "stock.warehouse",
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "in_store_dm_id": {
+     "comodel": "delivery.carrier",
+     "compute": "_compute_in_store_dm_id",
+     "string": "In-store Delivery Method",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_in_store_dm_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_product_available_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_max_in_store_product_available_qty"
+    }
+   ],
+   "name": "website",
+   "transient": false
+  }
+ },
+ "module": "website_sale_collect",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_sale_collect",
+ "stats": {
+  "fields": 5,
+  "methods": 24,
+  "models": 9,
+  "py_lines": 717
+ },
+ "summary": "Allows customers to check in-store stock, pay on site, and pick up their orders at the shop.",
+ "title": "Click & Collect",
+ "version": "1.0"
+}

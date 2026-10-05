@@ -1,0 +1,556 @@
+{
+ "module": "l10n_th",
+ "records": [
+  {
+   "model": "account.report",
+   "id": "tax_report",
+   "values": {
+    "name": "Tax Report",
+    "root_report_id": {
+     "$ref": "account.generic_tax_report"
+    },
+    "country_id": {
+     "$ref": "base.th"
+    },
+    "filter_fiscal_position": true,
+    "availability_condition": "country",
+    "column_ids": {
+     "$unevaluated": "xml"
+    },
+    "line_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "tax_report_balance",
+   "values": {
+    "name": "Balance",
+    "expression_label": "balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_out_tax_title",
+   "values": {
+    "name": "Output Tax",
+    "aggregation_formula": "OUTPUTTAX_SALEAMOUNT.balance + OUTPUTTAX_SALE_ZERO.balance + OUTPUTTAX_EXEMPTED.balance + OUTPUTTAX_TAX.balance",
+    "hierarchy_level": "0",
+    "children_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_out_tax_sale",
+   "values": {
+    "name": "1. Sales amount",
+    "code": "OUTPUTTAX_SALEAMOUNT",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_out_tax_sale_tag",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "1. Sales amount"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_out_tax_less_sales_0_rate",
+   "values": {
+    "name": "2. Less sales subject to 0% tax rate",
+    "code": "OUTPUTTAX_SALE_ZERO",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_out_tax_less_sales_0_rate_tag",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "2. Less sales subject to 0% tax rate"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_out_tax_less_exempted_sales",
+   "values": {
+    "name": "3. Less exempted sales",
+    "code": "OUTPUTTAX_EXEMPTED",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_out_tax_less_exempted_sales_tag",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "3. Less exempted sales"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_out_tax_taxable_sales_amount",
+   "values": {
+    "name": "4. Taxable sales amount(1. -2. -3.)",
+    "aggregation_formula": "OUTPUTTAX_SALEAMOUNT.balance-(OUTPUTTAX_SALE_ZERO.balance+OUTPUTTAX_EXEMPTED.balance)"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_out_tax",
+   "values": {
+    "name": "5. Output tax",
+    "code": "OUTPUTTAX_TAX",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_out_tax_tag",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "5. Output tax"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_input_tax_title",
+   "values": {
+    "name": "Input Tax",
+    "code": "INPUTTAX",
+    "aggregation_formula": "6_PURCHASE_AMOUNT_THAT_IS_ENTITLED_TO_DEDUCTION_OF_INPUT_TAX_FROM_OUTPUT_TAX_IN_TAX_COMPUTATION.balance + INPUTTAX_TAX.balance",
+    "hierarchy_level": "0",
+    "children_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_input_tax_purchase_from_out_tax",
+   "values": {
+    "name": "6. Purchase amount that is entitled to deduction of input tax from output tax in tax computation",
+    "code": "6_PURCHASE_AMOUNT_THAT_IS_ENTITLED_TO_DEDUCTION_OF_INPUT_TAX_FROM_OUTPUT_TAX_IN_TAX_COMPUTATION",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_input_tax_purchase_from_out_tax_tag",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "6. Purchase amount that is entitled to deduction of input tax from output tax in tax computation"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_input_tax",
+   "values": {
+    "name": "7. Input tax (according to invoice of purchase amount in 6.)",
+    "code": "INPUTTAX_TAX",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_input_tax_tag",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "7. Input tax (according to invoice of purchase amount in 6.)"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat",
+   "values": {
+    "name": "Value Added Tax",
+    "aggregation_formula": "10_EXCESS_TAX_PAYMENT_CARRIED_FORWARD_FROM_LAST_PERIOD.balance",
+    "hierarchy_level": "0",
+    "children_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_payable",
+   "values": {
+    "name": "8. Tax payable (5. minus 7. (if 5. is greater than 7.))",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_payable_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "OUTPUTTAX_TAX.balance - INPUTTAX_TAX.balance",
+    "subformula": "if_above(THB(0))"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_excess",
+   "values": {
+    "name": "9. Excess tax payable (7. minus 5. (if 5. is less than 7.))",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_excess_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "INPUTTAX_TAX.balance - OUTPUTTAX_TAX.balance",
+    "subformula": "if_above(THB(0))"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_vat_payment_last_period",
+   "values": {
+    "name": "10. Excess tax payment carried forward from last period",
+    "code": "10_EXCESS_TAX_PAYMENT_CARRIED_FORWARD_FROM_LAST_PERIOD",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_vat_payment_last_period_formula",
+   "values": {
+    "label": "balance",
+    "engine": "external",
+    "formula": "sum",
+    "subformula": "editable;rounding=2"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_net_vat",
+   "values": {
+    "name": "Net Tax",
+    "aggregation_formula": "11_NET_TAX_PAYABLE_IF_8_IS_GREATER_THAN_10.balance + 12_NET_EXCESS_TAX_PAYABLE_IF_10_IS_GREATER_THAN_8_OR_9_PLUS_10.balance",
+    "hierarchy_level": "0",
+    "children_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_net_vat_payable",
+   "values": {
+    "name": "11. Net tax payable (if 8. is greater than 10.)",
+    "code": "11_NET_TAX_PAYABLE_IF_8_IS_GREATER_THAN_10",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_net_vat_payable_tag",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "11. Net tax payable (if 8. is greater than 10.)"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_net_vat_excess",
+   "values": {
+    "name": "12. Net excess tax payable ((if 10. is greater than 8.) or (9. plus 10.))",
+    "code": "12_NET_EXCESS_TAX_PAYABLE_IF_10_IS_GREATER_THAN_8_OR_9_PLUS_10",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_net_vat_excess_tag",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "12. Net excess tax payable ((if 10. is greater than 8.) or (9. plus 10.))"
+   }
+  },
+  {
+   "model": "account.report",
+   "id": "tax_report_pnd53",
+   "values": {
+    "name": "PND53",
+    "root_report_id": {
+     "$ref": "account.generic_tax_report"
+    },
+    "country_id": {
+     "$ref": "base.th"
+    },
+    "availability_condition": "country",
+    "column_ids": {
+     "$unevaluated": "xml"
+    },
+    "line_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "tax_report_pnd53_balance",
+   "values": {
+    "name": "Balance",
+    "expression_label": "balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_total_income_pnd53_line",
+   "values": {
+    "name": "Total Income",
+    "code": "INCOME_PND53",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_total_income_pnd53",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "Income PND53"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_total_remittance_pnd53_line",
+   "values": {
+    "name": "Total Remittance",
+    "code": "P53",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_total_remittance_pnd53",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "PND53"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_surcharge_pnd53_line",
+   "values": {
+    "name": "Surcharge",
+    "code": "S53",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_surcharge_pnd53",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "SUR53"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_total_pnd53_line",
+   "values": {
+    "name": "Total",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_total_pnd53",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "P53.balance + S53.balance"
+   }
+  },
+  {
+   "model": "account.report",
+   "id": "tax_report_pnd3",
+   "values": {
+    "name": "PND3",
+    "root_report_id": {
+     "$ref": "account.generic_tax_report"
+    },
+    "country_id": {
+     "$ref": "base.th"
+    },
+    "availability_condition": "country",
+    "column_ids": {
+     "$unevaluated": "xml"
+    },
+    "line_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "tax_report_pnd3_balance",
+   "values": {
+    "name": "Balance",
+    "expression_label": "balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_total_income_pnd3_line",
+   "values": {
+    "name": "Total Income",
+    "code": "INCOME_PND3",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_total_income_pnd3",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "Income PND3"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_total_remittance_pnd3_line",
+   "values": {
+    "name": "Total Remittance",
+    "code": "P3",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_total_remittance_pnd3",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "PND3"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_surcharge_pnd3_line",
+   "values": {
+    "name": "Surcharge",
+    "code": "S3",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_surcharge_pnd3",
+   "values": {
+    "label": "balance",
+    "engine": "tax_tags",
+    "formula": "SUR3"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "tax_report_total_pnd3_line",
+   "values": {
+    "name": "Total",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "tax_report_total_pnd3",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "P3.balance + S3.balance"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.partner_demo_company_th",
+   "values": {
+    "name": "TH Company",
+    "vat": "",
+    "street": "A5",
+    "city": "\u0e1a\u0e49\u0e32\u0e19\u0e2a\u0e31\u0e19\u0e17\u0e23\u0e32\u0e22",
+    "country_id": {
+     "$ref": "base.th"
+    },
+    "zip": "50220",
+    "phone": "+66 81 234 5678",
+    "email": "info@company.thexample.com",
+    "website": "www.thexample.com",
+    "is_company": true
+   }
+  },
+  {
+   "model": "res.company",
+   "id": "base.demo_company_th",
+   "values": {
+    "name": "TH Company",
+    "partner_id": {
+     "$ref": "base.partner_demo_company_th"
+    }
+   }
+  }
+ ],
+ "menus": [],
+ "access": []
+}

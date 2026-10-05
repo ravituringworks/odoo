@@ -1,0 +1,752 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Manufacturing/Manufacturing",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/product_views.xml",
+  "views/mrp_production_views.xml",
+  "views/analytic_account_views.xml",
+  "views/account_move_views.xml",
+  "views/mrp_workcenter_views.xml",
+  "report/report_mrp_templates.xml",
+  "wizard/mrp_wip_accounting.xml",
+  "data/mrp_account_demo.xml"
+ ],
+ "depends": [
+  "mrp",
+  "stock_account"
+ ],
+ "models": {
+  "account.analytic.account": {
+   "abstract": false,
+   "description": "Analytic Account",
+   "extension": true,
+   "fields": {
+    "bom_count": {
+     "compute": "_compute_bom_count",
+     "string": "BoM Count",
+     "type": "Integer"
+    },
+    "bom_ids": {
+     "comodel": "mrp.bom",
+     "type": "Many2many"
+    },
+    "production_count": {
+     "compute": "_compute_production_count",
+     "string": "Manufacturing Orders Count",
+     "type": "Integer"
+    },
+    "production_ids": {
+     "comodel": "mrp.production",
+     "type": "Many2many"
+    },
+    "workcenter_ids": {
+     "comodel": "mrp.workcenter",
+     "type": "Many2many"
+    },
+    "workorder_count": {
+     "compute": "_compute_workorder_count",
+     "string": "Work Order Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('production_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_production_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('bom_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_bom_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('workcenter_ids.order_ids', 'production_ids.workorder_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_workorder_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_view_mrp_production"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_view_mrp_bom"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_view_workorder"
+    }
+   ],
+   "name": "account.analytic.account",
+   "transient": false
+  },
+  "account.analytic.applicability": {
+   "abstract": false,
+   "description": "Analytic Plan's Applicabilities",
+   "extension": true,
+   "fields": {
+    "business_domain": {
+     "ondelete": {
+      "manufacturing_order": "cascade"
+     },
+     "selection_add": [
+      [
+       "manufacturing_order",
+       "Manufacturing Order"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.analytic.applicability",
+   "transient": false
+  },
+  "account.analytic.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "category": {
+     "selection_add": [
+      [
+       "manufacturing_order",
+       "Manufacturing Order"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.analytic.line",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "wip_production_count": {
+     "compute": "_compute_wip_production_count",
+     "string": "Manufacturing Orders Count",
+     "type": "Integer"
+    },
+    "wip_production_ids": {
+     "comodel": "mrp.production",
+     "help": "The MOs that this WIP entry was based on. Expected to be set at time of WIP entry creation.",
+     "string": "Relevant WIP MOs",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('wip_production_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_wip_production_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_view_wip_production"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_invoiced_qty_per_product"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "mrp.account.wip.accounting": {
+   "abstract": false,
+   "description": "Wizard to post Manufacturing WIP account move",
+   "extension": false,
+   "fields": {
+    "date": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "string": "Date",
+     "type": "Date"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "required": true,
+     "string": "Journal",
+     "type": "Many2one"
+    },
+    "line_ids": {
+     "comodel": "mrp.account.wip.accounting.line",
+     "compute": "_compute_line_ids",
+     "inverse_name": "wip_accounting_id",
+     "readonly": false,
+     "store": true,
+     "string": "WIP accounting lines",
+     "type": "One2many"
+    },
+    "mo_ids": {
+     "comodel": "mrp.production",
+     "type": "Many2many"
+    },
+    "reference": {
+     "string": "Reference",
+     "type": "Char"
+    },
+    "reversal_date": {
+     "compute": "_compute_reversal_date",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Reversal Date",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_overhead_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date')"
+     ],
+     "lines": 6,
+     "name": "_compute_reversal_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date')"
+     ],
+     "lines": 5,
+     "name": "_compute_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "confirm"
+    }
+   ],
+   "name": "mrp.account.wip.accounting",
+   "transient": true
+  },
+  "mrp.account.wip.accounting.line": {
+   "abstract": false,
+   "description": "Account move line to be created when posting WIP account move",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "account.account",
+     "string": "Account",
+     "type": "Many2one"
+    },
+    "credit": {
+     "compute": "_compute_credit",
+     "readonly": false,
+     "store": true,
+     "string": "Credit",
+     "type": "Monetary"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "default": {
+      "$lambda": "self.env.company.currency_id"
+     },
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "debit": {
+     "compute": "_compute_debit",
+     "readonly": false,
+     "store": true,
+     "string": "Debit",
+     "type": "Monetary"
+    },
+    "label": {
+     "string": "Label",
+     "type": "Char"
+    },
+    "wip_accounting_id": {
+     "comodel": "mrp.account.wip.accounting",
+     "string": "WIP accounting wizard",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('credit')"
+     ],
+     "lines": 4,
+     "name": "_compute_debit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('debit')"
+     ],
+     "lines": 4,
+     "name": "_compute_credit"
+    }
+   ],
+   "name": "mrp.account.wip.accounting.line",
+   "sql_constraints": [
+    [
+     "check_debit_credit",
+     "CHECK ( debit = 0 OR credit = 0 )",
+     "A single line cannot be both credit and debit."
+    ]
+   ],
+   "transient": true
+  },
+  "mrp.production": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "extra_cost": {
+     "copy": false,
+     "string": "Extra Unit Cost",
+     "type": "Float"
+    },
+    "show_valuation": {
+     "compute": "_compute_show_valuation",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_show_valuation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_view_stock_valuation_layers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_cal_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_backorder_mo_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_post_labour"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "button_mark_done"
+    }
+   ],
+   "name": "mrp.production",
+   "transient": false
+  },
+  "mrp.routing.workcenter": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_total_cost_per_hour"
+    }
+   ],
+   "name": "mrp.routing.workcenter",
+   "transient": false
+  },
+  "mrp.workcenter": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "costs_hour_account_ids": {
+     "comodel": "account.analytic.account",
+     "compute": "_compute_costs_hour_account_ids",
+     "store": true,
+     "type": "Many2many"
+    },
+    "expense_account_id": {
+     "comodel": "account.account",
+     "help": "The expense is accounted for when the manufacturing order is marked as done. If not set, it is the expense account of the final product that will be used instead.",
+     "string": "Expense Account",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "analytic.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('analytic_distribution')"
+     ],
+     "lines": 5,
+     "name": "_compute_costs_hour_account_ids"
+    }
+   ],
+   "name": "mrp.workcenter",
+   "transient": false
+  },
+  "mrp.workcenter.productivity": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "account_move_line_id": {
+     "comodel": "account.move.line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "mrp.workcenter.productivity",
+   "transient": false
+  },
+  "mrp.workorder": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mo_analytic_account_line_ids": {
+     "comodel": "account.analytic.line",
+     "copy": false,
+     "relation_table": "mrp_workorder_mo_analytic_rel",
+     "type": "Many2many"
+    },
+    "wc_analytic_account_line_ids": {
+     "comodel": "account.analytic.line",
+     "copy": false,
+     "relation_table": "mrp_workorder_wc_analytic_rel",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_duration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_set_duration"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_prepare_analytic_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_create_or_update_analytic_entry"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_create_or_update_analytic_entry_for_record"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    }
+   ],
+   "name": "mrp.workorder",
+   "transient": false
+  },
+  "product.category": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "property_stock_account_production_cost_id": {
+     "comodel": "account.account",
+     "domain": "[('deprecated', '=', False)]",
+     "help": "This account will be used as a valuation counterpart for both components and final products for manufacturing orders.\n                If there are any workcenter/employee costs, this value will remain on the account once the production is completed.",
+     "ondelete": "restrict",
+     "string": "Production Account",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_stock_account_property_field_names"
+    }
+   ],
+   "name": "product.category",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "button_bom_cost"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_bom_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_set_price_from_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_compute_average_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_compute_bom_price"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_product_accounts"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_bom_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "button_bom_cost"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "report.mrp.report_mo_overview": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_unit_cost"
+    }
+   ],
+   "name": "report.mrp.report_mo_overview",
+   "sel_methods": {
+    "_get_unit_cost": []
+   },
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_filter_anglo_saxon_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_should_force_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_ignore_automatic_valuation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_src_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_dest_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_production"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_production_consumed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_all_related_sm"
+    }
+   ],
+   "name": "stock.move",
+   "sel_methods": {
+    "_get_dest_account": [],
+    "_get_src_account": []
+   },
+   "transient": false
+  }
+ },
+ "module": "mrp_account",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/mrp_account",
+ "stats": {
+  "fields": 30,
+  "methods": 51,
+  "models": 17,
+  "py_lines": 738
+ },
+ "summary": "Analytic accounting in Manufacturing",
+ "title": "Accounting - MRP",
+ "version": "1.0"
+}

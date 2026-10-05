@@ -1,0 +1,2951 @@
+{
+ "module": "product",
+ "records": [
+  {
+   "model": "product.category",
+   "id": "product_category_all",
+   "values": {
+    "name": "All"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_1",
+   "values": {
+    "parent_id": {
+     "$ref": "product_category_all"
+    },
+    "name": "Saleable"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "cat_expense",
+   "values": {
+    "parent_id": {
+     "$ref": "product_category_all"
+    },
+    "name": "Expenses"
+   }
+  },
+  {
+   "model": "decimal.precision",
+   "id": "decimal_price",
+   "values": {
+    "name": "Product Price",
+    "digits": "2"
+   }
+  },
+  {
+   "model": "decimal.precision",
+   "id": "decimal_discount",
+   "values": {
+    "name": "Discount",
+    "digits": "2"
+   }
+  },
+  {
+   "model": "decimal.precision",
+   "id": "decimal_stock_weight",
+   "values": {
+    "name": "Stock Weight",
+    "digits": "2"
+   }
+  },
+  {
+   "model": "decimal.precision",
+   "id": "decimal_volume",
+   "values": {
+    "name": "Volume",
+    "digits": "2"
+   }
+  },
+  {
+   "model": "decimal.precision",
+   "id": "decimal_product_uom",
+   "values": {
+    "name": "Product Unit of Measure",
+    "digits": 2
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_product_pricelist",
+   "values": {
+    "name": "Basic Pricelists",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_stock_packaging",
+   "values": {
+    "name": "Manage Product Packaging",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_product_variant",
+   "values": {
+    "name": "Manage Product Variants",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_product_manager",
+   "values": {
+    "name": "Product Creation",
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "category_id": {
+     "$ref": "base.module_category_usability"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "group_product_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_system",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_product_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_comp_rule",
+   "values": {
+    "name": "Product multi-company",
+    "model_id": {
+     "$ref": "model_product_template"
+    },
+    "domain_force": "['|', ('company_id', 'parent_of', company_ids), ('company_id', '=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_document_comp_rule",
+   "values": {
+    "name": "Product multi-company",
+    "model_id": {
+     "$ref": "model_product_document"
+    },
+    "domain_force": "['|', ('company_id', 'parent_of', company_ids), ('company_id', '=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_pricelist_comp_rule",
+   "values": {
+    "name": "product pricelist company rule",
+    "model_id": {
+     "$ref": "model_product_pricelist"
+    },
+    "domain_force": "['|', ('company_id', 'parent_of', company_ids), ('company_id', '=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_pricelist_item_comp_rule",
+   "values": {
+    "name": "product pricelist item company rule",
+    "model_id": {
+     "$ref": "model_product_pricelist_item"
+    },
+    "domain_force": "['|', ('company_id', 'parent_of', company_ids), ('company_id', '=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_supplierinfo_comp_rule",
+   "values": {
+    "name": "product supplierinfo company rule",
+    "model_id": {
+     "$ref": "model_product_supplierinfo"
+    },
+    "domain_force": "['|', ('company_id', '=', False), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_packaging_comp_rule",
+   "values": {
+    "name": "product packaging company rule",
+    "model_id": {
+     "$ref": "model_product_packaging"
+    },
+    "domain_force": "['|', ('company_id', '=', False), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_combo_comp_rule",
+   "values": {
+    "name": "Product combo multi-company rule",
+    "model_id": {
+     "$ref": "model_product_combo"
+    },
+    "domain_force": "['|', ('company_id', '=', False), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_open_label_layout",
+   "values": {
+    "name": "Choose Labels Layout",
+    "res_model": "product.label.layout",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "product_label_layout_form"
+       }
+      }
+     ]
+    ],
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_tag_action",
+   "values": {
+    "name": "Product Tags",
+    "res_model": "product.tag",
+    "view_mode": "list,form",
+    "view_id": false,
+    "context": {
+     "create": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_template_action_all",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "view_mode": "kanban,list,form",
+    "context": {},
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_normal_action",
+   "values": {
+    "name": "Product Variants",
+    "res_model": "product.product",
+    "view_mode": "list,form,kanban,activity",
+    "search_view_id": {
+     "$ref": "product_search_form_view"
+    },
+    "view_id": false,
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_variant_action",
+   "values": {
+    "name": "Product Variants",
+    "res_model": "product.product",
+    "context": {
+     "$unevaluated": "{'search_default_product_tmpl_id': [active_id], 'default_product_tmpl_id': active_id, 'create': False}"
+    },
+    "search_view_id": {
+     "$ref": "product_search_form_view"
+    },
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "product_variant_easy_edit_view"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban"
+      }
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_normal_action_sell",
+   "values": {
+    "name": "Product Variants",
+    "res_model": "product.product",
+    "view_mode": "kanban,list,form,activity",
+    "context": {
+     "search_default_filter_to_sell": 1
+    },
+    "view_id": {
+     "$ref": "product_product_tree_view"
+    },
+    "search_view_id": {
+     "$ref": "product_search_form_view"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_product_price_list_report",
+   "values": {
+    "name": "Pricelist Report",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "group_product_pricelist"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "product.model_product_product"
+    },
+    "binding_model_id": {
+     "$ref": "product.model_product_product"
+    },
+    "state": "code",
+    "code": "action = {\n    'name': 'Pricelist Report',\n    'type': 'ir.actions.client',\n    'tag': 'generate_pricelist_report',\n    'context': env.context,\n}"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "attribute_action",
+   "values": {
+    "name": "Attributes",
+    "res_model": "product.attribute",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_category_action_form",
+   "values": {
+    "name": "Product Categories",
+    "res_model": "product.category",
+    "search_view_id": {
+     "$ref": "product_category_search_view"
+    },
+    "view_id": {
+     "$ref": "product_category_list_view"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product.product_combo_action",
+   "values": {
+    "name": "Combo Choices",
+    "res_model": "product.combo",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_packaging_view",
+   "values": {
+    "name": "Product Packagings",
+    "res_model": "product.packaging",
+    "domain": [],
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "product_packaging_tree_view"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "product_packaging_form_view"
+       }
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_pricelist_action2",
+   "values": {
+    "name": "Pricelists",
+    "res_model": "product.pricelist",
+    "path": "pricelists",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "product_pricelist_view_search"
+    },
+    "context": {
+     "default_base": "list_price"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_pricelist_item_action",
+   "values": {
+    "name": "Price Rules",
+    "res_model": "product.pricelist.item",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_supplierinfo_type_action",
+   "values": {
+    "name": "Vendor Pricelists",
+    "res_model": "product.supplierinfo",
+    "view_mode": "list,form,kanban",
+    "context": {
+     "visible_product_tmpl_id": false,
+     "search_default_active_products": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_template_action",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "view_mode": "kanban,list,form",
+    "view_id": {
+     "$ref": "product_template_kanban_view"
+    },
+    "search_view_id": {
+     "$ref": "product.product_template_search_view"
+    },
+    "context": {
+     "search_default_filter_to_sell": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_product_template_price_list_report",
+   "values": {
+    "name": "Pricelist Report",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "product.group_product_pricelist"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "product.model_product_template"
+    },
+    "binding_model_id": {
+     "$ref": "product.model_product_template"
+    },
+    "state": "code",
+    "code": "action = {\n    'name': 'Pricelist Report',\n    'type': 'ir.actions.client',\n    'tag': 'generate_pricelist_report',\n    'context': env.context,\n}"
+   }
+  },
+  {
+   "model": "report.paperformat",
+   "id": "paperformat_label_sheet",
+   "values": {
+    "name": "A4 Label Sheet",
+    "default": true,
+    "format": "A4",
+    "page_height": "0",
+    "page_width": "0",
+    "orientation": "Portrait",
+    "margin_top": "0",
+    "margin_bottom": "0",
+    "margin_left": "0",
+    "margin_right": "0",
+    "disable_shrinking": true,
+    "dpi": "96"
+   }
+  },
+  {
+   "model": "report.paperformat",
+   "id": "paperformat_label_sheet_dymo",
+   "values": {
+    "name": "Dymo Label Sheet",
+    "default": true,
+    "format": "custom",
+    "page_height": "57",
+    "page_width": "32",
+    "orientation": "Landscape",
+    "margin_top": "0",
+    "margin_bottom": "0",
+    "margin_left": "0",
+    "margin_right": "0",
+    "disable_shrinking": true,
+    "dpi": "96"
+   }
+  },
+  {
+   "model": "product.attribute",
+   "id": "product_attribute_1",
+   "values": {
+    "name": "Legs",
+    "sequence": "10"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product_attribute_value_1",
+   "values": {
+    "name": "Steel",
+    "attribute_id": {
+     "$ref": "product_attribute_1"
+    },
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product_attribute_value_2",
+   "values": {
+    "name": "Aluminium",
+    "attribute_id": {
+     "$ref": "product_attribute_1"
+    },
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "product.attribute",
+   "id": "product_attribute_2",
+   "values": {
+    "name": "Color",
+    "sequence": "20"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product_attribute_value_color_wood",
+   "values": {
+    "name": "Wood",
+    "attribute_id": {
+     "$ref": "product_attribute_2"
+    },
+    "sequence": "0",
+    "image": ""
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product_attribute_value_3",
+   "values": {
+    "name": "White",
+    "attribute_id": {
+     "$ref": "product_attribute_2"
+    },
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product_attribute_value_4",
+   "values": {
+    "name": "Black",
+    "attribute_id": {
+     "$ref": "product_attribute_2"
+    },
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "product.attribute",
+   "id": "product_attribute_3",
+   "values": {
+    "name": "Duration",
+    "sequence": "30"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product_attribute_value_5",
+   "values": {
+    "name": "1 year",
+    "attribute_id": {
+     "$ref": "product_attribute_3"
+    }
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product_attribute_value_6",
+   "values": {
+    "name": "2 year",
+    "attribute_id": {
+     "$ref": "product_attribute_3"
+    }
+   }
+  },
+  {
+   "model": "product.attribute",
+   "id": "pa_extra_options",
+   "values": {
+    "name": "Extra Options",
+    "display_type": "multi",
+    "create_variant": "no_variant",
+    "sequence": "40"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "pav_warranty",
+   "values": {
+    "name": "1 year warranty extension",
+    "default_extra_price": "50",
+    "attribute_id": {
+     "$ref": "pa_extra_options"
+    }
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "pav_cleaning_kit",
+   "values": {
+    "name": "Cleaning kit",
+    "default_extra_price": "5",
+    "attribute_id": {
+     "$ref": "pa_extra_options"
+    }
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "pav_protection_kit",
+   "values": {
+    "name": "Protection kit",
+    "default_extra_price": "10",
+    "attribute_id": {
+     "$ref": "pa_extra_options"
+    }
+   }
+  },
+  {
+   "model": "product.attribute",
+   "id": "size_attribute",
+   "values": {
+    "name": "Size",
+    "sequence": "30",
+    "display_type": "radio",
+    "create_variant": "no_variant"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "size_attribute_s",
+   "values": {
+    "name": "S",
+    "sequence": "1",
+    "attribute_id": {
+     "$ref": "size_attribute"
+    }
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "size_attribute_m",
+   "values": {
+    "name": "M",
+    "sequence": "2",
+    "attribute_id": {
+     "$ref": "size_attribute"
+    }
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "size_attribute_l",
+   "values": {
+    "name": "L",
+    "sequence": "3",
+    "attribute_id": {
+     "$ref": "size_attribute"
+    }
+   }
+  },
+  {
+   "model": "product.attribute",
+   "id": "fabric_attribute",
+   "values": {
+    "name": "Fabric",
+    "sequence": "40",
+    "display_type": "select",
+    "create_variant": "no_variant"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "fabric_attribute_plastic",
+   "values": {
+    "name": "Plastic",
+    "sequence": "1",
+    "attribute_id": {
+     "$ref": "fabric_attribute"
+    }
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "fabric_attribute_leather",
+   "values": {
+    "name": "Leather",
+    "sequence": "2",
+    "attribute_id": {
+     "$ref": "fabric_attribute"
+    }
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "fabric_attribute_custom",
+   "values": {
+    "name": "Custom",
+    "sequence": "3",
+    "attribute_id": {
+     "$ref": "fabric_attribute"
+    },
+    "is_custom": "True"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_2",
+   "values": {
+    "parent_id": {
+     "$ref": "product.product_category_all"
+    },
+    "name": "Internal"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_3",
+   "values": {
+    "parent_id": {
+     "$ref": "product.product_category_1"
+    },
+    "name": "Services"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_6",
+   "values": {
+    "parent_id": {
+     "$ref": "product.product_category_3"
+    },
+    "name": "Saleable"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_4",
+   "values": {
+    "parent_id": {
+     "$ref": "product.product_category_1"
+    },
+    "name": "Software"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_5",
+   "values": {
+    "parent_id": {
+     "$ref": "product_category_1"
+    },
+    "name": "Office Furniture"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_consumable",
+   "values": {
+    "parent_id": {
+     "$ref": "product_category_all"
+    },
+    "name": "Consumable"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_construction",
+   "values": {
+    "parent_id": {
+     "$ref": "product_category_all"
+    },
+    "name": "Home Construction"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_outdoor_furniture",
+   "values": {
+    "parent_id": {
+     "$ref": "product_category_1"
+    },
+    "name": "Outdoor furniture"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_user",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "product.group_product_variant"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "expense_product",
+   "values": {
+    "name": "Restaurant Expenses",
+    "list_price": "14.0",
+    "standard_price": "8.0",
+    "type": "service",
+    "categ_id": {
+     "$ref": "product.cat_expense"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "expense_hotel",
+   "values": {
+    "name": "Hotel Accommodation",
+    "list_price": "400.0",
+    "standard_price": "400.0",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_day"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_day"
+    },
+    "categ_id": {
+     "$ref": "cat_expense"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_1",
+   "values": {
+    "name": "Virtual Interior Design",
+    "categ_id": {
+     "$ref": "product_category_3"
+    },
+    "standard_price": "20.5",
+    "list_price": "30.75",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_2",
+   "values": {
+    "name": "Virtual Home Staging",
+    "categ_id": {
+     "$ref": "product_category_3"
+    },
+    "standard_price": "25.5",
+    "list_price": "38.25",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_delivery_01",
+   "values": {
+    "name": "Office Chair",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "55.0",
+    "list_price": "70.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_7777",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_delivery_02",
+   "values": {
+    "name": "Office Lamp",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "35.0",
+    "list_price": "40.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_8888",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_order_01",
+   "values": {
+    "name": "Office Design Software",
+    "categ_id": {
+     "$ref": "product_category_4"
+    },
+    "standard_price": "235.0",
+    "list_price": "280.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_9999",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_3",
+   "values": {
+    "name": "Desk Combination",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "list_price": "450.0",
+    "standard_price": "300.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description_sale": "Desk combination, black-brown: chair + desk + drawer.",
+    "default_code": "FURN_7800",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product_product_4_product_template",
+   "values": {
+    "name": "Customizable Desk",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "500.0",
+    "list_price": "750.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description_sale": "160x80cm, with large legs."
+   }
+  },
+  {
+   "model": "product.template.attribute.line",
+   "id": "product_4_attribute_1_product_template_attribute_line",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_4_product_template"
+    },
+    "attribute_id": {
+     "$ref": "product_attribute_1"
+    },
+    "value_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_attribute_value_1"
+       },
+       {
+        "$ref": "product.product_attribute_value_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.template.attribute.line",
+   "id": "product_4_attribute_2_product_template_attribute_line",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_4_product_template"
+    },
+    "attribute_id": {
+     "$ref": "product_attribute_2"
+    },
+    "value_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_attribute_value_3"
+       },
+       {
+        "$ref": "product.product_attribute_value_4"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_4",
+   "values": {
+    "default_code": "FURN_0096",
+    "standard_price": "500.0",
+    "weight": "0.01",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_4b",
+   "values": {
+    "default_code": "FURN_0097",
+    "weight": "0.01",
+    "standard_price": "500.0",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_4c",
+   "values": {
+    "default_code": "FURN_0098",
+    "weight": "0.01",
+    "standard_price": "500.0",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_5",
+   "values": {
+    "name": "Corner Desk Right Sit",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "600.0",
+    "list_price": "147.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "E-COM06",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_6",
+   "values": {
+    "name": "Large Cabinet",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "800.0",
+    "list_price": "320.0",
+    "type": "consu",
+    "weight": "0.330",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "E-COM07",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_7",
+   "values": {
+    "name": "Storage Box",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "14.0",
+    "list_price": "15.8",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "E-COM08",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_8",
+   "values": {
+    "name": "Large Desk",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "1299.0",
+    "list_price": "1799.0",
+    "type": "consu",
+    "weight": "9.54",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "E-COM09",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_9",
+   "values": {
+    "name": "Pedal Bin",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "10.0",
+    "list_price": "47.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "E-COM10",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_10",
+   "values": {
+    "name": "Cabinet with Doors",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "120.50",
+    "list_price": "140",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "E-COM11",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product_product_11_product_template",
+   "values": {
+    "name": "Conference Chair",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "28",
+    "list_price": "33",
+    "type": "consu",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.template.attribute.line",
+   "id": "product_11_attribute_1_product_template_attribute_line",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_11_product_template"
+    },
+    "attribute_id": {
+     "$ref": "product_attribute_1"
+    },
+    "value_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_attribute_value_1"
+       },
+       {
+        "$ref": "product.product_attribute_value_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_11",
+   "values": {
+    "default_code": "E-COM12",
+    "weight": "0.01"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_11b",
+   "values": {
+    "default_code": "E-COM13",
+    "weight": "0.01"
+   }
+  },
+  {
+   "model": "product.template.attribute.value",
+   "id": "product.product_4_attribute_1_value_2",
+   "values": {
+    "price_extra": "50.40"
+   }
+  },
+  {
+   "model": "product.template.attribute.value",
+   "id": "product.product_11_attribute_1_value_2",
+   "values": {
+    "price_extra": "6.40"
+   }
+  },
+  {
+   "model": "product.template.attribute.exclusion",
+   "id": "product_template_attribute_exclusion_1",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.product_product_4_product_template"
+    },
+    "value_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_4_attribute_2_value_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.template.attribute.exclusion",
+   "id": "product_template_attribute_exclusion_2",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.product_product_11_product_template"
+    },
+    "value_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_11_attribute_1_value_1"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.template.attribute.exclusion",
+   "id": "product_template_attribute_exclusion_3",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.product_product_11_product_template"
+    },
+    "value_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_11_attribute_1_value_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.template.attribute.value",
+   "id": "product_4_attribute_1_value_2",
+   "values": {
+    "exclude_for": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_template_attribute_exclusion_1"
+       },
+       {
+        "$ref": "product.product_template_attribute_exclusion_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.template.attribute.value",
+   "id": "product_4_attribute_1_value_1",
+   "values": {
+    "exclude_for": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_template_attribute_exclusion_3"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_12",
+   "values": {
+    "name": "Office Chair Black",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "180",
+    "list_price": "120.50",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_0269",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_13",
+   "values": {
+    "name": "Corner Desk Left Sit",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "78.0",
+    "list_price": "85.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_1118",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_16",
+   "values": {
+    "name": "Drawer Black",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "20.0",
+    "list_price": "25.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_8900",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_20",
+   "values": {
+    "name": "Flipover",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "1700.0",
+    "list_price": "1950.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_9001",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_22",
+   "values": {
+    "name": "Desk Stand with Screen",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "2010.0",
+    "list_price": "2100.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_7888",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_24",
+   "values": {
+    "name": "Individual Workplace",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "876.0",
+    "list_price": "885.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_0789",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product_template_acoustic_bloc_screens",
+   "values": {
+    "name": "Acoustic Bloc Screens",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "287.0",
+    "list_price": "295.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "image_1920": "",
+    "attribute_line_ids": [
+     [
+      0,
+      0,
+      {
+       "attribute_id": {
+        "$ref": "product.product_attribute_2"
+       },
+       "value_ids": [
+        [
+         6,
+         0,
+         [
+          {
+           "$ref": "product.product_attribute_value_3"
+          },
+          {
+           "$ref": "product.product_attribute_value_color_wood"
+          }
+         ]
+        ]
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_27",
+   "values": {
+    "name": "Drawer",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "100.0",
+    "list_price": "110.50",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Drawer with two routing possiblities.",
+    "default_code": "FURN_8855",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "consu_delivery_03",
+   "values": {
+    "name": "Four Person Desk",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "2500.0",
+    "list_price": "2350.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description_sale": "Four person modern office workstation",
+    "default_code": "FURN_8220",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "consu_delivery_02",
+   "values": {
+    "name": "Large Meeting Table",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "4500.0",
+    "list_price": "4000.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description_sale": "Conference room table",
+    "default_code": "FURN_6741",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "consu_delivery_01",
+   "values": {
+    "name": "Three-Seat Sofa",
+    "categ_id": {
+     "$ref": "product_category_5"
+    },
+    "standard_price": "1000",
+    "list_price": "1500",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description_sale": "Three Seater Sofa with Lounger in Steel Grey Colour",
+    "default_code": "FURN_8999",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_local_delivery",
+   "values": {
+    "name": "Local Delivery",
+    "default_code": "Delivery_010",
+    "type": "service",
+    "categ_id": {
+     "$ref": "product_category_3"
+    },
+    "sale_ok": false,
+    "purchase_ok": false,
+    "list_price": "10.0"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_furniture",
+   "values": {
+    "name": "Furniture Assembly",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "2000.00",
+    "standard_price": "2500.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    }
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product_template_dining_table",
+   "values": {
+    "name": "Outdoor dining table",
+    "categ_id": {
+     "$ref": "product_category_outdoor_furniture"
+    },
+    "list_price": "589",
+    "image_1920": "",
+    "attribute_line_ids": [
+     [
+      0,
+      0,
+      {
+       "attribute_id": {
+        "$ref": "pa_extra_options"
+       },
+       "value_ids": [
+        [
+         6,
+         0,
+         [
+          {
+           "$ref": "pav_warranty"
+          },
+          {
+           "$ref": "pav_cleaning_kit"
+          },
+          {
+           "$ref": "pav_protection_kit"
+          }
+         ]
+        ]
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "desk_organizer",
+   "values": {
+    "list_price": "5.10",
+    "name": "Desk Organizer",
+    "description_sale": "The desk organiser is perfect for storing all kinds of small things and since the 5 boxes are loose, you can move and place them in the way that suits you and your things best.",
+    "default_code": "FURN_0001",
+    "barcode": "2300001000008",
+    "weight": "0.01",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.template.attribute.line",
+   "id": "desk_organizer_size",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.desk_organizer_product_template"
+    },
+    "attribute_id": {
+     "$ref": "size_attribute"
+    },
+    "value_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "size_attribute_s"
+       },
+       {
+        "$ref": "size_attribute_m"
+       },
+       {
+        "$ref": "size_attribute_l"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.template.attribute.line",
+   "id": "desk_organizer_fabric",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.desk_organizer_product_template"
+    },
+    "attribute_id": {
+     "$ref": "fabric_attribute"
+    },
+    "value_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "fabric_attribute_plastic"
+       },
+       {
+        "$ref": "fabric_attribute_leather"
+       },
+       {
+        "$ref": "fabric_attribute_custom"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "desk_pad",
+   "values": {
+    "list_price": "1.98",
+    "name": "Desk Pad",
+    "default_code": "FURN_0002",
+    "weight": "0.01",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "monitor_stand",
+   "values": {
+    "list_price": "3.19",
+    "name": "Monitor Stand",
+    "default_code": "FURN_0006",
+    "weight": "0.01",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.combo",
+   "id": "desk_accessories_combo",
+   "values": {
+    "name": "Desk Accessories Combo",
+    "combo_item_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "product_id": {
+        "$ref": "product.desk_organizer"
+       },
+       "extra_price": 0
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "product_id": {
+        "$ref": "product.desk_pad"
+       },
+       "extra_price": 0
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "product_id": {
+        "$ref": "product.monitor_stand"
+       },
+       "extra_price": 2
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.combo",
+   "id": "desks_combo",
+   "values": {
+    "name": "Desks Combo",
+    "combo_item_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "product_id": {
+        "$ref": "product.product_product_3"
+       },
+       "extra_price": 0
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "product_id": {
+        "$ref": "product.product_product_5"
+       },
+       "extra_price": 0
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.combo",
+   "id": "chairs_combo",
+   "values": {
+    "name": "Chairs Combo",
+    "combo_item_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "product_id": {
+        "$ref": "product.product_product_11"
+       },
+       "extra_price": 0
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "product_id": {
+        "$ref": "product.product_product_11b"
+       },
+       "extra_price": 0
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "product_id": {
+        "$ref": "product.product_product_12"
+       },
+       "extra_price": 0
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "office_combo",
+   "values": {
+    "list_price": "160",
+    "name": "Office Combo",
+    "type": "combo",
+    "purchase_ok": "False",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "image_1920": "",
+    "combo_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "desks_combo"
+       },
+       {
+        "$ref": "chairs_combo"
+       },
+       {
+        "$ref": "desk_accessories_combo"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.document",
+   "id": "product_product_4_product_template_document",
+   "values": {
+    "name": "Customizable Desk Document",
+    "datas": "",
+    "mimetype": "application/pdf",
+    "res_model": "product.template",
+    "res_id": {
+     "$ref": "product.product_product_4_product_template"
+    }
+   }
+  },
+  {
+   "model": "product.document",
+   "id": "product_product_25_document",
+   "values": {
+    "name": "Acoustic Bloc Screens Document",
+    "datas": "",
+    "mimetype": "application/pdf",
+    "res_model": "product.product",
+    "res_id": {
+     "$ref": "product.product_product_25"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_1",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_6_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "3",
+    "min_qty": "1",
+    "price": "750",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_2",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_6_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "delay": "3",
+    "min_qty": "1",
+    "price": "790",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_2bis",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_6_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "delay": "3",
+    "min_qty": "3",
+    "price": "785",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_3",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_7_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "3",
+    "min_qty": "1",
+    "price": "13.0",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_4",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_7_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "delay": "3",
+    "min_qty": "1",
+    "price": "14.4",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_5",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_8_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "2",
+    "min_qty": "5",
+    "price": "1299",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_6",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_8_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "delay": "4",
+    "min_qty": "1",
+    "price": "1399",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_7",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_10_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "2",
+    "min_qty": "1",
+    "price": "120.50",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_8",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_11_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "2",
+    "min_qty": "1",
+    "price": "28",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_9",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_13_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "delay": "5",
+    "min_qty": "1",
+    "price": "78",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_10",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_16_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "delay": "1",
+    "min_qty": "1",
+    "price": "20",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_12",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_20_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "delay": "3",
+    "min_qty": "1",
+    "price": "1700",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_13",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_20_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "4",
+    "min_qty": "5",
+    "price": "1720",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_14",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_22_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "delay": "3",
+    "min_qty": "1",
+    "price": "2010",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_15",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_24_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "delay": "3",
+    "min_qty": "1",
+    "price": "876",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_16",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_template_acoustic_bloc_screens"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "8",
+    "min_qty": "1",
+    "price": "287",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_17",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_delivery_02_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "delay": "4",
+    "min_qty": "1",
+    "price": "390",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_18",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_delivery_01_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "delay": "2",
+    "min_qty": "12",
+    "price": "90",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_19",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_delivery_01_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "4",
+    "min_qty": "1",
+    "price": "66",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_20",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_delivery_02_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "5",
+    "min_qty": "1",
+    "price": "35",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_21",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_delivery_01_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "delay": "7",
+    "min_qty": "1",
+    "price": "55",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_22",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_9_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "delay": "4",
+    "min_qty": "0",
+    "price": "10",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_23",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_27_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "10",
+    "min_qty": "0",
+    "price": "95.50",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_24",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_12_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "3",
+    "min_qty": "0",
+    "price": "120.50",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_25",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_12_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "delay": "2",
+    "min_qty": "0",
+    "price": "130.50",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_26",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_5_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_10"
+    },
+    "delay": "1",
+    "min_qty": "0",
+    "price": "145",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_product_category_user",
+   "model": "product.category",
+   "model_xmlid": "model_product_category",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_template_user",
+   "model": "product.template",
+   "model_xmlid": "model_product_template",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_packaging_user",
+   "model": "product.packaging",
+   "model_xmlid": "model_product_packaging",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_supplierinfo_user",
+   "model": "product.supplierinfo",
+   "model_xmlid": "model_product_supplierinfo",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_pricelist_user",
+   "model": "product.pricelist",
+   "model_xmlid": "model_product_pricelist",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_pricelist_item_user",
+   "model": "product.pricelist.item",
+   "model_xmlid": "model_product_pricelist_item",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_pricelist_partner_manager",
+   "model": "product.pricelist",
+   "model_xmlid": "model_product_pricelist",
+   "group": "base.group_partner_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_employee",
+   "model": "product.product",
+   "model_xmlid": "model_product_product",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_attribute",
+   "model": "product.attribute",
+   "model_xmlid": "model_product_attribute",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_attribute_value",
+   "model": "product.attribute.value",
+   "model_xmlid": "model_product_attribute_value",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_attribute_custom_value_user",
+   "model": "product.attribute.custom.value",
+   "model_xmlid": "model_product_attribute_custom_value",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_attribute",
+   "model": "product.template.attribute.value",
+   "model_xmlid": "model_product_template_attribute_value",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_template_attribute_exclusion",
+   "model": "product.template.attribute.exclusion",
+   "model_xmlid": "model_product_template_attribute_exclusion",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_template_attribute_line",
+   "model": "product.template.attribute.line",
+   "model_xmlid": "model_product_template_attribute_line",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_tag_user",
+   "model": "product.tag",
+   "model_xmlid": "model_product_tag",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_combo_user",
+   "model": "product.combo",
+   "model_xmlid": "model_product_combo",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_combo_item_user",
+   "model": "product.combo.item",
+   "model_xmlid": "model_product_combo_item",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_category_manager",
+   "model": "product.category",
+   "model_xmlid": "model_product_category",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_manager",
+   "model": "product.template",
+   "model_xmlid": "model_product_template",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_packaging_manager",
+   "model": "product.packaging",
+   "model_xmlid": "model_product_packaging",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_supplierinfo_manager",
+   "model": "product.supplierinfo",
+   "model_xmlid": "model_product_supplierinfo",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_manager",
+   "model": "product.pricelist",
+   "model_xmlid": "model_product_pricelist",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_item_manager",
+   "model": "product.pricelist.item",
+   "model_xmlid": "model_product_pricelist_item",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_manager",
+   "model": "product.product",
+   "model_xmlid": "model_product_product",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_manager",
+   "model": "product.attribute",
+   "model_xmlid": "model_product_attribute",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_value_manager",
+   "model": "product.attribute.value",
+   "model_xmlid": "model_product_attribute_value",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_custom_value_manager",
+   "model": "product.attribute.custom.value",
+   "model_xmlid": "model_product_attribute_custom_value",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_attribute_manager",
+   "model": "product.template.attribute.value",
+   "model_xmlid": "model_product_template_attribute_value",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_attribute_exclusion_manager",
+   "model": "product.template.attribute.exclusion",
+   "model_xmlid": "model_product_template_attribute_exclusion",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_attribute_line_manager",
+   "model": "product.template.attribute.line",
+   "model_xmlid": "model_product_template_attribute_line",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_label_layout_user",
+   "model": "product.label.layout",
+   "model_xmlid": "model_product_label_layout",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_tag_manager",
+   "model": "product.tag",
+   "model_xmlid": "model_product_tag",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_combo_manager",
+   "model": "product.combo",
+   "model_xmlid": "model_product_combo",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_combo_item_manager",
+   "model": "product.combo.item",
+   "model_xmlid": "model_product_combo_item",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_document_user",
+   "model": "product.document",
+   "model_xmlid": "model_product_document",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_update_product_attribute_value_manager",
+   "model": "update.product.attribute.value",
+   "model_xmlid": "model_update_product_attribute_value",
+   "group": "group_product_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

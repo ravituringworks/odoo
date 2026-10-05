@@ -1,0 +1,182 @@
+{
+ "module": "l10n_latam_check",
+ "records": [
+  {
+   "model": "account.payment.method",
+   "id": "account_payment_method_own_checks",
+   "values": {
+    "name": "Own Checks",
+    "code": "own_checks",
+    "payment_type": "outbound"
+   }
+  },
+  {
+   "model": "account.payment.method",
+   "id": "account_payment_method_new_third_party_checks",
+   "values": {
+    "name": "New Third Party Checks",
+    "code": "new_third_party_checks",
+    "payment_type": "inbound"
+   }
+  },
+  {
+   "model": "account.payment.method",
+   "id": "account_payment_method_in_third_party_checks",
+   "values": {
+    "name": "Existing Third Party Checks",
+    "code": "in_third_party_checks",
+    "payment_type": "inbound"
+   }
+  },
+  {
+   "model": "account.payment.method",
+   "id": "account_payment_method_out_third_party_checks",
+   "values": {
+    "name": "Existing Third Party Checks",
+    "code": "out_third_party_checks",
+    "payment_type": "outbound"
+   }
+  },
+  {
+   "model": "account.payment.method",
+   "id": "account_payment_method_return_third_party_checks",
+   "values": {
+    "name": "Return Third Party Checks",
+    "code": "return_third_party_checks",
+    "payment_type": "outbound"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_l10n_latam_payment_mass_transfer",
+   "values": {
+    "name": "Check Transfer",
+    "res_model": "l10n_latam.payment.mass.transfer",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "l10n_latam_check_comp_rule",
+   "values": {
+    "name": "Latam Check company rule",
+    "model_id": {
+     "$ref": "model_l10n_latam_check"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_own_check",
+   "values": {
+    "name": "Own Checks",
+    "res_model": "l10n_latam.check",
+    "view_mode": "list,form,calendar,graph,pivot",
+    "view_id": {
+     "$ref": "view_account_own_check_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_payment_search"
+    },
+    "domain": [
+     [
+      "outstanding_line_id",
+      "!=",
+      false
+     ]
+    ],
+    "context": {
+     "search_default_checks_on_hand": true
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_third_party_check",
+   "values": {
+    "name": "Third Party Checks",
+    "res_model": "l10n_latam.check",
+    "view_mode": "list,form,calendar,graph,pivot",
+    "view_id": {
+     "$ref": "view_account_third_party_check_tree"
+    },
+    "search_view_id": {
+     "$ref": "l10n_latam_check.view_account_payment_third_party_checks_search"
+    },
+    "domain": [
+     [
+      "payment_method_code",
+      "=",
+      "new_third_party_checks"
+     ],
+     [
+      "payment_id.state",
+      "!=",
+      "draft"
+     ]
+    ],
+    "context": {
+     "search_default_checks_on_hand": 1
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_own_check",
+   "parent": "account.menu_finance_payables",
+   "action": "action_own_check",
+   "sequence": "50"
+  },
+  {
+   "id": "menu_third_party_check",
+   "parent": "account.menu_finance_receivables",
+   "action": "action_third_party_check",
+   "sequence": "40"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_l10n_latam_payment_mass_transfer",
+   "model": "l10n.latam.payment.mass.transfer",
+   "model_xmlid": "model_l10n_latam_payment_mass_transfer",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_l10n_latam_account_payment_register_check",
+   "model": "l10n.latam.payment.register.check",
+   "model_xmlid": "model_l10n_latam_payment_register_check",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_l10n_latam_check_readonly",
+   "model": "l10n.latam.check",
+   "model_xmlid": "model_l10n_latam_check",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_l10n_latam_check",
+   "model": "l10n.latam.check",
+   "model_xmlid": "model_l10n_latam_check",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

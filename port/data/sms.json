@@ -1,0 +1,553 @@
+{
+ "module": "sms",
+ "records": [
+  {
+   "model": "iap.service",
+   "id": "iap_service_sms",
+   "values": {
+    "name": "SMS",
+    "technical_name": "sms",
+    "description": "Send SMS to your contacts directly from your database.",
+    "unit_name": "Credits",
+    "integer_balance": "False"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sms_composer_action_form",
+   "values": {
+    "name": "Send SMS",
+    "res_model": "sms.composer",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sms_template_preview_action",
+   "values": {
+    "name": "Template Preview",
+    "res_model": "sms.template.preview",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "sms_template_preview_form"
+    },
+    "target": "new",
+    "context": {
+     "$unevaluated": "{'default_sms_template_id':active_id}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sms_resend_action",
+   "values": {
+    "name": "Sending Failures",
+    "res_model": "sms.resend",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sms_template_reset_action",
+   "values": {
+    "name": "Reset SMS Template",
+    "res_model": "sms.template.reset",
+    "binding_model_id": {
+     "$ref": "sms.model_sms_template"
+    },
+    "binding_view_types": "list",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "$unevaluated": "{\n            'default_template_ids': active_ids\n        }"
+    },
+    "view_id": {
+     "$ref": "sms_template_reset_view_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_act_window_sms_composer_multi",
+   "values": {
+    "name": "Send SMS",
+    "res_model": "sms.composer",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "$unevaluated": "{\n            'default_composition_mode': 'mass',\n            'default_mass_keep_log': True,\n            'default_res_ids': active_ids\n        }"
+    },
+    "binding_model_id": {
+     "$ref": "base.model_res_partner"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_act_window_sms_composer_single",
+   "values": {
+    "name": "Send SMS",
+    "res_model": "sms.composer",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "$unevaluated": "{\n            'default_composition_mode': 'comment',\n            'default_res_id': active_id,\n        }"
+    },
+    "binding_model_id": {
+     "$ref": "base.model_res_partner"
+    },
+    "binding_view_types": "form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sms_sms_action",
+   "values": {
+    "name": "SMS",
+    "res_model": "sms.sms",
+    "view_mode": "list,form",
+    "domain": [
+     [
+      "to_delete",
+      "!=",
+      true
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "ir_actions_server_sms_sms_resend",
+   "values": {
+    "name": "Resend",
+    "model_id": {
+     "$ref": "sms.model_sms_sms"
+    },
+    "binding_model_id": {
+     "$ref": "sms.model_sms_sms"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "action = records.resend_failed()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sms_template_action",
+   "values": {
+    "name": "Templates",
+    "res_model": "sms.template",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_sms_template_system",
+   "values": {
+    "name": "SMS Template: system group granted all",
+    "model_id": {
+     "$ref": "sms.model_sms_template"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_system"
+      }
+     ]
+    ],
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "sms.template",
+   "id": "sms_template_demo_0",
+   "values": {
+    "name": "Customer: automated SMS",
+    "model_id": {
+     "$ref": "base.model_res_partner"
+    },
+    "body": "Dear {{ object.display_name }} this is an automated SMS."
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_demo_partner_1_0",
+   "values": {
+    "model": "res.partner",
+    "res_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    },
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() - timedelta(days=5)).strftime('%Y-%m-%d %H:%M:00')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_demo_partner_1_1",
+   "values": {
+    "model": "res.partner",
+    "res_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    },
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() - timedelta(days=4)).strftime('%Y-%m-%d %H:%M:00')"
+    }
+   }
+  },
+  {
+   "model": "mail.notification",
+   "id": "message_demo_partner_1_2_notif_0",
+   "values": {
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "mail_message_id": {
+     "$ref": "message_demo_partner_1_1"
+    },
+    "res_partner_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "notification_type": "email",
+    "notification_status": "exception",
+    "failure_type": "mail_smtp"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_demo_partner_1_2",
+   "values": {
+    "model": "res.partner",
+    "res_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    },
+    "message_type": "sms",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() - timedelta(days=3)).strftime('%Y-%m-%d %H:%M:00')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_demo_partner_1_3",
+   "values": {
+    "model": "res.partner",
+    "res_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    },
+    "message_type": "sms",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() - timedelta(days=2)).strftime('%Y-%m-%d %H:%M:00')"
+    }
+   }
+  },
+  {
+   "model": "mail.notification",
+   "id": "message_demo_partner_1_3_notif_0",
+   "values": {
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "mail_message_id": {
+     "$ref": "message_demo_partner_1_3"
+    },
+    "res_partner_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "notification_type": "sms",
+    "notification_status": "exception",
+    "failure_type": "sms_acc"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_demo_partner_1_4",
+   "values": {
+    "model": "res.partner",
+    "res_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    },
+    "message_type": "sms",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() - timedelta(days=1,hours=22)).strftime('%Y-%m-%d %H:%M:00')"
+    }
+   }
+  },
+  {
+   "model": "mail.notification",
+   "id": "message_demo_partner_1_4_notif_0",
+   "values": {
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "mail_message_id": {
+     "$ref": "message_demo_partner_1_4"
+    },
+    "res_partner_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "notification_type": "sms",
+    "notification_status": "sent"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_demo_partner_1_5",
+   "values": {
+    "model": "res.partner",
+    "res_id": {
+     "$ref": "base.res_partner_address_16"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    },
+    "message_type": "sms",
+    "subtype_id": {
+     "$ref": "mail.mt_note"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:00')"
+    }
+   }
+  },
+  {
+   "model": "mail.notification",
+   "id": "message_demo_partner_1_5_notif_0",
+   "values": {
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "mail_message_id": {
+     "$ref": "message_demo_partner_1_5"
+    },
+    "res_partner_id": {
+     "$ref": "base.res_partner_address_16"
+    },
+    "notification_type": "sms",
+    "notification_status": "exception",
+    "failure_type": "sms_credit"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "sms_sms_menu",
+   "parent": "phone_validation.phone_menu_main",
+   "action": "sms_sms_action",
+   "sequence": "1"
+  },
+  {
+   "id": "sms_template_menu",
+   "name": "SMS Templates",
+   "parent": "phone_validation.phone_menu_main",
+   "action": "sms_template_action",
+   "sequence": "2"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_sms_sms_all",
+   "model": "sms.sms",
+   "model_xmlid": "model_sms_sms",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sms_sms_system",
+   "model": "sms.sms",
+   "model_xmlid": "model_sms_sms",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sms_template_all",
+   "model": "sms.template",
+   "model_xmlid": "model_sms_template",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sms_template_user",
+   "model": "sms.template",
+   "model_xmlid": "model_sms_template",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sms_template_system",
+   "model": "sms.template",
+   "model_xmlid": "model_sms_template",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sms_tracker_all",
+   "model": "sms.tracker",
+   "model_xmlid": "model_sms_tracker",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sms_tracker_system",
+   "model": "sms.tracker",
+   "model_xmlid": "model_sms_tracker",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sms_composer",
+   "model": "sms.composer",
+   "model_xmlid": "model_sms_composer",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sms_resend_recipient",
+   "model": "sms.resend.recipient",
+   "model_xmlid": "model_sms_resend_recipient",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sms_resend",
+   "model": "sms.resend",
+   "model_xmlid": "model_sms_resend",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sms_template_preview",
+   "model": "sms.template.preview",
+   "model_xmlid": "model_sms_template_preview",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sms_template_reset",
+   "model": "sms.template.reset",
+   "model_xmlid": "model_sms_template_reset",
+   "group": "mail.group_mail_template_editor",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sms_account_registration_phone_number_wizard_system",
+   "model": "sms.account.phone",
+   "model_xmlid": "model_sms_account_phone",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sms_account_verification_code_wizard_system",
+   "model": "sms.account.code",
+   "model_xmlid": "model_sms_account_code",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sms_account_sender_name_wizard_system",
+   "model": "sms.account.sender",
+   "model_xmlid": "model_sms_account_sender",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

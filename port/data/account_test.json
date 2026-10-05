@@ -1,0 +1,112 @@
+{
+ "module": "account_test",
+ "records": [
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_accounting_assert",
+   "values": {
+    "name": "Accounting Tests",
+    "res_model": "accounting.assert.test",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "accounting_assert_test_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "accounting.assert.test",
+   "id": "account_test_01",
+   "values": {
+    "sequence": "1",
+    "name": "Test 1: General balance",
+    "desc": "Check the balance: Debit sum = Credit sum",
+    "code_exec": "sql=\"\"\"SELECT\nsum(debit)-sum(credit) as balance\nFROM  account_move_line \n\"\"\"\ncr.execute(sql)\nresult=[]\nres= cr.dictfetchall()\nif res[0]['balance']!=0.0 and res[0]['balance'] is not None:\n  result.append(_('* The difference of the balance is: '))\n  result.append(res)"
+   }
+  },
+  {
+   "model": "accounting.assert.test",
+   "id": "account_test_03",
+   "values": {
+    "sequence": "3",
+    "name": "Test 3: Movement lines",
+    "desc": "Check if movement lines are balanced and have the same date and period",
+    "code_exec": "order_columns=['am_date','ml_date','am.date','ml.date','am.id']\nsql=\"\"\"SELECT\n  am.id as move_id,\n  sum(debit)-sum(credit) as balance,\n  am.date,\n  ml.date,\n  am.date as am_date,\n  ml.date as ml_date\nFROM account_move am, account_move_line ml\nWHERE\n  ml.move_id = am.id\nGROUP BY am.name, am.id, am.state, am.date, ml.date,am.date, ml.date,am.date, ml.date\nHAVING abs(sum(ml.debit-ml.credit)) <> 0 or am.date!=ml.date or (am.date!=ml.date)\n\"\"\"\ncr.execute(sql)\nres = cr.dictfetchall()\nif res:\n    res.insert(0,_('* The test failed for these movement lines:'))\nresult = res"
+   }
+  },
+  {
+   "model": "accounting.assert.test",
+   "id": "account_test_05",
+   "values": {
+    "sequence": "5",
+    "name": "Test 5.1\u00a0: Payable and Receivable accountant lines of reconciled invoices",
+    "desc": "Check that reconciled invoice for Sales/Purchases has reconciled entries for Payable and Receivable Accounts",
+    "code_exec": "res = []\ncr.execute(\"SELECT distinct inv.number,inv.id from account_invoice inv, account_move m, account_move_line ml, account_account a where m.id=ml.move_id and ml.account_id=a.id and a.account_type in ('asset_receivable','liability_payable') and inv.move_id=m.id and ml.reconciled is true;\")\nrecords= cr.dictfetchall()\nrec = [r['id'] for r in records]\nres = reconciled_inv()\ninvoices = set(rec).difference(set(res))\nresult = [rec for rec in records if rec['id'] in invoices]\nif result:\n    result.insert(0,_('* Invoices that need to be checked: '))"
+   }
+  },
+  {
+   "model": "accounting.assert.test",
+   "id": "account_test_05_2",
+   "values": {
+    "sequence": "6",
+    "name": "Test 5.2\u00a0: Reconcilied invoices and Payable/Receivable accounts",
+    "desc": "Check that reconciled account moves, that define Payable and Receivable accounts, are belonging to reconciled invoices",
+    "code_exec": "res = reconciled_inv()\nresult=[]\nif res:\n    cr.execute(\"SELECT distinct inv.number,inv.id from account_invoice inv, account_move_line ml, account_account a, account_move m where m.id=ml.move_id and inv.move_id=m.id and inv.id=inv.move_id and ml.reconciled is false and a.account_type in ('asset_receivable','liability_payable') and ml.account_id=a.id and inv.id in %s\",(tuple(res),))\n    records = cr.dictfetchall()\n    result = [rec for rec in records]\n    if result:\n        result.insert(0,_('* Invoices that need to be checked: '))"
+   }
+  },
+  {
+   "model": "accounting.assert.test",
+   "id": "account_test_06",
+   "values": {
+    "sequence": "7",
+    "name": "Test 6\u00a0: Invoices status",
+    "desc": "Check that paid/reconciled invoices are not in 'Open' state",
+    "code_exec": "from odoo import _\nres = []\ncolumn_order = ['number','id','name','state']\nif reconciled_inv():\n  cr.execute(\"select inv.name,inv.state,inv.id,inv.number from account_invoice inv where inv.state!='paid' and id in %s\", (tuple(reconciled_inv()),))\n  res = cr.dictfetchall()\nresult = res\nif result:\n    result.insert(0,_('* Invoices that need to be checked: '))"
+   }
+  },
+  {
+   "model": "accounting.assert.test",
+   "id": "account_test_07",
+   "values": {
+    "sequence": "8",
+    "name": "Test 7: Closing balance on bank statements",
+    "desc": "Check on bank statement that the Closing Balance = Starting Balance + sum of statement lines",
+    "code_exec": "column_order = ['name','difference']\ncr.execute(\"SELECT s.balance_start+sum(m.amount)-s.balance_end_real as difference, s.name from account_bank_statement s inner join account_bank_statement_line m on m.statement_id=s.id group by s.id, s.balance_start, s.balance_end_real,s.name having abs(s.balance_start+sum(m.amount)-s.balance_end_real) > 0.000000001;\")\nresult = cr.dictfetchall()\nif result:\n    result.insert(0,_('* Unbalanced bank statement that need to be checked: '))"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_action_license",
+   "name": "Accounting Tests",
+   "parent": "account.menu_finance_reports",
+   "action": "action_accounting_assert",
+   "sequence": "50",
+   "groups": "base.group_no_one"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_accounting_assert_test",
+   "model": "accounting.assert.test",
+   "model_xmlid": "model_accounting_assert_test",
+   "group": "base.group_system",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": true
+  },
+  {
+   "id": "access_accounting_assert_test_manager",
+   "model": "accounting.assert.test",
+   "model_xmlid": "model_accounting_assert_test",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

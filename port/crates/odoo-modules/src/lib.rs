@@ -1,0 +1,34 @@
+//! odoo-modules: ported business rules per Odoo module, assembled against the installed registry.
+pub mod account;
+pub mod bootstrap;
+pub mod crm;
+pub mod hr;
+pub mod project;
+pub mod base;
+pub mod data;
+pub mod pos;
+pub mod purchase;
+pub mod sale;
+pub mod stock;
+pub mod tax;
+pub mod util;
+
+use odoo_core::{Registry, Rules};
+
+/// Compose the rule set for exactly the models present in `reg` (mirrors Odoo's per-module installation).
+pub fn rules_for(reg: &Registry) -> Rules {
+    let has = |m: &str| reg.models.contains_key(m);
+    let mut r = Rules::default();
+    if has("account.move") { r = r.merge(account::rules()); }
+    if has("sale.order") { r = r.merge(sale::rules()); }
+    if has("stock.picking") { r = r.merge(stock::rules()); }
+    if has("purchase.order") { r = r.merge(purchase::rules()); }
+    if has("res.country") { r = r.merge(base::country_rules()); }
+    if has("res.partner") { r = r.merge(base::partner_rules()); }
+    if has("res.users") && has("ir.model.data") { r = r.merge(base::rules()); }
+    if has("pos.payment.method") { r = r.merge(pos::rules()); }
+    if has("hr.leave") { r = r.merge(hr::rules()); }
+    if has("project.task") { r = r.merge(project::rules()); }
+    if has("crm.lead") { r = r.merge(crm::rules()); }
+    r
+}

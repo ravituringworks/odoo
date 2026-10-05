@@ -1,0 +1,4989 @@
+{
+ "module": "account",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_accounting_accounting",
+   "values": {
+    "description": "Helps you handle your invoices and accounting actions.\n\n        Invoicing: Invoices, payments and basic invoice reporting.\n        Administrator: full access including configuration rights.",
+    "sequence": "7"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_delivery_invoice_address",
+   "values": {
+    "name": "Delivery Address",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_account_readonly",
+   "values": {
+    "name": "Show Accounting Features - Readonly",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_account_invoice",
+   "values": {
+    "name": "Invoicing",
+    "category_id": {
+     "$ref": "base.module_category_accounting_accounting"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_account_basic",
+   "values": {
+    "name": "Basic",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_account_user",
+   "values": {
+    "name": "Show Full Accounting Features",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_account_basic"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "group_account_readonly"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_account_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_accounting_accounting"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_account_invoice"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_account_secured",
+   "values": {
+    "name": "Show Inalterability Features",
+    "category_id": {
+     "$ref": "base.module_category_usability"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_warning_account",
+   "values": {
+    "name": "A warning can be set on a partner (Account)",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_cash_rounding",
+   "values": {
+    "name": "Allow the cash rounding management",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_sale_receipts",
+   "values": {
+    "name": "Sale Receipt",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_purchase_receipts",
+   "values": {
+    "name": "Purchase Receipt",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "ir.module.category",
+   "id": "account.module_category_accounting_bank",
+   "values": {
+    "name": "Bank",
+    "parent_id": {
+     "$ref": "base.module_category_accounting"
+    },
+    "sequence": "50"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_validate_bank_account",
+   "values": {
+    "name": "Validate bank account",
+    "category_id": {
+     "$ref": "account.module_category_accounting_bank"
+    },
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_analytic_line_rule_billing_user",
+   "values": {
+    "name": "account.analytic.line.billing.user",
+    "model_id": {
+     "$ref": "analytic.model_account_analytic_line"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_analytic_line_rule_readonly_user",
+   "values": {
+    "name": "account.analytic.line.readonly.user",
+    "model_id": {
+     "$ref": "analytic.model_account_analytic_line"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_readonly"
+      }
+     ]
+    ],
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_comp_rule",
+   "values": {
+    "name": "Account Entry",
+    "model_id": {
+     "$ref": "model_account_move"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_line_comp_rule",
+   "values": {
+    "name": "Entry lines",
+    "model_id": {
+     "$ref": "model_account_move_line"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "journal_group_comp_rule",
+   "values": {
+    "name": "Multi-ledger multi-company",
+    "model_id": {
+     "$ref": "model_account_journal_group"
+    },
+    "domain_force": "['|', ('company_id', '=', False), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "journal_comp_rule",
+   "values": {
+    "name": "Journal multi-company",
+    "model_id": {
+     "$ref": "model_account_journal"
+    },
+    "domain_force": "[('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_comp_rule",
+   "values": {
+    "name": "Account multi-company",
+    "model_id": {
+     "$ref": "model_account_account"
+    },
+    "domain_force": "[('company_ids', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_group_comp_rule",
+   "values": {
+    "name": "Account Group multi-company",
+    "model_id": {
+     "$ref": "model_account_group"
+    },
+    "domain_force": "[('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "tax_group_comp_rule",
+   "values": {
+    "name": "Tax group multi-company",
+    "model_id": {
+     "$ref": "model_account_tax_group"
+    },
+    "domain_force": "[('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "tax_comp_rule",
+   "values": {
+    "name": "Tax multi-company",
+    "model_id": {
+     "$ref": "model_account_tax"
+    },
+    "domain_force": "[('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "tax_rep_comp_rule",
+   "values": {
+    "name": "Tax Repartition multi-company",
+    "model_id": {
+     "$ref": "model_account_tax_repartition_line"
+    },
+    "domain_force": "['|',('company_id','=',False), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "invoice_analysis_comp_rule",
+   "values": {
+    "name": "Invoice Analysis multi-company",
+    "model_id": {
+     "$ref": "model_account_invoice_report"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_fiscal_position_comp_rule",
+   "values": {
+    "name": "Account fiscal Mapping company rule",
+    "model_id": {
+     "$ref": "model_account_fiscal_position"
+    },
+    "domain_force": "[('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_bank_statement_comp_rule",
+   "values": {
+    "name": "Account bank statement company rule",
+    "model_id": {
+     "$ref": "model_account_bank_statement"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_bank_statement_line_comp_rule",
+   "values": {
+    "name": "Account bank statement line company rule",
+    "model_id": {
+     "$ref": "model_account_bank_statement_line"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_reconcile_model_template_comp_rule",
+   "values": {
+    "name": "Account reconcile model template company rule",
+    "model_id": {
+     "$ref": "model_account_reconcile_model"
+    },
+    "domain_force": "[('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_reconcile_model_line_template_comp_rule",
+   "values": {
+    "name": "Account reconcile model_line template company rule",
+    "model_id": {
+     "$ref": "model_account_reconcile_model_line"
+    },
+    "domain_force": "[('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_payment_comp_rule",
+   "values": {
+    "name": "Account payment company rule",
+    "model_id": {
+     "$ref": "model_account_payment"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_payment_term_comp_rule",
+   "values": {
+    "name": "Account payment term company rule",
+    "model_id": {
+     "$ref": "model_account_payment_term"
+    },
+    "domain_force": "['|', ('company_id', '=', False), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_see_all",
+   "values": {
+    "name": "All Journal Entries",
+    "model_id": {
+     "$ref": "model_account_move"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_line_see_all",
+   "values": {
+    "name": "All Journal Items",
+    "model_id": {
+     "$ref": "model_account_move_line"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_rule_portal",
+   "values": {
+    "name": "Portal Personal Account Invoices",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "domain_force": "[('state', 'not in', ('cancel', 'draft')), ('move_type', 'in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')), ('message_partner_ids','child_of',[user.commercial_partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_line_rule_portal",
+   "values": {
+    "name": "Portal Invoice Lines",
+    "model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "domain_force": "[('parent_state', 'not in', ('cancel', 'draft')), ('move_id.move_type', 'in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')), ('move_id.message_partner_ids','child_of',[user.commercial_partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_rule_group_readonly",
+   "values": {
+    "name": "Readonly Move",
+    "model_id": {
+     "$ref": "model_account_move"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_readonly"
+      }
+     ]
+    ],
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_line_rule_group_readonly",
+   "values": {
+    "name": "Readonly Move Line",
+    "model_id": {
+     "$ref": "model_account_move_line"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_readonly"
+      }
+     ]
+    ],
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_rule_group_invoice",
+   "values": {
+    "name": "Readonly Move",
+    "model_id": {
+     "$ref": "model_account_move"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_line_rule_group_invoice",
+   "values": {
+    "name": "Readonly Move Line",
+    "model_id": {
+     "$ref": "model_account_move_line"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_send_single_rule_group_invoice",
+   "values": {
+    "name": "Readonly Invoice Send and Print (single)",
+    "model_id": {
+     "$ref": "model_account_move_send_wizard"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_move_send_batch_rule_group_invoice",
+   "values": {
+    "name": "Readonly Invoice Send and Print (batch)",
+    "model_id": {
+     "$ref": "model_account_move_send_batch_wizard"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "report_external_value_comp_rule",
+   "values": {
+    "name": "Report External Value multi-company",
+    "model_id": {
+     "$ref": "model_account_report_external_value"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_res_partner_bank_billing_officers",
+   "values": {
+    "name": "Billing: Allow accessing employee bank accounts",
+    "model_id": {
+     "$ref": "base.model_res_partner_bank"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "decimal.precision",
+   "id": "decimal_payment",
+   "values": {
+    "name": "Payment Terms",
+    "digits": "6"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_open_settings",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "general_settings",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "account.account.tag",
+   "id": "account_tag_operating",
+   "values": {
+    "name": "Operating Activities",
+    "applicability": "accounts"
+   }
+  },
+  {
+   "model": "account.account.tag",
+   "id": "account_tag_financing",
+   "values": {
+    "name": "Financing Activities",
+    "applicability": "accounts"
+   }
+  },
+  {
+   "model": "account.account.tag",
+   "id": "account_tag_investing",
+   "values": {
+    "name": "Investing & Extraordinary Activities",
+    "applicability": "accounts"
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_immediate",
+   "values": {
+    "name": "Immediate Payment",
+    "note": "Payment terms: Immediate Payment",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "nb_days": 0
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_15days",
+   "values": {
+    "name": "15 Days",
+    "note": "Payment terms: 15 Days",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "nb_days": 15
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_21days",
+   "values": {
+    "name": "21 Days",
+    "note": "Payment terms: 21 Days",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "nb_days": 21
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_30days",
+   "values": {
+    "name": "30 Days",
+    "note": "Payment terms: 30 Days",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "nb_days": 30
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_45days",
+   "values": {
+    "name": "45 Days",
+    "note": "Payment terms: 45 Days",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "nb_days": 45
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_end_following_month",
+   "values": {
+    "name": "End of Following Month",
+    "note": "Payment terms: End of Following Month",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "delay_type": "days_after_end_of_next_month",
+       "nb_days": 0
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_30_days_end_month_the_10",
+   "values": {
+    "name": "10 Days after End of Next Month",
+    "note": "Payment terms: 10 Days after End of Next Month",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "delay_type": "days_after_end_of_next_month",
+       "nb_days": 10
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_advance_60days",
+   "values": {
+    "name": "30% Now, Balance 60 Days",
+    "note": "Payment terms: 30% Now, Balance 60 Days",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 30.0,
+       "nb_days": 0
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 70.0,
+       "nb_days": 60
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_30days_early_discount",
+   "values": {
+    "name": "2/7 Net 30",
+    "note": "Payment terms: 30 Days, 2% Early Payment Discount under 7 days",
+    "display_on_invoice": "True",
+    "early_discount": "True",
+    "discount_percentage": "2",
+    "discount_days": "7",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "nb_days": 30
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_90days_on_the_10th",
+   "values": {
+    "name": "90 days, on the 10th",
+    "note": "Payment terms: 90 days, on the 10th",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 100.0,
+       "delay_type": "days_end_of_month_on_the",
+       "nb_days": 90,
+       "days_next_month": 10
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_invoice_validated",
+   "values": {
+    "name": "Validated",
+    "res_model": "account.move",
+    "default": false,
+    "description": "Invoice validated"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_invoice_paid",
+   "values": {
+    "name": "Paid",
+    "res_model": "account.move",
+    "default": false,
+    "description": "Invoice paid"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_invoice_created",
+   "values": {
+    "name": "Invoice Created",
+    "res_model": "account.move",
+    "default": false,
+    "hidden": true,
+    "description": "Invoice Created"
+   }
+  },
+  {
+   "model": "account.payment.method",
+   "id": "account_payment_method_manual_in",
+   "values": {
+    "name": "Manual Payment",
+    "code": "manual",
+    "payment_type": "inbound"
+   }
+  },
+  {
+   "model": "account.payment.method",
+   "id": "account_payment_method_manual_out",
+   "values": {
+    "name": "Manual Payment",
+    "code": "manual",
+    "payment_type": "outbound"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "model_account_move_action_share",
+   "values": {
+    "name": "Share",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "binding_model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "action = records.action_share()"
+   }
+  },
+  {
+   "model": "digest.digest",
+   "id": "digest.digest_digest_default",
+   "values": {
+    "kpi_account_total_revenue": "True"
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_account_0",
+   "values": {
+    "name": "Tip: No need to print, put in an envelop and post your invoices",
+    "sequence": "700",
+    "group_id": {
+     "$ref": "account.group_account_invoice"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_account_1",
+   "values": {
+    "name": "Tip: Stop chasing the Documents you need",
+    "sequence": "3100",
+    "group_id": {
+     "$ref": "account.group_account_invoice"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "report.paperformat",
+   "id": "paperformat_euro_bank_statement",
+   "values": {
+    "name": "A4 - statement",
+    "default": true,
+    "format": "A4",
+    "page_height": "0",
+    "page_width": "0",
+    "orientation": "Portrait",
+    "margin_top": "52",
+    "margin_bottom": "32",
+    "margin_left": "0",
+    "margin_right": "0",
+    "header_line": false,
+    "header_spacing": "52",
+    "dpi": "90",
+    "css_margins": true
+   }
+  },
+  {
+   "model": "onboarding.onboarding.step",
+   "id": "onboarding_onboarding_step_company_data",
+   "values": {
+    "title": "Set Company Data",
+    "description": "Set your company's data for documents header/footer.",
+    "button_text": "Let's start!",
+    "done_text": "Looks great!",
+    "panel_step_open_action_name": "action_open_step_company_data",
+    "step_image": "",
+    "step_image_filename": "onboarding_company-data.png",
+    "step_image_alt": "Onboarding Company Data",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "onboarding.onboarding.step",
+   "id": "onboarding_onboarding_step_base_document_layout",
+   "values": {
+    "title": "Documents Layout",
+    "description": "Customize the look of your documents.",
+    "button_text": "Customize",
+    "done_text": "Looks great!",
+    "panel_step_open_action_name": "action_open_step_base_document_layout",
+    "step_image": "",
+    "step_image_filename": "onboarding_quotation-layout.png",
+    "step_image_alt": "Onboarding Documents Layout",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "onboarding.onboarding.step",
+   "id": "onboarding_onboarding_step_fiscal_year",
+   "values": {
+    "title": "Set Periods",
+    "description": "Define your fiscal years & tax returns periodicity.",
+    "button_text": "Configure",
+    "done_text": "Step completed!",
+    "panel_step_open_action_name": "action_open_step_fiscal_year",
+    "step_image": "",
+    "step_image_filename": "onboarding_accounting-periods.png",
+    "step_image_alt": "Onboarding Accounting Periods",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "onboarding.onboarding.step",
+   "id": "onboarding_onboarding_step_chart_of_accounts",
+   "values": {
+    "title": "Review Chart of Accounts",
+    "description": "Set up your chart of accounts and record initial balances.",
+    "button_text": "Review",
+    "done_text": "Chart of accounts set!",
+    "panel_step_open_action_name": "action_open_step_chart_of_accounts",
+    "step_image": "",
+    "step_image_filename": "onboarding_chart-of-accounts.png",
+    "step_image_alt": "Onboarding Bank Account",
+    "sequence": "4"
+   }
+  },
+  {
+   "model": "onboarding.onboarding.step",
+   "id": "onboarding_onboarding_step_sales_tax",
+   "values": {
+    "title": "Taxes",
+    "description": "Choose a default sales tax for your products.",
+    "button_text": "Set taxes",
+    "done_text": "Step Completed!",
+    "panel_step_open_action_name": "action_open_step_sales_tax",
+    "step_image": "",
+    "step_image_filename": "onboarding_puzzle.png",
+    "step_image_alt": "Onboarding Bank Account",
+    "sequence": "100"
+   }
+  },
+  {
+   "model": "onboarding.onboarding",
+   "id": "onboarding_onboarding_account_dashboard",
+   "values": {
+    "name": "Account Dashboard Onboarding",
+    "step_ids": [
+     [
+      4,
+      {
+       "$ref": "account.onboarding_onboarding_step_company_data"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "account.onboarding_onboarding_step_fiscal_year"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "account.onboarding_onboarding_step_chart_of_accounts"
+      }
+     ]
+    ],
+    "route_name": "account_dashboard"
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "account_tour",
+   "values": {
+    "name": "account_tour",
+    "sequence": "60"
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_account_payment",
+   "values": {
+    "name": "Payment",
+    "code": "account.payment",
+    "prefix": "PAY",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_all_payments",
+   "values": {
+    "name": "Payments",
+    "res_model": "account.payment",
+    "view_mode": "list,kanban,form,graph,activity",
+    "view_id": {
+     "$ref": "view_account_payment_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_payments",
+   "values": {
+    "name": "Customer Payments",
+    "res_model": "account.payment",
+    "view_mode": "list,kanban,form,graph,activity",
+    "context": {
+     "default_payment_type": "inbound",
+     "default_partner_type": "customer",
+     "search_default_inbound_filter": 1,
+     "default_move_journal_types": [
+      "bank",
+      "cash"
+     ],
+     "display_account_trust": true
+    },
+    "view_id": {
+     "$ref": "view_account_payment_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_payments_payable",
+   "values": {
+    "name": "Vendor Payments",
+    "res_model": "account.payment",
+    "view_mode": "list,kanban,form,graph,activity",
+    "context": {
+     "default_payment_type": "outbound",
+     "default_partner_type": "supplier",
+     "search_default_outbound_filter": 1,
+     "default_move_journal_types": [
+      "bank",
+      "cash"
+     ],
+     "display_account_trust": true
+    },
+    "view_id": {
+     "$ref": "view_account_supplier_payment_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_payments_transfer",
+   "values": {
+    "name": "Internal Transfers",
+    "res_model": "account.payment",
+    "view_mode": "list,kanban,form,graph",
+    "context": {
+     "default_payment_type": "outbound",
+     "search_default_transfers_filter": 1,
+     "display_account_trust": true
+    },
+    "domain": [],
+    "view_id": {
+     "$ref": "view_account_supplier_payment_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_account_confirm_payments",
+   "values": {
+    "name": "Post Payments",
+    "state": "code",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "account.model_account_payment"
+    },
+    "binding_model_id": {
+     "$ref": "account.model_account_payment"
+    },
+    "binding_view_types": "list",
+    "code": "records.action_post()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "account_send_payment_receipt_by_email_action",
+   "values": {
+    "name": "Send receipt by email",
+    "res_model": "mail.compose.message",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "mail_post_autofollow": true,
+     "default_composition_mode": "comment",
+     "default_template_id": {
+      "$ref": "account.mail_template_data_payment_receipt"
+     },
+     "default_email_layout_xmlid": "mail.mail_notification_light"
+    },
+    "binding_model_id": {
+     "$ref": "model_account_payment"
+    },
+    "binding_view_types": "form",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "account_send_payment_receipt_by_email_action_multi",
+   "values": {
+    "name": "Send receipts by email",
+    "res_model": "mail.compose.message",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "mailing_document_based": true,
+     "mail_post_autofollow": true,
+     "default_composition_mode": "mass_mail",
+     "default_template_id": {
+      "$ref": "account.mail_template_data_payment_receipt"
+     },
+     "default_email_layout_xmlid": "mail.mail_notification_light"
+    },
+    "binding_model_id": {
+     "$ref": "model_account_payment"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "account_automatic_entry_wizard_action",
+   "values": {
+    "name": "Transfer Journal Items",
+    "res_model": "account.automatic.entry.wizard",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_account_unreconcile",
+   "values": {
+    "name": "Unreconcile",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_user"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "binding_model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "state": "code",
+    "code": "model.action_unreconcile_match_entries()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_account_move_reversal",
+   "values": {
+    "name": "Reverse",
+    "res_model": "account.move.reversal",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "view_account_move_reversal"
+    },
+    "target": "new",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_resequence",
+   "values": {
+    "name": "Resequence",
+    "res_model": "account.resequence.wizard",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "account_resequence_view"
+    },
+    "target": "new",
+    "groups_id": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.group_no_one"
+       }
+      ]
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_line_select",
+   "values": {
+    "name": "Journal Items",
+    "res_model": "account.move.line",
+    "context": {
+     "$unevaluated": "{'search_default_account_id': [active_id], 'search_default_posted': 1}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_automatic_entry_change_account",
+   "values": {
+    "name": "Move to Account",
+    "model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_user"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "state": "code",
+    "code": "action = records.action_automatic_entry('change_account')"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_automatic_entry_change_period",
+   "values": {
+    "name": "Change Period",
+    "model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_user"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "state": "code",
+    "code": "action = records.action_automatic_entry('change_period')"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_all_a",
+   "values": {
+    "context": {
+     "journal_type": "general",
+     "search_default_group_by_move": 1,
+     "search_default_posted": 1,
+     "create": 0
+    },
+    "name": "Journal Items",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ]
+    ],
+    "view_id": {
+     "$ref": "view_move_line_tree"
+    },
+    "view_mode": "list,pivot,graph,kanban"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_all_grouped_matching",
+   "values": {
+    "context": {
+     "journal_type": "general",
+     "search_default_posted": 1,
+     "expand": "1"
+    },
+    "name": "Journal Items",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ]
+    ],
+    "view_id": {
+     "$ref": "view_move_line_tree"
+    },
+    "view_mode": "list,pivot,graph,kanban"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_journal_sales",
+   "values": {
+    "context": {
+     "journal_type": "sales",
+     "search_default_group_by_move": 1,
+     "search_default_posted": 1,
+     "search_default_sales": 1,
+     "expand": 1
+    },
+    "name": "Sales",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ]
+    ],
+    "view_id": {
+     "$ref": "view_move_line_tree_grouped_sales_purchases"
+    },
+    "view_mode": "list,pivot,graph,kanban"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_journal_purchase",
+   "values": {
+    "context": {
+     "journal_type": "purchase",
+     "search_default_group_by_move": 1,
+     "search_default_posted": 1,
+     "search_default_purchases": 1,
+     "expand": 1
+    },
+    "name": "Purchases",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ]
+    ],
+    "view_id": {
+     "$ref": "view_move_line_tree_grouped_sales_purchases"
+    },
+    "view_mode": "list,pivot,graph,kanban"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_journal_bank_cash",
+   "values": {
+    "context": {
+     "journal_type": "bank",
+     "search_default_group_by_move": 1,
+     "search_default_posted": 1,
+     "search_default_bank": 1,
+     "search_default_cash": 1,
+     "expand": 1
+    },
+    "name": "Bank and Cash",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ]
+    ],
+    "view_id": {
+     "$ref": "view_move_line_tree_grouped_bank_cash"
+    },
+    "view_mode": "list,pivot,graph,kanban"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_journal_misc",
+   "values": {
+    "context": {
+     "journal_type": "general",
+     "search_default_group_by_move": 1,
+     "search_default_posted": 1,
+     "search_default_misc_filter": 1,
+     "expand": 1
+    },
+    "name": "Miscellaneous",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ]
+    ],
+    "view_id": {
+     "$ref": "view_move_line_tree_grouped_misc"
+    },
+    "view_mode": "list,pivot,graph,kanban"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_ledger_partner",
+   "values": {
+    "context": {
+     "journal_type": "general",
+     "search_default_group_by_partner": 1,
+     "search_default_posted": 1,
+     "search_default_trade_payable": 1,
+     "search_default_trade_receivable": 1,
+     "search_default_unreconciled": 1
+    },
+    "name": "Partner Ledger",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ]
+    ],
+    "view_id": {
+     "$ref": "view_move_line_tree_grouped_partner"
+    },
+    "search_view_id": {
+     "$ref": "view_account_move_line_filter"
+    },
+    "view_mode": "list,pivot,graph"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_all_tree",
+   "values": {
+    "name": "Journal Items",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{'search_default_partner_id': [active_id], 'default_partner_id': active_id, 'search_default_posted':1}"
+    },
+    "view_id": {
+     "$ref": "view_move_line_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_moves_all",
+   "values": {
+    "context": {
+     "journal_type": "general",
+     "search_default_posted": 1
+    },
+    "name": "Journal Items",
+    "res_model": "account.move.line",
+    "domain": [
+     [
+      "display_type",
+      "not in",
+      [
+       "line_section",
+       "line_note"
+      ]
+     ],
+     [
+      "parent_state",
+      "!=",
+      "cancel"
+     ]
+    ],
+    "view_id": {
+     "$ref": "view_move_line_tree"
+    },
+    "view_mode": "list,pivot,graph,kanban"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_journal_line",
+   "values": {
+    "name": "Journal Entries",
+    "res_model": "account.move",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_move_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_move_filter"
+    },
+    "context": {
+     "default_move_type": "entry",
+     "search_default_posted": 1,
+     "view_no_maturity": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_out_invoice_type",
+   "values": {
+    "name": "Invoices",
+    "path": "invoicing",
+    "res_model": "account.move",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_out_invoice_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_invoice_filter"
+    },
+    "domain": [
+     [
+      "move_type",
+      "in",
+      [
+       "out_invoice",
+       "out_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "default_move_type": "out_invoice"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_out_invoice",
+   "values": {
+    "name": "Invoices",
+    "path": "customer-invoices",
+    "res_model": "account.move",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_out_invoice_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_invoice_filter"
+    },
+    "domain": [
+     [
+      "move_type",
+      "in",
+      [
+       "out_invoice",
+       "out_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "search_default_out_invoice": 1,
+     "default_move_type": "out_invoice"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_out_refund_type",
+   "values": {
+    "name": "Credit Notes",
+    "res_model": "account.move",
+    "path": "credit-notes",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_out_credit_note_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_invoice_filter"
+    },
+    "domain": [
+     [
+      "move_type",
+      "in",
+      [
+       "out_invoice",
+       "out_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "search_default_out_refund": 1,
+     "default_move_type": "out_refund",
+     "display_account_trust": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_in_invoice_type",
+   "values": {
+    "name": "Bills",
+    "res_model": "account.move",
+    "path": "bills",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_in_invoice_bill_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_bill_filter"
+    },
+    "domain": [
+     [
+      "move_type",
+      "in",
+      [
+       "in_invoice",
+       "in_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "default_move_type": "in_invoice",
+     "display_account_trust": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_in_invoice",
+   "values": {
+    "name": "Bills",
+    "res_model": "account.move",
+    "path": "vendor-bills",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_in_invoice_bill_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_bill_filter"
+    },
+    "domain": [
+     [
+      "move_type",
+      "in",
+      [
+       "in_invoice",
+       "in_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "search_default_in_invoice": 1,
+     "default_move_type": "in_invoice",
+     "display_account_trust": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_in_refund_type",
+   "values": {
+    "name": "Refunds",
+    "res_model": "account.move",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_in_invoice_refund_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_bill_filter"
+    },
+    "domain": [
+     [
+      "move_type",
+      "in",
+      [
+       "in_invoice",
+       "in_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "search_default_in_refund": 1,
+     "default_move_type": "in_refund"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_amounts_to_settle",
+   "values": {
+    "name": "Amounts to Settle",
+    "res_model": "account.move.line",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_move_line_payment_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_move_line_payment_filter"
+    },
+    "domain": [
+     [
+      "parent_state",
+      "=",
+      "posted"
+     ],
+     [
+      "date_maturity",
+      "!=",
+      false
+     ],
+     [
+      "amount_residual",
+      "!=",
+      0
+     ],
+     [
+      "account_id.reconcile",
+      "=",
+      true
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_out_receipt_type",
+   "values": {
+    "name": "Receipts",
+    "res_model": "account.move",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_invoice_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_invoice_filter"
+    },
+    "domain": [
+     [
+      "move_type",
+      "=",
+      "out_receipt"
+     ]
+    ],
+    "context": {
+     "default_move_type": "out_receipt"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_in_receipt_type",
+   "values": {
+    "name": "Receipts",
+    "res_model": "account.move",
+    "view_mode": "list,kanban,form,activity",
+    "view_id": {
+     "$ref": "view_in_invoice_receipt_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_invoice_filter"
+    },
+    "domain": [
+     [
+      "move_type",
+      "=",
+      "in_receipt"
+     ]
+    ],
+    "context": {
+     "default_move_type": "in_receipt",
+     "display_account_trust": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_move_line_form",
+   "values": {
+    "name": "Entries",
+    "res_model": "account.move",
+    "view_id": {
+     "$ref": "view_move_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_move_filter"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_move_switch_move_type",
+   "values": {
+    "name": "Switch into invoice/credit note",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "state": "code",
+    "binding_view_types": "form",
+    "code": "if records:\n    action = records.action_switch_move_type()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_move_force_register_payment",
+   "values": {
+    "name": "Pay",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "state": "code",
+    "binding_view_types": "form",
+    "code": "if records:\n    action = records.action_force_register_payment()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_move_block_payment",
+   "values": {
+    "name": "(Un)Block Payment",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "state": "code",
+    "binding_view_types": "form",
+    "code": "records.action_toggle_block_payment()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_check_hash_integrity",
+   "values": {
+    "name": "Data Inalterability Check",
+    "model_id": {
+     "$ref": "account.model_res_company"
+    },
+    "state": "code",
+    "code": "action = env.company._action_check_hash_integrity()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_move_export_zip",
+   "values": {
+    "name": "Export ZIP",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "binding_model_id": false,
+    "binding_view_types": "list,form",
+    "state": "code",
+    "sequence": "7",
+    "code": "if records:\n                    action = records.action_export_zip()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_form",
+   "values": {
+    "name": "Chart of Accounts",
+    "res_model": "account.account",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "view_account_search"
+    },
+    "view_id": {
+     "$ref": "view_account_list"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    },
+    "context": {
+     "search_default_activeacc": true
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_unmerge_accounts",
+   "values": {
+    "name": "Unmerge account",
+    "model_id": {
+     "$ref": "model_account_account"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_manager"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_account"
+    },
+    "binding_view_types": "form,list",
+    "state": "code",
+    "code": "if records:\n    action = records.action_unmerge()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_journal_form",
+   "values": {
+    "name": "Journals",
+    "res_model": "account.journal",
+    "view_mode": "list,kanban,form",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "view_account_journal_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "account_journal_view_kanban"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "view_account_journal_form"
+       }
+      }
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_journal_group_list",
+   "values": {
+    "name": "Multi-ledger",
+    "res_model": "account.journal.group",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_bank_statement_tree",
+   "values": {
+    "name": "Bank Statements",
+    "res_model": "account.bank.statement",
+    "view_mode": "list,pivot,graph,form",
+    "domain": [
+     [
+      "journal_id.type",
+      "=",
+      "bank"
+     ]
+    ],
+    "context": {
+     "journal_type": "bank"
+    },
+    "search_view_id": {
+     "$ref": "view_bank_statement_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_credit_statement_tree",
+   "values": {
+    "name": "Credit Statements",
+    "res_model": "account.bank.statement",
+    "view_mode": "list,pivot,graph,form",
+    "domain": [
+     [
+      "journal_id.type",
+      "=",
+      "credit"
+     ]
+    ],
+    "context": {
+     "journal_type": "credit"
+    },
+    "search_view_id": {
+     "$ref": "view_bank_statement_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_bank_statement_tree_bank",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_bank_statement_tree"
+    },
+    "act_window_id": {
+     "$ref": "action_bank_statement_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_bank_statement_tree",
+   "values": {
+    "name": "Cash Registers",
+    "type": "ir.actions.act_window",
+    "res_model": "account.bank.statement",
+    "view_mode": "list,pivot,graph,form",
+    "view_id": {
+     "$ref": "view_bank_statement_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_bank_statement_search"
+    },
+    "domain": [
+     [
+      "journal_id.type",
+      "=",
+      "cash"
+     ]
+    ],
+    "context": {
+     "journal_type": "cash"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_reconcile_model",
+   "values": {
+    "name": "Reconciliation Models",
+    "res_model": "account.reconcile.model",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "view_account_reconcile_model_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_tax_form",
+   "values": {
+    "name": "Taxes",
+    "res_model": "account.tax",
+    "view_mode": "list,kanban,form",
+    "context": {
+     "search_default_sale": true,
+     "search_default_purchase": true,
+     "active_test": false
+    },
+    "view_id": {
+     "$ref": "view_tax_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_tax_group",
+   "values": {
+    "name": "Tax Groups",
+    "res_model": "account.tax.group",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "view_tax_group_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_payment_term_form",
+   "values": {
+    "name": "Payment Terms",
+    "res_model": "account.payment.term",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "view_payment_term_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_new_bank_setting",
+   "values": {
+    "name": "Add a Bank Account",
+    "model_id": {
+     "$ref": "model_res_company"
+    },
+    "state": "code",
+    "code": "action = model.setting_init_bank_account_action()",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_supplier_accounts",
+   "values": {
+    "name": "Bank Accounts",
+    "type": "ir.actions.act_window",
+    "res_model": "res.partner.bank",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "base.view_partner_bank_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_partner_bank_search_inherit"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_validate_account_move",
+   "values": {
+    "name": "Confirm Entries",
+    "res_model": "validate.account.move",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "validate_account_move_view"
+    },
+    "context": {},
+    "target": "new",
+    "help": "This wizard will validate all journal entries selected. Once journal entries are validated, you can not update them anymore.",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_product_action_sellable",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "view_mode": "kanban,list,form,activity",
+    "context": {
+     "search_default_filter_to_sell": 1
+    },
+    "view_id": {
+     "$ref": "product_template_view_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_product_action_purchasable",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "view_mode": "kanban,list,form,activity",
+    "context": {
+     "search_default_filter_to_purchase": 1
+    },
+    "view_id": {
+     "$ref": "product_template_view_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "analytic.account_analytic_line_action_entries",
+   "values": {
+    "search_view_id": {
+     "$ref": "view_account_analytic_line_filter_inherit_account"
+    },
+    "context": {
+     "search_default_group_by_analytic_account": 1,
+     "search_default_fiscal_date": 1,
+     "search_default_profit_loss_accounts": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_analytic_reporting",
+   "values": {
+    "name": "Analytic Reporting",
+    "res_model": "account.analytic.line",
+    "search_view_id": {
+     "$ref": "view_account_analytic_line_filter_inherit_account"
+    },
+    "context": {
+     "search_default_group_by_analytic_account": 1,
+     "search_default_fiscal_date": 1,
+     "search_default_profit_loss_accounts": 1
+    }
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "filter_invoice_report_salespersons",
+   "values": {
+    "name": "By Salespersons",
+    "model_id": "account.invoice.report",
+    "domain": [],
+    "user_id": false,
+    "context": {
+     "group_by": [
+      "invoice_date:month",
+      "invoice_user_id"
+     ]
+    }
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "filter_invoice_product",
+   "values": {
+    "name": "By Product",
+    "model_id": "account.invoice.report",
+    "domain": [],
+    "user_id": false,
+    "context": {
+     "group_by": [
+      "invoice_date:month",
+      "product_id"
+     ],
+     "set_visible": true,
+     "residual_invisible": true
+    }
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "filter_invoice_product_category",
+   "values": {
+    "name": "By Product Category",
+    "model_id": "account.invoice.report",
+    "domain": [],
+    "user_id": false,
+    "context": {
+     "group_by": [
+      "invoice_date:month",
+      "product_categ_id"
+     ],
+     "residual_invisible": true
+    }
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "filter_invoice_refund",
+   "values": {
+    "name": "By Credit Note",
+    "model_id": "account.invoice.report",
+    "domain": [
+     [
+      "move_type",
+      "=",
+      "out_refund"
+     ]
+    ],
+    "user_id": false,
+    "context": {
+     "group_by": [
+      "invoice_date:month",
+      "invoice_user_id"
+     ]
+    }
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "filter_invoice_country",
+   "values": {
+    "name": "By Country",
+    "model_id": "account.invoice.report",
+    "domain": [],
+    "user_id": false,
+    "context": {
+     "group_by": [
+      "invoice_date:month",
+      "country_id"
+     ]
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_invoice_report_all_supp",
+   "values": {
+    "name": "Invoices Analysis",
+    "res_model": "account.invoice.report",
+    "view_mode": "graph,pivot",
+    "context": {
+     "search_default_current": 1,
+     "search_default_supplier": 1,
+     "group_by": [
+      "invoice_date:month"
+     ]
+    },
+    "search_view_id": {
+     "$ref": "view_account_invoice_report_search"
+    },
+    "help": "From this report, you can have an overview of the amount invoiced from your vendors. The search tool can also be used to personalise your Invoices reports and so, match this analysis to your needs."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_invoice_report_all",
+   "values": {
+    "name": "Invoices Analysis",
+    "res_model": "account.invoice.report",
+    "view_mode": "graph,pivot",
+    "context": {
+     "search_default_current": 1,
+     "search_default_customer": 1,
+     "group_by": [
+      "invoice_date:month"
+     ]
+    },
+    "search_view_id": {
+     "$ref": "view_account_invoice_report_search"
+    },
+    "help": "From this report, you can have an overview of the amount invoiced to your customers. The search tool can also be used to personalise your Invoices reports and so, match this analysis to your needs."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "rounding_list_action",
+   "values": {
+    "name": "Cash Roundings",
+    "res_model": "account.cash.rounding",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_base_document_layout_configurator",
+   "values": {
+    "name": "Configure your document layout",
+    "view_mode": "form",
+    "target": "new",
+    "res_model": "base.document.layout",
+    "view_id": {
+     "$ref": "account.view_base_document_layout"
+    },
+    "context": {
+     "dialog_size": "extra-large"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_account_charts_modules",
+   "values": {
+    "name": "Chart Templates",
+    "res_model": "ir.module.module",
+    "view_mode": "kanban,list,form",
+    "context": {
+     "search_default_category_id": {
+      "$ref": "base.module_category_accounting_localizations_account_charts"
+     },
+     "searchpanel_default_category_id": {
+      "$ref": "base.module_category_accounting_localizations_account_charts"
+     }
+    },
+    "search_view_id": {
+     "$ref": "view_module_filter_inherit_account"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_config",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "account",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_action_supplier_bills",
+   "values": {
+    "name": "Vendor Bills",
+    "res_model": "account.move",
+    "view_mode": "list,form,graph",
+    "domain": [
+     [
+      "move_type",
+      "in",
+      [
+       "in_invoice",
+       "in_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{'search_default_partner_id': active_id, 'default_move_type': 'in_invoice', 'default_partner_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_fiscal_position_form",
+   "values": {
+    "name": "Fiscal Positions",
+    "res_model": "account.fiscal.position",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "view_account_position_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_action_customer",
+   "values": {
+    "name": "Customers",
+    "res_model": "res.partner",
+    "path": "customers",
+    "view_mode": "kanban,list,form",
+    "context": {
+     "search_default_customer": 1,
+     "res_partner_search_mode": "customer",
+     "default_is_company": true,
+     "default_customer_rank": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_action_supplier",
+   "values": {
+    "name": "Vendors",
+    "res_model": "res.partner",
+    "path": "vendors",
+    "view_mode": "kanban,list,form",
+    "context": {
+     "search_default_supplier": 1,
+     "res_partner_search_mode": "supplier",
+     "default_is_company": true,
+     "default_supplier_rank": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_account_journal_dashboard_kanban",
+   "values": {
+    "name": "Dashboard",
+    "path": "accounting",
+    "res_model": "account.journal",
+    "view_mode": "kanban,form",
+    "view_id": {
+     "$ref": "account_journal_dashboard_kanban_view"
+    },
+    "usage": "menu",
+    "context": {
+     "search_default_dashboard": 1
+    },
+    "domain": [],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_incoterms_tree",
+   "values": {
+    "name": "Incoterms",
+    "res_model": "account.incoterms",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_EXW",
+   "values": {
+    "code": "EXW",
+    "name": "EX WORKS"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_FCA",
+   "values": {
+    "code": "FCA",
+    "name": "FREE CARRIER"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_FAS",
+   "values": {
+    "code": "FAS",
+    "name": "FREE ALONGSIDE SHIP"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_FOB",
+   "values": {
+    "code": "FOB",
+    "name": "FREE ON BOARD"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_CFR",
+   "values": {
+    "code": "CFR",
+    "name": "COST AND FREIGHT"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_CIF",
+   "values": {
+    "code": "CIF",
+    "name": "COST, INSURANCE AND FREIGHT"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_CPT",
+   "values": {
+    "code": "CPT",
+    "name": "CARRIAGE PAID TO"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_CIP",
+   "values": {
+    "code": "CIP",
+    "name": "CARRIAGE AND INSURANCE PAID TO"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_DPU",
+   "values": {
+    "code": "DPU",
+    "name": "DELIVERED AT PLACE UNLOADED"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_DAP",
+   "values": {
+    "code": "DAP",
+    "name": "DELIVERED AT PLACE"
+   }
+  },
+  {
+   "model": "account.incoterms",
+   "id": "incoterm_DDP",
+   "values": {
+    "code": "DDP",
+    "name": "DELIVERED DUTY PAID"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_account_secure_entries_wizard",
+   "values": {
+    "name": "Secure Journal Entries",
+    "res_model": "account.secure.entries.wizard",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_account_secure_entries_wizard"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_audit_trail_report",
+   "values": {
+    "name": "Audit Trail",
+    "res_model": "mail.message",
+    "view_id": {
+     "$ref": "view_message_tree_audit_log"
+    },
+    "view_mode": "list",
+    "help": {
+     "$unevaluated": "xml"
+    },
+    "domain": [
+     [
+      "message_type",
+      "=",
+      "notification"
+     ],
+     [
+      "account_audit_log_activated",
+      "=",
+      true
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "view_message_tree_audit_log_search"
+    }
+   }
+  },
+  {
+   "model": "account.report",
+   "id": "generic_tax_report",
+   "values": {
+    "name": "Generic Tax report",
+    "filter_multi_company": "tax_units",
+    "filter_fiscal_position": 1,
+    "default_opening_date_filter": "previous_tax_period",
+    "only_tax_exigible": true,
+    "column_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "generic_tax_report_column_net",
+   "values": {
+    "name": "Net",
+    "expression_label": "net",
+    "figure_type": "monetary"
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "generic_tax_report_column_tax",
+   "values": {
+    "name": "Tax",
+    "expression_label": "tax",
+    "figure_type": "monetary"
+   }
+  },
+  {
+   "model": "account.report",
+   "id": "generic_tax_report_account_tax",
+   "values": {
+    "name": "Group by: Account > Tax",
+    "root_report_id": {
+     "$ref": "generic_tax_report"
+    },
+    "availability_condition": "always",
+    "column_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "generic_tax_report_account_tax_column_net",
+   "values": {
+    "name": "Net",
+    "expression_label": "net",
+    "figure_type": "monetary"
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "generic_tax_report_account_tax_column_tax",
+   "values": {
+    "name": "Tax",
+    "expression_label": "tax",
+    "figure_type": "monetary"
+   }
+  },
+  {
+   "model": "account.report",
+   "id": "generic_tax_report_tax_account",
+   "values": {
+    "name": "Group by: Tax > Account",
+    "root_report_id": {
+     "$ref": "generic_tax_report"
+    },
+    "availability_condition": "always",
+    "column_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "generic_tax_report_tax_account_column_net",
+   "values": {
+    "name": "Net",
+    "expression_label": "net",
+    "figure_type": "monetary"
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "generic_tax_report_tax_account_column_tax",
+   "values": {
+    "name": "Tax",
+    "expression_label": "tax",
+    "figure_type": "monetary"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "account_merge_wizard_action",
+   "values": {
+    "name": "Merge accounts",
+    "groups_id": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "account.group_account_manager"
+       }
+      ]
+     ]
+    ],
+    "res_model": "account.merge.wizard",
+    "binding_model_id": {
+     "$ref": "account.model_account_account"
+    },
+    "binding_type": "action",
+    "binding_view_types": "list",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "account.account_merge_wizard_form"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.config_parameter",
+   "id": "product_name_similarity_threshold",
+   "values": {
+    "key": "account.product_name_similarity_threshold",
+    "value": "0.9"
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "account.group_account_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "account.account.tag",
+   "id": "demo_capital_account",
+   "values": {
+    "name": "Demo Capital Account"
+   }
+  },
+  {
+   "model": "account.account.tag",
+   "id": "demo_stock_account",
+   "values": {
+    "name": "Demo Stock Account"
+   }
+  },
+  {
+   "model": "account.account.tag",
+   "id": "demo_sale_of_land_account",
+   "values": {
+    "name": "Demo Sale of Land Account"
+   }
+  },
+  {
+   "model": "account.account.tag",
+   "id": "demo_ceo_wages_account",
+   "values": {
+    "name": "Demo CEO Wages Account"
+   }
+  },
+  {
+   "model": "account.account.tag",
+   "id": "demo_office_furniture_account",
+   "values": {
+    "name": "Office Furniture"
+   }
+  },
+  {
+   "model": "account.payment.term",
+   "id": "account_payment_term_advance",
+   "values": {
+    "name": "30% Advance End of Following Month",
+    "note": "Payment terms: 30% Advance End of Following Month",
+    "line_ids": [
+     [
+      5
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 30.0,
+       "nb_days": 0
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "value": "percent",
+       "value_amount": 70.0,
+       "delay_type": "days_after_end_of_next_month",
+       "nb_days": 0
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_2",
+   "values": {
+    "property_payment_term_id": {
+     "$ref": "account.account_payment_term_30days"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_12",
+   "values": {
+    "property_payment_term_id": {
+     "$ref": "account.account_payment_term_end_following_month"
+    },
+    "property_supplier_payment_term_id": {
+     "$ref": "account.account_payment_term_end_following_month"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_4",
+   "values": {
+    "property_supplier_payment_term_id": {
+     "$ref": "account.account_payment_term_30days"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_1",
+   "values": {
+    "property_supplier_payment_term_id": {
+     "$ref": "account.account_payment_term_end_following_month"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.plan",
+   "id": "analytic.analytic_plan_internal",
+   "values": {
+    "applicability_ids": [
+     [
+      0,
+      0,
+      {
+       "business_domain": "invoice",
+       "account_prefix": "450000",
+       "applicability": "mandatory"
+      }
+     ]
+    ]
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_finance",
+   "name": "Invoicing",
+   "sequence": "55",
+   "groups": "account.group_account_readonly,account.group_account_invoice",
+   "web_icon": "account,static/description/icon.png"
+  },
+  {
+   "id": "menu_board_journal_1",
+   "name": "Dashboard",
+   "action": "open_account_journal_dashboard_kanban",
+   "sequence": "1",
+   "groups": "account.group_account_basic",
+   "parent": "menu_finance"
+  },
+  {
+   "id": "menu_finance_receivables",
+   "name": "Customers",
+   "sequence": "2",
+   "parent": "menu_finance"
+  },
+  {
+   "id": "menu_action_move_out_invoice_type",
+   "action": "action_move_out_invoice",
+   "sequence": "1",
+   "parent": "menu_finance_receivables"
+  },
+  {
+   "id": "menu_action_move_out_refund_type",
+   "action": "action_move_out_refund_type",
+   "sequence": "2",
+   "parent": "menu_finance_receivables"
+  },
+  {
+   "id": "menu_action_move_out_receipt_type",
+   "action": "action_move_out_receipt_type",
+   "sequence": "3",
+   "groups": "account.group_sale_receipts",
+   "parent": "menu_finance_receivables"
+  },
+  {
+   "id": "menu_action_account_payments_receivable",
+   "name": "Payments",
+   "action": "action_account_payments",
+   "sequence": "15",
+   "parent": "menu_finance_receivables"
+  },
+  {
+   "id": "product_product_menu_sellable",
+   "name": "Products",
+   "action": "product_product_action_sellable",
+   "sequence": "100",
+   "parent": "menu_finance_receivables"
+  },
+  {
+   "id": "menu_account_customer",
+   "name": "Customers",
+   "action": "res_partner_action_customer",
+   "sequence": "110",
+   "parent": "menu_finance_receivables"
+  },
+  {
+   "id": "menu_finance_payables",
+   "name": "Vendors",
+   "sequence": "3",
+   "parent": "menu_finance"
+  },
+  {
+   "id": "menu_action_move_in_invoice_type",
+   "action": "action_move_in_invoice",
+   "sequence": "1",
+   "parent": "menu_finance_payables"
+  },
+  {
+   "id": "menu_action_move_in_refund_type",
+   "action": "action_move_in_refund_type",
+   "sequence": "2",
+   "parent": "menu_finance_payables"
+  },
+  {
+   "id": "menu_action_move_in_receipt_type",
+   "action": "action_move_in_receipt_type",
+   "sequence": "3",
+   "groups": "account.group_purchase_receipts",
+   "parent": "menu_finance_payables"
+  },
+  {
+   "id": "menu_action_account_payments_payable",
+   "name": "Payments",
+   "action": "action_account_payments_payable",
+   "sequence": "20",
+   "parent": "menu_finance_payables"
+  },
+  {
+   "id": "product_product_menu_purchasable",
+   "name": "Products",
+   "action": "product_product_action_purchasable",
+   "sequence": "100",
+   "parent": "menu_finance_payables"
+  },
+  {
+   "id": "menu_account_supplier",
+   "name": "Vendors",
+   "action": "account.res_partner_action_supplier",
+   "sequence": "200",
+   "parent": "menu_finance_payables"
+  },
+  {
+   "id": "menu_finance_entries",
+   "name": "Accounting",
+   "sequence": "4",
+   "groups": "account.group_account_readonly",
+   "parent": "menu_finance"
+  },
+  {
+   "id": "menu_action_move_journal_line_form",
+   "action": "action_move_journal_line",
+   "sequence": "1",
+   "groups": "account.group_account_readonly",
+   "parent": "menu_finance_entries"
+  },
+  {
+   "id": "menu_action_account_moves_all",
+   "action": "action_account_moves_all",
+   "sequence": "10",
+   "groups": "account.group_account_readonly",
+   "parent": "menu_finance_entries"
+  },
+  {
+   "id": "menu_action_analytic_lines_tree",
+   "name": "Analytic Items",
+   "action": "analytic.account_analytic_line_action_entries",
+   "sequence": "31",
+   "groups": "analytic.group_analytic_accounting",
+   "parent": "menu_finance_entries"
+  },
+  {
+   "id": "menu_finance_reports",
+   "name": "Reporting",
+   "sequence": "20",
+   "groups": "account.group_account_readonly,account.group_account_invoice",
+   "parent": "menu_finance"
+  },
+  {
+   "id": "account_reports_partners_reports_menu",
+   "name": "Partner Reports",
+   "sequence": "3",
+   "parent": "menu_finance_reports"
+  },
+  {
+   "id": "account_reports_management_menu",
+   "name": "Management",
+   "sequence": "4",
+   "parent": "menu_finance_reports"
+  },
+  {
+   "id": "menu_action_account_invoice_report_all",
+   "name": "Invoice Analysis",
+   "action": "action_account_invoice_report_all",
+   "sequence": "1",
+   "parent": "account_reports_management_menu"
+  },
+  {
+   "id": "menu_action_analytic_reporting",
+   "name": "Analytic Report",
+   "action": "action_analytic_reporting",
+   "groups": "account.group_account_readonly",
+   "parent": "account_reports_management_menu"
+  },
+  {
+   "id": "account_reports_legal_statements_menu",
+   "name": "Statement Reports",
+   "sequence": "1",
+   "groups": "account.group_account_readonly,account.group_account_basic",
+   "parent": "menu_finance_reports"
+  },
+  {
+   "id": "menu_finance_configuration",
+   "name": "Configuration",
+   "sequence": "35",
+   "groups": "account.group_account_manager",
+   "parent": "menu_finance"
+  },
+  {
+   "id": "menu_account_config",
+   "name": "Settings",
+   "action": "action_account_config",
+   "sequence": "0",
+   "groups": "base.group_system",
+   "parent": "menu_finance_configuration"
+  },
+  {
+   "id": "account_invoicing_menu",
+   "name": "Invoicing",
+   "sequence": "1",
+   "groups": "account.group_account_invoice,account.group_account_readonly",
+   "parent": "menu_finance_configuration"
+  },
+  {
+   "id": "menu_action_payment_term_form",
+   "action": "action_payment_term_form",
+   "sequence": "1",
+   "parent": "account_invoicing_menu"
+  },
+  {
+   "id": "menu_action_incoterm_open",
+   "action": "action_incoterms_tree",
+   "sequence": "3",
+   "groups": "base.group_no_one",
+   "parent": "account_invoicing_menu"
+  },
+  {
+   "id": "account_banks_menu",
+   "name": "Banks",
+   "sequence": "2",
+   "groups": "account.group_account_manager",
+   "parent": "menu_finance_configuration"
+  },
+  {
+   "id": "menu_action_account_bank_journal_form",
+   "action": "action_new_bank_setting",
+   "sequence": "1",
+   "groups": "account.group_account_manager",
+   "parent": "account_banks_menu"
+  },
+  {
+   "id": "action_account_reconcile_model_menu",
+   "action": "account.action_account_reconcile_model",
+   "sequence": "3",
+   "groups": "account.group_account_user",
+   "parent": "account_banks_menu"
+  },
+  {
+   "id": "account_account_menu",
+   "name": "Accounting",
+   "sequence": "3",
+   "groups": "account.group_account_manager",
+   "parent": "menu_finance_configuration"
+  },
+  {
+   "id": "menu_action_account_form",
+   "action": "action_account_form",
+   "sequence": "1",
+   "groups": "account.group_account_readonly",
+   "parent": "account_account_menu"
+  },
+  {
+   "id": "menu_action_tax_form",
+   "action": "action_tax_form",
+   "sequence": "2",
+   "parent": "account_account_menu"
+  },
+  {
+   "id": "menu_action_account_journal_form",
+   "action": "action_account_journal_form",
+   "sequence": "3",
+   "groups": "account.group_account_manager",
+   "parent": "account_account_menu"
+  },
+  {
+   "id": "account_report_folder",
+   "name": "Reporting",
+   "sequence": "4",
+   "groups": "account.group_account_readonly",
+   "parent": "account_account_menu"
+  },
+  {
+   "id": "menu_action_currency_form",
+   "name": "Currencies",
+   "action": "base.action_currency_form",
+   "sequence": "4",
+   "parent": "account_account_menu"
+  },
+  {
+   "id": "menu_action_account_fiscal_position_form",
+   "action": "action_account_fiscal_position_form",
+   "sequence": "5",
+   "parent": "account_account_menu"
+  },
+  {
+   "id": "menu_action_account_journal_group_list",
+   "name": "Multi-Ledger",
+   "action": "action_account_journal_group_list",
+   "sequence": "7",
+   "groups": "account.group_account_readonly",
+   "parent": "account_account_menu"
+  },
+  {
+   "id": "menu_action_tax_group",
+   "action": "action_tax_group",
+   "sequence": "8",
+   "groups": "base.group_no_one",
+   "parent": "account_account_menu"
+  },
+  {
+   "id": "root_payment_menu",
+   "name": "Online Payments",
+   "sequence": "4",
+   "groups": "account.group_account_manager",
+   "parent": "menu_finance_configuration"
+  },
+  {
+   "id": "account_management_menu",
+   "name": "Management",
+   "sequence": "5",
+   "groups": "account.group_account_manager",
+   "parent": "menu_finance_configuration"
+  },
+  {
+   "id": "menu_product_product_categories",
+   "action": "product.product_category_action_form",
+   "sequence": "3",
+   "parent": "account_management_menu"
+  },
+  {
+   "id": "menu_action_rounding_form_view",
+   "action": "rounding_list_action",
+   "sequence": "4",
+   "groups": "account.group_cash_rounding",
+   "parent": "account_management_menu"
+  },
+  {
+   "id": "menu_analytic_accounting",
+   "name": "Analytic Accounting",
+   "sequence": "6",
+   "groups": "analytic.group_analytic_accounting",
+   "parent": "menu_finance_configuration"
+  },
+  {
+   "id": "menu_analytic__distribution_model",
+   "name": "Analytic Distribution Models",
+   "action": "analytic.action_analytic_distribution_model",
+   "sequence": "1",
+   "groups": "analytic.group_analytic_accounting",
+   "parent": "menu_analytic_accounting"
+  },
+  {
+   "id": "account_analytic_def_account",
+   "action": "analytic.action_account_analytic_account_form",
+   "sequence": "1",
+   "groups": "analytic.group_analytic_accounting",
+   "parent": "menu_analytic_accounting"
+  },
+  {
+   "id": "account_analytic_plan_menu",
+   "name": "Analytic Plans",
+   "action": "analytic.account_analytic_plan_action",
+   "sequence": "2",
+   "groups": "analytic.group_analytic_accounting",
+   "parent": "menu_analytic_accounting"
+  },
+  {
+   "id": "menu_action_secure_entries",
+   "name": "Secure Entries",
+   "parent": "account.menu_finance_entries",
+   "action": "action_view_account_secure_entries_wizard",
+   "sequence": "80",
+   "groups": "base.group_no_one,account.group_account_secured"
+  },
+  {
+   "id": "account_audit_trail_menu",
+   "name": "Audit Trail",
+   "parent": "account.account_reports_management_menu",
+   "action": "action_account_audit_trail_report"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_account_cash_rounding_readonly",
+   "model": "account.cash.rounding",
+   "model_xmlid": "model_account_cash_rounding",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_cash_rounding_uinvoice",
+   "model": "account.cash.rounding",
+   "model_xmlid": "model_account_cash_rounding",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_res_partner_group_account_manager",
+   "model": "res.partner",
+   "model_xmlid": "model_res_partner",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_currency_account_manager",
+   "model": "base.res.currency",
+   "model_xmlid": "base.model_res_currency",
+   "group": "group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_res_currency_rate_account_manager",
+   "model": "base.res.currency.rate",
+   "model_xmlid": "base.model_res_currency_rate",
+   "group": "group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_invoice_report_readonly",
+   "model": "account.invoice.report",
+   "model_xmlid": "model_account_invoice_report",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_invoice_report_billing",
+   "model": "account.invoice.report",
+   "model_xmlid": "model_account_invoice_report",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_invoice_report",
+   "model": "account.invoice.report",
+   "model_xmlid": "model_account_invoice_report",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_incoterms_all",
+   "model": "account.incoterms",
+   "model_xmlid": "model_account_incoterms",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_incoterms_manager",
+   "model": "account.incoterms",
+   "model_xmlid": "model_account_incoterms",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_secure_entries_wizard",
+   "model": "account.secure.entries.wizard",
+   "model_xmlid": "model_account_secure_entries_wizard",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_lock_exception",
+   "model": "account.lock.exception",
+   "model_xmlid": "model_account_lock_exception",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_lock_exception_manager",
+   "model": "account.lock.exception",
+   "model_xmlid": "model_account_lock_exception",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": false,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_fiscal_position_product_manager",
+   "model": "account.fiscal.position",
+   "model_xmlid": "model_account_fiscal_position",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_fiscal_position_tax_product_manager",
+   "model": "account.fiscal.position.tax",
+   "model_xmlid": "model_account_fiscal_position_tax",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_fiscal_position_account_product_manager",
+   "model": "account.fiscal.position.account",
+   "model_xmlid": "model_account_fiscal_position_account",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_fiscal_position",
+   "model": "account.fiscal.position",
+   "model_xmlid": "model_account_fiscal_position",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_fiscal_position_tax",
+   "model": "account.fiscal.position.tax",
+   "model_xmlid": "model_account_fiscal_position_tax",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_fiscal_position_account",
+   "model": "account.fiscal.position.account",
+   "model_xmlid": "model_account_fiscal_position_account",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_account_user",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_account_manager",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_account_manager",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_bank_statement_group_readonly",
+   "model": "account.bank.statement",
+   "model_xmlid": "model_account_bank_statement",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_bank_statement_group_invoice",
+   "model": "account.bank.statement",
+   "model_xmlid": "model_account_bank_statement",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_bank_statement_line_group_readonly",
+   "model": "account.bank.statement.line",
+   "model_xmlid": "model_account_bank_statement_line",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_bank_statement_line_group_invoice",
+   "model": "account.bank.statement.line",
+   "model_xmlid": "model_account_bank_statement_line",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_bank_statement",
+   "model": "account.bank.statement",
+   "model_xmlid": "model_account_bank_statement",
+   "group": "account.group_account_basic",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_bank_statement_line",
+   "model": "account.bank.statement.line",
+   "model_xmlid": "model_account_bank_statement_line",
+   "group": "account.group_account_basic",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_move_line_manager",
+   "model": "account.move.line",
+   "model_xmlid": "model_account_move_line",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_manager",
+   "model": "account.move",
+   "model_xmlid": "model_account_move",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_readonly",
+   "model": "account.move",
+   "model_xmlid": "model_account_move",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_uinvoice",
+   "model": "account.move",
+   "model_xmlid": "model_account_move",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_move_line_readonly",
+   "model": "account.move.line",
+   "model_xmlid": "model_account_move_line",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_line_uinvoice",
+   "model": "account.move.line",
+   "model_xmlid": "model_account_move_line",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_invoice_portal",
+   "model": "account.account.move",
+   "model_xmlid": "account.model_account_move",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_invoice_line_portal",
+   "model": "account.account.move.line",
+   "model_xmlid": "account.model_account_move_line",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_line_manager",
+   "model": "account.analytic.line",
+   "model_xmlid": "model_account_analytic_line",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_account",
+   "model": "analytic.account.analytic.account",
+   "model_xmlid": "analytic.model_account_analytic_account",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_line_readonly",
+   "model": "account.analytic.line",
+   "model_xmlid": "model_account_analytic_line",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_line_invoice",
+   "model": "account.analytic.line",
+   "model_xmlid": "model_account_analytic_line",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_accountant",
+   "model": "analytic.account.analytic.account",
+   "model_xmlid": "analytic.model_account_analytic_account",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_plan_accountant",
+   "model": "analytic.account.analytic.plan",
+   "model_xmlid": "analytic.model_account_analytic_plan",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_applicability_accountant",
+   "model": "analytic.account.analytic.applicability",
+   "model_xmlid": "analytic.model_account_analytic_applicability",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_distribution_readonly",
+   "model": "analytic.account.analytic.distribution.model",
+   "model_xmlid": "analytic.model_account_analytic_distribution_model",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_distribution_invoice",
+   "model": "analytic.account.analytic.distribution.model",
+   "model_xmlid": "analytic.model_account_analytic_distribution_model",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_journal_readonly",
+   "model": "account.journal",
+   "model_xmlid": "model_account_journal",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_manager",
+   "model": "account.journal",
+   "model_xmlid": "model_account_journal",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_journal_invoice",
+   "model": "account.journal",
+   "model_xmlid": "model_account_journal",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_group_invoice",
+   "model": "account.journal.group",
+   "model_xmlid": "model_account_journal_group",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_group_readonly",
+   "model": "account.journal.group",
+   "model_xmlid": "model_account_journal_group",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_group_manager",
+   "model": "account.journal.group",
+   "model_xmlid": "model_account_journal_group",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_group_basic",
+   "model": "account.group",
+   "model_xmlid": "model_account_group",
+   "group": "account.group_account_basic",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_group_manager",
+   "model": "account.group",
+   "model_xmlid": "model_account_group",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_group",
+   "model": "account.group",
+   "model_xmlid": "model_account_group",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_root_manager",
+   "model": "account.root",
+   "model_xmlid": "model_account_root",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_root",
+   "model": "account.root",
+   "model_xmlid": "model_account_root",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_code_mapping",
+   "model": "account.code.mapping",
+   "model_xmlid": "model_account_code_mapping",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_code_mapping_manager",
+   "model": "account.code.mapping",
+   "model_xmlid": "model_account_code_mapping",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_account_manager",
+   "model": "account.account",
+   "model_xmlid": "model_account_account",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_account",
+   "model": "account.account",
+   "model_xmlid": "model_account_account",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_account_user",
+   "model": "account.account",
+   "model_xmlid": "model_account_account",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_account_partner_manager",
+   "model": "account.account",
+   "model_xmlid": "model_account_account",
+   "group": "base.group_partner_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_account_invoice",
+   "model": "account.account",
+   "model_xmlid": "model_account_account",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_internal_user",
+   "model": "account.tax",
+   "model_xmlid": "model_account_tax",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_readonly",
+   "model": "account.tax",
+   "model_xmlid": "model_account_tax",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_invoice",
+   "model": "account.tax",
+   "model_xmlid": "model_account_tax",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_manager",
+   "model": "account.tax",
+   "model_xmlid": "model_account_tax",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_tag_internal_user",
+   "model": "account.account.tag",
+   "model_xmlid": "model_account_account_tag",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_account_tax",
+   "model": "account.account.tag",
+   "model_xmlid": "model_account_account_tag",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_account_tax_readonly",
+   "model": "account.account.tag",
+   "model_xmlid": "model_account_account_tag",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_account_tax_user",
+   "model": "account.account.tag",
+   "model_xmlid": "model_account_account_tag",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_repartition_line_user",
+   "model": "account.tax.repartition.line",
+   "model_xmlid": "model_account_tax_repartition_line",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_repartition_line_readonly",
+   "model": "account.tax.repartition.line",
+   "model_xmlid": "model_account_tax_repartition_line",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_repartition_line_invoice",
+   "model": "account.tax.repartition.line",
+   "model_xmlid": "model_account_tax_repartition_line",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_repartition_line_manager",
+   "model": "account.tax.repartition.line",
+   "model_xmlid": "model_account_tax_repartition_line",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_tax_group_internal_user",
+   "model": "account.tax.group",
+   "model_xmlid": "model_account_tax_group",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_group_readonly",
+   "model": "account.tax.group",
+   "model_xmlid": "model_account_tax_group",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_group",
+   "model": "account.tax.group",
+   "model_xmlid": "model_account_tax_group",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_group_manager",
+   "model": "account.tax.group",
+   "model_xmlid": "model_account_tax_group",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_reconcile_model_readonly",
+   "model": "account.reconcile.model",
+   "model_xmlid": "model_account_reconcile_model",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_reconcile_model_billing",
+   "model": "account.reconcile.model",
+   "model_xmlid": "model_account_reconcile_model",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_reconcile_model",
+   "model": "account.reconcile.model",
+   "model_xmlid": "model_account_reconcile_model",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_reconcile_model_line_readonly",
+   "model": "account.reconcile.model.line",
+   "model_xmlid": "model_account_reconcile_model_line",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_reconcile_model_line_billing",
+   "model": "account.reconcile.model.line",
+   "model_xmlid": "model_account_reconcile_model_line",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_reconcile_model_line",
+   "model": "account.reconcile.model.line",
+   "model_xmlid": "model_account_reconcile_model_line",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_reconcile_model_partner_mapping_readonly",
+   "model": "account.reconcile.model.partner.mapping",
+   "model_xmlid": "model_account_reconcile_model_partner_mapping",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_reconcile_model_partner_mapping_billing",
+   "model": "account.reconcile.model.partner.mapping",
+   "model_xmlid": "model_account_reconcile_model_partner_mapping",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_reconcile_model_partner_mapping",
+   "model": "account.reconcile.model.partner.mapping",
+   "model_xmlid": "model_account_reconcile_model_partner_mapping",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_partial_reconcile_readonly",
+   "model": "account.partial.reconcile",
+   "model_xmlid": "model_account_partial_reconcile",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_partial_reconcile_group_invoice",
+   "model": "account.partial.reconcile",
+   "model_xmlid": "model_account_partial_reconcile",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_partial_reconcile",
+   "model": "account.partial.reconcile",
+   "model_xmlid": "model_account_partial_reconcile",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_full_reconcile_group_readonly",
+   "model": "account.full.reconcile",
+   "model_xmlid": "model_account_full_reconcile",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_full_reconcile_group_invoice",
+   "model": "account.full.reconcile",
+   "model_xmlid": "model_account_full_reconcile",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_full_reconcile",
+   "model": "account.full.reconcile",
+   "model_xmlid": "model_account_full_reconcile",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_payment_term_partner_manager",
+   "model": "account.payment.term",
+   "model_xmlid": "model_account_payment_term",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment_term_portal",
+   "model": "account.payment.term",
+   "model_xmlid": "model_account_payment_term",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment_term_manager",
+   "model": "account.payment.term",
+   "model_xmlid": "model_account_payment_term",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_payment_term_line_partner_manager",
+   "model": "account.payment.term.line",
+   "model_xmlid": "model_account_payment_term_line",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment_term_line_manager",
+   "model": "account.payment.term.line",
+   "model_xmlid": "model_account_payment_term_line",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_payment_method_line_readonly",
+   "model": "account.payment.method.line",
+   "model_xmlid": "model_account_payment_method_line",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment_method_line",
+   "model": "account.payment.method.line",
+   "model_xmlid": "model_account_payment_method_line",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_payment_method_readonly",
+   "model": "account.payment.method",
+   "model_xmlid": "model_account_payment_method",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment_method",
+   "model": "account.payment.method",
+   "model_xmlid": "model_account_payment_method",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": true
+  },
+  {
+   "id": "access_account_payment_readonly",
+   "model": "account.payment",
+   "model_xmlid": "model_account_payment",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment",
+   "model": "account.payment",
+   "model_xmlid": "model_account_payment",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_payment_register",
+   "model": "account.payment.register",
+   "model_xmlid": "model_account_payment_register",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_automatic_entry_wizard",
+   "model": "account.automatic.entry.wizard",
+   "model_xmlid": "model_account_automatic_entry_wizard",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_autopost_bills_wizard",
+   "model": "account.autopost.bills.wizard",
+   "model_xmlid": "model_account_autopost_bills_wizard",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_resequence",
+   "model": "account.resequence.wizard",
+   "model_xmlid": "model_account_resequence_wizard",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_validate_account_move",
+   "model": "validate.account.move",
+   "model_xmlid": "model_validate_account_move",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_reversal",
+   "model": "account.move.reversal",
+   "model_xmlid": "model_account_move_reversal",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_financial_year_op",
+   "model": "account.financial.year.op",
+   "model_xmlid": "model_account_financial_year_op",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_setup_bank_manual_config",
+   "model": "account.setup.bank.manual.config",
+   "model_xmlid": "model_account_setup_bank_manual_config",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_send_wizard",
+   "model": "account.move.send.wizard",
+   "model_xmlid": "model_account_move_send_wizard",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_move_send_batch_wizard",
+   "model": "account.move.send.batch.wizard",
+   "model_xmlid": "model_account_move_send_batch_wizard",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_accrued_orders_wizard",
+   "model": "account.account.accrued.orders.wizard",
+   "model_xmlid": "account.model_account_accrued_orders_wizard",
+   "group": "group_account_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_basic",
+   "model": "account.report",
+   "model_xmlid": "model_account_report",
+   "group": "account.group_account_basic",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_readonly",
+   "model": "account.report",
+   "model_xmlid": "model_account_report",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_ac_user",
+   "model": "account.report",
+   "model_xmlid": "model_account_report",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_report_line_basic",
+   "model": "account.report.line",
+   "model_xmlid": "model_account_report_line",
+   "group": "account.group_account_basic",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_line_readonly",
+   "model": "account.report.line",
+   "model_xmlid": "model_account_report_line",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_line_ac_user",
+   "model": "account.report.line",
+   "model_xmlid": "model_account_report_line",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_report_expression_basic",
+   "model": "account.report.expression",
+   "model_xmlid": "model_account_report_expression",
+   "group": "account.group_account_basic",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_expression_readonly",
+   "model": "account.report.expression",
+   "model_xmlid": "model_account_report_expression",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_expression_ac_user",
+   "model": "account.report.expression",
+   "model_xmlid": "model_account_report_expression",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_report_column_basic",
+   "model": "account.report.column",
+   "model_xmlid": "model_account_report_column",
+   "group": "account.group_account_basic",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_column_readonly",
+   "model": "account.report.column",
+   "model_xmlid": "model_account_report_column",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_column_ac_user",
+   "model": "account.report.column",
+   "model_xmlid": "model_account_report_column",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_report_external_value_readonly",
+   "model": "account.report.external.value",
+   "model_xmlid": "model_account_report_external_value",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_report_external_value_ac_user",
+   "model": "account.report.external.value",
+   "model_xmlid": "model_account_report_external_value",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_merge_wizard_manager",
+   "model": "account.merge.wizard",
+   "model_xmlid": "model_account_merge_wizard",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_merge_wizard_line_manager",
+   "model": "account.merge.wizard.line",
+   "model_xmlid": "model_account_merge_wizard_line",
+   "group": "account.group_account_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

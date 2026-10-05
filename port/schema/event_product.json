@@ -1,0 +1,246 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "views/event_ticket_views.xml",
+  "data/event_product_data.xml",
+  "data/event_product_demo.xml",
+  "data/event_demo.xml"
+ ],
+ "depends": [
+  "event",
+  "product",
+  "account"
+ ],
+ "models": {
+  "event.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "currency_id": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "event.event",
+   "transient": false
+  },
+  "event.event.ticket": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "price_incl": {
+     "compute": "_compute_price_incl",
+     "readonly": false,
+     "string": "Price include",
+     "type": "Float"
+    },
+    "price_reduce_taxinc": {
+     "compute": "_compute_price_reduce_taxinc",
+     "string": "Price Reduce Tax inc",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.active')"
+     ],
+     "lines": 5,
+     "name": "_compute_sale_available"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_price_reduce_taxinc"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_id.taxes_id', 'price')"
+     ],
+     "lines": 8,
+     "name": "_compute_price_incl"
+    }
+   ],
+   "name": "event.event.ticket",
+   "order": "event_id, sequence, price, name, id",
+   "transient": false
+  },
+  "event.type.ticket": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "currency_id": {
+     "related": "product_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "description": {
+     "compute": "_compute_description",
+     "readonly": false,
+     "store": true,
+     "type": "Text"
+    },
+    "price": {
+     "compute": "_compute_price",
+     "readonly": false,
+     "store": true,
+     "string": "Price",
+     "type": "Float"
+    },
+    "price_reduce": {
+     "compute": "_compute_price_reduce",
+     "string": "Price Reduce",
+     "type": "Float"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "default": {
+      "$ref": "_default_product_id"
+     },
+     "domain": [
+      [
+       "service_tracking",
+       "=",
+       "event"
+      ]
+     ],
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context(*PRICE_CONTEXT_KEYS)",
+      "api.depends('product_id', 'price')"
+     ],
+     "lines": 4,
+     "name": "_compute_price_reduce"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_init_column"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_event_ticket_fields_whitelist"
+    }
+   ],
+   "name": "event.type.ticket",
+   "order": "sequence, price, name, id",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_ticket_ids": {
+     "comodel": "event.event.ticket",
+     "inverse_name": "product_id",
+     "string": "Event Tickets",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('event_ticket_ids', 'service_tracking')"
+     ],
+     "lines": 8,
+     "name": "_check_event_ticket_service_tracking"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "service_tracking": {
+     "ondelete": {
+      "event": "set default"
+     },
+     "selection_add": [
+      [
+       "event",
+       "Event Registration"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_service_tracking_blacklist"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  }
+ },
+ "module": "event_product",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/event_product",
+ "stats": {
+  "fields": 10,
+  "methods": 11,
+  "models": 5,
+  "py_lines": 180
+ },
+ "summary": "",
+ "title": "Events Product",
+ "version": "1.0"
+}

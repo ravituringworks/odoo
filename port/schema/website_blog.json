@@ -1,0 +1,513 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/Website",
+ "data_files": [
+  "data/mail_message_subtype_data.xml",
+  "data/mail_templates.xml",
+  "data/website_blog_data.xml",
+  "data/blog_snippet_template_data.xml",
+  "data/website_blog_tour.xml",
+  "views/website_blog_views.xml",
+  "views/website_blog_components.xml",
+  "views/website_blog_posts_loop.xml",
+  "views/website_blog_templates.xml",
+  "views/snippets/snippets.xml",
+  "views/snippets/s_blog_posts.xml",
+  "views/snippets/s_dynamic_snippet_blog_posts_preview_data.xml",
+  "views/website_pages_views.xml",
+  "views/blog_post_add.xml",
+  "security/ir.model.access.csv",
+  "security/website_blog_security.xml",
+  "data/website_blog_demo.xml"
+ ],
+ "depends": [
+  "website_mail",
+  "website_partner"
+ ],
+ "models": {
+  "blog.blog": {
+   "abstract": false,
+   "description": "Blog",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "blog_post_count": {
+     "compute": "_compute_blog_post_count",
+     "string": "Posts",
+     "type": "Integer"
+    },
+    "blog_post_ids": {
+     "comodel": "blog.post",
+     "inverse_name": "blog_id",
+     "string": "Blog Posts",
+     "type": "One2many"
+    },
+    "content": {
+     "string": "Content",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "name": {
+     "required": true,
+     "string": "Blog Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "subtitle": {
+     "string": "Blog Subtitle",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "website.cover_properties.mixin",
+    "website.multi.mixin",
+    "website.searchable.mixin",
+    "website.seo.metadata"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('blog_post_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_blog_post_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('mail.message', lambda value: value.id)"
+     ],
+     "lines": 10,
+     "name": "message_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "all_tags"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_search_get_detail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_search_render_results"
+    }
+   ],
+   "name": "blog.blog",
+   "order": "name",
+   "transient": false
+  },
+  "blog.post": {
+   "abstract": false,
+   "description": "Blog Post",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "author_avatar": {
+     "readonly": false,
+     "related": "author_id.image_128",
+     "string": "Avatar",
+     "type": "Binary"
+    },
+    "author_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$lambda": "self.env.user.partner_id"
+     },
+     "index": "btree_not_null",
+     "string": "Author",
+     "type": "Many2one"
+    },
+    "author_name": {
+     "readonly": false,
+     "related": "author_id.display_name",
+     "store": true,
+     "string": "Author Name",
+     "type": "Char"
+    },
+    "blog_id": {
+     "comodel": "blog.blog",
+     "default": {
+      "$lambda": "self.env['blog.blog'].search([], limit=1)"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Blog",
+     "type": "Many2one"
+    },
+    "content": {
+     "default": {
+      "$ref": "_default_content"
+     },
+     "string": "Content",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "create_date": {
+     "readonly": true,
+     "string": "Created on",
+     "type": "Datetime"
+    },
+    "create_uid": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "Created by",
+     "type": "Many2one"
+    },
+    "name": {
+     "default": "",
+     "required": true,
+     "string": "Title",
+     "translate": true,
+     "type": "Char"
+    },
+    "post_date": {
+     "compute": "_compute_post_date",
+     "help": "The blog post will be visible for your visitors as of this date on the website if it is set as published.",
+     "store": true,
+     "string": "Publishing date",
+     "type": "Datetime"
+    },
+    "published_date": {
+     "string": "Published Date",
+     "type": "Datetime"
+    },
+    "subtitle": {
+     "string": "Sub Title",
+     "translate": true,
+     "type": "Char"
+    },
+    "tag_ids": {
+     "comodel": "blog.tag",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "teaser": {
+     "compute": "_compute_teaser",
+     "string": "Teaser",
+     "translate": true,
+     "type": "Text"
+    },
+    "teaser_manual": {
+     "string": "Teaser Content",
+     "translate": true,
+     "type": "Text"
+    },
+    "visits": {
+     "copy": false,
+     "default": 0,
+     "readonly": true,
+     "string": "No of Views",
+     "type": "Integer"
+    },
+    "website_id": {
+     "readonly": true,
+     "related": "blog_id.website_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "website_message_ids": {
+     "domain": {
+      "$lambda": "[('model', '=', self._name), ('message_type', '=', 'comment')]"
+     },
+     "type": "One2many"
+    },
+    "write_date": {
+     "readonly": true,
+     "string": "Last Updated on",
+     "type": "Datetime"
+    },
+    "write_uid": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "Last Contributor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "website.cover_properties.mixin",
+    "website.published.multi.mixin",
+    "website.searchable.mixin",
+    "website.seo.metadata"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_content"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('content', 'teaser_manual')"
+     ],
+     "lines": 7,
+     "name": "_compute_teaser"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_set_teaser"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('create_date', 'published_date')"
+     ],
+     "lines": 6,
+     "name": "_compute_post_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_set_post_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_check_for_publication"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_access_action"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_notify_thread_by_inbox"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_default_website_meta"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 49,
+     "name": "_search_get_detail"
+    }
+   ],
+   "name": "blog.post",
+   "order": "id DESC",
+   "sel_methods": {
+    "_notify_thread_by_inbox": []
+   },
+   "transient": false
+  },
+  "blog.tag": {
+   "abstract": false,
+   "description": "Blog Tag",
+   "extension": false,
+   "fields": {
+    "category_id": {
+     "comodel": "blog.tag.category",
+     "index": true,
+     "string": "Category",
+     "type": "Many2one"
+    },
+    "color": {
+     "string": "Color",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "post_ids": {
+     "comodel": "blog.post",
+     "string": "Posts",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "website.seo.metadata"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    }
+   ],
+   "name": "blog.tag",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "blog.tag.category": {
+   "abstract": false,
+   "description": "Blog Tag Category",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "tag_ids": {
+     "comodel": "blog.tag",
+     "inverse_name": "category_id",
+     "string": "Tags",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "blog.tag.category",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag category already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "get_suggested_controllers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "configurator_set_menu_links"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_get_details"
+    }
+   ],
+   "name": "website",
+   "transient": false
+  },
+  "website.snippet.filter": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_get_hardcoded_sample"
+    }
+   ],
+   "name": "website.snippet.filter",
+   "transient": false
+  }
+ },
+ "module": "website_blog",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_blog",
+ "stats": {
+  "fields": 32,
+  "methods": 26,
+  "models": 6,
+  "py_lines": 792
+ },
+ "summary": "Publish blog posts, announces, news",
+ "title": "Blog",
+ "version": "1.1"
+}

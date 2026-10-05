@@ -1,0 +1,703 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/pos_sale_data.xml",
+  "security/pos_sale_security.xml",
+  "security/ir.model.access.csv",
+  "views/point_of_sale_report.xml",
+  "views/sale_order_views.xml",
+  "views/pos_order_views.xml",
+  "views/product_views.xml",
+  "views/sales_team_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/stock_template.xml"
+ ],
+ "depends": [
+  "point_of_sale",
+  "sale_management"
+ ],
+ "models": {
+  "crm.team": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_config_ids": {
+     "comodel": "pos.config",
+     "inverse_name": "crm_team_id",
+     "string": "Point of Sales",
+     "type": "One2many"
+    },
+    "pos_order_amount_total": {
+     "compute": "_compute_pos_order_amount_total",
+     "string": "Session Sale Amount",
+     "type": "Float"
+    },
+    "pos_sessions_open_count": {
+     "compute": "_compute_pos_sessions_open_count",
+     "string": "Open POS Sessions",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_pos_sessions_open_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_pos_order_amount_total"
+    }
+   ],
+   "name": "crm.team",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "crm_team_id": {
+     "comodel": "crm.team",
+     "help": "This Point of sale's sales will be related to this Sales Team.",
+     "ondelete": "set null",
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "down_payment_product_id": {
+     "comodel": "product.product",
+     "help": "This product will be used as down payment on a sale order.",
+     "string": "Down Payment Product",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_special_products"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_ensure_downpayment_product"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "load_onboarding_furniture_scenario"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "crm_team_id": {
+     "comodel": "crm.team",
+     "ondelete": "set null",
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "currency_rate": {
+     "compute": "_compute_currency_rate",
+     "digits": 0,
+     "readonly": true,
+     "store": true,
+     "type": "Float"
+    },
+    "sale_order_count": {
+     "compute": "_count_sale_order",
+     "groups": "sales_team.group_sale_salesman",
+     "readonly": true,
+     "string": "Sale Order Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_count_sale_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_complete_values_from_session"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_order', 'company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_currency_rate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_invoice_vals"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_pos_order_paid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 90,
+     "name": "sync_from_ui"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_sale_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_fields_for_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_stock_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_invoice_lines_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_force_create_picking_real_time"
+    }
+   ],
+   "name": "pos.order",
+   "transient": false
+  },
+  "pos.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "down_payment_details": {
+     "string": "Down Payment Details",
+     "type": "Text"
+    },
+    "qty_delivered": {
+     "compute": "_compute_qty_delivered",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Delivery Quantity",
+     "type": "Float"
+    },
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "string": "Source Sale Order Line",
+     "type": "Many2one"
+    },
+    "sale_order_origin_id": {
+     "comodel": "sale.order",
+     "string": "Linked Sale Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id.state', 'order_id.picking_ids', 'order_id.picking_ids.state', 'order_id.picking_ids.move_ids.quantity')"
+     ],
+     "lines": 25,
+     "name": "_compute_qty_delivered"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_launch_stock_rule_from_pos_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_refund_data"
+    }
+   ],
+   "name": "pos.order.line",
+   "sel_methods": {
+    "_launch_stock_rule_from_pos_order_lines": []
+   },
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "crm_team_id": {
+     "comodel": "crm.team",
+     "readonly": true,
+     "related": "config_id.crm_team_id",
+     "string": "Sales Team",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_models"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_product_info_pos"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "has_optional_product_in_pos"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_optional_product_pos_domain"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_crm_team_id": {
+     "readonly": false,
+     "related": "pos_config_id.crm_team_id",
+     "string": "Sales Team (PoS)",
+     "type": "Many2one"
+    },
+    "pos_down_payment_product_id": {
+     "readonly": false,
+     "related": "pos_config_id.down_payment_product_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "amount_unpaid": {
+     "compute": "_compute_amount_unpaid",
+     "help": "Amount left to pay in POS to avoid double payment or double invoicing.",
+     "store": true,
+     "string": "Amount To Pay In POS",
+     "type": "Monetary"
+    },
+    "pos_order_count": {
+     "compute": "_count_pos_order",
+     "groups": "point_of_sale.group_pos_user",
+     "readonly": true,
+     "string": "Pos Order Count",
+     "type": "Integer"
+    },
+    "pos_order_line_ids": {
+     "comodel": "pos.order.line",
+     "groups": "point_of_sale.group_pos_user",
+     "inverse_name": "sale_order_origin_id",
+     "readonly": true,
+     "string": "Order lines Transfered to Point of Sale",
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_count_pos_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_pos_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids.state', 'transaction_ids.amount', 'order_line', 'amount_total', 'order_line.invoice_lines.parent_state', 'order_line.invoice_lines.price_total', 'order_line.pos_order_line_ids')"
+     ],
+     "lines": 11,
+     "name": "_compute_amount_unpaid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.pos_order_line_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_amount_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.pos_order_line_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_amount_invoiced"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "pos_order_line_ids.order_id.state",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "pos_order_line_ids": {
+     "comodel": "pos.order.line",
+     "groups": "point_of_sale.group_pos_user",
+     "inverse_name": "sale_order_line_id",
+     "readonly": true,
+     "string": "Order lines Transfered to Point of Sale",
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_order_line_ids.qty', 'pos_order_line_ids.order_id.picking_ids', 'pos_order_line_ids.order_id.picking_ids.state', 'pos_order_line_ids.refund_orderline_ids.order_id.picking_ids.state')"
+     ],
+     "lines": 13,
+     "name": "_compute_qty_delivered"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_order_line_ids.qty', 'pos_order_line_ids.order_id.state', 'pos_order_line_ids.refund_orderline_ids.order_id.state')"
+     ],
+     "lines": 7,
+     "name": "_compute_qty_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_sale_order_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "read_converted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_convert_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_order_line_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_untaxed_amount_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_downpayment_line_price_unit"
+    }
+   ],
+   "name": "sale.order.line",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "order_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "sale.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "order_reference": {
+     "selection_add": [
+      [
+       "pos.order",
+       "POS Order"
+      ]
+     ],
+     "type": "Reference"
+    },
+    "state": {
+     "selection_add": [
+      [
+       "paid",
+       "Paid"
+      ],
+      [
+       "invoiced",
+       "Invoiced"
+      ],
+      [
+       "done",
+       "Posted"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_done_states"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_select_pos"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_available_additional_pos_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_fill_pos_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_from_pos"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_where_pos"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_group_by_pos"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_order_reference"
+    }
+   ],
+   "name": "sale.report",
+   "sel_methods": {
+    "_get_order_reference": []
+   },
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_create_move_from_pos_order_lines"
+    }
+   ],
+   "name": "stock.picking",
+   "sel_methods": {
+    "_create_move_from_pos_order_lines": []
+   },
+   "transient": false
+  }
+ },
+ "module": "pos_sale",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_sale",
+ "stats": {
+  "fields": 21,
+  "methods": 54,
+  "models": 11,
+  "py_lines": 807
+ },
+ "summary": "Link module between Point of Sale and Sales",
+ "title": "POS - Sales",
+ "version": "1.1"
+}

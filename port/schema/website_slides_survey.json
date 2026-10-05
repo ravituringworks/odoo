@@ -1,0 +1,401 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/eLearning",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/website_slides_survey_security.xml",
+  "views/slide_channel_partner_views.xml",
+  "views/slide_channel_views.xml",
+  "views/slide_slide_partner_views.xml",
+  "views/slide_slide_views.xml",
+  "views/survey_survey_views.xml",
+  "views/website_slides_menu_views.xml",
+  "views/website_slides_templates_course.xml",
+  "views/website_slides_templates_lesson.xml",
+  "views/website_slides_templates_lesson_fullscreen.xml",
+  "views/website_slides_templates_homepage.xml",
+  "views/website_slides_templates_utils.xml",
+  "views/survey_templates.xml",
+  "views/website_profile.xml",
+  "data/mail_template_data.xml",
+  "data/gamification_data.xml",
+  "views/res_config_settings_views.xml",
+  "data/survey_demo.xml",
+  "data/slide_slide_demo.xml",
+  "data/survey.user_input.line.csv"
+ ],
+ "depends": [
+  "website_slides",
+  "survey"
+ ],
+ "models": {
+  "slide.channel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "members_certified_count": {
+     "compute": "_compute_members_certified_count",
+     "string": "# Certified Attendees",
+     "type": "Integer"
+    },
+    "nbr_certification": {
+     "compute": "_compute_slides_statistics",
+     "store": true,
+     "string": "Number of Certifications",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_remove_membership"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('channel_partner_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_members_certified_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_redirect_to_certified_members"
+    }
+   ],
+   "name": "slide.channel",
+   "sel_methods": {
+    "_remove_membership": []
+   },
+   "transient": false
+  },
+  "slide.channel.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "nbr_certification": {
+     "related": "channel_id.nbr_certification",
+     "type": "Integer"
+    },
+    "survey_certification_success": {
+     "string": "Certified",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "slide.channel.partner",
+   "transient": false
+  },
+  "slide.slide": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_preview": {
+     "compute": "_compute_is_preview",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "store": true,
+     "type": "Char"
+    },
+    "nbr_certification": {
+     "compute": "_compute_slides_statistics",
+     "store": true,
+     "string": "Number of Certifications",
+     "type": "Integer"
+    },
+    "slide_category": {
+     "ondelete": {
+      "certification": "set default"
+     },
+     "selection_add": [
+      [
+       "certification",
+       "Certification"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "slide_type": {
+     "ondelete": {
+      "certification": "set null"
+     },
+     "selection_add": [
+      [
+       "certification",
+       "Certification"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "survey_id": {
+     "comodel": "survey.survey",
+     "string": "Certification",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_mark_complete_actions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('slide_category')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_preview"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('slide_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_slide_icon_class"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('slide_category', 'source_type')"
+     ],
+     "lines": 5,
+     "name": "_compute_slide_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_ensure_challenge_category"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_generate_certification_url"
+    }
+   ],
+   "name": "slide.slide",
+   "sql_constraints": [
+    [
+     "check_survey_id",
+     "CHECK(slide_category != 'certification' OR survey_id IS NOT NULL)",
+     "A slide of type 'certification' requires a certification."
+    ],
+    [
+     "check_certification_preview",
+     "CHECK(slide_category != 'certification' OR is_preview = False)",
+     "A slide of type certification cannot be previewed."
+    ]
+   ],
+   "transient": false
+  },
+  "slide.slide.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "survey_scoring_success": {
+     "compute": "_compute_survey_scoring_success",
+     "store": true,
+     "string": "Certification Succeeded",
+     "type": "Boolean"
+    },
+    "user_input_ids": {
+     "comodel": "survey.user_input",
+     "inverse_name": "slide_partner_id",
+     "string": "Certification attempts",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'user_input_ids.scoring_success')"
+     ],
+     "lines": 8,
+     "name": "_compute_survey_scoring_success"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_field_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_recompute_completion"
+    }
+   ],
+   "name": "slide.slide.partner",
+   "transient": false
+  },
+  "survey.survey": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "slide_channel_count": {
+     "compute": "_compute_slide_channel_data",
+     "groups": "website_slides.group_website_slides_officer",
+     "string": "Courses Count",
+     "type": "Integer"
+    },
+    "slide_channel_ids": {
+     "comodel": "slide.channel",
+     "compute": "_compute_slide_channel_data",
+     "groups": "website_slides.group_website_slides_officer",
+     "help": "The courses this survey is linked to through the e-learning application",
+     "string": "Certification Courses",
+     "type": "One2many"
+    },
+    "slide_ids": {
+     "comodel": "slide.slide",
+     "help": "The slides this survey is linked to through the e-learning application",
+     "inverse_name": "survey_id",
+     "string": "Certification Slides",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('slide_ids.channel_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_slide_channel_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 16,
+     "name": "_unlink_except_linked_to_course"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_survey_view_slide_channels"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_prepare_challenge_category"
+    }
+   ],
+   "name": "survey.survey",
+   "transient": false
+  },
+  "survey.user_input": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "slide_id": {
+     "comodel": "slide.slide",
+     "help": "The related course slide when there is no membership information",
+     "string": "Related course slide",
+     "type": "Many2one"
+    },
+    "slide_partner_id": {
+     "comodel": "slide.slide.partner",
+     "help": "Slide membership information for the logged in user",
+     "index": "btree_not_null",
+     "string": "Subscriber information",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_check_for_failed_attempt"
+    }
+   ],
+   "name": "survey.user_input",
+   "transient": false
+  }
+ },
+ "module": "website_slides_survey",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_slides_survey",
+ "stats": {
+  "fields": 17,
+  "methods": 23,
+  "models": 6,
+  "py_lines": 611
+ },
+ "summary": "Add certification capabilities to your courses",
+ "title": "Course Certifications",
+ "version": "1.0"
+}

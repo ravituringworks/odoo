@@ -1,0 +1,326 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/Point of Sale",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/pos_order_views.xml"
+ ],
+ "depends": [
+  "l10n_es_edi_verifactu",
+  "point_of_sale"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_l10n_es_edi_verifactu_get_record_values"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "l10n_es_edi_verifactu.document": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_order_id": {
+     "comodel": "pos.order",
+     "readonly": true,
+     "string": "PoS Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "l10n_es_edi_verifactu.document",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_edi_verifactu_required": {
+     "related": "company_id.l10n_es_edi_verifactu_required",
+     "string": "Veri*Factu Required",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_edi_verifactu_document_ids": {
+     "comodel": "l10n_es_edi_verifactu.document",
+     "inverse_name": "pos_order_id",
+     "string": "Veri*Factu Documents",
+     "type": "One2many"
+    },
+    "l10n_es_edi_verifactu_qr_code": {
+     "compute": "_compute_l10n_es_edi_verifactu_qr_code",
+     "string": "Veri*Factu QR Code",
+     "type": "Char"
+    },
+    "l10n_es_edi_verifactu_refund_reason": {
+     "copy": false,
+     "selection": [
+      [
+       "R1",
+       "R1: Art 80.1 and 80.2 and error of law"
+      ],
+      [
+       "R2",
+       "R2: Art. 80.3"
+      ],
+      [
+       "R3",
+       "R3: Art. 80.4"
+      ],
+      [
+       "R4",
+       "R4: Rest"
+      ],
+      [
+       "R5",
+       "R5: Corrective invoices concerning simplified invoices"
+      ]
+     ],
+     "string": "Veri*Factu Refund Reason",
+     "type": "Selection"
+    },
+    "l10n_es_edi_verifactu_required": {
+     "related": "company_id.l10n_es_edi_verifactu_required",
+     "string": "Veri*Factu Required",
+     "type": "Boolean"
+    },
+    "l10n_es_edi_verifactu_show_cancel_button": {
+     "compute": "_compute_l10n_es_edi_verifactu_show_cancel_button",
+     "string": "Show Veri*Factu Cancel Button",
+     "type": "Boolean"
+    },
+    "l10n_es_edi_verifactu_state": {
+     "compute": "_compute_l10n_es_edi_verifactu_state",
+     "help": "- Rejected: Successfully sent to the AEAT, but it was rejected during validation\n                - Registered with Errors: Registered at the AEAT, but the AEAT has some issues with the sent document\n                - Accepted: Registered by the AEAT without errors\n                - Cancelled: Registered by the AEAT as cancelled",
+     "selection": [
+      [
+       "rejected",
+       "Rejected"
+      ],
+      [
+       "registered_with_errors",
+       "Registered with Errors"
+      ],
+      [
+       "accepted",
+       "Accepted"
+      ],
+      [
+       "cancelled",
+       "Cancelled"
+      ]
+     ],
+     "store": true,
+     "string": "Veri*Factu Status",
+     "type": "Selection"
+    },
+    "l10n_es_edi_verifactu_warning": {
+     "compute": "_compute_l10n_es_edi_verifactu_warning",
+     "string": "Veri*Factu Warning",
+     "type": "Html"
+    },
+    "l10n_es_edi_verifactu_warning_level": {
+     "compute": "_compute_l10n_es_edi_verifactu_warning",
+     "string": "Veri*Factu Warning Level",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'l10n_es_edi_verifactu_state', 'l10n_es_edi_verifactu_document_ids', 'l10n_es_edi_verifactu_document_ids.state', 'l10n_es_edi_verifactu_document_ids.errors')"
+     ],
+     "lines": 20,
+     "name": "_compute_l10n_es_edi_verifactu_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_edi_verifactu_document_ids', 'l10n_es_edi_verifactu_document_ids.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_es_edi_verifactu_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_edi_verifactu_document_ids', 'l10n_es_edi_verifactu_document_ids.json_attachment_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_l10n_es_edi_verifactu_qr_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_edi_verifactu_state')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_es_edi_verifactu_show_cancel_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_l10n_es_edi_verifactu_get_tax_applicability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_l10n_es_edi_verifactu_get_clave_regimen"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "l10n_es_edi_verifactu_button_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "l10n_es_edi_verifactu_button_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_l10n_es_edi_verifactu_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "_l10n_es_edi_verifactu_get_record_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_l10n_es_edi_verifactu_create_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_es_edi_verifactu_mark_for_next_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_order_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_process_saved_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_pos_order_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_generate_pos_order_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_prepare_invoice_vals"
+    }
+   ],
+   "name": "pos.order",
+   "sel_methods": {
+    "_process_saved_order": []
+   },
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_l10n_es_get_pos_edi_mode"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "l10n_es_edi_verifactu_pos",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_es_edi_verifactu_pos",
+ "stats": {
+  "fields": 10,
+  "methods": 21,
+  "models": 6,
+  "py_lines": 375
+ },
+ "summary": "Add Veri*Factu support to Point of Sale",
+ "title": "Spain - Veri*Factu for Point of Sale",
+ "version": "1.0"
+}

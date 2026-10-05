@@ -1,0 +1,408 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/Point of Sale",
+ "data_files": [
+  "views/pos_views.xml",
+  "views/account_sale_closure.xml",
+  "views/pos_inalterability_menuitem.xml",
+  "views/res_config_settings_views.xml",
+  "report/pos_hash_integrity.xml",
+  "data/account_sale_closure_cron.xml",
+  "security/ir.model.access.csv",
+  "security/account_closing_intercompany.xml"
+ ],
+ "depends": [
+  "l10n_fr_account",
+  "point_of_sale"
+ ],
+ "models": {
+  "account.fiscal.position": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    }
+   ],
+   "name": "account.fiscal.position",
+   "transient": false
+  },
+  "account.sale.closing": {
+   "abstract": false,
+   "description": "Sale Closing",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "cumulative_total": {
+     "help": "Total in receivable accounts since the beginnig of times",
+     "readonly": true,
+     "required": true,
+     "string": "Cumulative Grand Total",
+     "type": "Monetary"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "help": "The company's currency",
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "store": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date_closing_start": {
+     "help": "Date from which the total interval is computed",
+     "readonly": true,
+     "required": true,
+     "string": "Starting Date",
+     "type": "Datetime"
+    },
+    "date_closing_stop": {
+     "help": "Date to which the values are computed",
+     "readonly": true,
+     "required": true,
+     "string": "Closing Date",
+     "type": "Datetime"
+    },
+    "frequency": {
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "daily",
+       "Daily"
+      ],
+      [
+       "monthly",
+       "Monthly"
+      ],
+      [
+       "annually",
+       "Annual"
+      ]
+     ],
+     "string": "Closing Type",
+     "type": "Selection"
+    },
+    "last_order_hash": {
+     "readonly": true,
+     "string": "Last Order entry's inalteralbility hash",
+     "type": "Char"
+    },
+    "last_order_id": {
+     "comodel": "pos.order",
+     "help": "Last Pos order included in the grand total",
+     "readonly": true,
+     "string": "Last Pos Order",
+     "type": "Many2one"
+    },
+    "name": {
+     "help": "Frequency and unique sequence number",
+     "required": true,
+     "type": "Char"
+    },
+    "sequence_number": {
+     "readonly": true,
+     "required": true,
+     "string": "Sequence #",
+     "type": "Integer"
+    },
+    "total_interval": {
+     "help": "Total in receivable accounts during the interval, excluding overlapping periods",
+     "readonly": true,
+     "required": true,
+     "string": "Period Total",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_query_for_aml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_compute_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_interval_dates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=True)"
+     ],
+     "lines": 2,
+     "name": "_unlink_never"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_automated_closing"
+    }
+   ],
+   "name": "account.sale.closing",
+   "order": "date_closing_stop desc, sequence_number desc",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "open_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_config_sequence_implementation"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_fr_hash": {
+     "copy": false,
+     "readonly": true,
+     "string": "Inalteralbility Hash",
+     "type": "Char"
+    },
+    "l10n_fr_secure_sequence_number": {
+     "copy": false,
+     "readonly": true,
+     "string": "Inalteralbility No Gap Sequence #",
+     "type": "Integer"
+    },
+    "l10n_fr_string_to_hash": {
+     "compute": "_compute_string_to_hash",
+     "readonly": true,
+     "store": false,
+     "type": "Char"
+    },
+    "pos_version": {
+     "copy": false,
+     "help": "Version of Odoo that created the order",
+     "readonly": true,
+     "type": "Char"
+    },
+    "previous_order_id": {
+     "comodel": "pos.order",
+     "compute": "_compute_previous_order",
+     "copy": false,
+     "readonly": true,
+     "store": true,
+     "string": "Previous Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_fr_secure_sequence_number')"
+     ],
+     "lines": 23,
+     "name": "_compute_previous_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_new_hash"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_hash"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 82,
+     "name": "_compute_string_to_hash"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=True)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_pos_so"
+    }
+   ],
+   "name": "pos.order",
+   "transient": false
+  },
+  "pos.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    }
+   ],
+   "name": "pos.order.line",
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_session_timing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "open_frontend_cb"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  },
+  "report.l10n_fr_pos_cert.report_pos_hash_integrity": {
+   "abstract": true,
+   "description": "Get french pos hash integrity result as PDF.",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.l10n_fr_pos_cert.report_pos_hash_integrity",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_fr_pos_cert_sequence_id": {
+     "comodel": "ir.sequence",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_action_check_pos_hash_integrity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 49,
+     "name": "_check_pos_hash_integrity"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "l10n_fr_pos_cert",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_fr_pos_cert",
+ "stats": {
+  "fields": 17,
+  "methods": 24,
+  "models": 8,
+  "py_lines": 577
+ },
+ "summary": "This add-on brings the technical requirements of the French regulation CGI art. 286, I. 3\u00b0 bis that stipulates certain criteria concerning the inalterability, security, storage and archiving of data r",
+ "title": "France - VAT Anti-Fraud Certification for Point of Sale (CGI 286 I-3 bis)",
+ "version": "1.1"
+}

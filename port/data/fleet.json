@@ -1,0 +1,3351 @@
+{
+ "module": "fleet",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "module_fleet_category",
+   "values": {
+    "name": "Fleet",
+    "sequence": "17"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "fleet_group_user",
+   "values": {
+    "name": "Officer: Manage all vehicles",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_fleet"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "fleet_group_manager",
+   "values": {
+    "name": "Administrator",
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_user"
+      }
+     ]
+    ],
+    "category_id": {
+     "$ref": "base.module_category_human_resources_fleet"
+    },
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "fleet.fleet_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "fleet_rule_contract_visibility_user",
+   "values": {
+    "name": "User can only see his/her contracts",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_log_contract"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_user"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false,
+    "domain_force": "[('vehicle_id.driver_id','=',user.partner_id.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "fleet_rule_service_visibility_user",
+   "values": {
+    "name": "User can only see his/her vehicle's services",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_log_services"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_user"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false,
+    "domain_force": "[('vehicle_id.driver_id','=',user.partner_id.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "fleet_rule_odometer_visibility_user",
+   "values": {
+    "name": "User can only see his/her vehicle's odometer",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_odometer"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_user"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true,
+    "domain_force": "[('vehicle_id.driver_id','=',user.partner_id.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "fleet_rule_vehicle_visibility_user",
+   "values": {
+    "name": "User can only see his/her vehicle",
+    "model_id": {
+     "$ref": "model_fleet_vehicle"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_user"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": true,
+    "perm_create": false,
+    "perm_unlink": false,
+    "domain_force": "[('driver_id','=',user.partner_id.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "fleet_rule_contract_visibility_manager",
+   "values": {
+    "name": "Administrator has all rights on vehicle's contracts",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_log_contract"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "fleet_rule_service_visibility_manager",
+   "values": {
+    "name": "Administrator has all rights on vehicle's services",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_log_services"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "fleet_rule_odometer_visibility_manager",
+   "values": {
+    "name": "Administrator has all rights on vehicle's vehicle's odometer",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_odometer"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "fleet_rule_vehicle_visibility_manager",
+   "values": {
+    "name": "Administrator has all rights on vehicle",
+    "model_id": {
+     "$ref": "model_fleet_vehicle"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "fleet_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_fleet_vehicle",
+   "values": {
+    "name": "Fleet vehicle: Multi Company",
+    "model_id": {
+     "$ref": "model_fleet_vehicle"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_fleet_vehicle_log_contract",
+   "values": {
+    "name": "Fleet vehicle log contract: Multi Company",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_log_contract"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_fleet_report",
+   "values": {
+    "name": "Costs Analysis: Multi Company",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_cost_report"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_fleet_odometer",
+   "values": {
+    "name": "Fleet odometer: Multi Company",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_odometer"
+    },
+    "global": true,
+    "domain_force": "[('vehicle_id.company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_fleet_log_services",
+   "values": {
+    "name": "Fleet log services: Multi Company",
+    "model_id": {
+     "$ref": "model_fleet_vehicle_log_services"
+    },
+    "global": true,
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_model_action",
+   "values": {
+    "name": "Models",
+    "res_model": "fleet.vehicle.model",
+    "view_mode": "list,form",
+    "context": {
+     "search_default_groupby_brand": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_model_brand_action",
+   "values": {
+    "name": "Manufacturers",
+    "res_model": "fleet.vehicle.model.brand",
+    "view_mode": "kanban,list,form",
+    "context": {
+     "search_default_with_models": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_model_category_action",
+   "values": {
+    "name": "Categories",
+    "res_model": "fleet.vehicle.model.category",
+    "view_mode": "list",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_action",
+   "values": {
+    "name": "Vehicles",
+    "path": "fleet",
+    "res_model": "fleet.vehicle",
+    "view_mode": "kanban,list,form,pivot,activity",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_odometer_action",
+   "values": {
+    "name": "Odometers",
+    "res_model": "fleet.vehicle.odometer",
+    "view_mode": "list,kanban,form,graph",
+    "context": "",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_service_types_action",
+   "values": {
+    "name": "Types",
+    "res_model": "fleet.service.type",
+    "view_mode": "list,form",
+    "context": {
+     "search_default_groupby_category": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_state_action",
+   "values": {
+    "name": "Status",
+    "res_model": "fleet.vehicle.state",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_tag_action",
+   "values": {
+    "name": "Tags",
+    "res_model": "fleet.vehicle.tag",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_fleet_vehicle_send_mail",
+   "values": {
+    "name": "Mail to Driver",
+    "model_id": {
+     "$ref": "fleet.model_fleet_vehicle"
+    },
+    "binding_model_id": {
+     "$ref": "fleet.model_fleet_vehicle"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "action = records.action_send_email()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_log_contract_action",
+   "values": {
+    "name": "Contracts",
+    "res_model": "fleet.vehicle.log.contract",
+    "view_mode": "list,kanban,form,graph,pivot,activity",
+    "context": {
+     "search_default_open": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_vehicle_log_services_action",
+   "values": {
+    "name": "Services",
+    "res_model": "fleet.vehicle.log.services",
+    "view_mode": "list,kanban,form,graph,pivot,activity",
+    "context": {
+     "search_default_groupby_service_type_id": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_costs_reporting_action",
+   "values": {
+    "name": "Costs Analysis",
+    "res_model": "fleet.vehicle.cost.report",
+    "view_mode": "graph,pivot",
+    "view_id": "",
+    "context": {
+     "search_default_filter_date_start": 1
+    },
+    "search_view_id": {
+     "$ref": "fleet.fleet_costs_report_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_type_action_config_fleet",
+   "values": {
+    "name": "Activity Types",
+    "res_model": "mail.activity.type",
+    "view_mode": "list,kanban,form",
+    "domain": [
+     "|",
+     [
+      "res_model",
+      "=",
+      false
+     ],
+     [
+      "res_model",
+      "=",
+      "fleet.vehicle.log.contract"
+     ]
+    ],
+    "context": {
+     "default_res_model": "fleet.vehicle.log.contract"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "fleet_config_settings_action",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "fleet",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_abarth",
+   "values": {
+    "name": "Abarth",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_acura",
+   "values": {
+    "name": "Acura",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_alfa",
+   "values": {
+    "name": "Alfa",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_audi",
+   "values": {
+    "name": "Audi",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_austin",
+   "values": {
+    "name": "Austin",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_bentley",
+   "values": {
+    "name": "Bentley",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_bmw",
+   "values": {
+    "name": "Bmw",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_bugatti",
+   "values": {
+    "name": "Bugatti",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_buick",
+   "values": {
+    "name": "Buick",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_byd",
+   "values": {
+    "name": "Byd",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_cadillac",
+   "values": {
+    "name": "Cadillac",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_chevrolet",
+   "values": {
+    "name": "Chevrolet",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_chrysler",
+   "values": {
+    "name": "Chrysler",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_citroen",
+   "values": {
+    "name": "Citroen",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_corre_la_licorne",
+   "values": {
+    "name": "Corre La Licorne",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_daewoo",
+   "values": {
+    "name": "Daewoo",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_dodge",
+   "values": {
+    "name": "Dodge",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_ferrari",
+   "values": {
+    "name": "Ferrari",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_fiat",
+   "values": {
+    "name": "Fiat",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_ford",
+   "values": {
+    "name": "Ford",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_holden",
+   "values": {
+    "name": "Holden",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_honda",
+   "values": {
+    "name": "Honda",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_hyundai",
+   "values": {
+    "name": "Hyundai",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_infiniti",
+   "values": {
+    "name": "Infiniti",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_isuzu",
+   "values": {
+    "name": "Isuzu",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_jaguar",
+   "values": {
+    "name": "Jaguar",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_jeep",
+   "values": {
+    "name": "Jeep",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_kia",
+   "values": {
+    "name": "Kia",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_koenigsegg",
+   "values": {
+    "name": "Koenigsegg",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_lagonda",
+   "values": {
+    "name": "Lagonda",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_lamborghini",
+   "values": {
+    "name": "Lamborghini",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_lancia",
+   "values": {
+    "name": "Lancia",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_land_rover",
+   "values": {
+    "name": "Land Rover",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_lexus",
+   "values": {
+    "name": "Lexus",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_lincoln",
+   "values": {
+    "name": "Lincoln",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_lotus",
+   "values": {
+    "name": "Lotus",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_maserati",
+   "values": {
+    "name": "Maserati",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_maybach",
+   "values": {
+    "name": "Maybach",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_mazda",
+   "values": {
+    "name": "Mazda",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_mercedes",
+   "values": {
+    "name": "Mercedes",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_mg",
+   "values": {
+    "name": "Mg",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_mini",
+   "values": {
+    "name": "Mini",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_mitsubishi",
+   "values": {
+    "name": "Mitsubishi",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_morgan",
+   "values": {
+    "name": "Morgan",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_nissan",
+   "values": {
+    "name": "Nissan",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_oldsmobile",
+   "values": {
+    "name": "Oldsmobile",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_opel",
+   "values": {
+    "name": "Opel",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_peugeot",
+   "values": {
+    "name": "Peugeot",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_pontiac",
+   "values": {
+    "name": "Pontiac",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_porsche",
+   "values": {
+    "name": "Porsche",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_rambler",
+   "values": {
+    "name": "Rambler",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_renault",
+   "values": {
+    "name": "Renault",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_rolls-royce",
+   "values": {
+    "name": "Rolls-Royce",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_saab",
+   "values": {
+    "name": "Saab",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_scion",
+   "values": {
+    "name": "Scion",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_skoda",
+   "values": {
+    "name": "Skoda",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_smart",
+   "values": {
+    "name": "Smart",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_steyr",
+   "values": {
+    "name": "Steyr",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_subaru",
+   "values": {
+    "name": "Subaru",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_tesla_motors",
+   "values": {
+    "name": "Tesla Motors",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_toyota",
+   "values": {
+    "name": "Toyota",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_trabant",
+   "values": {
+    "name": "Trabant",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_volkswagen",
+   "values": {
+    "name": "Volkswagen",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_volvo",
+   "values": {
+    "name": "Volvo",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_willys",
+   "values": {
+    "name": "Willys",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.brand",
+   "id": "brand_suzuki",
+   "values": {
+    "name": "Suzuki",
+    "image_128": ""
+   }
+  },
+  {
+   "model": "fleet.vehicle.state",
+   "id": "fleet_vehicle_state_new_request",
+   "values": {
+    "name": "New Request",
+    "sequence": "4"
+   }
+  },
+  {
+   "model": "fleet.vehicle.state",
+   "id": "fleet_vehicle_state_to_order",
+   "values": {
+    "name": "To Order",
+    "sequence": "5"
+   }
+  },
+  {
+   "model": "fleet.vehicle.state",
+   "id": "fleet_vehicle_state_registered",
+   "values": {
+    "name": "Registered",
+    "sequence": "7"
+   }
+  },
+  {
+   "model": "fleet.vehicle.state",
+   "id": "fleet_vehicle_state_downgraded",
+   "values": {
+    "name": "Downgraded",
+    "sequence": "8"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_contract_omnium",
+   "values": {
+    "name": "Omnium",
+    "category": "contract"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_contract_leasing",
+   "values": {
+    "name": "Leasing",
+    "category": "contract"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_fleet_driver_updated",
+   "values": {
+    "name": "Changed Driver",
+    "sequence": "0",
+    "res_model": "fleet.vehicle",
+    "default": true,
+    "description": "Changed Driver"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_fleet_contract_to_renew",
+   "values": {
+    "name": "Contract to Renew",
+    "icon": "fa-car",
+    "res_model": "fleet.vehicle.log.contract"
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "fleet.fleet_group_user"
+      }
+     ],
+     [
+      3,
+      {
+       "$ref": "fleet.fleet_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle.state",
+   "id": "fleet_vehicle_state_ordered",
+   "values": {
+    "name": "Ordered",
+    "sequence": "6"
+   }
+  },
+  {
+   "model": "fleet.vehicle.state",
+   "id": "fleet_vehicle_state_reserve",
+   "values": {
+    "name": "Reserve",
+    "sequence": "9"
+   }
+  },
+  {
+   "model": "fleet.vehicle.state",
+   "id": "fleet_vehicle_state_waiting_list",
+   "values": {
+    "name": "Waiting List",
+    "sequence": "10"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_1",
+   "values": {
+    "name": "Calculation Benefit In Kind",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_2",
+   "values": {
+    "name": "Depreciation and Interests",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_3",
+   "values": {
+    "name": "Tax roll",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_5",
+   "values": {
+    "name": "Summer tires",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_6",
+   "values": {
+    "name": "Snow tires",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_7",
+   "values": {
+    "name": "Repair and maintenance",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_8",
+   "values": {
+    "name": "Assistance",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_9",
+   "values": {
+    "name": "Replacement Vehicle",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_10",
+   "values": {
+    "name": "Management Fee",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_11",
+   "values": {
+    "name": "Rent (Excluding VAT)",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_12",
+   "values": {
+    "name": "Entry into service tax",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_13",
+   "values": {
+    "name": "Total expenses (Excluding VAT)",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_14",
+   "values": {
+    "name": "Residual value (Excluding VAT)",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_15",
+   "values": {
+    "name": "Options",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_16",
+   "values": {
+    "name": "Emissions",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_17",
+   "values": {
+    "name": "Touring Assistance",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_service_18",
+   "values": {
+    "name": "Residual value in %",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_1",
+   "values": {
+    "name": "A/C Compressor Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_2",
+   "values": {
+    "name": "A/C Condenser Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_3",
+   "values": {
+    "name": "A/C Diagnosis",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_4",
+   "values": {
+    "name": "A/C Evaporator Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_5",
+   "values": {
+    "name": "A/C Recharge",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_6",
+   "values": {
+    "name": "Air Filter Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_7",
+   "values": {
+    "name": "Alternator Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_7",
+   "values": {
+    "name": "Ball Joint Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_9",
+   "values": {
+    "name": "Battery Inspection",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_10",
+   "values": {
+    "name": "Battery Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_11",
+   "values": {
+    "name": "Brake Caliper Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_12",
+   "values": {
+    "name": "Brake Inspection",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_13",
+   "values": {
+    "name": "Brake Pad(s) Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_14",
+   "values": {
+    "name": "Car Wash",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_15",
+   "values": {
+    "name": "Catalytic Converter Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_16",
+   "values": {
+    "name": "Charging System Diagnosis",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_17",
+   "values": {
+    "name": "Door Window Motor/Regulator Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_18",
+   "values": {
+    "name": "Engine Belt Inspection",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_19",
+   "values": {
+    "name": "Engine Coolant Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_20",
+   "values": {
+    "name": "Engine/Drive Belt(s) Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_21",
+   "values": {
+    "name": "Exhaust Manifold Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_22",
+   "values": {
+    "name": "Fuel Injector Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_23",
+   "values": {
+    "name": "Fuel Pump Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_24",
+   "values": {
+    "name": "Head Gasket(s) Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_25",
+   "values": {
+    "name": "Heater Blower Motor Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_26",
+   "values": {
+    "name": "Heater Control Valve Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_27",
+   "values": {
+    "name": "Heater Core Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_28",
+   "values": {
+    "name": "Heater Hose Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_29",
+   "values": {
+    "name": "Ignition Coil Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_30",
+   "values": {
+    "name": "Intake Manifold Gasket Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_31",
+   "values": {
+    "name": "Oil Change",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_32",
+   "values": {
+    "name": "Oil Pump Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_33",
+   "values": {
+    "name": "Other Maintenance",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_34",
+   "values": {
+    "name": "Oxygen Sensor Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_35",
+   "values": {
+    "name": "Power Steering Hose Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_36",
+   "values": {
+    "name": "Power Steering Pump Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_37",
+   "values": {
+    "name": "Radiator Repair",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_38",
+   "values": {
+    "name": "Resurface Rotors",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_39",
+   "values": {
+    "name": "Rotate Tires",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_40",
+   "values": {
+    "name": "Rotor Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_41",
+   "values": {
+    "name": "Spark Plug Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_42",
+   "values": {
+    "name": "Starter Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_43",
+   "values": {
+    "name": "Thermostat Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_44",
+   "values": {
+    "name": "Tie Rod End Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_45",
+   "values": {
+    "name": "Tire Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_46",
+   "values": {
+    "name": "Tire Service",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_47",
+   "values": {
+    "name": "Transmission Filter Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_48",
+   "values": {
+    "name": "Transmission Fluid Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_49",
+   "values": {
+    "name": "Transmission Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_50",
+   "values": {
+    "name": "Water Pump Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_51",
+   "values": {
+    "name": "Wheel Alignment",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_52",
+   "values": {
+    "name": "Wheel Bearing Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_53",
+   "values": {
+    "name": "Windshield Wiper(s) Replacement",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_contract_repairing",
+   "values": {
+    "name": "Repairing",
+    "category": "contract"
+   }
+  },
+  {
+   "model": "fleet.service.type",
+   "id": "type_service_refueling",
+   "values": {
+    "name": "Refueling",
+    "category": "service"
+   }
+  },
+  {
+   "model": "fleet.vehicle.tag",
+   "id": "vehicle_tag_junior",
+   "values": {
+    "name": "Junior",
+    "color": 1
+   }
+  },
+  {
+   "model": "fleet.vehicle.tag",
+   "id": "vehicle_tag_senior",
+   "values": {
+    "name": "Senior",
+    "color": 2
+   }
+  },
+  {
+   "model": "fleet.vehicle.tag",
+   "id": "vehicle_tag_leasing",
+   "values": {
+    "name": "Employee Car",
+    "color": 3
+   }
+  },
+  {
+   "model": "fleet.vehicle.tag",
+   "id": "vehicle_tag_purchased",
+   "values": {
+    "name": "Purchased",
+    "color": 4
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_sedan",
+   "values": {
+    "name": "Sedan"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_estate",
+   "values": {
+    "name": "Estate"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_compact",
+   "values": {
+    "name": "Compact"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_suv",
+   "values": {
+    "name": "SUV"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_coupe",
+   "values": {
+    "name": "Coupe"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_convertible",
+   "values": {
+    "name": "Convertible"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_mpv",
+   "values": {
+    "name": "MPU"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_bmx",
+   "values": {
+    "name": "BMX"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_vtt",
+   "values": {
+    "name": "VTT"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model.category",
+   "id": "model_category_city",
+   "values": {
+    "name": "City"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model",
+   "id": "model_corolla_ts",
+   "values": {
+    "name": "Corolla TS",
+    "brand_id": {
+     "$ref": "brand_toyota"
+    },
+    "vehicle_type": "car",
+    "category_id": {
+     "$ref": "model_category_estate"
+    },
+    "seats": "5",
+    "doors": "5",
+    "model_year": "0",
+    "default_fuel_type": "full_hybrid",
+    "default_co2": "102.00",
+    "co2_standard": "WLTP",
+    "transmission": "automatic",
+    "power": "90",
+    "horsepower": "122",
+    "horsepower_tax": "0.00"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model",
+   "id": "model_golf_8",
+   "values": {
+    "name": "Golf 8",
+    "brand_id": {
+     "$ref": "brand_volkswagen"
+    },
+    "vehicle_type": "car",
+    "category_id": {
+     "$ref": "model_category_compact"
+    },
+    "seats": "5",
+    "doors": "5",
+    "model_year": "2024",
+    "default_fuel_type": "gasoline",
+    "default_co2": "117.00",
+    "co2_standard": "WLTP",
+    "transmission": "manual",
+    "power": "81",
+    "horsepower": "110",
+    "horsepower_tax": "0.00"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model",
+   "id": "model_micra",
+   "values": {
+    "name": "Micra",
+    "brand_id": {
+     "$ref": "brand_nissan"
+    },
+    "vehicle_type": "car",
+    "category_id": {
+     "$ref": "model_category_compact"
+    },
+    "seats": "5",
+    "doors": "5",
+    "model_year": "2022",
+    "default_fuel_type": "gasoline",
+    "default_co2": "95.00",
+    "co2_standard": "WLTP",
+    "transmission": "manual",
+    "power": "89",
+    "horsepower": "121",
+    "horsepower_tax": "0.00"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model",
+   "id": "model_focus",
+   "values": {
+    "name": "Focus",
+    "brand_id": {
+     "$ref": "brand_ford"
+    },
+    "vehicle_type": "car",
+    "category_id": {
+     "$ref": "model_category_sedan"
+    },
+    "seats": "5",
+    "doors": "5",
+    "model_year": "2024",
+    "default_fuel_type": "diesel",
+    "default_co2": "134.00",
+    "co2_standard": "WLTP",
+    "transmission": "manual",
+    "power": "85",
+    "horsepower": "115",
+    "horsepower_tax": "0.00"
+   }
+  },
+  {
+   "model": "fleet.vehicle.model",
+   "id": "model_clio",
+   "values": {
+    "name": "Clio",
+    "brand_id": {
+     "$ref": "brand_renault"
+    },
+    "vehicle_type": "car",
+    "category_id": {
+     "$ref": "model_category_compact"
+    },
+    "seats": "5",
+    "doors": "5",
+    "model_year": "2023",
+    "default_fuel_type": "gasoline",
+    "default_co2": "118.00",
+    "co2_standard": "WLTP",
+    "power": "49",
+    "horsepower": "67",
+    "horsepower_tax": "0.00"
+   }
+  },
+  {
+   "model": "fleet.vehicle",
+   "id": "vehicle_1",
+   "values": {
+    "license_plate": "1-ACK-205",
+    "vin_sn": "5454541",
+    "model_id": {
+     "$ref": "model_micra"
+    },
+    "color": "Black",
+    "location": "Grand-Rosiere",
+    "driver_id": {
+     "$ref": "base.partner_demo"
+    },
+    "acquisition_date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=336)).strftime('%Y-%m-%d')"
+    },
+    "state_id": {
+     "$ref": "fleet_vehicle_state_registered"
+    },
+    "odometer_unit": "kilometers",
+    "car_value": "20000",
+    "category_id": {
+     "$ref": "model_category_compact"
+    },
+    "seats": "5",
+    "doors": "5",
+    "model_year": "2022",
+    "fuel_type": "gasoline",
+    "co2": "95.00",
+    "co2_standard": "WLTP",
+    "transmission": "manual",
+    "power": "89",
+    "horsepower": "121",
+    "manager_id": {
+     "$ref": "base.user_admin"
+    },
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "vehicle_tag_leasing"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_purchased"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_senior"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle",
+   "id": "vehicle_2",
+   "values": {
+    "license_plate": "1-SYN-404",
+    "vin_sn": "1337",
+    "model_id": {
+     "$ref": "model_focus"
+    },
+    "color": "Red",
+    "location": "Grand-Rosiere",
+    "driver_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "acquisition_date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=233)).strftime('%Y-%m-%d')"
+    },
+    "state_id": {
+     "$ref": "fleet_vehicle_state_downgraded"
+    },
+    "odometer_unit": "kilometers",
+    "car_value": "16000",
+    "seats": "5",
+    "doors": "5",
+    "model_year": "2024",
+    "fuel_type": "diesel",
+    "co2": "134.00",
+    "co2_standard": "WLTP",
+    "transmission": "manual",
+    "power": "85",
+    "horsepower": "115",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "vehicle_tag_leasing"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_purchased"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_junior"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle",
+   "id": "vehicle_3",
+   "values": {
+    "license_plate": "1-BMW-001",
+    "vin_sn": "54818",
+    "model_id": {
+     "$ref": "model_clio"
+    },
+    "color": "Titanium Grey",
+    "location": "Grand-Rosiere",
+    "category_id": {
+     "$ref": "model_category_compact"
+    },
+    "seats": "5",
+    "doors": "5",
+    "model_year": "2023",
+    "fuel_type": "gasoline",
+    "co2": "118.00",
+    "co2_standard": "WLTP",
+    "power": "49",
+    "horsepower": "67",
+    "driver_id": {
+     "$ref": "base.res_partner_address_17"
+    },
+    "acquisition_date": {
+     "$unevaluated": "time.strftime('%Y-%m-%d 2:00:00')"
+    },
+    "state_id": {
+     "$ref": "fleet_vehicle_state_registered"
+    },
+    "odometer_unit": "kilometers",
+    "car_value": "20000",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "vehicle_tag_leasing"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_purchased"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_senior"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle",
+   "id": "vehicle_4",
+   "values": {
+    "license_plate": "1-AUD-001",
+    "vin_sn": "455257985",
+    "model_id": {
+     "$ref": "model_golf_8"
+    },
+    "color": "White",
+    "seats": "5",
+    "doors": "5",
+    "model_year": "2024",
+    "fuel_type": "gasoline",
+    "co2": "117.00",
+    "co2_standard": "WLTP",
+    "transmission": "manual",
+    "power": "81",
+    "horsepower": "110",
+    "location": "Grand-Rosiere",
+    "driver_id": {
+     "$ref": "base.res_partner_address_16"
+    },
+    "acquisition_date": {
+     "$unevaluated": "time.strftime('%Y-%m-%d 2:00:00')"
+    },
+    "state_id": {
+     "$ref": "fleet_vehicle_state_registered"
+    },
+    "odometer_unit": "kilometers",
+    "car_value": "20000",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "vehicle_tag_leasing"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_purchased"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_senior"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle",
+   "id": "vehicle_5",
+   "values": {
+    "license_plate": "1-MER-001",
+    "vin_sn": "789546128",
+    "model_id": {
+     "$ref": "model_corolla_ts"
+    },
+    "color": "Brown",
+    "location": "Grand-Rosiere",
+    "seats": "5",
+    "doors": "5",
+    "model_year": "0",
+    "fuel_type": "full_hybrid",
+    "co2": "102.00",
+    "co2_standard": "WLTP",
+    "transmission": "automatic",
+    "power": "90",
+    "horsepower": "122",
+    "driver_id": {
+     "$ref": "base.res_partner_address_15"
+    },
+    "acquisition_date": {
+     "$unevaluated": "time.strftime('%Y-%m-%d 2:00:00')"
+    },
+    "state_id": {
+     "$ref": "fleet_vehicle_state_registered"
+    },
+    "odometer_unit": "kilometers",
+    "car_value": "18000",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "vehicle_tag_leasing"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_purchased"
+       },
+       {
+        "$ref": "fleet.vehicle_tag_senior"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_1",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=336)).strftime('%Y-%m-%d')"
+    },
+    "value": "0"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_2",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=304)).strftime('%Y-%m-%d')"
+    },
+    "value": "658"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_3",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=289)).strftime('%Y-%m-%d')"
+    },
+    "value": "1360"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_4",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=260)).strftime('%Y-%m-%d')"
+    },
+    "value": "2044"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_5",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=230)).strftime('%Y-%m-%d')"
+    },
+    "value": "2756"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_6",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=185)).strftime('%Y-%m-%d')"
+    },
+    "value": "3410"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_7",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=165)).strftime('%Y-%m-%d')"
+    },
+    "value": "3750"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_8",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=140)).strftime('%Y-%m-%d')"
+    },
+    "value": "4115"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_9",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=120)).strftime('%Y-%m-%d')"
+    },
+    "value": "4750"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_10",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=105)).strftime('%Y-%m-%d')"
+    },
+    "value": "5171"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_11",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=85)).strftime('%Y-%m-%d')"
+    },
+    "value": "5873"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_12",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=55)).strftime('%Y-%m-%d')"
+    },
+    "value": "6571"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_13",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=32)).strftime('%Y-%m-%d')"
+    },
+    "value": "7954"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_14",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=2)).strftime('%Y-%m-%d')"
+    },
+    "value": "7981"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_15",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=233)).strftime('%Y-%m-%d')"
+    },
+    "value": "0"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_16",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=233)).strftime('%Y-%m-%d')"
+    },
+    "value": "702"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_17",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=215)).strftime('%Y-%m-%d')"
+    },
+    "value": "1205.4"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_18",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=200)).strftime('%Y-%m-%d')"
+    },
+    "value": "2122"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_19",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=180)).strftime('%Y-%m-%d')"
+    },
+    "value": "2430"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_20",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=165)).strftime('%Y-%m-%d')"
+    },
+    "value": "3015"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_21",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=150)).strftime('%Y-%m-%d')"
+    },
+    "value": "3602.1"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_22",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=124)).strftime('%Y-%m-%d')"
+    },
+    "value": "4205.5"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_23",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=96)).strftime('%Y-%m-%d')"
+    },
+    "value": "4935"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_24",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=80)).strftime('%Y-%m-%d')"
+    },
+    "value": "5555"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_25",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=55)).strftime('%Y-%m-%d')"
+    },
+    "value": "5987"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_26",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=45)).strftime('%Y-%m-%d')"
+    },
+    "value": "6571"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_27",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=30)).strftime('%Y-%m-%d')"
+    },
+    "value": "7201.5"
+   }
+  },
+  {
+   "model": "fleet.vehicle.odometer",
+   "id": "log_odometer_28",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=10)).strftime('%Y-%m-%d')"
+    },
+    "value": "8001.2"
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.services",
+   "id": "log_service_1",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "amount": "650",
+    "service_type_id": {
+     "$ref": "type_service_service_7"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=60)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "inv_ref": "4586",
+    "vendor_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Usual vehicle repairing",
+    "state": "done"
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.services",
+   "id": "log_service_2",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "amount": "350",
+    "service_type_id": {
+     "$ref": "type_service_service_7"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=30)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "inv_ref": "4814",
+    "vendor_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "After crash repairing",
+    "state": "done"
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.services",
+   "id": "log_service_3",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "amount": "513",
+    "service_type_id": {
+     "$ref": "type_service_service_7"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=15)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "inv_ref": "124",
+    "vendor_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Maintenance",
+    "state": "done"
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.services",
+   "id": "log_service_4",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_3"
+    },
+    "amount": "412",
+    "service_type_id": {
+     "$ref": "type_service_service_7"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=120)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "inv_ref": "20984",
+    "vendor_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Maintenance",
+    "state": "done"
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.services",
+   "id": "log_service_5",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_4"
+    },
+    "amount": "275",
+    "service_type_id": {
+     "$ref": "type_service_service_7"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=100)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "inv_ref": "241",
+    "vendor_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Maintenance",
+    "state": "done"
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.services",
+   "id": "log_service_6",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_5"
+    },
+    "amount": "302",
+    "service_type_id": {
+     "$ref": "type_service_service_7"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=65)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "inv_ref": "22513",
+    "vendor_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Maintenance",
+    "state": "done"
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.contract",
+   "id": "log_contract_1",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_2"
+    },
+    "cost_subtype_id": {
+     "$ref": "type_contract_leasing"
+    },
+    "amount": "0",
+    "name": "Daily leasing contract",
+    "cost_generated": "20",
+    "cost_frequency": "daily",
+    "expiration_date": {
+     "$unevaluated": "(DateTime.now() + timedelta(5)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "insurer_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Daily leasing contract",
+    "state": "open",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "service_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "fleet.type_contract_omnium"
+       },
+       {
+        "$ref": "fleet.type_service_service_3"
+       },
+       {
+        "$ref": "fleet.type_service_service_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.contract",
+   "id": "log_contract_2",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_1"
+    },
+    "cost_subtype_id": {
+     "$ref": "type_contract_leasing"
+    },
+    "amount": "0",
+    "name": "Weekly leasing contract",
+    "cost_generated": "150",
+    "cost_frequency": "weekly",
+    "date": {
+     "$unevaluated": "time.strftime('%Y-01-01')"
+    },
+    "start_date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=289)).strftime('%Y-%m-%d')"
+    },
+    "expiration_date": {
+     "$unevaluated": "(DateTime.now() + timedelta(-1)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "insurer_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Weekly leasing contract",
+    "state": "open",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "service_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "fleet.type_contract_omnium"
+       },
+       {
+        "$ref": "fleet.type_service_service_3"
+       },
+       {
+        "$ref": "fleet.type_service_service_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.contract",
+   "id": "log_contract_3",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_3"
+    },
+    "cost_subtype_id": {
+     "$ref": "type_contract_leasing"
+    },
+    "amount": "0",
+    "name": "Monthly leasing",
+    "cost_generated": "400",
+    "cost_frequency": "monthly",
+    "date": {
+     "$unevaluated": "time.strftime('%Y-01-01')"
+    },
+    "start_date": {
+     "$unevaluated": "time.strftime('%Y-01-01')"
+    },
+    "expiration_date": {
+     "$unevaluated": "time.strftime('%Y-12-31')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "insurer_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Monthly leasing contract",
+    "state": "open",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "service_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "fleet.type_contract_omnium"
+       },
+       {
+        "$ref": "fleet.type_service_service_3"
+       },
+       {
+        "$ref": "fleet.type_service_service_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.contract",
+   "id": "log_contract_4",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_4"
+    },
+    "cost_subtype_id": {
+     "$ref": "type_contract_leasing"
+    },
+    "amount": "0",
+    "name": "Yearly leasing",
+    "cost_generated": "4000",
+    "cost_frequency": "yearly",
+    "date": {
+     "$unevaluated": "time.strftime('%Y-01-01')"
+    },
+    "start_date": {
+     "$unevaluated": "time.strftime('%Y-01-01')"
+    },
+    "expiration_date": {
+     "$unevaluated": "time.strftime('%Y-12-31')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "insurer_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Yearly leasing contract",
+    "state": "open",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "service_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "fleet.type_contract_omnium"
+       },
+       {
+        "$ref": "fleet.type_service_service_3"
+       },
+       {
+        "$ref": "fleet.type_service_service_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "fleet.vehicle.log.contract",
+   "id": "log_contract_5",
+   "values": {
+    "vehicle_id": {
+     "$ref": "vehicle_5"
+    },
+    "cost_subtype_id": {
+     "$ref": "type_contract_leasing"
+    },
+    "amount": "17000",
+    "name": "Unique leasing",
+    "cost_generated": "0",
+    "cost_frequency": "no",
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=300)).strftime('%Y-%m-%d')"
+    },
+    "start_date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=300)).strftime('%Y-%m-%d')"
+    },
+    "expiration_date": {
+     "$unevaluated": "(DateTime.now() + timedelta(-60)).strftime('%Y-%m-%d')"
+    },
+    "purchaser_id": {
+     "$ref": "base.res_partner_address_18"
+    },
+    "insurer_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "notes": "Unique leasing contract",
+    "state": "open",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "service_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "fleet.type_contract_omnium"
+       },
+       {
+        "$ref": "fleet.type_service_service_3"
+       },
+       {
+        "$ref": "fleet.type_service_service_2"
+       }
+      ]
+     ]
+    ]
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_root",
+   "name": "Fleet",
+   "sequence": "220",
+   "groups": "fleet_group_user",
+   "web_icon": "fleet,static/description/icon.png"
+  },
+  {
+   "id": "fleet_configuration",
+   "name": "Configuration",
+   "parent": "menu_root",
+   "sequence": "100",
+   "groups": "fleet_group_manager"
+  },
+  {
+   "id": "fleet_models_configuration",
+   "name": "Models",
+   "parent": "fleet_configuration",
+   "sequence": "10",
+   "groups": "fleet_group_manager"
+  },
+  {
+   "id": "fleet_vehicle_model_brand_menu",
+   "parent": "fleet_models_configuration",
+   "action": "fleet_vehicle_model_brand_action",
+   "sequence": "1"
+  },
+  {
+   "id": "fleet_vehicle_model_menu",
+   "parent": "fleet_models_configuration",
+   "action": "fleet_vehicle_model_action",
+   "sequence": "5"
+  },
+  {
+   "id": "fleet_vehicle_model_category_menu",
+   "parent": "fleet_models_configuration",
+   "action": "fleet_vehicle_model_category_action",
+   "sequence": "10"
+  },
+  {
+   "id": "fleet_vehicles",
+   "name": "Fleet",
+   "parent": "menu_root",
+   "sequence": "2",
+   "groups": "fleet_group_user"
+  },
+  {
+   "id": "fleet_vehicle_menu",
+   "name": "Fleet",
+   "parent": "fleet_vehicles",
+   "action": "fleet_vehicle_action",
+   "sequence": "0",
+   "groups": "fleet_group_user"
+  },
+  {
+   "id": "fleet_vehicle_odometer_menu",
+   "parent": "fleet_vehicles",
+   "action": "fleet_vehicle_odometer_action",
+   "sequence": "10",
+   "groups": "fleet_group_user"
+  },
+  {
+   "id": "fleet_services_configuration",
+   "name": "Services",
+   "parent": "fleet_configuration",
+   "sequence": "20",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "fleet_vehicle_service_types_menu",
+   "name": "Types",
+   "parent": "fleet_services_configuration",
+   "action": "fleet_vehicle_service_types_action",
+   "sequence": "1",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "fleet_vehicles_configuration",
+   "name": "Vehicle",
+   "parent": "fleet_configuration",
+   "sequence": "30",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "fleet_vehicle_state_menu",
+   "parent": "fleet_vehicles_configuration",
+   "action": "fleet_vehicle_state_action",
+   "sequence": "10",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "fleet_vehicle_tag_menu",
+   "parent": "fleet_vehicles_configuration",
+   "action": "fleet_vehicle_tag_action",
+   "sequence": "20",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "fleet_vehicle_log_contract_menu",
+   "parent": "fleet_vehicles",
+   "action": "fleet_vehicle_log_contract_action",
+   "sequence": "2",
+   "groups": "fleet_group_user"
+  },
+  {
+   "id": "fleet_vehicle_log_services_menu",
+   "parent": "fleet_vehicles",
+   "action": "fleet_vehicle_log_services_action",
+   "sequence": "3",
+   "groups": "fleet_group_user"
+  },
+  {
+   "id": "menu_fleet_reporting",
+   "name": "Reporting",
+   "parent": "menu_root",
+   "sequence": "99",
+   "groups": "fleet_group_manager"
+  },
+  {
+   "id": "menu_fleet_reporting_costs",
+   "name": "Costs",
+   "parent": "menu_fleet_reporting",
+   "action": "fleet_costs_reporting_action",
+   "sequence": "1",
+   "groups": "fleet_group_manager"
+  },
+  {
+   "id": "fleet_menu_config_activity_type",
+   "parent": "fleet_configuration",
+   "action": "mail_activity_type_action_config_fleet",
+   "sequence": "99",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "fleet_config_settings_menu",
+   "name": "Settings",
+   "parent": "fleet.fleet_configuration",
+   "action": "fleet_config_settings_action",
+   "sequence": "0",
+   "groups": "base.group_system"
+  }
+ ],
+ "access": [
+  {
+   "id": "fleet_vehicle_model_access_right_user",
+   "model": "fleet.vehicle.model",
+   "model_xmlid": "model_fleet_vehicle_model",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_vehicle_tag_access_right_user",
+   "model": "fleet.vehicle.tag",
+   "model_xmlid": "model_fleet_vehicle_tag",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_vehicle_state_access_right_user",
+   "model": "fleet.vehicle.state",
+   "model_xmlid": "model_fleet_vehicle_state",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_vehicle_model_brand_access_right_user",
+   "model": "fleet.vehicle.model.brand",
+   "model_xmlid": "model_fleet_vehicle_model_brand",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_vehicle_model_brand_category_right_user",
+   "model": "fleet.vehicle.model.category",
+   "model_xmlid": "model_fleet_vehicle_model_category",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_vehicle_access_right_user",
+   "model": "fleet.vehicle",
+   "model_xmlid": "model_fleet_vehicle",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_vehicle_log_services_access_right_user",
+   "model": "fleet.vehicle.log.services",
+   "model_xmlid": "model_fleet_vehicle_log_services",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_vehicle_log_contract_access_right_user",
+   "model": "fleet.vehicle.log.contract",
+   "model_xmlid": "model_fleet_vehicle_log_contract",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_service_type_access_right_user",
+   "model": "fleet.service.type",
+   "model_xmlid": "model_fleet_service_type",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "fleet_vehicle_model_access_right",
+   "model": "fleet.vehicle.model",
+   "model_xmlid": "model_fleet_vehicle_model",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_vehicle_tag_access_right",
+   "model": "fleet.vehicle.tag",
+   "model_xmlid": "model_fleet_vehicle_tag",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_vehicle_state_access_right",
+   "model": "fleet.vehicle.state",
+   "model_xmlid": "model_fleet_vehicle_state",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_vehicle_odometer_access_right",
+   "model": "fleet.vehicle.odometer",
+   "model_xmlid": "model_fleet_vehicle_odometer",
+   "group": "fleet_group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_vehicle_model_brand_access_right",
+   "model": "fleet.vehicle.model.brand",
+   "model_xmlid": "model_fleet_vehicle_model_brand",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_vehicle_model_category_access_right",
+   "model": "fleet.vehicle.model.category",
+   "model_xmlid": "model_fleet_vehicle_model_category",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_vehicle_access_right",
+   "model": "fleet.vehicle",
+   "model_xmlid": "model_fleet_vehicle",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_vehicle_log_services_access_right",
+   "model": "fleet.vehicle.log.services",
+   "model_xmlid": "model_fleet_vehicle_log_services",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_vehicle_log_contract_access_right",
+   "model": "fleet.vehicle.log.contract",
+   "model_xmlid": "model_fleet_vehicle_log_contract",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "fleet_service_type_access_right",
+   "model": "fleet.service.type",
+   "model_xmlid": "model_fleet_service_type",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_type_fleet_manager",
+   "model": "mail.mail.activity.type",
+   "model_xmlid": "mail.model_mail_activity_type",
+   "group": "fleet.fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_fleet_vehicle_assignation_log_fleet_group_user",
+   "model": "fleet.fleet.vehicle.assignation.log",
+   "model_xmlid": "fleet.model_fleet_vehicle_assignation_log",
+   "group": "fleet.fleet_group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_fleet_report_manager",
+   "model": "fleet.vehicle.cost.report",
+   "model_xmlid": "model_fleet_vehicle_cost_report",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_fleet_vehicle_send_mail",
+   "model": "fleet.vehicle.send.mail",
+   "model_xmlid": "model_fleet_vehicle_send_mail",
+   "group": "fleet_group_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

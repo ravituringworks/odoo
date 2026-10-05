@@ -1,0 +1,607 @@
+{
+ "module": "stock_picking_batch",
+ "records": [
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_picking_batch_action",
+   "values": {
+    "name": "Batch Transfers",
+    "res_model": "stock.picking.batch",
+    "view_mode": "list,kanban,form",
+    "domain": [
+     [
+      "is_wave",
+      "=",
+      false
+     ]
+    ],
+    "context": {
+     "search_default_draft": true,
+     "search_default_in_progress": true
+    },
+    "search_view_id": {
+     "$ref": "stock_picking_batch_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_unreserve_batch_picking",
+   "values": {
+    "name": "Unreserve",
+    "model_id": {
+     "$ref": "stock_picking_batch.model_stock_picking_batch"
+    },
+    "binding_model_id": {
+     "$ref": "stock_picking_batch.model_stock_picking_batch"
+    },
+    "binding_view_types": "list,form",
+    "state": "code",
+    "code": "if records:\n            records.picking_ids.do_unreserve()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_prepare_wave_for_picking_type",
+   "values": {
+    "name": "Prepare Wave",
+    "res_model": "stock.move.line",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_move_line_tree_detailed_wave"
+    },
+    "target": "new",
+    "domain": {
+     "$unevaluated": "[('state', '!=', 'done'), ('picking_type_id', '=', active_id), ('picking_id', '!=', False)]"
+    },
+    "context": {
+     "active_wave_id": false,
+     "search_default_by_location": true
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_prepare_wave",
+   "values": {
+    "name": "Prepare Wave",
+    "res_model": "stock.move.line",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_move_line_tree_detailed_wave"
+    },
+    "target": "new",
+    "domain": [
+     [
+      "state",
+      "!=",
+      "done"
+     ],
+     [
+      "picking_id",
+      "!=",
+      false
+     ]
+    ],
+    "context": {
+     "active_wave_id": false,
+     "search_default_by_location": true
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_wave",
+   "values": {
+    "name": "Wave Transfers",
+    "res_model": "stock.picking.batch",
+    "view_mode": "list,kanban,form",
+    "context": {
+     "search_default_draft": true,
+     "search_default_in_progress": true
+    },
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "stock_picking_batch.stock_picking_wave_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "stock_picking_batch.stock_picking_wave_kanban"
+       }
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "is_wave",
+      "=",
+      true
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "stock_picking_batch_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_batch_state",
+   "values": {
+    "name": "Stage Changed",
+    "res_model": "stock.picking.batch",
+    "default": false,
+    "description": "Stage Changed"
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_picking_batch",
+   "values": {
+    "name": "Batch Transfer",
+    "code": "picking.batch",
+    "prefix": "BATCH/",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_picking_wave",
+   "values": {
+    "name": "Wave Transfer",
+    "code": "picking.wave",
+    "prefix": "WAVE/",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_picking_to_batch_action_stock_picking",
+   "values": {
+    "name": "Add to batch",
+    "res_model": "stock.picking.to.batch",
+    "view_mode": "form",
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "model_stock_picking"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_add_to_wave_action_stock_picking",
+   "values": {
+    "name": "Add to wave",
+    "res_model": "stock.add.to.wave",
+    "view_mode": "form",
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_picking_batch_multicompany_rule",
+   "values": {
+    "name": "stock.picking.batch multi-company",
+    "model_id": {
+     "$ref": "model_stock_picking_batch"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_batch_1",
+   "values": {
+    "product_id": {
+     "$ref": "product.consu_delivery_01"
+    },
+    "inventory_quantity": "10.0",
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_batch_2",
+   "values": {
+    "product_id": {
+     "$ref": "product.consu_delivery_02"
+    },
+    "inventory_quantity": "18.0",
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_batch_3",
+   "values": {
+    "product_id": {
+     "$ref": "product.consu_delivery_03"
+    },
+    "inventory_quantity": "20.0",
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "Picking_A",
+   "values": {
+    "move_type": "one",
+    "priority": "1",
+    "user_id": false,
+    "state": "draft",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "Picking_B",
+   "values": {
+    "move_type": "one",
+    "priority": "0",
+    "user_id": false,
+    "state": "draft",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "Picking_C",
+   "values": {
+    "move_type": "one",
+    "priority": "0",
+    "user_id": false,
+    "state": "draft",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "Picking_D",
+   "values": {
+    "move_type": "one",
+    "priority": "1",
+    "user_id": false,
+    "state": "draft",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "stock.picking.batch",
+   "id": "stock_picking_batch_1",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    },
+    "picking_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "stock_picking_batch.Picking_C"
+       },
+       {
+        "$ref": "stock_picking_batch.Picking_D"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "stock.picking.batch",
+   "id": "stock_picking_batch_2",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    },
+    "picking_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "stock_picking_batch.Picking_A"
+       },
+       {
+        "$ref": "stock_picking_batch.Picking_B"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "stock.move",
+   "id": "stock_move1",
+   "values": {
+    "name": "A first stock move",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "picking_id": {
+     "$ref": "Picking_A"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "product_uom_qty": "10",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_id": {
+     "$ref": "product.consu_delivery_01"
+    }
+   }
+  },
+  {
+   "model": "stock.move",
+   "id": "stock_move2",
+   "values": {
+    "name": "A second stock move",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "picking_id": {
+     "$ref": "Picking_A"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "product_uom_qty": "10",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_id": {
+     "$ref": "product.consu_delivery_02"
+    }
+   }
+  },
+  {
+   "model": "stock.move",
+   "id": "stock_move3",
+   "values": {
+    "name": "A third stock move",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "picking_id": {
+     "$ref": "Picking_B"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "product_uom_qty": "10",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_id": {
+     "$ref": "product.consu_delivery_03"
+    }
+   }
+  },
+  {
+   "model": "stock.move",
+   "id": "stock_move4",
+   "values": {
+    "name": "A fourth stock move",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "picking_id": {
+     "$ref": "Picking_C"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "product_uom_qty": "4",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_id": {
+     "$ref": "product.consu_delivery_03"
+    }
+   }
+  },
+  {
+   "model": "stock.move",
+   "id": "stock_move5",
+   "values": {
+    "name": "A fifth stock move",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "picking_id": {
+     "$ref": "Picking_D"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "product_uom_qty": "2",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_id": {
+     "$ref": "product.product_product_10"
+    }
+   }
+  },
+  {
+   "model": "stock.move",
+   "id": "stock_move6",
+   "values": {
+    "name": "A sixth stock move",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "picking_id": {
+     "$ref": "Picking_D"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "product_uom_qty": "3",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_stock_jobs",
+   "name": "Jobs",
+   "parent": "stock.menu_stock_warehouse_mgmt",
+   "sequence": "2"
+  },
+  {
+   "id": "stock_picking_batch_menu",
+   "parent": "menu_stock_jobs",
+   "action": "stock_picking_batch_action",
+   "sequence": "30"
+  },
+  {
+   "id": "stock_picking_wave_menu",
+   "parent": "menu_stock_jobs",
+   "action": "action_picking_tree_wave",
+   "sequence": "31"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_stock_picking_batch",
+   "model": "stock.picking.batch",
+   "model_xmlid": "model_stock_picking_batch",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_picking_to_batch",
+   "model": "stock.picking.to.batch",
+   "model_xmlid": "model_stock_picking_to_batch",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_add_to_wave",
+   "model": "stock.add.to.wave",
+   "model_xmlid": "model_stock_add_to_wave",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

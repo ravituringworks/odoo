@@ -1,0 +1,198 @@
+{
+ "module": "project_todo",
+ "records": [
+  {
+   "model": "res.groups",
+   "id": "group_onboarding_todo",
+   "values": {
+    "name": "Onboarding todo already generated for those users",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "task_edition_rule_internal",
+   "values": {
+    "name": "Project/Task: employees: Full access to own private task only",
+    "model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "domain_force": "[('project_id', '=', False), ('user_ids', 'in', user.id), ('parent_id', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_task_action_todo",
+   "values": {
+    "name": "To-dos",
+    "res_model": "project.task",
+    "domain": {
+     "$unevaluated": "[('user_ids', 'in', [uid]), ('project_id', '=', False), ('parent_id', '=', False)]"
+    },
+    "view_mode": "kanban,form,list,activity",
+    "search_view_id": {
+     "$ref": "project_task_view_todo_search"
+    },
+    "context": {
+     "search_default_open_tasks": 1,
+     "list_view_ref": "project_todo.project_task_view_todo_tree",
+     "default_project_id": false
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_todo_kanban_view",
+   "values": {
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "project_task_view_todo_kanban"
+    },
+    "act_window_id": {
+     "$ref": "project_task_action_todo"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_todo_form_view",
+   "values": {
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "project_task_view_todo_form"
+    },
+    "act_window_id": {
+     "$ref": "project_task_action_todo"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_todo_tree_view",
+   "values": {
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "project_task_view_todo_tree"
+    },
+    "act_window_id": {
+     "$ref": "project_task_action_todo"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_todo_activity_view",
+   "values": {
+    "view_mode": "activity",
+    "view_id": {
+     "$ref": "project_task_view_todo_activity"
+    },
+    "act_window_id": {
+     "$ref": "project_task_action_todo"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "project_task_preload_action_todo",
+   "values": {
+    "name": "menu load To-dos",
+    "path": "to-do",
+    "model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "state": "code",
+    "code": "model._ensure_onboarding_todo(); action = env[\"ir.actions.actions\"]._for_xml_id(\"project_todo.project_task_action_todo\")"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_task_action_convert_todo_to_task",
+   "values": {
+    "name": "Convert to Task",
+    "res_model": "project.task",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "dialog_size": "medium"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_convert_todo_to_task_form_view",
+   "values": {
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "project_task_view_todo_conversion_form"
+    },
+    "act_window_id": {
+     "$ref": "project_task_action_convert_todo_to_task"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_todo_todos",
+   "name": "To-do",
+   "action": "project_todo.project_task_preload_action_todo",
+   "web_icon": "project_todo,static/description/icon.png"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_project_task_type_user",
+   "model": "project.project.task.type",
+   "model_xmlid": "project.model_project_task_type",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_task_on_partner",
+   "model": "project.project.task",
+   "model_xmlid": "project.model_project_task",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_tags_user",
+   "model": "project.project.tags",
+   "model_xmlid": "project.model_project_tags",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_todo_create",
+   "model": "mail.activity.todo.create",
+   "model_xmlid": "model_mail_activity_todo_create",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

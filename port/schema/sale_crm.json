@@ -1,0 +1,310 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/crm_lead_merge_template.xml",
+  "views/partner_views.xml",
+  "views/sale_order_views.xml",
+  "views/crm_lead_views.xml",
+  "views/crm_team_views.xml",
+  "wizard/crm_opportunity_to_quotation_views.xml"
+ ],
+ "depends": [
+  "sale",
+  "crm"
+ ],
+ "models": {
+  "crm.lead": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "order_ids": {
+     "comodel": "sale.order",
+     "inverse_name": "opportunity_id",
+     "string": "Orders",
+     "type": "One2many"
+    },
+    "quotation_count": {
+     "compute": "_compute_sale_data",
+     "string": "Number of Quotations",
+     "type": "Integer"
+    },
+    "sale_amount_total": {
+     "compute": "_compute_sale_data",
+     "currency_field": "company_currency",
+     "help": "Untaxed Total of Confirmed Orders",
+     "string": "Sum of Orders",
+     "type": "Monetary"
+    },
+    "sale_order_count": {
+     "compute": "_compute_sale_data",
+     "string": "Number of Sale Orders",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_ids.state', 'order_ids.currency_id', 'order_ids.amount_untaxed', 'order_ids.date_order', 'order_ids.company_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_sale_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_sale_quotations_new"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_new_quotation"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_view_sale_quotation"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_view_sale_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_action_view_sale_quotation_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_lead_quotation_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_lead_sale_order_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_prepare_opportunity_quotation_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_merge_get_fields_specific"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_update_revenues_from_so"
+    }
+   ],
+   "name": "crm.lead",
+   "sel_methods": {
+    "_get_action_view_sale_quotation_domain": [
+     [
+      "state",
+      "in"
+     ]
+    ],
+    "_get_lead_quotation_domain": [
+     [
+      "state",
+      "in"
+     ]
+    ],
+    "_get_lead_sale_order_domain": [
+     [
+      "state",
+      "not in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "crm.quotation.partner": {
+   "abstract": false,
+   "description": "Create new or use existing Customer on new Quotation",
+   "extension": false,
+   "fields": {
+    "action": {
+     "required": true,
+     "selection": [
+      [
+       "create",
+       "Create a new customer"
+      ],
+      [
+       "exist",
+       "Link to an existing customer"
+      ],
+      [
+       "nothing",
+       "Do not link to a customer"
+      ]
+     ],
+     "string": "Quotation Customer",
+     "type": "Selection"
+    },
+    "lead_id": {
+     "comodel": "crm.lead",
+     "required": true,
+     "string": "Associated Lead",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "default_get"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_apply"
+    }
+   ],
+   "name": "crm.quotation.partner",
+   "transient": true
+  },
+  "crm.team": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_dashboard_button_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_primary_channel_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_get_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_date_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_y_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_title_and_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_extra_sql_conditions"
+    }
+   ],
+   "name": "crm.team",
+   "sel_methods": {
+    "_extra_sql_conditions": [],
+    "_graph_date_column": [],
+    "_graph_get_model": [],
+    "_graph_title_and_key": [],
+    "_graph_y_query": []
+   },
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "target_sales_invoiced": {
+     "string": "Invoiced in Sales Orders Target",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.users",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "opportunity_id": {
+     "comodel": "crm.lead",
+     "domain": "[('type', '=', 'opportunity'), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "string": "Opportunity",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_confirm"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  }
+ },
+ "module": "sale_crm",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_crm",
+ "stats": {
+  "fields": 9,
+  "methods": 21,
+  "models": 5,
+  "py_lines": 256
+ },
+ "summary": "This module adds a shortcut on one or several opportunity cases in the CRM.",
+ "title": "Opportunity to Quotation",
+ "version": "1.0"
+}

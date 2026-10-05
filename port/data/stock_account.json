@@ -1,0 +1,256 @@
+{
+ "module": "stock_account",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "stock_valuation_layer_company_rule",
+   "values": {
+    "name": "Stock Valuation Layer Multicompany",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_lot_on_invoice",
+   "values": {
+    "name": "Display Serial & Lot Number on Invoices",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_stock_accounting_automatic",
+   "values": {
+    "name": "Stock Accounting Automatic",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_valuation_layer_action",
+   "values": {
+    "name": "Stock Valuation",
+    "res_model": "stock.valuation.layer",
+    "path": "stock-valuation",
+    "view_mode": "list,form,pivot,graph",
+    "view_id": {
+     "$ref": "stock_valuation_layer_tree"
+    },
+    "domain": [
+     [
+      "product_id.is_storable",
+      "=",
+      true
+     ]
+    ],
+    "context": {
+     "pivot_column_groupby": [
+      "create_date:month"
+     ],
+     "pivot_row_groupby": [
+      "categ_id"
+     ],
+     "pivot_measures": [
+      "remaining_qty",
+      "remaining_value"
+     ],
+     "graph_groupbys": [
+      "create_date:day"
+     ]
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_valuation_layer_report_action",
+   "values": {
+    "name": "Stock Valuation",
+    "res_model": "stock.valuation.layer",
+    "view_mode": "list,form,pivot",
+    "view_id": {
+     "$ref": "stock_valuation_layer_report_tree"
+    },
+    "context": {
+     "search_default_has_remaining_qty": 1
+    },
+    "domain": [
+     [
+      "product_id.is_storable",
+      "=",
+      true
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_revalue_layers",
+   "values": {
+    "name": "Adjust Valuation",
+    "res_model": "stock.valuation.layer.revaluation",
+    "view_mode": "form",
+    "binding_model_id": {
+     "$ref": "stock_account.model_stock_valuation_layer"
+    },
+    "binding_view_types": "list",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "filter_invoice_inventory_valuation",
+   "values": {
+    "name": "Inventory Valuation",
+    "model_id": "account.invoice.report",
+    "domain": [
+     [
+      "product_id.is_storable",
+      "=",
+      true
+     ]
+    ],
+    "user_id": false,
+    "context": {
+     "group_by": [
+      "product_id"
+     ],
+     "pivot_column_groupby": [
+      "invoice_date:month"
+     ],
+     "pivot_measures": [
+      "inventory_value"
+     ],
+     "graph_measure": "inventory_value"
+    }
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_avco",
+   "values": {
+    "parent_id": {
+     "$ref": "product.product_category_all"
+    },
+    "property_valuation": "manual_periodic",
+    "property_cost_method": "average",
+    "name": "AVCO"
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_fifo",
+   "values": {
+    "parent_id": {
+     "$ref": "product.product_category_all"
+    },
+    "property_valuation": "manual_periodic",
+    "property_cost_method": "fifo",
+    "name": "FIFO"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_valuation",
+   "name": "Valuation",
+   "parent": "stock.menu_warehouse_report",
+   "action": "stock_valuation_layer_action",
+   "sequence": "250"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_account_account_stock_manager",
+   "model": "account.account.account",
+   "model_xmlid": "account.model_account_account",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_stock_manager",
+   "model": "account.account.journal",
+   "model_xmlid": "account.model_account_journal",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_picking_invoicing_payments_readonly",
+   "model": "stock.stock.picking",
+   "model_xmlid": "stock.model_stock_picking",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_picking_invoicing_payments",
+   "model": "stock.stock.picking",
+   "model_xmlid": "stock.model_stock_picking",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_move_invoicing_payments_readonly",
+   "model": "stock.move",
+   "model_xmlid": "model_stock_move",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_move_invoicing_payments",
+   "model": "stock.move",
+   "model_xmlid": "model_stock_move",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_valuation_layer",
+   "model": "stock.valuation.layer",
+   "model_xmlid": "model_stock_valuation_layer",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_valuation_layer_revaluation",
+   "model": "stock.valuation.layer.revaluation",
+   "model_xmlid": "model_stock_valuation_layer_revaluation",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

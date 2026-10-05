@@ -1,0 +1,1626 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden/Tools",
+ "data_files": [
+  "data/iap_service_data.xml",
+  "data/ir_cron_data.xml",
+  "wizard/sms_account_code_views.xml",
+  "wizard/sms_account_phone_views.xml",
+  "wizard/sms_account_sender_views.xml",
+  "wizard/sms_composer_views.xml",
+  "wizard/sms_template_preview_views.xml",
+  "wizard/sms_resend_views.xml",
+  "wizard/sms_template_reset_views.xml",
+  "views/ir_actions_server_views.xml",
+  "views/mail_notification_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml",
+  "views/iap_account_views.xml",
+  "views/sms_sms_views.xml",
+  "views/sms_template_views.xml",
+  "security/ir.model.access.csv",
+  "security/sms_security.xml",
+  "data/sms_demo.xml",
+  "data/mail_demo.xml"
+ ],
+ "depends": [
+  "base",
+  "iap_mail",
+  "mail",
+  "phone_validation"
+ ],
+ "models": {
+  "base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 82,
+     "name": "_sms_get_recipients_info"
+    }
+   ],
+   "name": "base",
+   "transient": false
+  },
+  "iap.account": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sender_name": {
+     "help": "This is the name that will be displayed as the sender of the SMS.",
+     "readonly": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_registration_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_sender_name_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_account_info"
+    }
+   ],
+   "name": "iap.account",
+   "transient": false
+  },
+  "ir.actions.server": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "sms_method": {
+     "compute": "_compute_sms_method",
+     "readonly": false,
+     "selection": [
+      [
+       "sms",
+       "SMS (without note)"
+      ],
+      [
+       "comment",
+       "SMS (with note)"
+      ],
+      [
+       "note",
+       "Note only"
+      ]
+     ],
+     "store": true,
+     "string": "Send SMS As",
+     "type": "Selection"
+    },
+    "sms_template_id": {
+     "comodel": "sms.template",
+     "compute": "_compute_sms_template_id",
+     "domain": "[('model_id', '=', model_id)]",
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "string": "SMS Template",
+     "type": "Many2one"
+    },
+    "state": {
+     "ondelete": {
+      "sms": "cascade"
+     },
+     "selection_add": [
+      [
+       "sms",
+       "Send SMS"
+      ],
+      [
+       "followers"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 7,
+     "name": "_compute_available_model_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_id', 'state')"
+     ],
+     "lines": 7,
+     "name": "_compute_sms_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 7,
+     "name": "_compute_sms_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('state', 'model_id')"
+     ],
+     "lines": 4,
+     "name": "_check_sms_model_coherency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('model_id', 'template_id')"
+     ],
+     "lines": 8,
+     "name": "_check_sms_template_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_run_action_sms_multi"
+    }
+   ],
+   "name": "ir.actions.server",
+   "transient": false
+  },
+  "ir.model": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_mail_thread_sms": {
+     "compute": "_compute_is_mail_thread_sms",
+     "default": false,
+     "help": "Whether this model supports messages and notifications through SMS",
+     "store": false,
+     "string": "Mail Thread SMS",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_mail_thread')"
+     ],
+     "lines": 9,
+     "name": "_compute_is_mail_thread_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_search_is_mail_thread_sms"
+    }
+   ],
+   "name": "ir.model",
+   "sel_methods": {
+    "_search_is_mail_thread_sms": [
+     [
+      "id",
+      "not in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "mail.followers": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_recipient_data"
+    }
+   ],
+   "name": "mail.followers",
+   "transient": false
+  },
+  "mail.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_sms_error": {
+     "compute": "_compute_has_sms_error",
+     "string": "Has SMS error",
+     "type": "Boolean"
+    },
+    "message_type": {
+     "ondelete": {
+      "$expr": "{'sms': lambda recs: recs.write({'message_type': 'comment'})}"
+     },
+     "selection_add": [
+      [
+       "sms",
+       "SMS"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_has_sms_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_search_has_sms_error"
+    }
+   ],
+   "name": "mail.message",
+   "transient": false
+  },
+  "mail.notification": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "failure_type": {
+     "selection_add": [
+      [
+       "sms_number_missing",
+       "Missing Number"
+      ],
+      [
+       "sms_number_format",
+       "Wrong Number Format"
+      ],
+      [
+       "sms_credit",
+       "Insufficient Credit"
+      ],
+      [
+       "sms_country_not_supported",
+       "Country Not Supported"
+      ],
+      [
+       "sms_registration_needed",
+       "Country-specific Registration Required"
+      ],
+      [
+       "sms_server",
+       "Server Error"
+      ],
+      [
+       "sms_acc",
+       "Unregistered Account"
+      ],
+      [
+       "sms_expired",
+       "Expired"
+      ],
+      [
+       "sms_invalid_destination",
+       "Invalid Destination"
+      ],
+      [
+       "sms_not_allowed",
+       "Not Allowed"
+      ],
+      [
+       "sms_not_delivered",
+       "Not Delivered"
+      ],
+      [
+       "sms_rejected",
+       "Rejected"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "notification_type": {
+     "ondelete": {
+      "sms": "cascade"
+     },
+     "selection_add": [
+      [
+       "sms",
+       "SMS"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "sms_id": {
+     "comodel": "sms.sms",
+     "compute": "_compute_sms_id",
+     "store": false,
+     "string": "SMS",
+     "type": "Many2one"
+    },
+    "sms_id_int": {
+     "index": "btree_not_null",
+     "string": "SMS ID",
+     "type": "Integer"
+    },
+    "sms_number": {
+     "groups": "base.group_user",
+     "string": "SMS Number",
+     "type": "Char"
+    },
+    "sms_tracker_ids": {
+     "comodel": "sms.tracker",
+     "inverse_name": "mail_notification_id",
+     "string": "SMS Trackers",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sms_id_int', 'notification_type')"
+     ],
+     "lines": 10,
+     "name": "_compute_sms_id"
+    }
+   ],
+   "name": "mail.notification",
+   "transient": false
+  },
+  "mail.thread": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "message_has_sms_error": {
+     "compute": "_compute_message_has_sms_error",
+     "help": "If checked, some messages have a delivery error.",
+     "string": "SMS Delivery error",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_compute_message_has_sms_error"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_search_message_has_sms_error"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('mail.message', lambda value: value.id)"
+     ],
+     "lines": 7,
+     "name": "message_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_message_sms_schedule_mass"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_message_sms_with_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_message_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_notify_thread"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 125,
+     "name": "_notify_thread_by_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_notify_valid_parameters"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "notify_cancel_by_type"
+    }
+   ],
+   "name": "mail.thread",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_sms_api_class"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "mail.thread.phone"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  },
+  "sms.account.code": {
+   "abstract": false,
+   "description": "SMS Account Verification Code Wizard",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "iap.account",
+     "required": true,
+     "type": "Many2one"
+    },
+    "verification_code": {
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 22,
+     "name": "action_register"
+    }
+   ],
+   "name": "sms.account.code",
+   "transient": true
+  },
+  "sms.account.phone": {
+   "abstract": false,
+   "description": "SMS Account Registration Phone Number Wizard",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "iap.account",
+     "required": true,
+     "type": "Many2one"
+    },
+    "phone_number": {
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_send_verification_code"
+    }
+   ],
+   "name": "sms.account.phone",
+   "transient": true
+  },
+  "sms.account.sender": {
+   "abstract": false,
+   "description": "SMS Account Sender Name Wizard",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "iap.account",
+     "required": true,
+     "type": "Many2one"
+    },
+    "sender_name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('sender_name')"
+     ],
+     "lines": 4,
+     "name": "_check_sender_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_set_sender_name"
+    }
+   ],
+   "name": "sms.account.sender",
+   "transient": true
+  },
+  "sms.composer": {
+   "abstract": false,
+   "description": "Send SMS Wizard",
+   "extension": false,
+   "fields": {
+    "body": {
+     "compute": "_compute_body",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Message",
+     "type": "Text"
+    },
+    "comment_single_recipient": {
+     "compute": "_compute_comment_single_recipient",
+     "help": "Indicates if the SMS composer targets a single specific recipient",
+     "string": "Single Mode",
+     "type": "Boolean"
+    },
+    "composition_mode": {
+     "compute": "_compute_composition_mode",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "numbers",
+       "Send to numbers"
+      ],
+      [
+       "comment",
+       "Post on a document"
+      ],
+      [
+       "mass",
+       "Send SMS in batch"
+      ]
+     ],
+     "store": true,
+     "string": "Composition Mode",
+     "type": "Selection"
+    },
+    "mass_force_send": {
+     "default": false,
+     "string": "Send directly",
+     "type": "Boolean"
+    },
+    "mass_keep_log": {
+     "default": true,
+     "string": "Keep a note on document",
+     "type": "Boolean"
+    },
+    "mass_use_blacklist": {
+     "default": true,
+     "string": "Use blacklist",
+     "type": "Boolean"
+    },
+    "number_field_name": {
+     "string": "Number Field",
+     "type": "Char"
+    },
+    "numbers": {
+     "string": "Recipients (Numbers)",
+     "type": "Char"
+    },
+    "recipient_invalid_count": {
+     "compute": "_compute_recipients",
+     "string": "# Invalid recipients",
+     "type": "Integer"
+    },
+    "recipient_single_description": {
+     "compute": "_compute_recipient_single_non_stored",
+     "string": "Recipients (Partners)",
+     "type": "Text"
+    },
+    "recipient_single_number": {
+     "compute": "_compute_recipient_single_non_stored",
+     "string": "Stored Recipient Number",
+     "type": "Char"
+    },
+    "recipient_single_number_itf": {
+     "compute": "_compute_recipient_single_stored",
+     "help": "Phone number of the recipient. If changed, it will be recorded on recipient's profile.",
+     "readonly": false,
+     "store": true,
+     "string": "Recipient Number",
+     "type": "Char"
+    },
+    "recipient_single_valid": {
+     "compute": "_compute_recipient_single_valid",
+     "string": "Is valid",
+     "type": "Boolean"
+    },
+    "recipient_valid_count": {
+     "compute": "_compute_recipients",
+     "string": "# Valid recipients",
+     "type": "Integer"
+    },
+    "res_id": {
+     "string": "Document ID",
+     "type": "Integer"
+    },
+    "res_ids": {
+     "string": "Document IDs",
+     "type": "Char"
+    },
+    "res_ids_count": {
+     "compute": "_compute_res_ids_count",
+     "help": "Number of recipients that will receive the SMS if sent in mass mode, without applying the Active Domain value",
+     "string": "Visible records count",
+     "type": "Integer"
+    },
+    "res_model": {
+     "string": "Document Model Name",
+     "type": "Char"
+    },
+    "res_model_description": {
+     "compute": "_compute_res_model_description",
+     "string": "Document Model Description",
+     "type": "Char"
+    },
+    "sanitized_numbers": {
+     "compute": "_compute_sanitized_numbers",
+     "string": "Sanitized Number",
+     "type": "Char"
+    },
+    "template_id": {
+     "comodel": "sms.template",
+     "domain": "[('model', '=', res_model)]",
+     "string": "Use Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_ids_count')",
+      "api.depends_context('sms_composition_mode')"
+     ],
+     "lines": 7,
+     "name": "_compute_composition_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model')"
+     ],
+     "lines": 4,
+     "name": "_compute_res_model_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id', 'res_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_res_ids_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_id', 'composition_mode')"
+     ],
+     "lines": 3,
+     "name": "_compute_comment_single_recipient"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id', 'res_ids', 'composition_mode', 'number_field_name', 'sanitized_numbers')"
+     ],
+     "lines": 17,
+     "name": "_compute_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'number_field_name')"
+     ],
+     "lines": 12,
+     "name": "_compute_recipient_single_stored"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'number_field_name')"
+     ],
+     "lines": 11,
+     "name": "_compute_recipient_single_non_stored"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recipient_single_number', 'recipient_single_number_itf')"
+     ],
+     "lines": 8,
+     "name": "_compute_recipient_single_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('numbers', 'res_model', 'res_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_sanitized_numbers"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('composition_mode', 'res_model', 'res_id', 'template_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_body"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_send_sms"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_send_sms_mass_now"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_action_send_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_action_send_sms_numbers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_action_send_sms_comment_single"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_action_send_sms_comment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_action_send_sms_mass"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_blacklist_record_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_optout_record_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_done_record_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_prepare_recipient_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_body_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_prepare_mass_sms_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_prepare_mass_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_log_body_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_mass_log_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_additional_render_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_composer_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_records"
+    }
+   ],
+   "name": "sms.composer",
+   "sel_methods": {
+    "_get_blacklist_record_ids": [],
+    "_get_optout_record_ids": []
+   },
+   "transient": true
+  },
+  "sms.resend": {
+   "abstract": false,
+   "description": "SMS Resend",
+   "extension": false,
+   "fields": {
+    "can_cancel": {
+     "compute": "_compute_can_cancel",
+     "type": "Boolean"
+    },
+    "can_resend": {
+     "compute": "_compute_can_resend",
+     "type": "Boolean"
+    },
+    "has_insufficient_credit": {
+     "compute": "_compute_has_insufficient_credit",
+     "type": "Boolean"
+    },
+    "has_unregistered_account": {
+     "compute": "_compute_has_unregistered_account",
+     "type": "Boolean"
+    },
+    "mail_message_id": {
+     "comodel": "mail.message",
+     "readonly": true,
+     "required": true,
+     "string": "Message",
+     "type": "Many2one"
+    },
+    "recipient_ids": {
+     "comodel": "sms.resend.recipient",
+     "inverse_name": "sms_resend_id",
+     "string": "Recipients",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recipient_ids.failure_type')"
+     ],
+     "lines": 2,
+     "name": "_compute_has_unregistered_account"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recipient_ids.failure_type')"
+     ],
+     "lines": 2,
+     "name": "_compute_has_insufficient_credit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recipient_ids.resend')"
+     ],
+     "lines": 2,
+     "name": "_compute_can_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recipient_ids.resend')"
+     ],
+     "lines": 2,
+     "name": "_compute_can_resend"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_check_special_access"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 36,
+     "name": "action_resend"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_buy_credits"
+    }
+   ],
+   "name": "sms.resend",
+   "rec_name": "mail_message_id",
+   "transient": true
+  },
+  "sms.resend.recipient": {
+   "abstract": false,
+   "description": "Resend Notification",
+   "extension": false,
+   "fields": {
+    "failure_type": {
+     "readonly": true,
+     "related": "notification_id.failure_type",
+     "string": "Error Message",
+     "type": "Selection"
+    },
+    "notification_id": {
+     "comodel": "mail.notification",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "related": "notification_id.res_partner_id",
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "partner_name": {
+     "readonly": true,
+     "string": "Recipient Name",
+     "type": "Char"
+    },
+    "resend": {
+     "default": true,
+     "string": "Try Again",
+     "type": "Boolean"
+    },
+    "sms_number": {
+     "string": "Phone Number",
+     "type": "Char"
+    },
+    "sms_resend_id": {
+     "comodel": "sms.resend",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "sms.resend.recipient",
+   "rec_name": "sms_resend_id",
+   "transient": true
+  },
+  "sms.sms": {
+   "abstract": false,
+   "description": "Outgoing SMS",
+   "extension": false,
+   "fields": {
+    "body": {
+     "type": "Text"
+    },
+    "failure_type": {
+     "copy": false,
+     "selection": [
+      [
+       "unknown",
+       "Unknown error"
+      ],
+      [
+       "sms_number_missing",
+       "Missing Number"
+      ],
+      [
+       "sms_number_format",
+       "Wrong Number Format"
+      ],
+      [
+       "sms_country_not_supported",
+       "Country Not Supported"
+      ],
+      [
+       "sms_registration_needed",
+       "Country-specific Registration Required"
+      ],
+      [
+       "sms_credit",
+       "Insufficient Credit"
+      ],
+      [
+       "sms_server",
+       "Server Error"
+      ],
+      [
+       "sms_acc",
+       "Unregistered Account"
+      ],
+      [
+       "sms_blacklist",
+       "Blacklisted"
+      ],
+      [
+       "sms_duplicate",
+       "Duplicate"
+      ],
+      [
+       "sms_optout",
+       "Opted Out"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "mail_message_id": {
+     "comodel": "mail.message",
+     "index": true,
+     "type": "Many2one"
+    },
+    "number": {
+     "string": "Number",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "sms_tracker_id": {
+     "comodel": "sms.tracker",
+     "compute": "_compute_sms_tracker_id",
+     "string": "SMS trackers",
+     "type": "Many2one"
+    },
+    "state": {
+     "copy": false,
+     "default": "outgoing",
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "outgoing",
+       "In Queue"
+      ],
+      [
+       "process",
+       "Processing"
+      ],
+      [
+       "pending",
+       "Sent"
+      ],
+      [
+       "sent",
+       "Delivered"
+      ],
+      [
+       "error",
+       "Error"
+      ],
+      [
+       "canceled",
+       "Cancelled"
+      ]
+     ],
+     "string": "SMS Status",
+     "type": "Selection"
+    },
+    "to_delete": {
+     "default": false,
+     "help": "Will automatically be deleted, while notifications will not be deleted in any case.",
+     "string": "Marked for deletion",
+     "type": "Boolean"
+    },
+    "uuid": {
+     "copy": false,
+     "default": {
+      "$lambda": "uuid4().hex"
+     },
+     "help": "Alternate way to identify a SMS record, used for delivery reports",
+     "readonly": true,
+     "string": "UUID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('uuid')"
+     ],
+     "lines": 6,
+     "name": "_compute_sms_tracker_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_set_canceled"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_set_error"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_set_outgoing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_split_by_api"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "resend_failed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "_process_queue"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_sms_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_batch_size"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_split_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_send_with_api"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_update_sms_state_and_trackers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_handle_call_result_hook"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 3,
+     "name": "_gc_device"
+    }
+   ],
+   "name": "sms.sms",
+   "order": "id DESC",
+   "rec_name": "number",
+   "sql_constraints": [
+    [
+     "uuid_unique",
+     "unique(uuid)",
+     "UUID must be unique"
+    ]
+   ],
+   "transient": false
+  },
+  "sms.template": {
+   "abstract": false,
+   "description": "SMS Templates",
+   "extension": false,
+   "fields": {
+    "body": {
+     "required": true,
+     "string": "Body",
+     "translate": true,
+     "type": "Char"
+    },
+    "model": {
+     "index": true,
+     "readonly": true,
+     "related": "model_id.model",
+     "store": true,
+     "string": "Related Document Model",
+     "type": "Char"
+    },
+    "model_id": {
+     "comodel": "ir.model",
+     "domain": [
+      "&",
+      [
+       "is_mail_thread_sms",
+       "=",
+       true
+      ],
+      [
+       "transient",
+       "=",
+       false
+      ]
+     ],
+     "help": "The type of document this template can be used with",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Applies to",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sidebar_action_id": {
+     "comodel": "ir.actions.act_window",
+     "copy": false,
+     "help": "Sidebar action to make this template available on records of the related document model",
+     "readonly": true,
+     "string": "Sidebar action",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.render.mixin",
+    "template.reset.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model')"
+     ],
+     "lines": 3,
+     "name": "_compute_render_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_create_sidebar_action"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_unlink_sidebar_action"
+    }
+   ],
+   "name": "sms.template",
+   "transient": false
+  },
+  "sms.template.preview": {
+   "abstract": false,
+   "description": "SMS Template Preview",
+   "extension": false,
+   "fields": {
+    "body": {
+     "compute": "_compute_sms_template_fields",
+     "string": "Body",
+     "type": "Char"
+    },
+    "lang": {
+     "selection": {
+      "$ref": "_selection_languages"
+     },
+     "string": "Template Preview Language",
+     "type": "Selection"
+    },
+    "model_id": {
+     "comodel": "ir.model",
+     "related": "sms_template_id.model_id",
+     "type": "Many2one"
+    },
+    "no_record": {
+     "compute": "_compute_no_record",
+     "string": "No Record",
+     "type": "Boolean"
+    },
+    "resource_ref": {
+     "selection_method": "_selection_target_model",
+     "string": "Record reference",
+     "type": "Reference"
+    },
+    "sms_template_id": {
+     "comodel": "sms.template",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_selection_target_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_selection_languages"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_no_record"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lang', 'resource_ref')"
+     ],
+     "lines": 6,
+     "name": "_compute_sms_template_fields"
+    }
+   ],
+   "name": "sms.template.preview",
+   "transient": true
+  },
+  "sms.template.reset": {
+   "abstract": false,
+   "description": "SMS Template Reset",
+   "extension": false,
+   "fields": {
+    "template_ids": {
+     "comodel": "sms.template",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "reset_template"
+    }
+   ],
+   "name": "sms.template.reset",
+   "transient": true
+  },
+  "sms.tracker": {
+   "abstract": false,
+   "description": "Link SMS to mailing/sms tracking models",
+   "extension": false,
+   "fields": {
+    "mail_notification_id": {
+     "comodel": "mail.notification",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "sms_uuid": {
+     "required": true,
+     "string": "SMS uuid",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_action_update_from_provider_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_action_update_from_sms_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_update_sms_notifications"
+    }
+   ],
+   "name": "sms.tracker",
+   "sql_constraints": [
+    [
+     "sms_uuid_unique",
+     "unique(sms_uuid)",
+     "A record for this UUID already exists"
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "sms",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sms",
+ "stats": {
+  "fields": 77,
+  "methods": 101,
+  "models": 21,
+  "py_lines": 1993
+ },
+ "summary": "SMS Text Messaging",
+ "title": "SMS gateway",
+ "version": "3.0"
+}

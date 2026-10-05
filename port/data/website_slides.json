@@ -1,0 +1,4416 @@
+{
+ "module": "website_slides",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_website_elearning",
+   "values": {
+    "sequence": "21"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_website_slides_officer",
+   "values": {
+    "name": "Officer",
+    "category_id": {
+     "$ref": "base.module_category_website_elearning"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "website.group_website_restricted_editor"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_website_slides_manager",
+   "values": {
+    "name": "Manager",
+    "category_id": {
+     "$ref": "base.module_category_website_elearning"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_global",
+   "values": {
+    "name": "Channel: always visible (sub rules exist)",
+    "model_id": {
+     "$ref": "model_slide_channel"
+    },
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_visibility_public_user",
+   "values": {
+    "name": "Channel: public: restricted to public and published",
+    "model_id": {
+     "$ref": "model_slide_channel"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ]
+    ],
+    "domain_force": "[('website_published', '=', True), ('visibility', '=', 'public')]",
+    "perm_unlink": 0,
+    "perm_write": 0,
+    "perm_read": 1,
+    "perm_create": 0
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_visibility_signed_in_user",
+   "values": {
+    "name": "Channel: portal/user: restricted to published, public or (invited) attendee, connected user",
+    "model_id": {
+     "$ref": "model_slide_channel"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "domain_force": "[\n                '&',\n                    ('website_published', '=', True),\n                    '|',\n                        ('visibility', 'in', ('public', 'connected')),\n                        '|',\n                            ('is_member_invited', '=', True),\n                            ('is_member', '=', True),\n                ]",
+    "perm_unlink": 0,
+    "perm_write": 0,
+    "perm_read": 1,
+    "perm_create": 0
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_officer_r",
+   "values": {
+    "name": "Channel: officer: read all",
+    "model_id": {
+     "$ref": "model_slide_channel"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "perm_unlink": 0,
+    "perm_write": 0,
+    "perm_read": 1,
+    "perm_create": 0
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_officer_cw",
+   "values": {
+    "name": "Channel: officer: create/write own only",
+    "model_id": {
+     "$ref": "model_slide_channel"
+    },
+    "domain_force": "[('user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "perm_unlink": 0,
+    "perm_write": 1,
+    "perm_read": 0,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_manager",
+   "values": {
+    "name": "Channel: manager: crud all",
+    "model_id": {
+     "$ref": "model_slide_channel"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_tag_public",
+   "values": {
+    "name": "Channel Tag: public/portal: color = published",
+    "model_id": {
+     "$ref": "model_slide_channel_tag"
+    },
+    "domain_force": "['&', ('color', '!=', False), ('color', '!=', 0)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_global",
+   "values": {
+    "name": "Slide: always visible (sub rules exist)",
+    "model_id": {
+     "$ref": "model_slide_slide"
+    },
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_public_user",
+   "values": {
+    "name": "Slide: public: restricted to published or public channel & (category or previewable)",
+    "model_id": {
+     "$ref": "model_slide_slide"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ]
+    ],
+    "domain_force": "[\n                    ('channel_id.website_published', '=', True),\n                    ('website_published', '=', True),\n                    ('channel_id.visibility', '=', 'public'),\n                    '|',\n                        ('is_category','=', True),\n                        ('is_preview', '=', True),\n                ]",
+    "perm_unlink": 0,
+    "perm_write": 0,
+    "perm_read": 1,
+    "perm_create": 0
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_signed_in_user",
+   "values": {
+    "name": "Slide: portal/user: restricted to published and connected user, (invited) attendee if course visible to attendees only",
+    "model_id": {
+     "$ref": "model_slide_slide"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "domain_force": "[\n                '&',\n                    '|',\n                        ('user_id', '=', user.id),\n                        '&',\n                            ('website_published', '=', True),\n                            ('channel_id.website_published', '=', True),\n                    '|',\n                        '&',\n                            '|',\n                                ('channel_id.visibility', 'in', ('public','connected')),\n                                ('channel_id.is_member_invited', '=', True),\n                            '|',\n                                ('is_category', '=', True),\n                                ('is_preview', '=', True),\n                        ('channel_id.is_member', '=', True),\n                ]",
+    "perm_unlink": 0,
+    "perm_write": 0,
+    "perm_read": 1,
+    "perm_create": 0
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_officer_r",
+   "values": {
+    "name": "Slide: officer: read all",
+    "model_id": {
+     "$ref": "model_slide_slide"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "perm_unlink": 0,
+    "perm_write": 0,
+    "perm_read": 1,
+    "perm_create": 0
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_officer_cw",
+   "values": {
+    "name": "Slide: officer: create/write own only",
+    "model_id": {
+     "$ref": "model_slide_slide"
+    },
+    "domain_force": "[('channel_id.user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "perm_unlink": 0,
+    "perm_write": 1,
+    "perm_read": 0,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_manager",
+   "values": {
+    "name": "Slide: manager: crud all",
+    "model_id": {
+     "$ref": "model_slide_slide"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_partner_officer",
+   "values": {
+    "name": "Channel Partner: officer: create/write/unlink own only",
+    "model_id": {
+     "$ref": "model_slide_channel_partner"
+    },
+    "domain_force": "[('channel_id.user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 0,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_channel_partner_manager",
+   "values": {
+    "name": "Channel Partner: manager: crud all",
+    "model_id": {
+     "$ref": "model_slide_channel_partner"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_partner_officer",
+   "values": {
+    "name": "Slide Partner: officer: create/write/unlink own only",
+    "model_id": {
+     "$ref": "model_slide_slide_partner"
+    },
+    "domain_force": "[('channel_id.user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 0,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_partner_manager",
+   "values": {
+    "name": "Slide Partner: manager: crud all",
+    "model_id": {
+     "$ref": "model_slide_slide_partner"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_resource_downloadable",
+   "values": {
+    "name": "Resource: read restricted to channel members and channel responsible",
+    "model_id": {
+     "$ref": "model_slide_slide_resource"
+    },
+    "domain_force": "[('slide_id.channel_id.is_member', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_resource_officer_read",
+   "values": {
+    "name": "Resource: officer: read all",
+    "model_id": {
+     "$ref": "model_slide_slide_resource"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_resource_officer_crud",
+   "values": {
+    "name": "Resource: officer: crud own only",
+    "model_id": {
+     "$ref": "model_slide_slide_resource"
+    },
+    "domain_force": "[('slide_id.channel_id.user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_officer"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_slide_slide_resource_downloadable_manager",
+   "values": {
+    "name": "Resource: manager: crud all",
+    "model_id": {
+     "$ref": "model_slide_slide_resource"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_slides_manager"
+      }
+     ]
+    ],
+    "perm_read": 1,
+    "perm_write": 1,
+    "perm_create": 1,
+    "perm_unlink": 1
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "website_slides_action_settings",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "website_slides",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "rating_rating_action_slide_channel",
+   "values": {
+    "name": "Reviews",
+    "res_model": "rating.rating",
+    "domain": [
+     [
+      "consumed",
+      "=",
+      true
+     ],
+     [
+      "res_model",
+      "=",
+      "slide.channel"
+     ]
+    ],
+    "context": {},
+    "view_mode": "kanban,list,graph,pivot,form",
+    "search_view_id": {
+     "$ref": "rating_rating_view_search_slide_channel"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_slide_channel_view_kanban",
+   "values": {
+    "act_window_id": {
+     "$ref": "rating_rating_action_slide_channel"
+    },
+    "sequence": "1",
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "rating.rating_rating_view_kanban_stars"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_slide_channel_view_graph",
+   "values": {
+    "act_window_id": {
+     "$ref": "rating_rating_action_slide_channel"
+    },
+    "sequence": "2",
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "rating_rating_view_graph_slide_channel"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_slide_channel_view_pivot",
+   "values": {
+    "act_window_id": {
+     "$ref": "rating_rating_action_slide_channel"
+    },
+    "sequence": "3",
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "rating_rating_view_pivot_slide_channel"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_slide_channel_view_tree",
+   "values": {
+    "act_window_id": {
+     "$ref": "rating_rating_action_slide_channel"
+    },
+    "sequence": "4",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "rating_rating_view_tree_slide_channel"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_slide_channel_view_form",
+   "values": {
+    "act_window_id": {
+     "$ref": "rating_rating_action_slide_channel"
+    },
+    "sequence": "5",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "rating_rating_view_form_slides"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_embed_action",
+   "values": {
+    "name": "Embed Views",
+    "res_model": "slide.embed",
+    "view_mode": "list,search"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_question_action_report",
+   "values": {
+    "name": "Quizzes",
+    "res_model": "slide.question",
+    "view_mode": "list,graph,pivot,form",
+    "view_id": {
+     "$ref": "slide_question_view_tree_report"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_slide_partner_action_from_slide",
+   "values": {
+    "name": "Attendees",
+    "res_model": "slide.slide.partner",
+    "view_mode": "list,form,kanban",
+    "search_view_id": {
+     "$ref": "website_slides.slide_slide_partner_view_search"
+    },
+    "context": {
+     "$unevaluated": "{'default_slide_id': active_id}"
+    },
+    "domain": {
+     "$unevaluated": "[('slide_id', '=', active_id)]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_slide_tag",
+   "values": {
+    "name": "Content Tags",
+    "res_model": "slide.tag",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_slide_action",
+   "values": {
+    "name": "Contents",
+    "res_model": "slide.slide",
+    "view_mode": "kanban,list,form",
+    "context": {
+     "search_default_own_publications": true
+    },
+    "domain": [
+     [
+      "is_category",
+      "=",
+      false
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_slide_action_report",
+   "values": {
+    "name": "Contents",
+    "res_model": "slide.slide",
+    "view_mode": "graph,list,form,pivot",
+    "context": {
+     "search_default_published": 1
+    },
+    "domain": [
+     [
+      "is_category",
+      "=",
+      false
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "slide_slide_action_report_view_graph",
+   "values": {
+    "sequence": 0,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "slide_slide_view_graph"
+    },
+    "act_window_id": {
+     "$ref": "slide_slide_action_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "slide_slide_action_report_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "slide_slide_view_tree_report"
+    },
+    "act_window_id": {
+     "$ref": "slide_slide_action_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "slide_slide_action_report_view_form",
+   "values": {
+    "sequence": 2,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_slide_slide_form"
+    },
+    "act_window_id": {
+     "$ref": "slide_slide_action_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "slide_slide_action_report_view_pivot",
+   "values": {
+    "sequence": 3,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "slide_slide_view_pivot"
+    },
+    "act_window_id": {
+     "$ref": "slide_slide_action_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_channel_partner_action",
+   "values": {
+    "name": "Attendees",
+    "res_model": "slide.channel.partner",
+    "view_mode": "list,kanban",
+    "search_view_id": {
+     "$ref": "website_slides.slide_channel_partner_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_channel_partner_action_report",
+   "values": {
+    "name": "Attendees",
+    "res_model": "slide.channel.partner",
+    "view_mode": "graph,pivot,list,kanban",
+    "search_view_id": {
+     "$ref": "website_slides.slide_channel_partner_view_search"
+    },
+    "context": {
+     "search_default_groupby_member_status": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_channel_action_overview",
+   "values": {
+    "name": "All Courses",
+    "path": "e-learning",
+    "res_model": "slide.channel",
+    "view_mode": "kanban,list,form",
+    "view_id": {
+     "$ref": "slide_channel_view_kanban"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_channel_action_report",
+   "values": {
+    "name": "Courses",
+    "res_model": "slide.channel",
+    "view_mode": "list,graph,pivot,form",
+    "view_id": {
+     "$ref": "slide_channel_view_tree_report"
+    },
+    "context": {
+     "search_default_filter_published": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "slide_channel_action_report_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "slide_channel_view_tree_report"
+    },
+    "act_window_id": {
+     "$ref": "slide_channel_action_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "slide_channel_action_report_view_graph",
+   "values": {
+    "sequence": 2,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "slide_channel_view_graph"
+    },
+    "act_window_id": {
+     "$ref": "slide_channel_action_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "slide_channel_action_report_view_pivot",
+   "values": {
+    "sequence": 3,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "slide_channel_view_pivot"
+    },
+    "act_window_id": {
+     "$ref": "slide_channel_action_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "slide_channel_action_report_view_form",
+   "values": {
+    "sequence": 4,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_slide_channel_form"
+    },
+    "act_window_id": {
+     "$ref": "slide_channel_action_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_channel_tag_action",
+   "values": {
+    "name": "Course Tags",
+    "res_model": "slide.channel.tag",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_channel_tag_group_action",
+   "values": {
+    "name": "Course Groups",
+    "res_model": "slide.channel.tag.group",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_slide_channel_pages_list",
+   "values": {
+    "name": "Course Pages",
+    "res_model": "slide.channel",
+    "view_mode": "list,kanban,form",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "slide_channel_pages_tree_view"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "slide_channel_pages_kanban_view"
+       }
+      }
+     ]
+    ],
+    "context": {
+     "create_action": "website_slides.slide_channel_action_add"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "slide_channel_action_add",
+   "values": {
+    "name": "New Course",
+    "res_model": "slide.channel",
+    "view_mode": "form",
+    "target": "new",
+    "view_id": {
+     "$ref": "slide_channel_view_form_add"
+    }
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_data_register",
+   "values": {
+    "name": "Get started",
+    "description": "Register to the platform",
+    "image_1920": "",
+    "is_published": true,
+    "level": "bronze",
+    "rule_auth": "nobody"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "badge_data_register_goal",
+   "values": {
+    "name": "Get started",
+    "description": "Register to the platform",
+    "computation_mode": "count",
+    "display_mode": "boolean",
+    "model_id": {
+     "$ref": "base.model_res_users"
+    },
+    "condition": "higher",
+    "domain": [
+     [
+      "active",
+      "!=",
+      false
+     ],
+     [
+      "karma",
+      ">",
+      0
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "base.field_res_users__id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "badge_data_register_challenge",
+   "values": {
+    "name": "Register to the platform",
+    "challenge_category": "slides",
+    "period": "once",
+    "visibility_mode": "personal",
+    "report_message_frequency": "never",
+    "reward_id": {
+     "$ref": "badge_data_register"
+    },
+    "reward_realtime": "True",
+    "user_domain": "[('karma', '>', 0)]",
+    "state": "inprogress"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "badge_data_register_challenge_line_0",
+   "values": {
+    "definition_id": {
+     "$ref": "badge_data_register_goal"
+    },
+    "challenge_id": {
+     "$ref": "badge_data_register_challenge"
+    },
+    "target_goal": "1"
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_data_profile",
+   "values": {
+    "name": "Know yourself",
+    "description": "Complete your profile",
+    "image_1920": "",
+    "is_published": true,
+    "level": "bronze",
+    "rule_auth": "nobody"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "badge_data_profile_goal",
+   "values": {
+    "name": "Know yourself",
+    "description": "Complete your profile",
+    "computation_mode": "count",
+    "display_mode": "boolean",
+    "model_id": {
+     "$ref": "base.model_res_users"
+    },
+    "condition": "higher",
+    "domain": [
+     [
+      "partner_id.country_id",
+      "!=",
+      false
+     ],
+     [
+      "partner_id.city",
+      "!=",
+      false
+     ],
+     [
+      "partner_id.email",
+      "!=",
+      false
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "base.field_res_users__id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "badge_data_profile_challenge",
+   "values": {
+    "name": "Complete your profile",
+    "challenge_category": "slides",
+    "period": "once",
+    "visibility_mode": "personal",
+    "report_message_frequency": "never",
+    "reward_id": {
+     "$ref": "badge_data_profile"
+    },
+    "reward_realtime": "True",
+    "user_domain": "[('karma', '>', 0)]",
+    "state": "inprogress"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "badge_data_profile_challenge_line_0",
+   "values": {
+    "definition_id": {
+     "$ref": "badge_data_profile_goal"
+    },
+    "challenge_id": {
+     "$ref": "badge_data_profile_challenge"
+    },
+    "target_goal": "1"
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_data_course",
+   "values": {
+    "name": "Power User",
+    "description": "Complete a course",
+    "image_1920": "",
+    "is_published": true,
+    "level": "silver",
+    "rule_auth": "nobody"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "badge_data_course_goal",
+   "values": {
+    "name": "Power User",
+    "description": "Complete a course",
+    "computation_mode": "count",
+    "display_mode": "boolean",
+    "model_id": {
+     "$ref": "website_slides.model_slide_channel_partner"
+    },
+    "condition": "higher",
+    "domain": [
+     [
+      "member_status",
+      "=",
+      "completed"
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "website_slides.field_slide_channel_partner__partner_id"
+    },
+    "batch_user_expression": "user.partner_id.id"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "badge_data_course_challenge",
+   "values": {
+    "name": "Complete a course",
+    "challenge_category": "slides",
+    "period": "once",
+    "visibility_mode": "personal",
+    "report_message_frequency": "never",
+    "reward_id": {
+     "$ref": "badge_data_course"
+    },
+    "reward_realtime": "True",
+    "user_domain": "[('karma', '>', 0)]",
+    "state": "inprogress"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "badge_data_course_challenge_line_0",
+   "values": {
+    "definition_id": {
+     "$ref": "badge_data_course_goal"
+    },
+    "challenge_id": {
+     "$ref": "badge_data_course_challenge"
+    },
+    "target_goal": "1"
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_data_certification",
+   "values": {
+    "name": "Certified Knowledge",
+    "description": "Get a certification",
+    "image_1920": "",
+    "is_published": false,
+    "level": "gold",
+    "rule_auth": "nobody"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "badge_data_certification_goal",
+   "values": {
+    "name": "Certified Knowledge",
+    "description": "Get a certification",
+    "computation_mode": "count",
+    "display_mode": "boolean",
+    "model_id": {
+     "$ref": "website_slides.model_slide_slide_partner"
+    },
+    "condition": "higher",
+    "domain": [
+     [
+      "completed",
+      "=",
+      true
+     ],
+     [
+      0,
+      "=",
+      1
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "website_slides.field_slide_slide_partner__partner_id"
+    },
+    "batch_user_expression": "user.partner_id.id"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "badge_data_certification_challenge",
+   "values": {
+    "name": "Get a certification",
+    "challenge_category": "slides",
+    "period": "once",
+    "visibility_mode": "personal",
+    "report_message_frequency": "never",
+    "reward_id": {
+     "$ref": "badge_data_certification"
+    },
+    "reward_realtime": "True",
+    "user_domain": "[('karma', '>', 0)]",
+    "state": "inprogress"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "badge_data_certification_challenge_line_0",
+   "values": {
+    "definition_id": {
+     "$ref": "badge_data_certification_goal"
+    },
+    "challenge_id": {
+     "$ref": "badge_data_certification_challenge"
+    },
+    "target_goal": "1"
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_data_karma",
+   "values": {
+    "name": "Community hero",
+    "description": "Reach 2000 XP",
+    "image_1920": "",
+    "is_published": true,
+    "level": "gold",
+    "rule_auth": "nobody"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "badge_data_karma_goal",
+   "values": {
+    "name": "Community hero",
+    "description": "Reach 2000 XP",
+    "computation_mode": "count",
+    "display_mode": "boolean",
+    "model_id": {
+     "$ref": "base.model_res_users"
+    },
+    "condition": "higher",
+    "domain": [
+     [
+      "karma",
+      ">=",
+      2000
+     ]
+    ],
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "base.field_res_users__id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "badge_data_karma_challenge",
+   "values": {
+    "name": "Reach 2000 XP",
+    "challenge_category": "slides",
+    "period": "once",
+    "visibility_mode": "personal",
+    "report_message_frequency": "never",
+    "reward_id": {
+     "$ref": "badge_data_karma"
+    },
+    "reward_realtime": "True",
+    "user_domain": "[('karma', '>', 0)]",
+    "state": "inprogress"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "badge_data_karma_challenge_line_0",
+   "values": {
+    "definition_id": {
+     "$ref": "badge_data_karma_goal"
+    },
+    "challenge_id": {
+     "$ref": "badge_data_karma_challenge"
+    },
+    "target_goal": "1"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_activity_data_access_request",
+   "values": {
+    "name": "Access Request",
+    "icon": "fa-check-circle",
+    "sequence": "50",
+    "res_model": "slide.channel"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_channel_slide_published",
+   "values": {
+    "name": "Presentation Published",
+    "res_model": "slide.channel",
+    "default": true,
+    "description": "Presentation Published"
+   }
+  },
+  {
+   "model": "slide.channel.tag.group",
+   "id": "slide_channel_tag_group_data_other",
+   "values": {
+    "name": "Tags",
+    "sequence": "20",
+    "is_published": true
+   }
+  },
+  {
+   "model": "slide.channel.tag.group",
+   "id": "slide_channel_tag_group_level",
+   "values": {
+    "name": "Your Level",
+    "is_published": true
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_level_basic",
+   "values": {
+    "name": "Basic",
+    "color": "10",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_level"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_level_intermediate",
+   "values": {
+    "name": "Intermediate",
+    "color": "3",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_level"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_level_advanced",
+   "values": {
+    "name": "Advanced",
+    "color": "1",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_level"
+    }
+   }
+  },
+  {
+   "model": "website",
+   "id": "website.default_website",
+   "values": {
+    "website_slide_google_app_key": "AIzaSyDOWlmDW-7DbLmOR9ZsT5AOEXf4n6TFwQA"
+   }
+  },
+  {
+   "model": "website.menu",
+   "id": "website_menu_slides",
+   "values": {
+    "name": "Courses",
+    "url": "/slides",
+    "parent_id": {
+     "$ref": "website.main_menu"
+    },
+    "sequence": "50"
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "slides_tour",
+   "values": {
+    "name": "slides_tour",
+    "url": ""
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "website_slides.group_website_slides_officer",
+   "values": {
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "website_slides.group_website_slides_manager",
+   "values": {
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "slide.channel.tag.group",
+   "id": "slide_channel_tag_group_role",
+   "values": {
+    "name": "Your Role",
+    "is_published": true
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_role_gardener",
+   "values": {
+    "name": "Gardener",
+    "color": "10",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_role"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_role_carpenter",
+   "values": {
+    "name": "Carpenter",
+    "color": "11",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_role"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_role_furniture",
+   "values": {
+    "name": "Furniture Designer",
+    "color": "3",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_role"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_other_0",
+   "values": {
+    "name": "Quiz",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_data_other"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_other_1",
+   "values": {
+    "name": "Certification",
+    "color": "7",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_data_other"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.tag",
+   "id": "slide_channel_tag_other_2",
+   "values": {
+    "name": "Dog Friendly",
+    "group_id": {
+     "$ref": "website_slides.slide_channel_tag_group_data_other"
+    }
+   }
+  },
+  {
+   "model": "slide.channel",
+   "id": "slide_channel_demo_0_gard_0",
+   "values": {
+    "name": "Basics of Gardening",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "enroll": "public",
+    "channel_type": "training",
+    "allow_comment": true,
+    "promote_strategy": "most_voted",
+    "is_published": true,
+    "tag_ids": [
+     [
+      5,
+      0
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_level_basic"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_gardener"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_2"
+      }
+     ]
+    ],
+    "image_1920": "",
+    "description": "Learn the basics of gardening!",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=8)"
+    }
+   }
+  },
+  {
+   "model": "slide.channel",
+   "id": "slide_channel_demo_1_gard1",
+   "values": {
+    "name": "Taking care of Trees",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "enroll": "public",
+    "channel_type": "training",
+    "allow_comment": true,
+    "promote_strategy": "latest",
+    "is_published": true,
+    "tag_ids": [
+     [
+      5,
+      0
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_level_intermediate"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_gardener"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_0"
+      }
+     ]
+    ],
+    "image_1920": "",
+    "description": "Learn how to take care of your favorite trees. Learn when to plant, how to manage potted trees, ...",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=7)"
+    }
+   }
+  },
+  {
+   "model": "slide.channel",
+   "id": "slide_channel_demo_2_gard2",
+   "values": {
+    "name": "Trees, Wood and Gardens",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "prerequisite_channel_ids": [
+     [
+      5,
+      0
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_demo_0_gard_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_demo_1_gard1"
+      }
+     ]
+    ],
+    "enroll": "public",
+    "channel_type": "documentation",
+    "allow_comment": true,
+    "promote_strategy": "most_viewed",
+    "is_published": true,
+    "tag_ids": [
+     [
+      5,
+      0
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_level_intermediate"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_gardener"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_carpenter"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_2"
+      }
+     ]
+    ],
+    "image_1920": "",
+    "description": "A lot of nice documentation: trees, wood, gardens. A gold mine for references.",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=6)"
+    }
+   }
+  },
+  {
+   "model": "slide.channel",
+   "id": "slide_channel_demo_3_furn0",
+   "values": {
+    "name": "Choose your wood!",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "enroll": "invite",
+    "visibility": "members",
+    "channel_type": "training",
+    "allow_comment": true,
+    "promote_strategy": "latest",
+    "is_published": true,
+    "tag_ids": [
+     [
+      5,
+      0
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_level_basic"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_gardener"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_carpenter"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_furniture"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_2"
+      }
+     ]
+    ],
+    "image_1920": "",
+    "description": "Knowing which kind of wood to use depending on your application is important. In this course you\nwill learn the basics of wood characteristics.",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=5)"
+    }
+   }
+  },
+  {
+   "model": "slide.channel",
+   "id": "slide_channel_demo_4_furn1",
+   "values": {
+    "name": "Furniture Technical Specifications",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "enroll": "invite",
+    "channel_type": "documentation",
+    "allow_comment": true,
+    "promote_strategy": "most_voted",
+    "is_published": true,
+    "tag_ids": [
+     [
+      5,
+      0
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_level_intermediate"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_furniture"
+      }
+     ]
+    ],
+    "image_1920": "",
+    "description": "If you are looking for technical specifications, have a look at this documentation.",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=4)"
+    }
+   }
+  },
+  {
+   "model": "slide.channel",
+   "id": "slide_channel_demo_5_furn2",
+   "values": {
+    "name": "Basics of Furniture Creation",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "enroll": "invite",
+    "visibility": "connected",
+    "channel_type": "training",
+    "allow_comment": true,
+    "promote_strategy": "latest",
+    "is_published": true,
+    "tag_ids": [
+     [
+      5,
+      0
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_level_intermediate"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_furniture"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_1"
+      }
+     ]
+    ],
+    "image_1920": "",
+    "description": "All you need to know about furniture creation.",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=3)"
+    }
+   }
+  },
+  {
+   "model": "slide.channel",
+   "id": "slide_channel_demo_6_furn3",
+   "values": {
+    "name": "DIY Furniture",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "enroll": "invite",
+    "channel_type": "training",
+    "allow_comment": true,
+    "promote_strategy": "most_voted",
+    "is_published": true,
+    "tag_ids": [
+     [
+      5,
+      0
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_level_advanced"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_carpenter"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_role_furniture"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_channel_tag_other_1"
+      }
+     ]
+    ],
+    "image_1920": "",
+    "description": "So much amazing certification.",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=2)"
+    }
+   }
+  },
+  {
+   "model": "slide.tag",
+   "id": "slide_tag_demo_cheatsheet",
+   "values": {
+    "name": "CheatSheet"
+   }
+  },
+  {
+   "model": "slide.tag",
+   "id": "slide_tag_demo_theory",
+   "values": {
+    "name": "Theory"
+   }
+  },
+  {
+   "model": "slide.tag",
+   "id": "slide_tag_demo_exercises",
+   "values": {
+    "name": "Exercises"
+   }
+  },
+  {
+   "model": "slide.tag",
+   "id": "slide_tag_demo_tools",
+   "values": {
+    "name": "Tools"
+   }
+  },
+  {
+   "model": "slide.tag",
+   "id": "slide_tag_demo_colorful",
+   "values": {
+    "name": "Colorful"
+   }
+  },
+  {
+   "model": "slide.tag",
+   "id": "slide_tag_demo_howto",
+   "values": {
+    "name": "HowTo"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_0_0",
+   "values": {
+    "name": "Gardening: The Know-How",
+    "sequence": "1",
+    "binary_content": "",
+    "image_1920": "",
+    "slide_category": "document",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": true,
+    "public_views": "10",
+    "completion_time": "2.5",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_tools"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "description": "A summary of know-how: how and what. All the basics for this course about gardening."
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_0_0_resource_0",
+   "values": {
+    "resource_type": "file",
+    "name": "Document",
+    "data": "",
+    "slide_id": {
+     "$ref": "slide_slide_demo_0_0"
+    }
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_0_1",
+   "values": {
+    "name": "Home Gardening",
+    "sequence": "2",
+    "image_1920": "",
+    "slide_category": "infographic",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "5",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_colorful"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_theory"
+      }
+     ]
+    ],
+    "description": "Interesting information about home gardening. Keep it close!"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_0_2",
+   "values": {
+    "name": "Mighty Carrots",
+    "sequence": "3",
+    "image_1920": "",
+    "slide_category": "infographic",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "2",
+    "completion_time": "2",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_colorful"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_theory"
+      }
+     ]
+    ],
+    "description": "You won't believe those facts about carrots."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_0_3",
+   "values": {
+    "name": "How to Grow and Harvest The Best Strawberries | Basics",
+    "sequence": "4",
+    "binary_content": "",
+    "image_1920": "",
+    "slide_category": "document",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "description": "Here is How to get the Sweetest Strawberries you ever tasted!"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_0_4",
+   "values": {
+    "name": "Test your knowledge",
+    "sequence": "5",
+    "image_1920": "",
+    "slide_category": "quiz",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": true,
+    "public_views": "0",
+    "completion_time": "1",
+    "description": "Show your newly mastered knowledge!"
+   }
+  },
+  {
+   "model": "slide.question",
+   "id": "slide_slide_demo_0_4_question_0",
+   "values": {
+    "question": "What is a strawberry?",
+    "sequence": "1",
+    "slide_id": {
+     "$ref": "slide_slide_demo_0_4"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_0_4_question_0_0",
+   "values": {
+    "text_value": "A fruit",
+    "sequence": "1",
+    "is_correct": true,
+    "comment": "Correct! A strawberry is a fruit because it's the product of a tree.",
+    "question_id": {
+     "$ref": "slide_slide_demo_0_4_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_0_4_question_0_1",
+   "values": {
+    "text_value": "A vegetable",
+    "sequence": "2",
+    "is_correct": false,
+    "comment": "Incorrect! A strawberry is not a vegetable.",
+    "question_id": {
+     "$ref": "slide_slide_demo_0_4_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_0_4_question_0_2",
+   "values": {
+    "text_value": "A table",
+    "sequence": "3",
+    "is_correct": false,
+    "comment": "Incorrect! A table is a piece of furniture.",
+    "question_id": {
+     "$ref": "slide_slide_demo_0_4_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.question",
+   "id": "slide_slide_demo_0_4_question_1",
+   "values": {
+    "question": "What is the best tool to dig a hole for your plants?",
+    "sequence": "2",
+    "slide_id": {
+     "$ref": "slide_slide_demo_0_4"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_0_4_question_1_0",
+   "values": {
+    "text_value": "A shovel",
+    "sequence": "1",
+    "is_correct": true,
+    "comment": "Correct! A shovel is the perfect tool to dig a hole.",
+    "question_id": {
+     "$ref": "slide_slide_demo_0_4_question_1"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_0_4_question_1_1",
+   "values": {
+    "text_value": "A spoon",
+    "sequence": "2",
+    "is_correct": false,
+    "comment": "Incorrect! Good luck digging a hole with a spoon...",
+    "question_id": {
+     "$ref": "slide_slide_demo_0_4_question_1"
+    }
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_1_0",
+   "values": {
+    "name": "Interesting Facts",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "sequence": "0"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_1_1",
+   "values": {
+    "name": "Methods",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "sequence": "4"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_1_0",
+   "values": {
+    "name": "List Infographic",
+    "sequence": "1",
+    "image_1920": "",
+    "slide_category": "infographic",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": true,
+    "public_views": "5",
+    "completion_time": "0.5",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_colorful"
+      }
+     ]
+    ],
+    "description": "Just some basics Tree Infographic."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_1_1",
+   "values": {
+    "name": "Interesting List Facts",
+    "sequence": "2",
+    "image_1920": "",
+    "slide_category": "infographic",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "5",
+    "completion_time": "1.5",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_colorful"
+      }
+     ]
+    ],
+    "description": "Just some basics Interesting Tree Facts."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_1_2",
+   "values": {
+    "name": "Energy Efficiency Facts",
+    "sequence": "3",
+    "image_1920": "",
+    "slide_category": "infographic",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "10",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_colorful"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_theory"
+      }
+     ]
+    ],
+    "description": "Just some basics Energy Efficiency Facts."
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_1_2_link_0",
+   "values": {
+    "resource_type": "url",
+    "name": "Energy Efficient Link 1",
+    "link": "http://www.example.com",
+    "slide_id": {
+     "$ref": "slide_slide_demo_1_2"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_1_2_link_1",
+   "values": {
+    "resource_type": "url",
+    "name": "Energy Efficient Link 2",
+    "link": "http://www.example.com",
+    "slide_id": {
+     "$ref": "slide_slide_demo_1_2"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_1_2_resource_0",
+   "values": {
+    "resource_type": "file",
+    "name": "Presentation",
+    "data": "",
+    "slide_id": {
+     "$ref": "slide_slide_demo_1_2"
+    }
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_1_3",
+   "values": {
+    "name": "How to plant a potted.list",
+    "sequence": "5",
+    "url": "https://www.youtube.com/watch?v=QYmgrw0PgLU",
+    "image_1920": "",
+    "slide_category": "video",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "description": "Jim and Todd plant a potted tree for a customer of Knecht's Nurseries and Landscaping. Narrated by Leif Knecht, owner."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_1_4",
+   "values": {
+    "name": "A little chat with Harry Potted",
+    "sequence": "6",
+    "image_1920": "",
+    "slide_category": "article",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "html_content": {
+     "$unevaluated": "xml"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": true,
+    "public_views": "5",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_colorful"
+      }
+     ]
+    ],
+    "description": "We had a little chat with Harry Potted, sure he had interesting things to say!"
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_1_4_link_0",
+   "values": {
+    "resource_type": "url",
+    "name": "Know More Link 1",
+    "link": "http://www.example.com",
+    "slide_id": {
+     "$ref": "slide_slide_demo_1_4"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_1_4_link_1",
+   "values": {
+    "resource_type": "url",
+    "name": "Know More Link 2",
+    "link": "http://www.example.com",
+    "slide_id": {
+     "$ref": "slide_slide_demo_1_4"
+    }
+   }
+  },
+  {
+   "model": "slide.question",
+   "id": "slide_slide_demo_1_4_question_0",
+   "values": {
+    "question": "Do you think Harry Potted has a good name?",
+    "sequence": "1",
+    "slide_id": {
+     "$ref": "slide_slide_demo_1_4"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_1_4_question_0_0",
+   "values": {
+    "text_value": "Yes",
+    "sequence": "1",
+    "is_correct": true,
+    "comment": "Correct!",
+    "question_id": {
+     "$ref": "slide_slide_demo_1_4_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_1_4_question_0_1",
+   "values": {
+    "text_value": "No",
+    "sequence": "2",
+    "is_correct": false,
+    "comment": "Incorrect!",
+    "question_id": {
+     "$ref": "slide_slide_demo_1_4_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.question",
+   "id": "slide_slide_demo_1_4_question_1",
+   "values": {
+    "question": "Did you read the whole article?",
+    "sequence": "2",
+    "slide_id": {
+     "$ref": "slide_slide_demo_1_4"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_1_4_question_1_0",
+   "values": {
+    "text_value": "Yes",
+    "sequence": "1",
+    "is_correct": true,
+    "comment": "Correct! Congratulations you have time to loose",
+    "question_id": {
+     "$ref": "slide_slide_demo_1_4_question_1"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_1_4_question_1_1",
+   "values": {
+    "text_value": "No",
+    "sequence": "2",
+    "is_correct": false,
+    "comment": "Incorrect! You really should read it.",
+    "question_id": {
+     "$ref": "slide_slide_demo_1_4_question_1"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_1_4_question_1_2",
+   "values": {
+    "text_value": "What was the question again?",
+    "sequence": "3",
+    "is_correct": false,
+    "comment": "Incorrect! Seriously?",
+    "question_id": {
+     "$ref": "slide_slide_demo_1_4_question_1"
+    }
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_1_5",
+   "values": {
+    "name": "3 Main Methodologies",
+    "sequence": "6",
+    "binary_content": "",
+    "image_1920": "",
+    "slide_category": "document",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "10",
+    "completion_time": "2.5",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "description": "A summary of know-how: how and what."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_1_6",
+   "values": {
+    "name": "How to Grow and Harvest The Best Strawberries | Gardening Tips and Tricks",
+    "sequence": "7",
+    "url": "https://www.youtube.com/watch?v=l0JZ25VvbwE",
+    "image_1920": "",
+    "slide_category": "video",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "description": "Here is How to get the Sweetest Strawberries you ever tasted!"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_2_0",
+   "values": {
+    "name": "Trees",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_2_gard2"
+    },
+    "sequence": "0"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_2_1",
+   "values": {
+    "name": "Wood",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_2_gard2"
+    },
+    "sequence": "4"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_2_0",
+   "values": {
+    "name": "Main Trees Categories",
+    "sequence": "1",
+    "binary_content": "",
+    "image_1920": "",
+    "slide_category": "document",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_2_gard2"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": true,
+    "public_views": "0",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "quiz_first_attempt_reward": "100",
+    "quiz_second_attempt_reward": "75",
+    "quiz_third_attempt_reward": "50",
+    "quiz_fourth_attempt_reward": "25",
+    "description": "A summary of know-how: what are the main trees categories and how to differentiate them."
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_2_0_link_0",
+   "values": {
+    "resource_type": "url",
+    "name": "Trees Classification Link",
+    "link": "http://www.example.com",
+    "slide_id": {
+     "$ref": "slide_slide_demo_2_0"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_2_0_link_1",
+   "values": {
+    "resource_type": "url",
+    "name": "Main types of trees Link",
+    "link": "http://www.example.com",
+    "slide_id": {
+     "$ref": "slide_slide_demo_2_0"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_2_0_resource_0",
+   "values": {
+    "resource_type": "file",
+    "name": "List image",
+    "data": "",
+    "slide_id": {
+     "$ref": "slide_slide_demo_2_0"
+    }
+   }
+  },
+  {
+   "model": "slide.question",
+   "id": "slide_slide_demo_2_0_question_0",
+   "values": {
+    "question": "Do you make beams out of lemon trees?",
+    "sequence": "1",
+    "slide_id": {
+     "$ref": "slide_slide_demo_2_0"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_2_0_question_0_0",
+   "values": {
+    "text_value": "Yes",
+    "sequence": "1",
+    "is_correct": false,
+    "comment": "Incorrect!",
+    "question_id": {
+     "$ref": "slide_slide_demo_2_0_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_2_0_question_0_1",
+   "values": {
+    "text_value": "No",
+    "sequence": "2",
+    "is_correct": true,
+    "comment": "Correct!",
+    "question_id": {
+     "$ref": "slide_slide_demo_2_0_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.question",
+   "id": "slide_slide_demo_2_0_question_1",
+   "values": {
+    "question": "Do you make lemons out of beams?",
+    "sequence": "2",
+    "slide_id": {
+     "$ref": "slide_slide_demo_2_0"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_2_0_question_1_0",
+   "values": {
+    "text_value": "Yes",
+    "sequence": "1",
+    "is_correct": false,
+    "comment": "Incorrect!",
+    "question_id": {
+     "$ref": "slide_slide_demo_2_0_question_1"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_2_0_question_1_1",
+   "values": {
+    "text_value": "No",
+    "sequence": "2",
+    "is_correct": true,
+    "comment": "Correct!",
+    "question_id": {
+     "$ref": "slide_slide_demo_2_0_question_1"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_2_0_question_1_2",
+   "values": {
+    "text_value": "And also bananas",
+    "sequence": "3",
+    "is_correct": false,
+    "comment": "Incorrect! of course not ...",
+    "question_id": {
+     "$ref": "slide_slide_demo_2_0_question_1"
+    }
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_2_1",
+   "values": {
+    "name": "A Mighty Forest from Ages",
+    "sequence": "2",
+    "image_1920": "",
+    "slide_category": "article",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_2_gard2"
+    },
+    "html_content": {
+     "$unevaluated": "xml"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "2",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_theory"
+      }
+     ]
+    ],
+    "description": "Mighty forest just don't appear in a few weeks. Learn how time made our forests mighty and mysterious."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_2_2",
+   "values": {
+    "name": "List planting in hanging bottles on wall",
+    "sequence": "3",
+    "url": "https://www.youtube.com/watch?v=ebBez6bcSEc",
+    "image_1920": "",
+    "slide_category": "video",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_2_gard2"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "description": "How to wall decorating by tree planting in hanging plastic bottles."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_2_3",
+   "values": {
+    "name": "Wood Characteristics",
+    "sequence": "5",
+    "binary_content": "",
+    "image_1920": "",
+    "slide_category": "document",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_2_gard2"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "2",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_cheatsheet"
+      }
+     ]
+    ],
+    "quiz_first_attempt_reward": "100",
+    "quiz_second_attempt_reward": "75",
+    "quiz_third_attempt_reward": "50",
+    "quiz_fourth_attempt_reward": "25",
+    "description": "Knowing wood characteristics is a requirement in order to know which kind of wood to use in a given situation."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_3_0",
+   "values": {
+    "name": "Working with Wood",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_3_furn0"
+    },
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_3_0",
+   "values": {
+    "name": "Comparing Hardness of Wood Species",
+    "sequence": "2",
+    "image_1920": "",
+    "slide_category": "infographic",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_3_furn0"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": true,
+    "public_views": "10",
+    "completion_time": "12",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_colorful"
+      }
+     ]
+    ],
+    "description": "Comparing Hardness of Wood Species"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_3_1",
+   "values": {
+    "name": "Wood Bending With Steam Box",
+    "sequence": "3",
+    "image_1920": "",
+    "url": "https://www.youtube.com/watch?v=PYr1rK8pS30",
+    "slide_category": "video",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_3_furn0"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "10",
+    "completion_time": "3",
+    "description": "Watching the master(s) at work"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_4_0",
+   "values": {
+    "name": "Documents",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_4_furn1"
+    },
+    "sequence": "0"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_4_1",
+   "values": {
+    "name": "Technical Drawings",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_4_furn1"
+    },
+    "sequence": "10"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_4_0",
+   "values": {
+    "name": "Foreword",
+    "sequence": "1",
+    "image_1920": "",
+    "slide_category": "article",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_4_furn1"
+    },
+    "html_content": {
+     "$unevaluated": "xml"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=6)"
+    },
+    "is_preview": true,
+    "public_views": "10",
+    "completion_time": "1",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "description": "Foreword for this documentation: how to use it, main attention points"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_4_1",
+   "values": {
+    "name": "Wood Types",
+    "sequence": "2",
+    "image_1920": "",
+    "url": "https://www.youtube.com/watch?v=bvSe6r5BpaY",
+    "slide_category": "video",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_4_furn1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=3)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "0.5",
+    "description": "Which wood type is best for my solid wood furniture? That's the question we help you answer in this video!"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_4_10",
+   "values": {
+    "name": "Drawing 1",
+    "sequence": "11",
+    "image_1920": "",
+    "slide_category": "infographic",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_4_furn1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=4)"
+    },
+    "is_preview": false,
+    "public_views": "2",
+    "completion_time": "2",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_theory"
+      }
+     ]
+    ],
+    "description": "Technical drawing"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_4_11",
+   "values": {
+    "name": "Drawing 2",
+    "sequence": "12",
+    "image_1920": "",
+    "slide_category": "infographic",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_4_furn1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=4)"
+    },
+    "is_preview": false,
+    "public_views": "2",
+    "completion_time": "2",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_theory"
+      }
+     ]
+    ],
+    "description": "Technical drawing"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_4_12",
+   "values": {
+    "name": "Presentation",
+    "sequence": "13",
+    "binary_content": "",
+    "image_1920": "",
+    "slide_category": "document",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_4_furn1"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=4)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "3",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_howto"
+      }
+     ]
+    ],
+    "description": "GLork"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_5_0",
+   "values": {
+    "name": "Tools and Methods",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_5_furn2"
+    },
+    "sequence": "0"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_5_1",
+   "values": {
+    "name": "Hand on!",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_5_furn2"
+    },
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_category_demo_5_2",
+   "values": {
+    "name": "Test Yourself",
+    "is_category": true,
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_5_furn2"
+    },
+    "sequence": "5"
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_5_0",
+   "values": {
+    "name": "Unforgettable Tools",
+    "sequence": "1",
+    "binary_content": "",
+    "image_1920": "",
+    "slide_category": "document",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_5_furn2"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": true,
+    "public_views": "10",
+    "completion_time": "2.5",
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "website_slides.slide_tag_demo_tools"
+      }
+     ]
+    ],
+    "description": "Tools you will need to complete this course."
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_5_0_link_0",
+   "values": {
+    "resource_type": "url",
+    "name": "Example Link 1",
+    "link": "http://www.example.com",
+    "slide_id": {
+     "$ref": "slide_slide_demo_5_0"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.resource",
+   "id": "slide_slide_demo_5_0_link_1",
+   "values": {
+    "resource_type": "url",
+    "name": "Example Link 2",
+    "link": "http://www.example.com",
+    "slide_id": {
+     "$ref": "slide_slide_demo_5_0"
+    }
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_5_1",
+   "values": {
+    "name": "How to find quality wood",
+    "sequence": "2",
+    "image_1920": "",
+    "url": "https://www.youtube.com/watch?v=5WMqwTnZ-qs",
+    "slide_category": "video",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_5_furn2"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "3",
+    "description": "Learn to identify quality wood in order to create solid furnitures."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_5_2",
+   "values": {
+    "name": "How To Build a HIGH QUALITY Dining Table with LIMITED TOOLS",
+    "sequence": "4",
+    "image_1920": "",
+    "url": "https://www.youtube.com/watch?v=grrXe1QZNzQ",
+    "slide_category": "video",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_5_furn2"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": true,
+    "public_views": "5",
+    "completion_time": "3",
+    "description": "From a piece of wood to a fully functional furniture, step by step."
+   }
+  },
+  {
+   "model": "slide.slide",
+   "id": "slide_slide_demo_5_3",
+   "values": {
+    "name": "Test your knowledge!",
+    "sequence": "6",
+    "image_1920": "",
+    "slide_category": "quiz",
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_5_furn2"
+    },
+    "is_published": true,
+    "date_published": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "is_preview": false,
+    "public_views": "0",
+    "completion_time": "0.5",
+    "description": "Test your knowledge!"
+   }
+  },
+  {
+   "model": "slide.question",
+   "id": "slide_slide_demo_5_3_question_0",
+   "values": {
+    "question": "Do you want to reply correctly?",
+    "sequence": "1",
+    "slide_id": {
+     "$ref": "slide_slide_demo_5_3"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_5_3_question_0_0",
+   "values": {
+    "text_value": "Yes",
+    "sequence": "1",
+    "is_correct": true,
+    "comment": "Correct! You did it!",
+    "question_id": {
+     "$ref": "slide_slide_demo_5_3_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.answer",
+   "id": "slide_slide_demo_5_3_question_0_1",
+   "values": {
+    "text_value": "No",
+    "sequence": "2",
+    "is_correct": false,
+    "comment": "Incorrect! You better think twice...",
+    "question_id": {
+     "$ref": "slide_slide_demo_5_3_question_0"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_0_partner_demo",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_0_partner_demo_portal",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_0_0_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_0_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "completed": true,
+    "vote": "1"
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_0_1_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_0_1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "completed": true,
+    "vote": "1"
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_0_partner_demo",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_0_0_partner_demo",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_0_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "vote": "1"
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_0_1_partner_demo",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_0_1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "vote": "1"
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_0_partner_demo_portal",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_0_0_partner_demo_portal",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_0_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "vote": "1"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_channel_0_admin",
+   "values": {
+    "model": "slide.channel",
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_channel_0_admin",
+   "values": {
+    "res_model_id": {
+     "$ref": "website_slides.model_slide_channel"
+    },
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "consumed": true,
+    "feedback": "I fear beginners could be lost... Isn't it a bit harsh for a \"basics\" course?",
+    "rating": "3",
+    "message_id": {
+     "$ref": "website_slides.message_channel_0_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_channel_0_demo",
+   "values": {
+    "model": "slide.channel",
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_channel_0_demo",
+   "values": {
+    "res_model_id": {
+     "$ref": "website_slides.model_slide_channel"
+    },
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_0_gard_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "consumed": true,
+    "rating": "5",
+    "feedback": "Back to basics and interesting. Just WOW!",
+    "message_id": {
+     "$ref": "website_slides.message_channel_0_demo"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_1_partner_demo",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_1_partner_demo_portal",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_0_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "completed": true
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_1_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "completed": true
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_2_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_2"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "vote": "1",
+    "completed": true
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_3_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_3"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "vote": "1",
+    "completed": true
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_1_partner_demo",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_0_partner_demo",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "vote": "1",
+    "completed": true
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_1_partner_demo",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "vote": "1"
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_1_partner_demo_portal",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_0_partner_demo",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "vote": "1",
+    "completed": true
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_channel_1_admin",
+   "values": {
+    "model": "slide.channel",
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_channel_1_admin",
+   "values": {
+    "res_model_id": {
+     "$ref": "website_slides.model_slide_channel"
+    },
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "consumed": true,
+    "feedback": "Very good course.",
+    "rating": "5",
+    "message_id": {
+     "$ref": "website_slides.message_channel_1_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_channel_1_demo",
+   "values": {
+    "model": "slide.channel",
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_channel_1_demo",
+   "values": {
+    "res_model_id": {
+     "$ref": "website_slides.model_slide_channel"
+    },
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "consumed": true,
+    "rating": "4",
+    "feedback": "Interesting!",
+    "message_id": {
+     "$ref": "website_slides.message_channel_1_demo"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_channel_1_portal",
+   "values": {
+    "model": "slide.channel",
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_channel_1_portal",
+   "values": {
+    "res_model_id": {
+     "$ref": "website_slides.model_slide_channel"
+    },
+    "res_id": {
+     "$ref": "website_slides.slide_channel_demo_1_gard1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "consumed": true,
+    "rating": "3",
+    "feedback": "Interesting. Could be great to include more examples.",
+    "message_id": {
+     "$ref": "website_slides.message_channel_1_portal"
+    },
+    "publisher_comment": "Thanks for the feedback! We just updated first lessons to better include newcomers.",
+    "publisher_id": {
+     "$ref": "base.partner_admin"
+    },
+    "publisher_datetime": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=1)).strftime('%Y-%m-%d %H:%M')"
+    }
+   }
+  },
+  {
+   "model": "slide.channel.partner",
+   "id": "slide_channel_2_partner_admin",
+   "values": {
+    "channel_id": {
+     "$ref": "website_slides.slide_channel_demo_2_gard2"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_2_0_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_2_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "vote": "1",
+    "quiz_attempts_count": "1",
+    "completed": true
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_2_1_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_2_1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "vote": "1"
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_2_0_partner_demo",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_2_0"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "vote": "1",
+    "quiz_attempts_count": "2"
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_4_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_4"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "quiz_attempts_count": "1",
+    "completed": true
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_3_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_3"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "completed": true
+   }
+  },
+  {
+   "model": "slide.slide.partner",
+   "id": "slide_slide_1_5_partner_admin",
+   "values": {
+    "slide_id": {
+     "$ref": "website_slides.slide_slide_demo_1_5"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "completed": true
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "website_slides_menu_root",
+   "name": "eLearning",
+   "action": "slide_channel_action_overview",
+   "sequence": "100",
+   "groups": "website_slides.group_website_slides_officer",
+   "web_icon": "website_slides,static/description/icon.png"
+  },
+  {
+   "id": "website_slides_menu_courses",
+   "name": "Courses",
+   "parent": "website_slides_menu_root",
+   "sequence": "1"
+  },
+  {
+   "id": "website_slides_menu_report",
+   "name": "Reporting",
+   "parent": "website_slides_menu_root",
+   "sequence": "9",
+   "groups": "website_slides.group_website_slides_manager"
+  },
+  {
+   "id": "website_slides_menu_configuration",
+   "name": "Configuration",
+   "parent": "website_slides_menu_root",
+   "sequence": "99"
+  },
+  {
+   "id": "website_slides_menu_courses_courses",
+   "name": "Courses",
+   "parent": "website_slides_menu_courses",
+   "action": "slide_channel_action_overview",
+   "sequence": "1"
+  },
+  {
+   "id": "website_slides_menu_courses_content",
+   "name": "Contents",
+   "parent": "website_slides_menu_courses",
+   "action": "slide_slide_action",
+   "sequence": "2"
+  },
+  {
+   "id": "website_slides_menu_report_courses",
+   "name": "Courses",
+   "parent": "website_slides_menu_report",
+   "action": "slide_channel_action_report",
+   "sequence": "1"
+  },
+  {
+   "id": "website_slides_menu_report_contents",
+   "name": "Contents",
+   "parent": "website_slides_menu_report",
+   "action": "slide_slide_action_report",
+   "sequence": "2"
+  },
+  {
+   "id": "website_slides_menu_report_attendees",
+   "name": "Attendees",
+   "parent": "website_slides_menu_report",
+   "action": "slide_channel_partner_action_report",
+   "sequence": "5"
+  },
+  {
+   "id": "website_slides_menu_report_reviews",
+   "name": "Reviews",
+   "parent": "website_slides_menu_report",
+   "action": "rating_rating_action_slide_channel",
+   "sequence": "10"
+  },
+  {
+   "id": "website_slides_menu_report_quizzes",
+   "name": "Quizzes",
+   "parent": "website_slides_menu_report",
+   "action": "slide_question_action_report",
+   "sequence": "15"
+  },
+  {
+   "id": "website_slides_menu_config_settings",
+   "name": "Settings",
+   "parent": "website_slides_menu_configuration",
+   "action": "website_slides_action_settings",
+   "sequence": "1",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "website_slides_menu_config_course_groups",
+   "name": "Course Groups",
+   "parent": "website_slides_menu_configuration",
+   "action": "slide_channel_tag_group_action",
+   "sequence": "2"
+  },
+  {
+   "id": "website_slides_menu_config_content_tags",
+   "name": "Content Tags",
+   "parent": "website_slides_menu_configuration",
+   "action": "action_slide_tag",
+   "sequence": "3"
+  },
+  {
+   "id": "menu_slide_channel_pages",
+   "name": "Courses",
+   "parent": "website.menu_content",
+   "action": "action_slide_channel_pages_list",
+   "sequence": "50"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_slide_slide_public",
+   "model": "slide.slide",
+   "model_xmlid": "model_slide_slide",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_portal",
+   "model": "slide.slide",
+   "model_xmlid": "model_slide_slide",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_employee",
+   "model": "slide.slide",
+   "model_xmlid": "model_slide_slide",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_officer",
+   "model": "slide.slide",
+   "model_xmlid": "model_slide_slide",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_manager",
+   "model": "slide.slide",
+   "model_xmlid": "model_slide_slide",
+   "group": "website_slides.group_website_slides_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_slide_partner_all",
+   "model": "slide.slide.partner",
+   "model_xmlid": "model_slide_slide_partner",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_partner_system",
+   "model": "slide.slide.partner",
+   "model_xmlid": "model_slide_slide_partner",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_question_public",
+   "model": "slide.question",
+   "model_xmlid": "model_slide_question",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_question_portal",
+   "model": "slide.question",
+   "model_xmlid": "model_slide_question",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_question_employee",
+   "model": "slide.question",
+   "model_xmlid": "model_slide_question",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_question_officer",
+   "model": "slide.question",
+   "model_xmlid": "model_slide_question",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_answer_all",
+   "model": "slide.answer",
+   "model_xmlid": "model_slide_answer",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_answer_officer",
+   "model": "slide.answer",
+   "model_xmlid": "model_slide_answer",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_tag_public",
+   "model": "slide.tag",
+   "model_xmlid": "model_slide_tag",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_tag_portal",
+   "model": "slide.tag",
+   "model_xmlid": "model_slide_tag",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_tag_employee",
+   "model": "slide.tag",
+   "model_xmlid": "model_slide_tag",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_tag_officer",
+   "model": "slide.tag",
+   "model_xmlid": "model_slide_tag",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_channel_tag_public",
+   "model": "slide.channel.tag",
+   "model_xmlid": "model_slide_channel_tag",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_tag_portal",
+   "model": "slide.channel.tag",
+   "model_xmlid": "model_slide_channel_tag",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_tag_employee",
+   "model": "slide.channel.tag",
+   "model_xmlid": "model_slide_channel_tag",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_tag_user",
+   "model": "slide.channel.tag",
+   "model_xmlid": "model_slide_channel_tag",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_channel_tag_group_public",
+   "model": "slide.channel.tag.group",
+   "model_xmlid": "model_slide_channel_tag_group",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_tag_group_portal",
+   "model": "slide.channel.tag.group",
+   "model_xmlid": "model_slide_channel_tag_group",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_tag_group_employee",
+   "model": "slide.channel.tag.group",
+   "model_xmlid": "model_slide_channel_tag_group",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_tag_group_user",
+   "model": "slide.channel.tag.group",
+   "model_xmlid": "model_slide_channel_tag_group",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_channel_public",
+   "model": "slide.channel",
+   "model_xmlid": "model_slide_channel",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_portal",
+   "model": "slide.channel",
+   "model_xmlid": "model_slide_channel",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_employee",
+   "model": "slide.channel",
+   "model_xmlid": "model_slide_channel",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_officer",
+   "model": "slide.channel",
+   "model_xmlid": "model_slide_channel",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_manager",
+   "model": "slide.channel",
+   "model_xmlid": "model_slide_channel",
+   "group": "website_slides.group_website_slides_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_channel_partners_all",
+   "model": "slide.channel.partner",
+   "model_xmlid": "model_slide_channel_partner",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_channel_partners_system",
+   "model": "slide.channel.partner",
+   "model_xmlid": "model_slide_channel_partner",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_embed_public",
+   "model": "slide.embed",
+   "model_xmlid": "model_slide_embed",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_embed_portal",
+   "model": "slide.embed",
+   "model_xmlid": "model_slide_embed",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_embed_user",
+   "model": "slide.embed",
+   "model_xmlid": "model_slide_embed",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_slide_resource_all",
+   "model": "slide.slide.resource",
+   "model_xmlid": "model_slide_slide_resource",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_resource_public",
+   "model": "slide.slide.resource",
+   "model_xmlid": "model_slide_slide_resource",
+   "group": "base.group_public",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_resource_portal",
+   "model": "slide.slide.resource",
+   "model_xmlid": "model_slide_slide_resource",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_resource_internal",
+   "model": "slide.slide.resource",
+   "model_xmlid": "model_slide_slide_resource",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_slide_slide_resource_publisher",
+   "model": "slide.slide.resource",
+   "model_xmlid": "model_slide_slide_resource",
+   "group": "website_slides.group_website_slides_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_slide_channel_invite",
+   "model": "slide.channel.invite",
+   "model_xmlid": "model_slide_channel_invite",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

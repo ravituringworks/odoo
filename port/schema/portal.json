@@ -1,0 +1,675 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/mail_template_data.xml",
+  "data/mail_templates.xml",
+  "views/mail_templates_public.xml",
+  "views/portal_templates.xml",
+  "views/res_config_settings_views.xml",
+  "wizard/portal_share_views.xml",
+  "wizard/portal_wizard_views.xml"
+ ],
+ "depends": [
+  "web",
+  "web_editor",
+  "http_routing",
+  "mail",
+  "auth_signup"
+ ],
+ "models": {
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_translation_frontend_modules_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "get_frontend_session_info"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "ir.qweb": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_prepare_frontend_environment"
+    }
+   ],
+   "name": "ir.qweb",
+   "transient": false
+  },
+  "ir.ui.view": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "customize_show": {
+     "default": false,
+     "string": "Show As Optional Inherit",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "ir.ui.view",
+   "transient": false
+  },
+  "mail.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "portal_message_format"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_portal_get_default_format_properties_names"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 85,
+     "name": "_portal_message_format"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_portal_message_format_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_is_editable_in_portal"
+    }
+   ],
+   "name": "mail.message",
+   "transient": false
+  },
+  "mail.thread": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "website_message_ids": {
+     "comodel": "mail.message",
+     "domain": {
+      "$lambda": "[('model', '=', self._name), ('message_type', 'in', ('comment', 'email', 'email_outgoing', 'auto_comment'))]"
+     },
+     "help": "Website communication history",
+     "inverse_name": "res_id",
+     "string": "Website Messages",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_sign_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_portal_get_parent_hash_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_thread_with_access"
+    }
+   ],
+   "name": "mail.thread",
+   "transient": false
+  },
+  "portal.mixin": {
+   "abstract": true,
+   "description": "Portal Mixin",
+   "extension": false,
+   "fields": {
+    "access_token": {
+     "copy": false,
+     "string": "Security Token",
+     "type": "Char"
+    },
+    "access_url": {
+     "compute": "_compute_access_url",
+     "help": "Customer Portal URL",
+     "string": "Portal Access URL",
+     "type": "Char"
+    },
+    "access_warning": {
+     "compute": "_compute_access_warning",
+     "string": "Access warning",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_access_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_access_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_portal_ensure_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_get_share_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_get_access_action"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "action_share"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "get_portal_url"
+    }
+   ],
+   "name": "portal.mixin",
+   "sel_methods": {
+    "_get_access_action": []
+   },
+   "transient": false
+  },
+  "portal.share": {
+   "abstract": false,
+   "description": "Portal Sharing",
+   "extension": false,
+   "fields": {
+    "access_warning": {
+     "compute": "_compute_access_warning",
+     "string": "Access warning",
+     "type": "Text"
+    },
+    "note": {
+     "help": "Add extra content to display in the email",
+     "type": "Text"
+    },
+    "partner_ids": {
+     "comodel": "res.partner",
+     "required": true,
+     "string": "Recipients",
+     "type": "Many2many"
+    },
+    "res_id": {
+     "required": true,
+     "string": "Related Document ID",
+     "type": "Integer"
+    },
+    "res_model": {
+     "required": true,
+     "string": "Related Document Model",
+     "type": "Char"
+    },
+    "resource_ref": {
+     "compute": "_compute_resource_ref",
+     "string": "_selection_target_model",
+     "type": "Reference"
+    },
+    "share_link": {
+     "compute": "_compute_share_link",
+     "string": "Link",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_selection_target_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_resource_ref"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_share_link"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_access_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_send_public_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_send_signup_link"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_send_mail"
+    }
+   ],
+   "name": "portal.share",
+   "transient": true
+  },
+  "portal.wizard": {
+   "abstract": false,
+   "description": "Grant Portal Access",
+   "extension": false,
+   "fields": {
+    "partner_ids": {
+     "comodel": "res.partner",
+     "default": {
+      "$ref": "_default_partner_ids"
+     },
+     "string": "Partners",
+     "type": "Many2many"
+    },
+    "user_ids": {
+     "comodel": "portal.wizard.user",
+     "compute": "_compute_user_ids",
+     "inverse_name": "wizard_id",
+     "readonly": false,
+     "store": true,
+     "string": "Users",
+     "type": "One2many"
+    },
+    "welcome_message": {
+     "help": "This text is included in the email sent to new users of the portal.",
+     "string": "Invitation Message",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_default_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_user_ids"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "action_open_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_action_open_modal"
+    }
+   ],
+   "name": "portal.wizard",
+   "transient": true
+  },
+  "portal.wizard.user": {
+   "abstract": false,
+   "description": "Portal User Config",
+   "extension": false,
+   "fields": {
+    "email": {
+     "string": "Email",
+     "type": "Char"
+    },
+    "email_state": {
+     "compute": "_compute_email_state",
+     "default": "ok",
+     "selection": [
+      [
+       "ok",
+       "Valid"
+      ],
+      [
+       "ko",
+       "Invalid"
+      ],
+      [
+       "exist",
+       "Already Registered"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "is_internal": {
+     "compute": "_compute_group_details",
+     "string": "Is Internal",
+     "type": "Boolean"
+    },
+    "is_portal": {
+     "compute": "_compute_group_details",
+     "string": "Is Portal",
+     "type": "Boolean"
+    },
+    "login_date": {
+     "related": "user_id.login_date",
+     "string": "Latest Authentication",
+     "type": "Datetime"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "string": "Contact",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_user_id",
+     "string": "User",
+     "type": "Many2one"
+    },
+    "wizard_id": {
+     "comodel": "portal.wizard",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Wizard",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email')"
+     ],
+     "lines": 13,
+     "name": "_compute_email_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id', 'user_id.active', 'user_id.groups_id')"
+     ],
+     "lines": 15,
+     "name": "_compute_group_details"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 33,
+     "name": "action_grant_access"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_revoke_access"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_invite_again"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_refresh_modal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_create_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_send_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_assert_user_email_uniqueness"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_update_partner_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_similar_users_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_similar_users_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_is_portal_similar_than_user"
+    }
+   ],
+   "name": "portal.wizard.user",
+   "sel_methods": {
+    "_get_similar_users_domain": [
+     [
+      "login",
+      "in"
+     ]
+    ]
+   },
+   "transient": true
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "portal_allow_api_keys": {
+     "compute": "_compute_portal_allow_api_keys",
+     "string": "Customer API Keys",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_portal_allow_api_keys"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_inverse_portal_allow_api_keys"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "get_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_can_edit_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "can_edit_vat"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users.apikeys.description": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "check_access_make_key"
+    }
+   ],
+   "name": "res.users.apikeys.description",
+   "transient": false
+  }
+ },
+ "module": "portal",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/portal",
+ "stats": {
+  "fields": 24,
+  "methods": 51,
+  "models": 12,
+  "py_lines": 1712
+ },
+ "summary": "Customer Portal",
+ "title": "Customer Portal",
+ "version": null
+}

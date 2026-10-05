@@ -1,0 +1,1642 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources",
+ "data_files": [
+  "wizard/update_goal.xml",
+  "wizard/grant_badge.xml",
+  "views/res_users_views.xml",
+  "views/gamification_karma_rank_views.xml",
+  "views/gamification_karma_tracking_views.xml",
+  "views/gamification_badge_views.xml",
+  "views/gamification_badge_user_views.xml",
+  "views/gamification_goal_views.xml",
+  "views/gamification_goal_definition_views.xml",
+  "views/gamification_challenge_views.xml",
+  "views/gamification_challenge_line_views.xml",
+  "views/gamification_menus.xml",
+  "security/gamification_security.xml",
+  "security/ir.model.access.csv",
+  "data/ir_cron_data.xml",
+  "data/mail_template_data.xml",
+  "data/gamification_badge_data.xml",
+  "data/gamification_challenge_data.xml",
+  "data/gamification_karma_rank_data.xml",
+  "data/gamification_karma_rank_demo.xml",
+  "data/gamification_karma_tracking_demo.xml"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "gamification.badge": {
+   "abstract": false,
+   "description": "Gamification Badge",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "challenge_ids": {
+     "comodel": "gamification.challenge",
+     "inverse_name": "reward_id",
+     "string": "Reward of Challenges",
+     "type": "One2many"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Html"
+    },
+    "goal_definition_ids": {
+     "comodel": "gamification.goal.definition",
+     "help": "The users that have succeeded these goals will receive automatically the badge.",
+     "relation_table": "badge_unlocked_definition_rel",
+     "string": "Rewarded by",
+     "type": "Many2many"
+    },
+    "granted_count": {
+     "compute": "_get_owners_info",
+     "help": "The number of time this badge has been received.",
+     "string": "Total",
+     "type": "Integer"
+    },
+    "granted_users_count": {
+     "compute": "_get_owners_info",
+     "help": "The number of time this badge has been received by unique users.",
+     "string": "Number of users",
+     "type": "Integer"
+    },
+    "level": {
+     "default": "bronze",
+     "selection": [
+      [
+       "bronze",
+       "Bronze"
+      ],
+      [
+       "silver",
+       "Silver"
+      ],
+      [
+       "gold",
+       "Gold"
+      ]
+     ],
+     "string": "Forum Badge Level",
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Badge",
+     "translate": true,
+     "type": "Char"
+    },
+    "owner_ids": {
+     "comodel": "gamification.badge.user",
+     "help": "The list of instances of this badge granted to users",
+     "inverse_name": "badge_id",
+     "string": "Owners",
+     "type": "One2many"
+    },
+    "remaining_sending": {
+     "compute": "_remaining_sending_calc",
+     "help": "If a maximum is set",
+     "string": "Remaining Sending Allowed",
+     "type": "Integer"
+    },
+    "rule_auth": {
+     "default": "everyone",
+     "help": "Who can grant this badge",
+     "required": true,
+     "selection": [
+      [
+       "everyone",
+       "Everyone"
+      ],
+      [
+       "users",
+       "A selected list of users"
+      ],
+      [
+       "having",
+       "People having some badges"
+      ],
+      [
+       "nobody",
+       "No one, assigned through challenges"
+      ]
+     ],
+     "string": "Allowance to Grant",
+     "type": "Selection"
+    },
+    "rule_auth_badge_ids": {
+     "column1": "badge1_id",
+     "column2": "badge2_id",
+     "comodel": "gamification.badge",
+     "help": "Only the people having these badges can give this badge",
+     "relation_table": "gamification_badge_rule_badge_rel",
+     "string": "Required Badges",
+     "type": "Many2many"
+    },
+    "rule_auth_user_ids": {
+     "comodel": "res.users",
+     "help": "Only these people can give this badge",
+     "relation_table": "rel_badge_auth_users",
+     "string": "Authorized Users",
+     "type": "Many2many"
+    },
+    "rule_max": {
+     "help": "Check to set a monthly limit per person of sending this badge",
+     "string": "Monthly Limited Sending",
+     "type": "Boolean"
+    },
+    "rule_max_number": {
+     "help": "The maximum number of time this badge can be sent per month per person.",
+     "string": "Limitation Number",
+     "type": "Integer"
+    },
+    "stat_my": {
+     "compute": "_get_badge_user_stats",
+     "help": "The number of time the current user has received this badge.",
+     "string": "My Total",
+     "type": "Integer"
+    },
+    "stat_my_monthly_sending": {
+     "compute": "_get_badge_user_stats",
+     "help": "The number of time the current user has sent this badge this month.",
+     "string": "My Monthly Sending Total",
+     "type": "Integer"
+    },
+    "stat_my_this_month": {
+     "compute": "_get_badge_user_stats",
+     "help": "The number of time the current user has received this badge this month.",
+     "string": "My Monthly Total",
+     "type": "Integer"
+    },
+    "stat_this_month": {
+     "compute": "_get_badge_user_stats",
+     "help": "The number of time this badge has been received this month.",
+     "string": "Monthly total",
+     "type": "Integer"
+    },
+    "unique_owner_ids": {
+     "comodel": "res.users",
+     "compute": "_get_owners_info",
+     "help": "The list of unique users having received this badge.",
+     "string": "Unique Owners",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "image.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('owner_ids')"
+     ],
+     "lines": 46,
+     "name": "_get_owners_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('owner_ids.badge_id', 'owner_ids.create_date', 'owner_ids.user_id')"
+     ],
+     "lines": 16,
+     "name": "_get_badge_user_stats"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rule_auth', 'rule_auth_user_ids', 'rule_auth_badge_ids', 'rule_max', 'rule_max_number', 'stat_my_monthly_sending')"
+     ],
+     "lines": 16,
+     "name": "_remaining_sending_calc"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "check_granting"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_can_grant_badge"
+    }
+   ],
+   "name": "gamification.badge",
+   "transient": false
+  },
+  "gamification.badge.user": {
+   "abstract": false,
+   "description": "Gamification User Badge",
+   "extension": false,
+   "fields": {
+    "badge_id": {
+     "comodel": "gamification.badge",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Badge",
+     "type": "Many2one"
+    },
+    "badge_name": {
+     "readonly": false,
+     "related": "badge_id.name",
+     "string": "Badge Name",
+     "type": "Char"
+    },
+    "challenge_id": {
+     "comodel": "gamification.challenge",
+     "string": "Challenge",
+     "type": "Many2one"
+    },
+    "comment": {
+     "string": "Comment",
+     "type": "Text"
+    },
+    "level": {
+     "readonly": true,
+     "related": "badge_id.level",
+     "store": true,
+     "string": "Badge Level",
+     "type": "Selection"
+    },
+    "sender_id": {
+     "comodel": "res.users",
+     "string": "Sender",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_send_badge"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    }
+   ],
+   "name": "gamification.badge.user",
+   "order": "create_date desc",
+   "rec_name": "badge_name",
+   "transient": false
+  },
+  "gamification.badge.user.wizard": {
+   "abstract": false,
+   "description": "Gamification User Badge Wizard",
+   "extension": false,
+   "fields": {
+    "badge_id": {
+     "comodel": "gamification.badge",
+     "required": true,
+     "string": "Badge",
+     "type": "Many2one"
+    },
+    "comment": {
+     "string": "Comment",
+     "type": "Text"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "required": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_grant_badge"
+    }
+   ],
+   "name": "gamification.badge.user.wizard",
+   "transient": true
+  },
+  "gamification.challenge": {
+   "abstract": false,
+   "description": "Gamification Challenge",
+   "extension": false,
+   "fields": {
+    "challenge_category": {
+     "default": "hr",
+     "help": "Define the visibility of the challenge through menus",
+     "required": true,
+     "selection": [
+      [
+       "hr",
+       "Human Resources / Engagement"
+      ],
+      [
+       "other",
+       "Settings / Gamification Tools"
+      ]
+     ],
+     "string": "Appears in",
+     "type": "Selection"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "end_date": {
+     "help": "The day a new challenge will be automatically closed. If no periodicity is set, will use this date as the goal end date.",
+     "string": "End Date",
+     "type": "Date"
+    },
+    "invited_user_ids": {
+     "comodel": "res.users",
+     "relation_table": "gamification_invited_user_ids_rel",
+     "string": "Suggest to users",
+     "type": "Many2many"
+    },
+    "last_report_date": {
+     "default": {
+      "$ref": "fields.Date.today"
+     },
+     "string": "Last Report Date",
+     "type": "Date"
+    },
+    "line_ids": {
+     "comodel": "gamification.challenge.line",
+     "copy": true,
+     "help": "List of goals that will be set",
+     "inverse_name": "challenge_id",
+     "required": true,
+     "string": "Lines",
+     "type": "One2many"
+    },
+    "manager_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.uid"
+     },
+     "string": "Responsible",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Challenge Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "next_report_date": {
+     "compute": "_get_next_report_date",
+     "store": true,
+     "string": "Next Report Date",
+     "type": "Date"
+    },
+    "period": {
+     "default": "once",
+     "help": "Period of automatic goal assignment. If none is selected, should be launched manually.",
+     "required": true,
+     "selection": [
+      [
+       "once",
+       "Non recurring"
+      ],
+      [
+       "daily",
+       "Daily"
+      ],
+      [
+       "weekly",
+       "Weekly"
+      ],
+      [
+       "monthly",
+       "Monthly"
+      ],
+      [
+       "yearly",
+       "Yearly"
+      ]
+     ],
+     "string": "Periodicity",
+     "type": "Selection"
+    },
+    "remind_update_delay": {
+     "help": "Never reminded if no value or zero is specified.",
+     "string": "Non-updated manual goals will be reminded after",
+     "type": "Integer"
+    },
+    "report_message_frequency": {
+     "default": "never",
+     "required": true,
+     "selection": [
+      [
+       "never",
+       "Never"
+      ],
+      [
+       "onchange",
+       "On change"
+      ],
+      [
+       "daily",
+       "Daily"
+      ],
+      [
+       "weekly",
+       "Weekly"
+      ],
+      [
+       "monthly",
+       "Monthly"
+      ],
+      [
+       "yearly",
+       "Yearly"
+      ]
+     ],
+     "string": "Report Frequency",
+     "type": "Selection"
+    },
+    "report_message_group_id": {
+     "comodel": "discuss.channel",
+     "help": "Group that will receive a copy of the report in addition to the user",
+     "string": "Send a copy to",
+     "type": "Many2one"
+    },
+    "report_template_id": {
+     "comodel": "mail.template",
+     "default": {
+      "$lambda": "self._get_report_template()"
+     },
+     "required": true,
+     "string": "Report Template",
+     "type": "Many2one"
+    },
+    "reward_failure": {
+     "string": "Reward Bests if not Succeeded?",
+     "type": "Boolean"
+    },
+    "reward_first_id": {
+     "comodel": "gamification.badge",
+     "string": "For 1st user",
+     "type": "Many2one"
+    },
+    "reward_id": {
+     "comodel": "gamification.badge",
+     "string": "For Every Succeeding User",
+     "type": "Many2one"
+    },
+    "reward_realtime": {
+     "default": true,
+     "help": "With this option enabled, a user can receive a badge only once. The top 3 badges are still rewarded only at the end of the challenge.",
+     "string": "Reward as soon as every goal is reached",
+     "type": "Boolean"
+    },
+    "reward_second_id": {
+     "comodel": "gamification.badge",
+     "string": "For 2nd user",
+     "type": "Many2one"
+    },
+    "reward_third_id": {
+     "comodel": "gamification.badge",
+     "string": "For 3rd user",
+     "type": "Many2one"
+    },
+    "start_date": {
+     "help": "The day a new challenge will be automatically started. If no periodicity is set, will use this date as the goal start date.",
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "state": {
+     "copy": false,
+     "default": "draft",
+     "required": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "inprogress",
+       "In Progress"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "string": "State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "user_count": {
+     "compute": "_compute_user_count",
+     "string": "# Users",
+     "type": "Integer"
+    },
+    "user_domain": {
+     "string": "User domain",
+     "type": "Char"
+    },
+    "user_ids": {
+     "comodel": "res.users",
+     "relation_table": "gamification_challenge_users_rel",
+     "string": "Participants",
+     "type": "Many2many"
+    },
+    "visibility_mode": {
+     "default": "personal",
+     "required": true,
+     "selection": [
+      [
+       "personal",
+       "Individual Goals"
+      ],
+      [
+       "ranking",
+       "Leader Board (Group Ranking)"
+      ]
+     ],
+     "string": "Display Mode",
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_ids')"
+     ],
+     "lines": 18,
+     "name": "_compute_user_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('last_report_date', 'report_message_frequency')"
+     ],
+     "lines": 12,
+     "name": "_get_next_report_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_report_template"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 11,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 30,
+     "name": "_cron_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "_update_all"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_challenger_users"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_recompute_challenge_users"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_start"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_check"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_report_progress"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_view_users"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 74,
+     "name": "_generate_goals_from_challenge"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 144,
+     "name": "_get_serialized_challenge_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "report_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "accept_challenge"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "discard_challenge"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 92,
+     "name": "_check_challenge_reward"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_get_topN_users"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_reward_user"
+    }
+   ],
+   "name": "gamification.challenge",
+   "order": "end_date, start_date, name, id",
+   "transient": false
+  },
+  "gamification.challenge.line": {
+   "abstract": false,
+   "description": "Gamification generic goal for challenge",
+   "extension": false,
+   "fields": {
+    "challenge_id": {
+     "comodel": "gamification.challenge",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Challenge",
+     "type": "Many2one"
+    },
+    "condition": {
+     "readonly": true,
+     "related": "definition_id.condition",
+     "string": "Condition",
+     "type": "Selection"
+    },
+    "definition_full_suffix": {
+     "readonly": true,
+     "related": "definition_id.full_suffix",
+     "string": "Suffix",
+     "type": "Char"
+    },
+    "definition_id": {
+     "comodel": "gamification.goal.definition",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Goal Definition",
+     "type": "Many2one"
+    },
+    "definition_monetary": {
+     "readonly": true,
+     "related": "definition_id.monetary",
+     "string": "Monetary",
+     "type": "Boolean"
+    },
+    "definition_suffix": {
+     "readonly": true,
+     "related": "definition_id.suffix",
+     "string": "Unit",
+     "type": "Char"
+    },
+    "name": {
+     "readonly": false,
+     "related": "definition_id.name",
+     "string": "Name",
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "target_goal": {
+     "required": true,
+     "string": "Target Value to Reach",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "gamification.challenge.line",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "gamification.goal": {
+   "abstract": false,
+   "description": "Gamification Goal",
+   "extension": false,
+   "fields": {
+    "challenge_id": {
+     "help": "Challenge that generated the goal, assign challenge to users to generate goals with a value in this field.",
+     "index": true,
+     "readonly": true,
+     "related": "line_id.challenge_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "closed": {
+     "string": "Closed goal",
+     "type": "Boolean"
+    },
+    "color": {
+     "compute": "_compute_color",
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "completeness": {
+     "compute": "_get_completion",
+     "string": "Completeness",
+     "type": "Float"
+    },
+    "computation_mode": {
+     "readonly": false,
+     "related": "definition_id.computation_mode",
+     "type": "Selection"
+    },
+    "current": {
+     "default": 0,
+     "required": true,
+     "string": "Current Value",
+     "type": "Float"
+    },
+    "definition_condition": {
+     "readonly": true,
+     "related": "definition_id.condition",
+     "string": "Definition Condition",
+     "type": "Selection"
+    },
+    "definition_description": {
+     "readonly": true,
+     "related": "definition_id.description",
+     "string": "Definition Description",
+     "type": "Text"
+    },
+    "definition_display": {
+     "readonly": true,
+     "related": "definition_id.display_mode",
+     "string": "Display Mode",
+     "type": "Selection"
+    },
+    "definition_id": {
+     "comodel": "gamification.goal.definition",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Goal Definition",
+     "type": "Many2one"
+    },
+    "definition_suffix": {
+     "readonly": true,
+     "related": "definition_id.full_suffix",
+     "string": "Suffix",
+     "type": "Char"
+    },
+    "end_date": {
+     "string": "End Date",
+     "type": "Date"
+    },
+    "last_update": {
+     "help": "In case of manual goal, reminders are sent if the goal as not been updated for a while (defined in challenge). Ignored in case of non-manual goal or goal not linked to a challenge.",
+     "string": "Last Update",
+     "type": "Date"
+    },
+    "line_id": {
+     "comodel": "gamification.challenge.line",
+     "ondelete": "cascade",
+     "string": "Challenge Line",
+     "type": "Many2one"
+    },
+    "remind_update_delay": {
+     "help": "The number of days after which the user assigned to a manual goal will be reminded. Never reminded if no value is specified.",
+     "string": "Remind delay",
+     "type": "Integer"
+    },
+    "start_date": {
+     "default": {
+      "$ref": "fields.Date.today"
+     },
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "state": {
+     "default": "draft",
+     "required": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "inprogress",
+       "In progress"
+      ],
+      [
+       "reached",
+       "Reached"
+      ],
+      [
+       "failed",
+       "Failed"
+      ],
+      [
+       "canceled",
+       "Cancelled"
+      ]
+     ],
+     "string": "State",
+     "type": "Selection"
+    },
+    "target_goal": {
+     "required": true,
+     "string": "To Reach",
+     "type": "Float"
+    },
+    "to_update": {
+     "string": "To update",
+     "type": "Boolean"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('end_date', 'last_update', 'state')"
+     ],
+     "lines": 9,
+     "name": "_compute_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('current', 'target_goal', 'definition_id.condition')"
+     ],
+     "lines": 13,
+     "name": "_get_completion"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_check_remind_delay"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_write_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 114,
+     "name": "update_goal"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_start"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_reach"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_fail"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 2,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "get_action"
+    }
+   ],
+   "name": "gamification.goal",
+   "order": "start_date desc, end_date desc, definition_id, id",
+   "rec_name": "definition_id",
+   "transient": false
+  },
+  "gamification.goal.definition": {
+   "abstract": false,
+   "description": "Gamification Goal Definition",
+   "extension": false,
+   "fields": {
+    "action_id": {
+     "comodel": "ir.actions.act_window",
+     "help": "The action that will be called to update the goal value.",
+     "string": "Action",
+     "type": "Many2one"
+    },
+    "batch_distinctive_field": {
+     "comodel": "ir.model.fields",
+     "help": "In batch mode, this indicates which field distinguishes one user from the other, e.g. user_id, partner_id...",
+     "string": "Distinctive field for batch user",
+     "type": "Many2one"
+    },
+    "batch_mode": {
+     "help": "Evaluate the expression in batch instead of once for each user",
+     "string": "Batch Mode",
+     "type": "Boolean"
+    },
+    "batch_user_expression": {
+     "help": "The value to compare with the distinctive field. The expression can contain reference to 'user' which is a browse record of the current user, e.g. user.id, user.partner_id.id...",
+     "string": "Evaluated expression for batch mode",
+     "type": "Char"
+    },
+    "computation_mode": {
+     "default": "manually",
+     "help": "Define how the goals will be computed. The result of the operation will be stored in the field 'Current'.",
+     "required": true,
+     "selection": [
+      [
+       "manually",
+       "Recorded manually"
+      ],
+      [
+       "count",
+       "Automatic: number of records"
+      ],
+      [
+       "sum",
+       "Automatic: sum on a field"
+      ],
+      [
+       "python",
+       "Automatic: execute a specific Python code"
+      ]
+     ],
+     "string": "Computation Mode",
+     "type": "Selection"
+    },
+    "compute_code": {
+     "help": "Python code to be executed for each user. 'result' should contains the new current value. Evaluated user can be access through object.user_id.",
+     "string": "Python Code",
+     "type": "Text"
+    },
+    "condition": {
+     "default": "higher",
+     "help": "A goal is considered as completed when the current value is compared to the value to reach",
+     "required": true,
+     "selection": [
+      [
+       "higher",
+       "The higher the better"
+      ],
+      [
+       "lower",
+       "The lower the better"
+      ]
+     ],
+     "string": "Goal Performance",
+     "type": "Selection"
+    },
+    "description": {
+     "string": "Goal Description",
+     "type": "Text"
+    },
+    "display_mode": {
+     "default": "progress",
+     "required": true,
+     "selection": [
+      [
+       "progress",
+       "Progressive (using numerical values)"
+      ],
+      [
+       "boolean",
+       "Exclusive (done or not-done)"
+      ]
+     ],
+     "string": "Displayed as",
+     "type": "Selection"
+    },
+    "domain": {
+     "default": "[]",
+     "help": "Domain for filtering records. General rule, not user depending, e.g. [('state', '=', 'done')]. The expression can contain reference to 'user' which is a browse record of the current user if not in batch mode.",
+     "required": true,
+     "string": "Filter Domain",
+     "type": "Char"
+    },
+    "field_date_id": {
+     "comodel": "ir.model.fields",
+     "domain": {
+      "$expr": "DOMAIN_TEMPLATE % \", ('ttype', 'in', ('date', 'datetime'))\""
+     },
+     "help": "The date to use for the time period evaluated",
+     "string": "Date Field",
+     "type": "Many2one"
+    },
+    "field_id": {
+     "comodel": "ir.model.fields",
+     "domain": {
+      "$expr": "DOMAIN_TEMPLATE % ''"
+     },
+     "string": "Field to Sum",
+     "type": "Many2one"
+    },
+    "full_suffix": {
+     "compute": "_compute_full_suffix",
+     "help": "The currency and suffix field",
+     "string": "Full Suffix",
+     "type": "Char"
+    },
+    "model_id": {
+     "comodel": "ir.model",
+     "ondelete": "cascade",
+     "string": "Model",
+     "type": "Many2one"
+    },
+    "model_inherited_ids": {
+     "comodel": "ir.model",
+     "related": "model_id.inherited_model_ids",
+     "type": "Many2many"
+    },
+    "monetary": {
+     "default": false,
+     "help": "The target and current value are defined in the company currency.",
+     "string": "Monetary Value",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Goal Definition",
+     "translate": true,
+     "type": "Char"
+    },
+    "res_id_field": {
+     "help": "The field name on the user profile (res.users) containing the value for res_id for action.",
+     "string": "ID Field of user",
+     "type": "Char"
+    },
+    "suffix": {
+     "help": "The unit of the target and current values",
+     "string": "Suffix",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('suffix', 'monetary')"
+     ],
+     "lines": 10,
+     "name": "_compute_full_suffix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_check_domain_validity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_check_model_validity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    }
+   ],
+   "name": "gamification.goal.definition",
+   "transient": false
+  },
+  "gamification.goal.wizard": {
+   "abstract": false,
+   "description": "Gamification Goal Wizard",
+   "extension": false,
+   "fields": {
+    "current": {
+     "string": "Current",
+     "type": "Float"
+    },
+    "goal_id": {
+     "comodel": "gamification.goal",
+     "required": true,
+     "string": "Goal",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_update_current"
+    }
+   ],
+   "name": "gamification.goal.wizard",
+   "transient": true
+  },
+  "gamification.karma.rank": {
+   "abstract": false,
+   "description": "Rank based on karma",
+   "extension": false,
+   "fields": {
+    "description": {
+     "string": "Description",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "description_motivational": {
+     "help": "Motivational phrase to reach this rank on your profile page",
+     "string": "Motivational",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "karma_min": {
+     "default": 1,
+     "required": true,
+     "string": "Required Karma",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Rank Name",
+     "translate": true,
+     "type": "Text"
+    },
+    "rank_users_count": {
+     "compute": "_compute_rank_users_count",
+     "string": "# Users",
+     "type": "Integer"
+    },
+    "user_ids": {
+     "comodel": "res.users",
+     "inverse_name": "rank_id",
+     "string": "Users",
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "image.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_rank_users_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "write"
+    }
+   ],
+   "name": "gamification.karma.rank",
+   "order": "karma_min",
+   "sql_constraints": [
+    [
+     "karma_min_check",
+     "CHECK( karma_min > 0 )",
+     "The required karma has to be above 0."
+    ]
+   ],
+   "transient": false
+  },
+  "gamification.karma.tracking": {
+   "abstract": false,
+   "description": "Track Karma Changes",
+   "extension": false,
+   "fields": {
+    "consolidated": {
+     "string": "Consolidated",
+     "type": "Boolean"
+    },
+    "gain": {
+     "compute": "_compute_gain",
+     "readonly": false,
+     "string": "Gain",
+     "type": "Integer"
+    },
+    "new_value": {
+     "required": true,
+     "string": "New Karma Value",
+     "type": "Integer"
+    },
+    "old_value": {
+     "readonly": true,
+     "string": "Old Karma Value",
+     "type": "Integer"
+    },
+    "origin_ref": {
+     "default": {
+      "$lambda": "f'res.users,{self.env.user.id}'"
+     },
+     "selection_method": "_get_origin_selection_values",
+     "string": "Source",
+     "type": "Reference"
+    },
+    "origin_ref_model_name": {
+     "compute": "_compute_origin_ref_model_name",
+     "selection_method": "_get_origin_selection_values",
+     "store": true,
+     "string": "Source Type",
+     "type": "Selection"
+    },
+    "reason": {
+     "default": {
+      "$lambda": "_('Add Manually')"
+     },
+     "string": "Description",
+     "type": "Text"
+    },
+    "tracking_date": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "index": true,
+     "readonly": true,
+     "type": "Datetime"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_origin_selection_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('old_value', 'new_value')"
+     ],
+     "lines": 3,
+     "name": "_compute_gain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('origin_ref')"
+     ],
+     "lines": 7,
+     "name": "_compute_origin_ref_model_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 18,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_consolidate_cron"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 64,
+     "name": "_process_consolidate"
+    }
+   ],
+   "name": "gamification.karma.tracking",
+   "order": "tracking_date desc, id desc",
+   "rec_name": "user_id",
+   "sel_methods": {
+    "_get_origin_selection_values": [
+     [
+      "res.users",
+      "User"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "badge_ids": {
+     "comodel": "gamification.badge.user",
+     "copy": false,
+     "inverse_name": "user_id",
+     "string": "Badges",
+     "type": "One2many"
+    },
+    "bronze_badge": {
+     "compute": "_get_user_badge_level",
+     "string": "Bronze badges count",
+     "type": "Integer"
+    },
+    "gold_badge": {
+     "compute": "_get_user_badge_level",
+     "string": "Gold badges count",
+     "type": "Integer"
+    },
+    "karma": {
+     "compute": "_compute_karma",
+     "readonly": false,
+     "store": true,
+     "string": "Karma",
+     "type": "Integer"
+    },
+    "karma_tracking_ids": {
+     "comodel": "gamification.karma.tracking",
+     "groups": "base.group_system",
+     "inverse_name": "user_id",
+     "string": "Karma Changes",
+     "type": "One2many"
+    },
+    "next_rank_id": {
+     "comodel": "gamification.karma.rank",
+     "string": "Next Rank",
+     "type": "Many2one"
+    },
+    "rank_id": {
+     "comodel": "gamification.karma.rank",
+     "string": "Rank",
+     "type": "Many2one"
+    },
+    "silver_badge": {
+     "compute": "_get_user_badge_level",
+     "string": "Silver badges count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('karma_tracking_ids.new_value')"
+     ],
+     "lines": 25,
+     "name": "_compute_karma"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('badge_ids')"
+     ],
+     "lines": 21,
+     "name": "_get_user_badge_level"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 15,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_add_karma"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_add_karma_batch"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_get_user_ids_ranked_by_karma"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_get_tracking_karma_gain_position"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_get_karma_position"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_rank_changed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_recompute_rank"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_recompute_rank_bulk"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_next_rank"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "get_gamification_redirection_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_karma_report"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "gamification",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/gamification",
+ "stats": {
+  "fields": 129,
+  "methods": 72,
+  "models": 11,
+  "py_lines": 2259
+ },
+ "summary": "Gamification process",
+ "title": "Gamification",
+ "version": "1.0"
+}

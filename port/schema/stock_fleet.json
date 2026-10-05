@@ -1,0 +1,276 @@
+{
+ "application": false,
+ "author": null,
+ "category": null,
+ "data_files": [
+  "views/fleet_vehicle_model.xml",
+  "views/stock_picking_batch.xml",
+  "views/stock_picking_type.xml",
+  "views/stock_picking_view.xml",
+  "report/report_picking_batch.xml",
+  "views/stock_location.xml",
+  "data/stock_fleet_demo.xml"
+ ],
+ "depends": [
+  "stock_picking_batch",
+  "fleet"
+ ],
+ "models": {
+  "fleet.vehicle.model.category": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "volume_capacity": {
+     "string": "Max Volume",
+     "type": "Float"
+    },
+    "volume_capacity_uom_name": {
+     "compute": "_compute_volume_capacity_uom_name",
+     "string": "Volume unit of measure label",
+     "type": "Char"
+    },
+    "weight_capacity": {
+     "string": "Max Weight",
+     "type": "Float"
+    },
+    "weight_capacity_uom_name": {
+     "compute": "_compute_weight_capacity_uom_name",
+     "string": "Weight unit of measure label",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_weight_capacity_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_volume_capacity_uom_name"
+    }
+   ],
+   "name": "fleet.vehicle.model.category",
+   "transient": false
+  },
+  "stock.location": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_a_dock": {
+     "string": "Is a Dock Location",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "stock.location",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "zip": {
+     "related": "partner_id.zip",
+     "string": "Zip",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_zip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_reset_location"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.picking.batch": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "dock_id": {
+     "comodel": "stock.location",
+     "compute": "_compute_dock_id",
+     "domain": "[('warehouse_id', '=', warehouse_id), ('is_a_dock', '=', True)]",
+     "readonly": false,
+     "store": true,
+     "string": "Dock Location",
+     "type": "Many2one"
+    },
+    "driver_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_driver_id",
+     "readonly": false,
+     "store": true,
+     "string": "Driver",
+     "type": "Many2one"
+    },
+    "end_date": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "string": "End Date",
+     "type": "Datetime"
+    },
+    "used_volume_percentage": {
+     "compute": "_compute_capacity_percentage",
+     "string": "Volume %",
+     "type": "Float"
+    },
+    "used_weight_percentage": {
+     "compute": "_compute_capacity_percentage",
+     "string": "Weight %",
+     "type": "Float"
+    },
+    "vehicle_category_id": {
+     "comodel": "fleet.vehicle.model.category",
+     "compute": "_compute_vehicle_category_id",
+     "readonly": false,
+     "store": true,
+     "string": "Vehicle Category",
+     "type": "Many2one"
+    },
+    "vehicle_id": {
+     "comodel": "fleet.vehicle",
+     "string": "Vehicle",
+     "type": "Many2one"
+    },
+    "vehicle_volume_capacity": {
+     "related": "vehicle_category_id.volume_capacity",
+     "string": "Max Volume (m\u00b3)",
+     "type": "Float"
+    },
+    "vehicle_weight_capacity": {
+     "related": "vehicle_category_id.weight_capacity",
+     "string": "Vehcilce Payload Capacity",
+     "type": "Float"
+    },
+    "volume_uom_name": {
+     "compute": "_compute_volume_uom_name",
+     "string": "Volume unit of measure label",
+     "type": "Char"
+    },
+    "weight_uom_name": {
+     "compute": "_compute_weight_uom_name",
+     "string": "Weight unit of measure label",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vehicle_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_vehicle_category_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.location_id', 'picking_ids.location_dest_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_dock_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_weight_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_volume_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vehicle_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_driver_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('estimated_shipping_weight', 'vehicle_category_id.weight_capacity', 'estimated_shipping_volume', 'vehicle_category_id.volume_capacity')"
+     ],
+     "lines": 8,
+     "name": "_compute_capacity_percentage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "order_on_zip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_set_moves_destination_to_dock"
+    }
+   ],
+   "name": "stock.picking.batch",
+   "transient": false
+  }
+ },
+ "module": "stock_fleet",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/stock_fleet",
+ "stats": {
+  "fields": 17,
+  "methods": 16,
+  "models": 4,
+  "py_lines": 162
+ },
+ "summary": "Stock Transport: Dispatch Management System",
+ "title": "Stock Transport",
+ "version": "1.0"
+}

@@ -1,0 +1,929 @@
+{
+ "application": false,
+ "author": null,
+ "category": null,
+ "data_files": [
+  "data/ir_cron_data.xml",
+  "data/mail_templates.xml",
+  "data/mail_template_data.xml",
+  "data/res_groups.xml",
+  "security/ir.model.access.csv",
+  "security/mail_group_security.xml",
+  "wizard/mail_group_message_reject_views.xml",
+  "views/mail_group_member_views.xml",
+  "views/mail_group_message_views.xml",
+  "views/mail_group_moderation_views.xml",
+  "views/mail_group_views.xml",
+  "views/mail_group_menus.xml",
+  "views/portal_templates.xml",
+  "data/mail_group_demo.xml"
+ ],
+ "depends": [
+  "mail",
+  "portal"
+ ],
+ "models": {
+  "mail.group": {
+   "abstract": false,
+   "description": "Mail Group",
+   "extension": false,
+   "fields": {
+    "access_group_id": {
+     "comodel": "res.groups",
+     "default": {
+      "$lambda": "self.env.ref('base.group_user')"
+     },
+     "string": "Authorized Group",
+     "type": "Many2one"
+    },
+    "access_mode": {
+     "default": "public",
+     "required": true,
+     "selection": [
+      [
+       "public",
+       "Everyone"
+      ],
+      [
+       "members",
+       "Members only"
+      ],
+      [
+       "groups",
+       "Selected group of users"
+      ]
+     ],
+     "string": "Privacy",
+     "type": "Selection"
+    },
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "can_manage_group": {
+     "compute": "_compute_can_manage_group",
+     "help": "Can manage the members",
+     "string": "Can Manage",
+     "type": "Boolean"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Text"
+    },
+    "image_128": {
+     "string": "Image",
+     "type": "Image"
+    },
+    "is_member": {
+     "compute": "_compute_is_member",
+     "string": "Is Member",
+     "type": "Boolean"
+    },
+    "is_moderator": {
+     "compute": "_compute_is_moderator",
+     "help": "Current user is a moderator of the group",
+     "string": "Moderator",
+     "type": "Boolean"
+    },
+    "mail_group_message_count": {
+     "compute": "_compute_mail_group_message_count",
+     "help": "Number of message in this group",
+     "string": "Messages Count",
+     "type": "Integer"
+    },
+    "mail_group_message_ids": {
+     "comodel": "mail.group.message",
+     "inverse_name": "mail_group_id",
+     "string": "Pending Messages",
+     "type": "One2many"
+    },
+    "mail_group_message_last_month_count": {
+     "compute": "_compute_mail_group_message_last_month_count",
+     "string": "Messages Per Month",
+     "type": "Integer"
+    },
+    "mail_group_message_moderation_count": {
+     "compute": "_compute_mail_group_message_moderation_count",
+     "help": "Messages that need an action",
+     "string": "Pending Messages Count",
+     "type": "Integer"
+    },
+    "member_count": {
+     "compute": "_compute_member_count",
+     "string": "Members Count",
+     "type": "Integer"
+    },
+    "member_ids": {
+     "comodel": "mail.group.member",
+     "inverse_name": "mail_group_id",
+     "string": "Members",
+     "type": "One2many"
+    },
+    "member_partner_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_member_partner_ids",
+     "string": "Partners Member",
+     "type": "Many2many"
+    },
+    "moderation": {
+     "string": "Moderate this group",
+     "type": "Boolean"
+    },
+    "moderation_guidelines": {
+     "help": "Newcomers on this moderated group will automatically receive the guidelines.",
+     "string": "Send guidelines to new subscribers",
+     "type": "Boolean"
+    },
+    "moderation_guidelines_msg": {
+     "string": "Guidelines",
+     "type": "Html"
+    },
+    "moderation_notify": {
+     "help": "People receive an automatic notification about their message being waiting for moderation.",
+     "string": "Automatic notification",
+     "type": "Boolean"
+    },
+    "moderation_notify_msg": {
+     "string": "Notification message",
+     "type": "Html"
+    },
+    "moderation_rule_count": {
+     "compute": "_compute_moderation_rule_count",
+     "string": "Moderated emails count",
+     "type": "Integer"
+    },
+    "moderation_rule_ids": {
+     "comodel": "mail.group.moderation",
+     "inverse_name": "mail_group_id",
+     "string": "Moderated Emails",
+     "type": "One2many"
+    },
+    "moderator_ids": {
+     "comodel": "res.users",
+     "domain": {
+      "$lambda": "[('groups_id', 'in', self.env.ref('base.group_user').id)]"
+     },
+     "relation_table": "mail_group_moderator_rel",
+     "string": "Moderators",
+     "type": "Many2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.alias.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mail_group_message_ids.create_date', 'mail_group_message_ids.moderation_status')"
+     ],
+     "lines": 16,
+     "name": "_compute_mail_group_message_last_month_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mail_group_message_ids')"
+     ],
+     "lines": 16,
+     "name": "_compute_mail_group_message_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mail_group_message_ids.moderation_status')"
+     ],
+     "lines": 13,
+     "name": "_compute_mail_group_message_moderation_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('member_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_member_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 14,
+     "name": "_compute_is_member"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('member_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_member_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_search_member_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('moderator_ids')",
+      "api.depends_context('uid')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_moderator"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('moderation_rule_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_moderation_rule_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_moderator')",
+      "api.depends_context('uid')"
+     ],
+     "lines": 4,
+     "name": "_compute_can_manage_group"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('access_mode')"
+     ],
+     "lines": 5,
+     "name": "_onchange_access_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('moderation')"
+     ],
+     "lines": 3,
+     "name": "_onchange_moderation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('moderator_ids')"
+     ],
+     "lines": 3,
+     "name": "_check_moderator_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('moderation_notify', 'moderation_notify_msg')"
+     ],
+     "lines": 3,
+     "name": "_check_moderation_notify"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('moderation_guidelines', 'moderation_guidelines_msg')"
+     ],
+     "lines": 3,
+     "name": "_check_moderation_guidelines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('moderator_ids', 'moderation')"
+     ],
+     "lines": 3,
+     "name": "_check_moderator_existence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('access_mode', 'access_group_id')"
+     ],
+     "lines": 3,
+     "name": "_check_access_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_alias_get_creation_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_alias_get_error"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "message_new"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "message_update"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('mail.message', lambda value: value.id)"
+     ],
+     "lines": 90,
+     "name": "message_post"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 35,
+     "name": "action_send_guidelines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 77,
+     "name": "_notify_members"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_cron_notify_moderators"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_notify_moderators"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_clean_email_body"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_join"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_leave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_join_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_leave_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_send_subscribe_confirmation_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_send_unsubscribe_confirmation_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_generate_action_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_generate_action_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_generate_email_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_generate_group_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_email_unsubscribe_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_find_member"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_find_members"
+    }
+   ],
+   "name": "mail.group",
+   "order": "create_date DESC, id DESC",
+   "sel_methods": {
+    "_search_member_partner_ids": [
+     [
+      "member_ids",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "mail.group.member": {
+   "abstract": false,
+   "description": "Mailing List Member",
+   "extension": false,
+   "fields": {
+    "email": {
+     "compute": "_compute_email",
+     "readonly": false,
+     "store": true,
+     "string": "Email",
+     "type": "Char"
+    },
+    "email_normalized": {
+     "compute": "_compute_email_normalized",
+     "index": true,
+     "store": true,
+     "string": "Normalized Email",
+     "type": "Char"
+    },
+    "mail_group_id": {
+     "comodel": "mail.group",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Group",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "ondelete": "cascade",
+     "string": "Partner",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id.email')"
+     ],
+     "lines": 6,
+     "name": "_compute_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email')"
+     ],
+     "lines": 3,
+     "name": "_compute_email_normalized"
+    }
+   ],
+   "name": "mail.group.member",
+   "rec_name": "email",
+   "sql_constraints": [
+    [
+     "unique_partner",
+     "UNIQUE(partner_id, mail_group_id)",
+     "This partner is already subscribed to the group"
+    ]
+   ],
+   "transient": false
+  },
+  "mail.group.message": {
+   "abstract": false,
+   "description": "Mailing List Message",
+   "extension": false,
+   "fields": {
+    "attachment_ids": {
+     "readonly": false,
+     "related": "mail_message_id.attachment_ids",
+     "type": "Many2many"
+    },
+    "author_id": {
+     "readonly": false,
+     "related": "mail_message_id.author_id",
+     "type": "Many2one"
+    },
+    "author_moderation": {
+     "compute": "_compute_author_moderation",
+     "selection": [
+      [
+       "ban",
+       "Banned"
+      ],
+      [
+       "allow",
+       "Whitelisted"
+      ]
+     ],
+     "string": "Author Moderation Status",
+     "type": "Selection"
+    },
+    "body": {
+     "readonly": false,
+     "related": "mail_message_id.body",
+     "type": "Html"
+    },
+    "create_date": {
+     "string": "Posted",
+     "type": "Datetime"
+    },
+    "email_from": {
+     "readonly": false,
+     "related": "mail_message_id.email_from",
+     "type": "Char"
+    },
+    "email_from_normalized": {
+     "compute": "_compute_email_from_normalized",
+     "store": true,
+     "string": "Normalized From",
+     "type": "Char"
+    },
+    "group_message_child_ids": {
+     "comodel": "mail.group.message",
+     "inverse_name": "group_message_parent_id",
+     "string": "Children",
+     "type": "One2many"
+    },
+    "group_message_parent_id": {
+     "comodel": "mail.group.message",
+     "store": true,
+     "string": "Parent",
+     "type": "Many2one"
+    },
+    "is_group_moderated": {
+     "related": "mail_group_id.moderation",
+     "string": "Is Group Moderated",
+     "type": "Boolean"
+    },
+    "mail_group_id": {
+     "comodel": "mail.group",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Group",
+     "type": "Many2one"
+    },
+    "mail_message_id": {
+     "comodel": "mail.message",
+     "copy": false,
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Mail Message",
+     "type": "Many2one"
+    },
+    "moderation_status": {
+     "copy": false,
+     "default": "pending_moderation",
+     "index": true,
+     "required": true,
+     "selection": [
+      [
+       "pending_moderation",
+       "Pending Moderation"
+      ],
+      [
+       "accepted",
+       "Accepted"
+      ],
+      [
+       "rejected",
+       "Rejected"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "moderator_id": {
+     "comodel": "res.users",
+     "string": "Moderated By",
+     "type": "Many2one"
+    },
+    "subject": {
+     "readonly": false,
+     "related": "mail_message_id.subject",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_from')"
+     ],
+     "lines": 3,
+     "name": "_compute_email_from_normalized"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_from_normalized', 'mail_group_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_author_moderation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('mail_message_id')"
+     ],
+     "lines": 9,
+     "name": "_constrains_mail_message_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 14,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "copy_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_moderate_accept"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_moderate_reject_with_comment"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_moderate_reject"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_moderate_allow"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_moderate_ban"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_moderate_ban_with_comment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_pending_same_author_same_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_create_moderation_rule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_assert_moderable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_moderate_send_reject_email"
+    }
+   ],
+   "name": "mail.group.message",
+   "order": "create_date DESC",
+   "rec_name": "subject",
+   "transient": false
+  },
+  "mail.group.message.reject": {
+   "abstract": false,
+   "description": "Reject Group Message",
+   "extension": false,
+   "fields": {
+    "action": {
+     "required": true,
+     "selection": [
+      [
+       "reject",
+       "Reject"
+      ],
+      [
+       "ban",
+       "Ban"
+      ]
+     ],
+     "string": "Action",
+     "type": "Selection"
+    },
+    "body": {
+     "default": "",
+     "string": "Contents",
+     "type": "Html"
+    },
+    "email_from_normalized": {
+     "related": "mail_group_message_id.email_from_normalized",
+     "string": "Email From",
+     "type": "Char"
+    },
+    "mail_group_message_id": {
+     "comodel": "mail.group.message",
+     "readonly": true,
+     "required": true,
+     "string": "Message",
+     "type": "Many2one"
+    },
+    "send_email": {
+     "compute": "_compute_send_email",
+     "help": "Send an email to the author of the message",
+     "string": "Send Email",
+     "type": "Boolean"
+    },
+    "subject": {
+     "compute": "_compute_subject",
+     "readonly": false,
+     "store": true,
+     "string": "Subject",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mail_group_message_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_subject"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('body')"
+     ],
+     "lines": 3,
+     "name": "_compute_send_email"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_send_mail"
+    }
+   ],
+   "name": "mail.group.message.reject",
+   "transient": true
+  },
+  "mail.group.moderation": {
+   "abstract": false,
+   "description": "Mailing List black/white list",
+   "extension": false,
+   "fields": {
+    "email": {
+     "required": true,
+     "string": "Email",
+     "type": "Char"
+    },
+    "mail_group_id": {
+     "comodel": "mail.group",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Group",
+     "type": "Many2one"
+    },
+    "status": {
+     "default": "ban",
+     "required": true,
+     "selection": [
+      [
+       "allow",
+       "Always Allow"
+      ],
+      [
+       "ban",
+       "Permanent Ban"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    }
+   ],
+   "name": "mail.group.moderation",
+   "sql_constraints": [
+    [
+     "mail_group_email_uniq",
+     "UNIQUE(mail_group_id, email)",
+     "You can create only one rule for a given email address in a group."
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "mail_group",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/mail_group",
+ "stats": {
+  "fields": 52,
+  "methods": 63,
+  "models": 5,
+  "py_lines": 1519
+ },
+ "summary": "Manage your mailing lists",
+ "title": "Mail Group",
+ "version": "1.1"
+}

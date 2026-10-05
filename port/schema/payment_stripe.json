@@ -1,0 +1,317 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Payment Providers",
+ "data_files": [
+  "views/payment_provider_views.xml",
+  "views/payment_stripe_templates.xml",
+  "views/payment_templates.xml",
+  "data/payment_provider_data.xml"
+ ],
+ "depends": [
+  "payment"
+ ],
+ "models": {
+  "payment.provider": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "code": {
+     "ondelete": {
+      "stripe": "set default"
+     },
+     "selection_add": [
+      [
+       "stripe",
+       "Stripe"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "stripe_publishable_key": {
+     "help": "The key solely used to identify the account with Stripe",
+     "string": "Publishable Key",
+     "type": "Char"
+    },
+    "stripe_secret_key": {
+     "groups": "base.group_system",
+     "string": "Secret Key",
+     "type": "Char"
+    },
+    "stripe_webhook_secret": {
+     "groups": "base.group_system",
+     "help": "If a webhook is enabled on your Stripe account, this signing secret must be set to authenticate the messages sent from Stripe to Odoo.",
+     "string": "Webhook Signing Secret",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_feature_support_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('state', 'stripe_publishable_key', 'stripe_secret_key')"
+     ],
+     "lines": 20,
+     "name": "_check_state_of_connected_account_is_never_test"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_stripe_has_connected_account"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('state')"
+     ],
+     "lines": 17,
+     "name": "_check_onboarding_of_enabled_provider_is_completed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_stripe_onboarding_is_ongoing"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 58,
+     "name": "action_stripe_connect_account"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 38,
+     "name": "action_stripe_create_webhook"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 30,
+     "name": "action_stripe_verify_apple_pay_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_stripe_webhook_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_stripe_make_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_stripe_extra_request_headers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_stripe_fetch_or_create_connected_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_stripe_prepare_connect_account_payload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_stripe_create_account_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_stripe_make_proxy_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_stripe_prepare_proxy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_stripe_get_publishable_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_stripe_get_inline_form_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_stripe_get_country"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_payment_method_codes"
+    }
+   ],
+   "name": "payment.provider",
+   "transient": false
+  },
+  "payment.token": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "stripe_mandate": {
+     "readonly": true,
+     "string": "Stripe Mandate",
+     "type": "Char"
+    },
+    "stripe_payment_method": {
+     "readonly": true,
+     "string": "Stripe Payment Method ID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_stripe_sca_migrate_customer"
+    }
+   ],
+   "name": "payment.token",
+   "transient": false
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_specific_processing_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_specific_secret_keys"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_send_payment_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_stripe_create_intent"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_stripe_prepare_setup_intent_payload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_stripe_prepare_payment_intent_payload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_stripe_create_customer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_stripe_prepare_mandate_options"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_send_refund_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_send_capture_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_send_void_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_get_tx_from_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 83,
+     "name": "_process_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_stripe_tokenize_from_notification_data"
+    }
+   ],
+   "name": "payment.transaction",
+   "sel_methods": {
+    "_get_specific_secret_keys": []
+   },
+   "transient": false
+  }
+ },
+ "module": "payment_stripe",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/payment_stripe",
+ "stats": {
+  "fields": 6,
+  "methods": 35,
+  "models": 3,
+  "py_lines": 1648
+ },
+ "summary": "An Irish-American payment provider covering the US and many others.",
+ "title": "Payment Provider: Stripe",
+ "version": "2.0"
+}

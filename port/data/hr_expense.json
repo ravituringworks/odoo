@@ -1,0 +1,1684 @@
+{
+ "module": "hr_expense",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_human_resources_expenses",
+   "values": {
+    "description": "Helps you manage your expenses.",
+    "sequence": "12"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_hr_expense_team_approver",
+   "values": {
+    "name": "Team Approver",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_expenses"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_hr_expense_user",
+   "values": {
+    "name": "All Approver",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_expenses"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_team_approver"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_hr_expense_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_expenses"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_hr_expense_0",
+   "values": {
+    "name": "Tip: Snap pictures of your receipts with the remote app",
+    "sequence": "1100",
+    "group_id": {
+     "$ref": "base.group_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_expense_approval",
+   "values": {
+    "name": "Expense Approval",
+    "icon": "fa-dollar",
+    "res_model": "hr.expense.sheet"
+   }
+  },
+  {
+   "model": "mail.alias",
+   "id": "mail_alias_expense",
+   "values": {
+    "alias_name": "expense",
+    "alias_model_id": {
+     "$ref": "model_hr_expense"
+    },
+    "alias_contact": "employees"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_expense_approved",
+   "values": {
+    "name": "Approved",
+    "res_model": "hr.expense.sheet",
+    "default": true,
+    "description": "Expense report approved, entry created for accountant"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_expense_refused",
+   "values": {
+    "name": "Refused",
+    "res_model": "hr.expense.sheet",
+    "default": true,
+    "description": "Expense report refused"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_expense_paid",
+   "values": {
+    "name": "Paid",
+    "res_model": "hr.expense.sheet",
+    "description": "Expense report paid",
+    "default": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_expense_reset",
+   "values": {
+    "name": "Draft",
+    "res_model": "hr.expense.sheet",
+    "default": true,
+    "description": "Expense report reset to Draft"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_expense_entry_delete",
+   "values": {
+    "name": "Journal Entry Deleted",
+    "res_model": "hr.expense.sheet",
+    "default": true,
+    "description": "Journal entry deleted"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_expense_entry_draft",
+   "values": {
+    "name": "Journal Entry Reset to Draft",
+    "res_model": "hr.expense.sheet",
+    "default": true,
+    "description": "Journal entry reset to draft"
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_hr_expense_invoice",
+   "values": {
+    "name": "Expense invoice",
+    "code": "hr.expense.invoice",
+    "prefix": "EXP/",
+    "padding": "3"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "expense_product_meal",
+   "values": {
+    "name": "Meals",
+    "description": "Restaurants, business lunches, etc.",
+    "standard_price": "0.0",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FOOD",
+    "can_be_expensed": true,
+    "sale_ok": false,
+    "purchase_ok": false,
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "expense_product_travel_accommodation",
+   "values": {
+    "name": "Travel & Accommodation",
+    "description": "Hotel, plane ticket, taxi, etc.",
+    "standard_price": "0.0",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "TRANS & ACC",
+    "can_be_expensed": true,
+    "sale_ok": false,
+    "purchase_ok": false,
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "expense_product_mileage",
+   "values": {
+    "name": "Mileage",
+    "standard_price": "1.0",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_km"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_km"
+    },
+    "default_code": "MIL",
+    "can_be_expensed": true,
+    "sale_ok": false,
+    "purchase_ok": false,
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "expense_product_gift",
+   "values": {
+    "name": "Gifts",
+    "description": "Gifts to customers or vendors",
+    "standard_price": "0.0",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_km"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_km"
+    },
+    "default_code": "GIFT",
+    "can_be_expensed": true,
+    "sale_ok": false,
+    "purchase_ok": false,
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "expense_product_communication",
+   "values": {
+    "name": "Communication",
+    "description": "Phone bills, postage, etc.",
+    "standard_price": "0.0",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_km"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_km"
+    },
+    "default_code": "COMM",
+    "can_be_expensed": true,
+    "sale_ok": false,
+    "purchase_ok": false,
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_no_cost",
+   "values": {
+    "name": "Expenses",
+    "standard_price": "0.0",
+    "type": "service",
+    "default_code": "EXP_GEN",
+    "categ_id": {
+     "$ref": "product.cat_expense"
+    },
+    "can_be_expensed": true,
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "hr_expense_tour",
+   "values": {
+    "name": "hr_expense_tour",
+    "rainbow_man_message": "There you go - expense management in a nutshell!"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_expense_refuse_wizard_action",
+   "values": {
+    "name": "Refuse Expense",
+    "res_model": "hr.expense.refuse.wizard",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "hr_expense_refuse_wizard_view_form"
+    },
+    "target": "new",
+    "context": {
+     "dialog_size": "medium"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_expense_approve_duplicate_action",
+   "values": {
+    "name": "Validate Duplicate Expenses",
+    "res_model": "hr.expense.approve.duplicate",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "hr_expense_approve_duplicate_view_form"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_expense_actions_all",
+   "values": {
+    "name": "Expenses Analysis",
+    "res_model": "hr.expense",
+    "view_mode": "graph,pivot,list,form",
+    "search_view_id": {
+     "$ref": "hr_expense_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_expense_actions_all_graph",
+   "values": {
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "hr_expense.hr_expense_view_graph"
+    },
+    "act_window_id": {
+     "$ref": "hr_expense_actions_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_expense_actions_all_pivot",
+   "values": {
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "hr_expense.hr_expense_view_pivot"
+    },
+    "act_window_id": {
+     "$ref": "hr_expense_actions_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_expense_actions_all_tree",
+   "values": {
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "hr_expense_view_expenses_analysis_tree"
+    },
+    "act_window_id": {
+     "$ref": "hr_expense_actions_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_expense_actions_my_all",
+   "values": {
+    "name": "My Expenses",
+    "path": "expenses",
+    "res_model": "hr.expense",
+    "view_mode": "list,kanban,form,graph,pivot,activity",
+    "search_view_id": {
+     "$ref": "hr_expense_view_search"
+    },
+    "context": {
+     "search_default_my_expenses": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_expense_actions_my_all_tree",
+   "values": {
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_my_expenses_tree"
+    },
+    "act_window_id": {
+     "$ref": "hr_expense_actions_my_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_expense_actions_my_all_kanban",
+   "values": {
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "hr_expense_kanban_view_header"
+    },
+    "act_window_id": {
+     "$ref": "hr_expense_actions_my_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_expense_product",
+   "values": {
+    "name": "Expense Categories",
+    "res_model": "product.product",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "product.product_search_form_view"
+    },
+    "context": {
+     "default_can_be_expensed": 1,
+     "default_type": "service"
+    },
+    "domain": [
+     [
+      "can_be_expensed",
+      "=",
+      true
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_expense_product_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "product_product_expense_categories_tree_view"
+    },
+    "act_window_id": {
+     "$ref": "hr_expense_product"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_expense_product_kanban",
+   "values": {
+    "sequence": 2,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "product_product_expense_kanban_view"
+    },
+    "act_window_id": {
+     "$ref": "hr_expense_product"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_expense_product_form",
+   "values": {
+    "sequence": 3,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "product_product_expense_form_view"
+    },
+    "act_window_id": {
+     "$ref": "hr_expense_product"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_expense_sheet_my_all",
+   "values": {
+    "name": "My Reports",
+    "res_model": "hr.expense.sheet",
+    "path": "my-expense-reports",
+    "view_mode": "list,kanban,form,pivot,graph,activity",
+    "search_view_id": {
+     "$ref": "hr_expense_sheet_view_search"
+    },
+    "context": {
+     "search_default_my_reports": 1,
+     "search_default_not_refused_reports": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_hr_expense_sheet_my_all_tree",
+   "values": {
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_hr_expense_sheet_dashboard_tree_header"
+    },
+    "act_window_id": {
+     "$ref": "action_hr_expense_sheet_my_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_hr_expense_sheet_my_all_kanban",
+   "values": {
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "view_hr_expense_sheet_kanban_header"
+    },
+    "act_window_id": {
+     "$ref": "action_hr_expense_sheet_my_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_expense_sheet_all",
+   "values": {
+    "name": "All Reports",
+    "res_model": "hr.expense.sheet",
+    "path": "expense-reports",
+    "view_mode": "list,kanban,form,pivot,graph",
+    "search_view_id": {
+     "$ref": "hr_expense_sheet_view_search_with_panel"
+    },
+    "domain": [],
+    "context": {
+     "searchpanel_default_state": [
+      "draft",
+      "submit",
+      "approve",
+      "post",
+      "done"
+     ]
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_expense_account",
+   "values": {
+    "name": "Employee Expenses",
+    "res_model": "hr.expense.sheet",
+    "view_mode": "list,kanban,form,pivot,graph",
+    "search_view_id": {
+     "$ref": "hr_expense_sheet_view_search"
+    },
+    "view_id": {
+     "$ref": "view_hr_expense_sheet_tree"
+    },
+    "domain": [],
+    "context": {
+     "search_default_approved": 1,
+     "search_default_to_post": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_expense_sheet_all_all",
+   "values": {
+    "name": "All Expense Reports",
+    "res_model": "hr.expense.sheet",
+    "view_mode": "graph,pivot,list,kanban,form",
+    "search_view_id": {
+     "$ref": "hr_expense_sheet_view_search"
+    },
+    "domain": [],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_expense_sheet_department_to_approve",
+   "values": {
+    "name": "Expense Reports to Approve",
+    "res_model": "hr.expense.sheet",
+    "view_mode": "list,kanban,form,pivot,graph",
+    "search_view_id": {
+     "$ref": "hr_expense_sheet_view_search_with_panel"
+    },
+    "context": {
+     "searchpanel_default_state": [
+      "submit"
+     ]
+    },
+    "domain": {
+     "$unevaluated": "[('department_id', '=', active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_expense_sheet_department_filtered",
+   "values": {
+    "name": "Expense Reports Analysis",
+    "res_model": "hr.expense.sheet",
+    "view_mode": "graph,pivot",
+    "context": {
+     "$unevaluated": "{\n                'search_default_department_id': [active_id],\n                'default_department_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_type_action_config_hr_expense",
+   "values": {
+    "name": "Activity Types",
+    "res_model": "mail.activity.type",
+    "view_mode": "list,kanban,form",
+    "domain": [
+     "|",
+     [
+      "res_model",
+      "=",
+      false
+     ],
+     [
+      "res_model",
+      "=",
+      "hr.expense.sheet"
+     ]
+    ],
+    "context": {
+     "default_res_model": "hr.expense.sheet"
+    }
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_expense_manager",
+   "values": {
+    "name": "Manager Expense",
+    "model_id": {
+     "$ref": "model_hr_expense"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_user"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_expense_approver",
+   "values": {
+    "name": "Team Approver Expense",
+    "model_id": {
+     "$ref": "model_hr_expense"
+    },
+    "domain_force": "['|', '|', '|', '|',\n                ('employee_id.user_id', '=', user.id),\n                ('employee_id.department_id.manager_id.user_id', '=', user.id),\n                ('employee_id.parent_id.user_id', '=', user.id),\n                ('employee_id.expense_manager_id', '=', user.id),\n                ('sheet_id.user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_team_approver"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_expense_employee",
+   "values": {
+    "name": "Employee Expense",
+    "model_id": {
+     "$ref": "model_hr_expense"
+    },
+    "domain_force": "[('employee_id.user_id', '=', user.id), ('state', 'in', ('draft', 'reported'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_expense_employee_not_draft",
+   "values": {
+    "name": "Employee can't modify expense that is not in draft state",
+    "model_id": {
+     "$ref": "model_hr_expense"
+    },
+    "domain_force": "[('employee_id.user_id', '=', user.id), ('state', 'not in', ('draft', 'reported'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_create": false,
+    "perm_write": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_expense_sheet_manager",
+   "values": {
+    "name": "Manager Expense Sheet",
+    "model_id": {
+     "$ref": "model_hr_expense_sheet"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_user"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_expense_sheet_approver",
+   "values": {
+    "name": "Approver Expense Sheet",
+    "model_id": {
+     "$ref": "model_hr_expense_sheet"
+    },
+    "domain_force": "['|', '|', '|', '|',\n                ('employee_id.user_id', '=', user.id),\n                ('employee_id.department_id.manager_id.user_id', '=', user.id),\n                ('employee_id.parent_id.user_id', '=', user.id),\n                ('employee_id.expense_manager_id', '=', user.id),\n                ('user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_team_approver"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_expense_sheet_employee",
+   "values": {
+    "name": "Employee Expense Sheet",
+    "model_id": {
+     "$ref": "model_hr_expense_sheet"
+    },
+    "domain_force": "[('employee_id.user_id', '=', user.id), ('state', '=', 'draft')]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_expense_sheet_employee_not_draft",
+   "values": {
+    "name": "Employee can't modify expense sheet that is not in draft state",
+    "model_id": {
+     "$ref": "model_hr_expense_sheet"
+    },
+    "domain_force": "[('employee_id.user_id', '=', user.id), ('state', '!=', 'draft')]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_create": false,
+    "perm_write": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_expense_comp_rule",
+   "values": {
+    "name": "Expense multi company rule",
+    "model_id": {
+     "$ref": "model_hr_expense"
+    },
+    "global": true,
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_expense_report_comp_rule",
+   "values": {
+    "name": "Expense Report multi company rule",
+    "model_id": {
+     "$ref": "model_hr_expense_sheet"
+    },
+    "global": true,
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_expense_team_approver_account_move_rule",
+   "values": {
+    "name": "Expense Team Approver Account Move",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "domain_force": "[('line_ids.expense_id', '!=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_team_approver"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_expense_team_approver_account_move_line_rule",
+   "values": {
+    "name": "Expense Team Approver Account Move Line",
+    "model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "domain_force": "[('expense_id', '!=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_expense.group_hr_expense_team_approver"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_expense_configuration",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "hr_expense",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "hr_expense.group_hr_expense_team_approver"
+      }
+     ],
+     [
+      3,
+      {
+       "$ref": "hr_expense.group_hr_expense_user"
+      }
+     ],
+     [
+      3,
+      {
+       "$ref": "hr_expense.group_hr_expense_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "hr.employee_mit",
+   "values": {
+    "private_email": "douglas.fletcher51@example.com",
+    "private_phone": "(132)-553-7242"
+   }
+  },
+  {
+   "model": "account.journal",
+   "id": "hr_expense_account_journal",
+   "values": {
+    "name": "Expense",
+    "code": "EXP",
+    "type": "purchase",
+    "sequence": "99",
+    "alias_name": "purchase_expense"
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "hr.employee_fme",
+   "values": {
+    "private_street": "Chauss\u00e9e de Namur, 40",
+    "private_zip": "1367",
+    "private_city": "Grand-Rosi\u00e8re-Hottomont",
+    "private_country_id": {
+     "$ref": "base.be"
+    }
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "hr.employee_al",
+   "values": {
+    "private_street": "Chauss\u00e9e de Namur, 40",
+    "private_zip": "1367",
+    "private_city": "Grand-Rosi\u00e8re-Hottomont",
+    "private_country_id": {
+     "$ref": "base.be"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "screen_expense",
+   "values": {
+    "name": "Screen",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_our_super_product'): 100}"
+    },
+    "product_id": {
+     "$ref": "product_product_no_cost"
+    },
+    "total_amount_currency": 289.0,
+    "date": {
+     "$unevaluated": "time.strftime('%Y')+'-04-03'"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "laptop_expense",
+   "values": {
+    "name": "Laptop",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_our_super_product'): 100}"
+    },
+    "product_id": {
+     "$ref": "product_product_no_cost"
+    },
+    "total_amount_currency": 889.0,
+    "date": {
+     "$unevaluated": "time.strftime('%Y')+'-04-03'"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "travel_admin_by_car_expense",
+   "values": {
+    "name": "Travel by car",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "product_id": {
+     "$ref": "expense_product_mileage"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_km"
+    },
+    "quantity": 108.84
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "breakfast_admin_expense",
+   "values": {
+    "name": "BreakFast",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "product_id": {
+     "$ref": "expense_product_meal"
+    },
+    "total_amount_currency": 20
+   }
+  },
+  {
+   "model": "hr.expense.sheet",
+   "id": "travel_ny_sheet",
+   "values": {
+    "name": "Commercial Travel at New York",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "state": "approve"
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "travel_by_air_expense",
+   "values": {
+    "name": "Travel by Air",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_our_super_product'): 100}"
+    },
+    "product_id": {
+     "$ref": "expense_product_travel_accommodation"
+    },
+    "total_amount_currency": 700.0,
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m')+'-12'"
+    },
+    "sheet_id": {
+     "$ref": "travel_ny_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "hotel_bill_expense",
+   "values": {
+    "name": "Hotel Expenses",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "expense_product_travel_accommodation"
+    },
+    "total_amount_currency": 2000.0,
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m')+'-17'"
+    },
+    "sheet_id": {
+     "$ref": "travel_ny_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "lunch_customer_bill_expense",
+   "values": {
+    "name": "Lunch with Customer",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "expense_product_meal"
+    },
+    "total_amount_currency": 152.8,
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m')+'-13'"
+    },
+    "sheet_id": {
+     "$ref": "travel_ny_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "lunch_bill_expense",
+   "values": {
+    "name": "Lunch",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "expense_product_meal"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m')+'-15'"
+    },
+    "total_amount_currency": 56.8,
+    "sheet_id": {
+     "$ref": "travel_ny_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense.sheet",
+   "id": "customer_meeting_sheet",
+   "values": {
+    "name": "Customer meeting",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "state": "submit"
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "travel_demo_by_car_expense",
+   "values": {
+    "name": "Travel by Car",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_our_super_product'): 100}"
+    },
+    "product_id": {
+     "$ref": "expense_product_mileage"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_km"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y')+'-01-15'"
+    },
+    "quantity": 120.85,
+    "sheet_id": {
+     "$ref": "customer_meeting_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "lunch_demo_customer_bill_expense",
+   "values": {
+    "name": "Lunch with Customer",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "product_product_no_cost"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y')+'-01-15'"
+    },
+    "total_amount_currency": 152.8,
+    "sheet_id": {
+     "$ref": "customer_meeting_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense.sheet",
+   "id": "team_building_sheet",
+   "values": {
+    "name": "Team Building",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "state": "submit"
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "pizzas_bill_expense",
+   "values": {
+    "name": "Pizzas",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "expense_product_meal"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m')+'-05'"
+    },
+    "total_amount_currency": 154,
+    "sheet_id": {
+     "$ref": "team_building_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "drinks_bill_expense",
+   "values": {
+    "name": "Drinks",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "expense_product_meal"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m')+'-05'"
+    },
+    "total_amount_currency": 42.5,
+    "sheet_id": {
+     "$ref": "team_building_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "paintball_bill_expense",
+   "values": {
+    "name": "Paintball",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "product_product_no_cost"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m')+'-05'"
+    },
+    "total_amount_currency": 25,
+    "sheet_id": {
+     "$ref": "team_building_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense.sheet",
+   "id": "office_furniture_sheet",
+   "values": {
+    "name": "Office furniture",
+    "employee_id": {
+     "$ref": "hr.employee_al"
+    },
+    "state": "submit"
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "chair_bill_expense",
+   "values": {
+    "name": "Chairs",
+    "employee_id": {
+     "$ref": "hr.employee_al"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "product_product_no_cost"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y')+'-06-02'"
+    },
+    "total_amount_currency": 55.75,
+    "sheet_id": {
+     "$ref": "office_furniture_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "lamp_bill_expense",
+   "values": {
+    "name": "Lamp",
+    "employee_id": {
+     "$ref": "hr.employee_al"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "product_product_no_cost"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y')+'-06-02'"
+    },
+    "total_amount_currency": 28.99,
+    "sheet_id": {
+     "$ref": "office_furniture_sheet"
+    }
+   }
+  },
+  {
+   "model": "hr.expense",
+   "id": "afterwork_bill_expense",
+   "values": {
+    "name": "Car tyres",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "analytic_distribution": {
+     "$unevaluated": "{ref('analytic.analytic_nebula'): 100}"
+    },
+    "product_id": {
+     "$ref": "product_product_no_cost"
+    },
+    "date": {
+     "$unevaluated": "time.strftime('%Y')+'-03-15'"
+    },
+    "total_amount_currency": 450.58
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_hr_expense_root",
+   "name": "Expenses",
+   "sequence": "230",
+   "web_icon": "hr_expense,static/description/icon.png"
+  },
+  {
+   "id": "menu_hr_expense_my_expenses",
+   "name": "My Expenses",
+   "parent": "menu_hr_expense_root",
+   "sequence": "1",
+   "groups": "base.group_user"
+  },
+  {
+   "id": "menu_hr_expense_my_expenses_all",
+   "name": "My Expenses",
+   "parent": "menu_hr_expense_my_expenses",
+   "action": "hr_expense_actions_my_all",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_hr_expense_sheet_my_reports",
+   "name": "My Reports",
+   "parent": "menu_hr_expense_my_expenses",
+   "action": "action_hr_expense_sheet_my_all",
+   "sequence": "2"
+  },
+  {
+   "id": "menu_hr_expense_report",
+   "name": "Expense Reports",
+   "parent": "menu_hr_expense_root",
+   "action": "action_hr_expense_sheet_all",
+   "sequence": "2",
+   "groups": "account.group_account_user,hr_expense.group_hr_expense_team_approver"
+  },
+  {
+   "id": "menu_hr_expense_reports",
+   "name": "Reporting",
+   "parent": "menu_hr_expense_root",
+   "sequence": "4",
+   "groups": "hr_expense.group_hr_expense_team_approver"
+  },
+  {
+   "id": "menu_hr_expense_all_expenses",
+   "name": "Expenses Analysis",
+   "parent": "menu_hr_expense_reports",
+   "action": "hr_expense_actions_all",
+   "sequence": "0"
+  },
+  {
+   "id": "menu_hr_expense_configuration",
+   "name": "Configuration",
+   "parent": "menu_hr_expense_root",
+   "sequence": "100"
+  },
+  {
+   "id": "menu_hr_product",
+   "name": "Expense Categories",
+   "parent": "menu_hr_expense_configuration",
+   "action": "hr_expense_product",
+   "sequence": "10",
+   "groups": "hr_expense.group_hr_expense_manager"
+  },
+  {
+   "id": "menu_hr_expense_account_employee_expenses",
+   "name": "Employee Expenses",
+   "parent": "account.menu_finance_payables",
+   "action": "action_hr_expense_account",
+   "sequence": "22",
+   "groups": "hr_expense.group_hr_expense_user"
+  },
+  {
+   "id": "hr_expense_menu_config_activity_type",
+   "parent": "menu_hr_expense_configuration",
+   "action": "mail_activity_type_action_config_hr_expense",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_hr_expense_global_settings",
+   "name": "Settings",
+   "parent": "menu_hr_expense_configuration",
+   "action": "action_hr_expense_configuration",
+   "sequence": "0",
+   "groups": "base.group_system"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_hr_expense_employee",
+   "model": "hr.expense",
+   "model_xmlid": "model_hr_expense",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_expense_sheet_employee",
+   "model": "hr.expense.sheet",
+   "model_xmlid": "model_hr_expense_sheet",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_expense_user",
+   "model": "hr.expense",
+   "model_xmlid": "model_hr_expense",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_expense_sheet_user",
+   "model": "hr.expense.sheet",
+   "model_xmlid": "model_hr_expense_sheet",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_expense_manager",
+   "model": "hr.expense",
+   "model_xmlid": "model_hr_expense",
+   "group": "hr_expense.group_hr_expense_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_expense_sheet_manager",
+   "model": "hr.expense.sheet",
+   "model_xmlid": "model_hr_expense_sheet",
+   "group": "hr_expense.group_hr_expense_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_hr_expense_user",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "hr_expense.group_hr_expense_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_hr_expense_user",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "hr_expense.group_hr_expense_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_uom_uom_hr_expense_user",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_journal_user",
+   "model": "account.account.journal",
+   "model_xmlid": "account.model_account_journal",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_employee",
+   "model": "account.account.journal",
+   "model_xmlid": "account.model_account_journal",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_user",
+   "model": "account.account.move",
+   "model_xmlid": "account.model_account_move",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_line_user",
+   "model": "account.account.move.line",
+   "model_xmlid": "account.model_account_move_line",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_line_user",
+   "model": "account.account.analytic.line",
+   "model_xmlid": "account.model_account_analytic_line",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_type_expense_user",
+   "model": "mail.mail.activity.type",
+   "model_xmlid": "mail.model_mail_activity_type",
+   "group": "hr_expense.group_hr_expense_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_expense_refuse_wizard",
+   "model": "hr.expense.refuse.wizard",
+   "model_xmlid": "model_hr_expense_refuse_wizard",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_expense_approve_duplicate",
+   "model": "hr.expense.approve.duplicate",
+   "model_xmlid": "model_hr_expense_approve_duplicate",
+   "group": "hr_expense.group_hr_expense_team_approver",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_expense_split_wizard_manager",
+   "model": "hr.expense.split.wizard",
+   "model_xmlid": "model_hr_expense_split_wizard",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_expense_split_manager",
+   "model": "hr.expense.split",
+   "model_xmlid": "model_hr_expense_split",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

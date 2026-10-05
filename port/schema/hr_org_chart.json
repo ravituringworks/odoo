@@ -1,0 +1,135 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/hr_department_views.xml",
+  "views/hr_views.xml",
+  "views/hr_employee_public_views.xml",
+  "views/hr_org_chart_menus.xml"
+ ],
+ "depends": [
+  "hr",
+  "web_hierarchy"
+ ],
+ "models": {
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_subordinate": {
+     "compute": "_compute_is_subordinate",
+     "type": "Boolean"
+    },
+    "subordinate_ids": {
+     "comodel": "hr.employee",
+     "compute": "_compute_subordinates",
+     "help": "Direct and indirect subordinates",
+     "string": "Subordinates",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.employee.base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "child_all_count": {
+     "compute": "_compute_subordinates",
+     "store": false,
+     "string": "Indirect Subordinates Count",
+     "type": "Integer"
+    },
+    "child_count": {
+     "compute": "_compute_child_count",
+     "string": "Direct Subordinates Count",
+     "type": "Integer"
+    },
+    "department_color": {
+     "related": "department_id.color",
+     "string": "Department Color",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_subordinates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('child_ids', 'child_ids.child_all_count')"
+     ],
+     "lines": 4,
+     "name": "_compute_subordinates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid', 'company')",
+      "api.depends('parent_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_is_subordinate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_search_is_subordinate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_child_count"
+    }
+   ],
+   "name": "hr.employee.base",
+   "transient": false
+  },
+  "hr.employee.public": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_subordinate": {
+     "compute": "_compute_is_subordinate",
+     "type": "Boolean"
+    },
+    "subordinate_ids": {
+     "comodel": "hr.employee.public",
+     "compute": "_compute_subordinates",
+     "help": "Direct and indirect subordinates",
+     "string": "Subordinates",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.employee.public",
+   "transient": false
+  }
+ },
+ "module": "hr_org_chart",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_org_chart",
+ "stats": {
+  "fields": 7,
+  "methods": 5,
+  "models": 3,
+  "py_lines": 205
+ },
+ "summary": "Org Chart Widget for HR",
+ "title": "HR Org Chart",
+ "version": "1.0"
+}

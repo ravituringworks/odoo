@@ -1,0 +1,575 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "security/security.xml",
+  "security/ir.model.access.csv",
+  "data/event_sponsor_data.xml",
+  "report/website_event_exhibitor_reports.xml",
+  "report/website_event_exhibitor_templates.xml",
+  "views/event_templates_sponsor.xml",
+  "views/event_sponsor_views.xml",
+  "views/event_event_views.xml",
+  "views/event_exhibitor_templates_list.xml",
+  "views/event_exhibitor_templates_page.xml",
+  "views/event_type_views.xml",
+  "views/event_menus.xml",
+  "views/snippets.xml",
+  "data/event_demo.xml",
+  "data/event_sponsor_demo.xml"
+ ],
+ "depends": [
+  "website_event_jitsi"
+ ],
+ "models": {
+  "event.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "exhibitor_menu": {
+     "compute": "_compute_exhibitor_menu",
+     "readonly": false,
+     "store": true,
+     "string": "Showcase Exhibitors",
+     "type": "Boolean"
+    },
+    "exhibitor_menu_ids": {
+     "comodel": "website.event.menu",
+     "domain": [
+      [
+       "menu_type",
+       "=",
+       "exhibitor"
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "Exhibitors Menus",
+     "type": "One2many"
+    },
+    "sponsor_count": {
+     "compute": "_compute_sponsor_count",
+     "string": "Sponsor Count",
+     "type": "Integer"
+    },
+    "sponsor_ids": {
+     "comodel": "event.sponsor",
+     "inverse_name": "event_id",
+     "string": "Sponsors",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_sponsor_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id', 'website_menu', 'exhibitor_menu')"
+     ],
+     "lines": 8,
+     "name": "_compute_exhibitor_menu"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "toggle_exhibitor_menu"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_menu_update_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_update_website_menus"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_menu_type_field_matching"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_website_menu_entries"
+    }
+   ],
+   "name": "event.event",
+   "transient": false
+  },
+  "event.sponsor": {
+   "abstract": false,
+   "description": "Event Sponsor",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "chat_room_id": {
+     "readonly": false,
+     "type": "Many2one"
+    },
+    "country_flag_url": {
+     "compute": "_compute_country_flag_url",
+     "string": "Country Flag",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "readonly": true,
+     "related": "partner_id.country_id",
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "email": {
+     "compute": "_compute_email",
+     "readonly": false,
+     "store": true,
+     "string": "Sponsor Email",
+     "type": "Char"
+    },
+    "event_date_tz": {
+     "readonly": true,
+     "related": "event_id.date_tz",
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "exhibitor_type": {
+     "default": "sponsor",
+     "selection": [
+      [
+       "sponsor",
+       "Footer Logo Only"
+      ],
+      [
+       "exhibitor",
+       "Exhibitor"
+      ],
+      [
+       "online",
+       "Online Exhibitor"
+      ]
+     ],
+     "string": "Sponsor Type",
+     "type": "Selection"
+    },
+    "hour_from": {
+     "default": 8.0,
+     "string": "Opening hour",
+     "type": "Float"
+    },
+    "hour_to": {
+     "default": 18.0,
+     "string": "End hour",
+     "type": "Float"
+    },
+    "image_128": {
+     "related": "image_512",
+     "store": false,
+     "string": "Image 128",
+     "type": "Image"
+    },
+    "image_256": {
+     "related": "image_512",
+     "store": false,
+     "string": "Image 256",
+     "type": "Image"
+    },
+    "image_512": {
+     "compute": "_compute_image_512",
+     "readonly": false,
+     "store": true,
+     "string": "Logo",
+     "type": "Image"
+    },
+    "is_in_opening_hours": {
+     "compute": "_compute_is_in_opening_hours",
+     "string": "Within opening hours",
+     "type": "Boolean"
+    },
+    "mobile": {
+     "compute": "_compute_mobile",
+     "readonly": false,
+     "store": true,
+     "string": "Sponsor Mobile",
+     "type": "Char"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "store": true,
+     "string": "Sponsor Name",
+     "type": "Char"
+    },
+    "partner_email": {
+     "related": "partner_id.email",
+     "string": "Email",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "required": true,
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "partner_mobile": {
+     "related": "partner_id.mobile",
+     "string": "Mobile",
+     "type": "Char"
+    },
+    "partner_name": {
+     "related": "partner_id.name",
+     "string": "Name",
+     "type": "Char"
+    },
+    "partner_phone": {
+     "related": "partner_id.phone",
+     "string": "Phone",
+     "type": "Char"
+    },
+    "phone": {
+     "compute": "_compute_phone",
+     "readonly": false,
+     "store": true,
+     "string": "Sponsor Phone",
+     "type": "Char"
+    },
+    "room_name": {
+     "readonly": false,
+     "type": "Char"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "sponsor_type_id": {
+     "comodel": "event.sponsor.type",
+     "default": {
+      "$lambda": "self._default_sponsor_type_id()"
+     },
+     "required": true,
+     "string": "Sponsorship Level",
+     "type": "Many2one"
+    },
+    "subtitle": {
+     "string": "Slogan",
+     "type": "Char"
+    },
+    "url": {
+     "compute": "_compute_url",
+     "readonly": false,
+     "store": true,
+     "string": "Sponsor Website",
+     "type": "Char"
+    },
+    "website_description": {
+     "compute": "_compute_website_description",
+     "readonly": false,
+     "store": true,
+     "string": "Description",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "website_image_url": {
+     "compute": "_compute_website_image_url",
+     "store": false,
+     "string": "Image URL",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "chat.room.mixin",
+    "mail.activity.mixin",
+    "mail.thread",
+    "website.published.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_sponsor_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_phone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_mobile"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_image_512"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('image_512', 'partner_id.image_256')"
+     ],
+     "lines": 9,
+     "name": "_compute_website_image_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_synchronize_with_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('exhibitor_type')"
+     ],
+     "lines": 13,
+     "name": "_onchange_exhibitor_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_website_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_id.is_ongoing', 'hour_from', 'hour_to', 'event_id.date_begin', 'event_id.date_end')"
+     ],
+     "lines": 27,
+     "name": "_compute_is_in_opening_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id.country_id.image_url')"
+     ],
+     "lines": 6,
+     "name": "_compute_country_flag_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'event_id.name')"
+     ],
+     "lines": 6,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_backend_menu_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "open_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_message_get_suggested_recipients"
+    }
+   ],
+   "name": "event.sponsor",
+   "order": "sequence, sponsor_type_id",
+   "rec_name": "name",
+   "transient": false
+  },
+  "event.sponsor.type": {
+   "abstract": false,
+   "description": "Event Sponsor Level",
+   "extension": false,
+   "fields": {
+    "display_ribbon_style": {
+     "default": "no_ribbon",
+     "selection": [
+      [
+       "no_ribbon",
+       "No Ribbon"
+      ],
+      [
+       "Gold",
+       "Gold"
+      ],
+      [
+       "Silver",
+       "Silver"
+      ],
+      [
+       "Bronze",
+       "Bronze"
+      ]
+     ],
+     "string": "Ribbon Style",
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Sponsor Level",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": {
+      "$ref": "_default_sequence"
+     },
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_sequence"
+    }
+   ],
+   "name": "event.sponsor.type",
+   "order": "sequence",
+   "transient": false
+  },
+  "event.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "exhibitor_menu": {
+     "compute": "_compute_exhibitor_menu",
+     "help": "Display exhibitors on website, in the footer of every page of the event.",
+     "readonly": false,
+     "store": true,
+     "string": "Showcase Exhibitors",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('website_menu')"
+     ],
+     "lines": 3,
+     "name": "_compute_exhibitor_menu"
+    }
+   ],
+   "name": "event.type",
+   "transient": false
+  },
+  "website.event.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "menu_type": {
+     "ondelete": {
+      "exhibitor": "cascade"
+     },
+     "selection_add": [
+      [
+       "exhibitor",
+       "Exhibitors Menus"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "website.event.menu",
+   "transient": false
+  }
+ },
+ "module": "website_event_exhibitor",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_event_exhibitor",
+ "stats": {
+  "fields": 38,
+  "methods": 28,
+  "models": 5,
+  "py_lines": 612
+ },
+ "summary": "Event: manage sponsors and exhibitors",
+ "title": "Event Exhibitors",
+ "version": "1.1"
+}

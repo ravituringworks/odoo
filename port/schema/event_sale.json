@@ -1,0 +1,824 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "views/event_registration_views.xml",
+  "views/event_views.xml",
+  "views/product_template_views.xml",
+  "views/sale_order_views.xml",
+  "data/event_sale_data.xml",
+  "data/mail_templates.xml",
+  "report/event_sale_report_views.xml",
+  "security/ir.model.access.csv",
+  "security/ir_rule.xml",
+  "security/event_security.xml",
+  "wizard/event_edit_registration.xml",
+  "wizard/event_configurator_views.xml",
+  "data/event_sale_demo.xml",
+  "data/event_registration_demo.xml"
+ ],
+ "depends": [
+  "event_product",
+  "sale_management"
+ ],
+ "models": {
+  "event.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_lines_ids": {
+     "comodel": "sale.order.line",
+     "groups": "sales_team.group_sale_salesman",
+     "inverse_name": "event_id",
+     "string": "All sale order lines pointing to this event",
+     "type": "One2many"
+    },
+    "sale_price_subtotal": {
+     "compute": "_compute_sale_price_subtotal",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Sales (Tax Excluded)",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.currency_id', 'sale_order_lines_ids.price_subtotal', 'sale_order_lines_ids.currency_id', 'sale_order_lines_ids.company_id', 'sale_order_lines_ids.order_id.date_order')"
+     ],
+     "lines": 26,
+     "name": "_compute_sale_price_subtotal"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_view_linked_orders"
+    }
+   ],
+   "name": "event.event",
+   "transient": false
+  },
+  "event.event.configurator": {
+   "abstract": false,
+   "description": "Event Configurator",
+   "extension": false,
+   "fields": {
+    "event_id": {
+     "comodel": "event.event",
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_ticket_id": {
+     "comodel": "event.event.ticket",
+     "compute": "_compute_event_ticket_id",
+     "readonly": false,
+     "store": true,
+     "string": "Ticket Type",
+     "type": "Many2one"
+    },
+    "has_available_tickets": {
+     "compute": "_compute_has_available_tickets",
+     "string": "Has Available Tickets",
+     "type": "Boolean"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "readonly": true,
+     "string": "Product",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('event_id', 'event_ticket_id')"
+     ],
+     "lines": 8,
+     "name": "check_event_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_has_available_tickets"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_event_ticket_id"
+    }
+   ],
+   "name": "event.event.configurator",
+   "transient": true
+  },
+  "event.event.ticket": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_ticket_multiline_description"
+    }
+   ],
+   "name": "event.event.ticket",
+   "order": "event_id, sequence, price, name, id",
+   "sel_methods": {
+    "_get_ticket_multiline_description": []
+   },
+   "transient": false
+  },
+  "event.registration": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "copy": false,
+     "ondelete": "cascade",
+     "string": "Sales Order",
+     "type": "Many2one"
+    },
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "copy": false,
+     "ondelete": "cascade",
+     "string": "Sales Order Line",
+     "type": "Many2one"
+    },
+    "sale_status": {
+     "compute": "_compute_registration_status",
+     "selection": [
+      [
+       "to_pay",
+       "Not Sold"
+      ],
+      [
+       "sold",
+       "Sold"
+      ],
+      [
+       "free",
+       "Free"
+      ]
+     ],
+     "store": true,
+     "string": "Sale Status",
+     "type": "Selection"
+    },
+    "state": {
+     "compute": "_compute_registration_status",
+     "default": null,
+     "readonly": false,
+     "store": true,
+     "type": "Selection"
+    },
+    "utm_campaign_id": {
+     "compute": "_compute_utm_campaign_id",
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "utm_medium_id": {
+     "compute": "_compute_utm_medium_id",
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "utm_source_id": {
+     "compute": "_compute_utm_source_id",
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id.state', 'sale_order_id.currency_id', 'sale_order_id.amount_total')"
+     ],
+     "lines": 21,
+     "name": "_compute_registration_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_utm_campaign_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_utm_source_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_utm_medium_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_view_sale_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 16,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_synchronize_so_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_sale_order_ticket_type_change_notify"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_registration_summary"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_event_registration_ids_from_order"
+    }
+   ],
+   "name": "event.registration",
+   "transient": false
+  },
+  "event.sale.report": {
+   "abstract": false,
+   "description": "Event Sales Report",
+   "extension": false,
+   "fields": {
+    "active": {
+     "string": "Is registration active (not archived)?",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "event_date_begin": {
+     "readonly": true,
+     "string": "Event Start Date",
+     "type": "Date"
+    },
+    "event_date_end": {
+     "readonly": true,
+     "string": "Event End Date",
+     "type": "Date"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "readonly": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_registration_create_date": {
+     "readonly": true,
+     "string": "Registration Date",
+     "type": "Date"
+    },
+    "event_registration_id": {
+     "comodel": "event.registration",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "event_registration_name": {
+     "readonly": true,
+     "string": "Attendee Name",
+     "type": "Char"
+    },
+    "event_registration_state": {
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "Unconfirmed"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ],
+      [
+       "open",
+       "Confirmed"
+      ],
+      [
+       "done",
+       "Attended"
+      ]
+     ],
+     "string": "Registration Status",
+     "type": "Selection"
+    },
+    "event_ticket_id": {
+     "comodel": "event.event.ticket",
+     "readonly": true,
+     "string": "Event Ticket",
+     "type": "Many2one"
+    },
+    "event_ticket_price": {
+     "readonly": true,
+     "string": "Ticket price",
+     "type": "Float"
+    },
+    "event_type_id": {
+     "comodel": "event.type",
+     "readonly": true,
+     "string": "Event Type",
+     "type": "Many2one"
+    },
+    "invoice_partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Invoice Address",
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "readonly": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "sale_order_date": {
+     "readonly": true,
+     "string": "Order Date",
+     "type": "Datetime"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "sale_order_partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "sale_order_state": {
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "Quotation"
+      ],
+      [
+       "sent",
+       "Quotation Sent"
+      ],
+      [
+       "sale",
+       "Sales Order"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Sale Order Status",
+     "type": "Selection"
+    },
+    "sale_order_user_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "Salesperson",
+     "type": "Many2one"
+    },
+    "sale_price": {
+     "readonly": true,
+     "string": "Revenues",
+     "type": "Float"
+    },
+    "sale_price_untaxed": {
+     "readonly": true,
+     "string": "Untaxed Revenues",
+     "type": "Float"
+    },
+    "sale_status": {
+     "selection": [
+      [
+       "to_pay",
+       "Not Sold"
+      ],
+      [
+       "sold",
+       "Sold"
+      ],
+      [
+       "free",
+       "Free"
+      ]
+     ],
+     "string": "Payment Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_with_clause"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_select_clause"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_from_clause"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_group_by_clause"
+    }
+   ],
+   "name": "event.sale.report",
+   "rec_name": "sale_order_line_id",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_service_tracking_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('service_tracking')"
+     ],
+     "lines": 3,
+     "name": "_onchange_type_event"
+    }
+   ],
+   "name": "product.template",
+   "sel_methods": {
+    "_prepare_service_tracking_tooltip": []
+   },
+   "transient": false
+  },
+  "registration.editor": {
+   "abstract": false,
+   "description": "Edit Attendee Details on Sales Confirmation",
+   "extension": false,
+   "fields": {
+    "event_registration_ids": {
+     "comodel": "registration.editor.line",
+     "inverse_name": "editor_id",
+     "string": "Registrations to Edit",
+     "type": "One2many"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Sales Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 38,
+     "name": "default_get"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_make_registration"
+    }
+   ],
+   "name": "registration.editor",
+   "transient": true
+  },
+  "registration.editor.line": {
+   "abstract": false,
+   "description": "Edit Attendee Line on Sales Confirmation",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "related": "event_id.company_id",
+     "type": "Many2one"
+    },
+    "editor_id": {
+     "comodel": "registration.editor",
+     "type": "Many2one"
+    },
+    "email": {
+     "string": "Email",
+     "type": "Char"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_ticket_id": {
+     "comodel": "event.event.ticket",
+     "string": "Event Ticket",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    },
+    "phone": {
+     "string": "Phone",
+     "type": "Char"
+    },
+    "registration_id": {
+     "comodel": "event.registration",
+     "string": "Original Registration",
+     "type": "Many2one"
+    },
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "string": "Sales Order Line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_prepare_registration_data"
+    }
+   ],
+   "name": "registration.editor.line",
+   "order": "id desc",
+   "transient": true
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "attendee_count": {
+     "compute": "_compute_attendee_count",
+     "string": "Attendee Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_view_attendee_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_attendee_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_product_catalog_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_notify_get_recipients_groups"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_id": {
+     "comodel": "event.event",
+     "compute": "_compute_event_id",
+     "help": "Choose an event and it will automatically create a registration for this event.",
+     "readonly": false,
+     "store": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_ticket_id": {
+     "comodel": "event.event.ticket",
+     "compute": "_compute_event_ticket_id",
+     "help": "Choose an event ticket and it will automatically create a registration for this event ticket.",
+     "readonly": false,
+     "store": true,
+     "string": "Ticket Type",
+     "type": "Many2one"
+    },
+    "registration_ids": {
+     "comodel": "event.registration",
+     "inverse_name": "sale_order_line_id",
+     "string": "Registrations",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('event_id', 'event_ticket_id', 'product_id')"
+     ],
+     "lines": 5,
+     "name": "_check_event_registration_ticket"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'event_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_uom_readonly"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_init_registrations"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_event_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_event_ticket_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_ticket_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_ticket_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_sale_order_line_multiline_description_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_use_template_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_display_price"
+    }
+   ],
+   "name": "sale.order.line",
+   "sel_methods": {
+    "_get_display_price": [],
+    "_use_template_name": []
+   },
+   "transient": false
+  }
+ },
+ "module": "event_sale",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/event_sale",
+ "stats": {
+  "fields": 51,
+  "methods": 44,
+  "models": 10,
+  "py_lines": 734
+ },
+ "summary": "Creating registration with sales orders.",
+ "title": "Events Sales",
+ "version": "1.3"
+}

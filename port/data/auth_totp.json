@@ -1,0 +1,142 @@
+{
+ "module": "auth_totp",
+ "records": [
+  {
+   "model": "ir.model.access",
+   "id": "access_auth_totp_wizard",
+   "values": {
+    "name": "auth_totp wizard access rules",
+    "model_id": {
+     "$ref": "model_auth_totp_wizard"
+    },
+    "group_id": {
+     "$ref": "base.group_user"
+    },
+    "perm_read": "1",
+    "perm_write": "1",
+    "perm_create": "1",
+    "perm_unlink": "1"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_auth_totp_wizard",
+   "values": {
+    "name": "Users can only access their own wizard",
+    "model_id": {
+     "$ref": "model_auth_totp_wizard"
+    },
+    "domain_force": "[('user_id', '=', user.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "api_key_public",
+   "values": {
+    "name": "Public users can't interact with keys at all",
+    "model_id": {
+     "$ref": "model_auth_totp_device"
+    },
+    "domain_force": "[(0, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "api_key_user",
+   "values": {
+    "name": "Users can read and delete their own keys",
+    "model_id": {
+     "$ref": "model_auth_totp_device"
+    },
+    "domain_force": "[('user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "api_key_admin",
+   "values": {
+    "name": "Administrators can view user keys to revoke them",
+    "model_id": {
+     "$ref": "model_auth_totp_device"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_system"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_disable_totp",
+   "values": {
+    "name": "Disable two-factor authentication",
+    "model_id": {
+     "$ref": "base.model_res_users"
+    },
+    "binding_model_id": {
+     "$ref": "base.model_res_users"
+    },
+    "state": "code",
+    "code": "action = records.action_totp_disable()",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "base.group_erp_manager"
+      }
+     ]
+    ]
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_auth_totp_device_access_employee",
+   "model": "auth.totp.device",
+   "model_xmlid": "model_auth_totp_device",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_auth_totp_device_access_portal",
+   "model": "auth.totp.device",
+   "model_xmlid": "model_auth_totp_device",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

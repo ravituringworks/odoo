@@ -1,0 +1,531 @@
+{
+ "module": "mrp_subcontracting",
+ "records": [
+  {
+   "model": "stock.route",
+   "id": "route_resupply_subcontractor_mto",
+   "values": {
+    "name": "Resupply Subcontractor on Order",
+    "company_id": "",
+    "sequence": "15"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "production_subcontractor_rule",
+   "values": {
+    "name": "MRP Productions Subcontractor",
+    "model_id": {
+     "$ref": "model_mrp_production"
+    },
+    "domain_force": "[('subcontractor_id', '=', user.partner_id.commercial_partner_id.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "bom_subcontractor_rule",
+   "values": {
+    "name": "MRP BoMs Subcontractor",
+    "model_id": {
+     "$ref": "mrp.model_mrp_bom"
+    },
+    "domain_force": "[('id', 'in', user.partner_id.commercial_partner_id.bom_ids.ids)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "bom_line_subcontractor_rule",
+   "values": {
+    "name": "MRP BoM Lines Subcontractor",
+    "model_id": {
+     "$ref": "mrp.model_mrp_bom_line"
+    },
+    "domain_force": "[('id', 'in', user.partner_id.commercial_partner_id.bom_ids.bom_line_ids.ids)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "consumption_warning_subcontractor_rule",
+   "values": {
+    "name": "MRP Consumption Warnings Subcontractor",
+    "model_id": {
+     "$ref": "mrp.model_mrp_consumption_warning"
+    },
+    "domain_force": "[('mrp_production_ids', 'in', user.partner_id.commercial_partner_id.production_ids.ids)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "consumption_warning_line_subcontractor_rule",
+   "values": {
+    "name": "MRP Consumption Warning Lines Subcontractor",
+    "model_id": {
+     "$ref": "mrp.model_mrp_consumption_warning_line"
+    },
+    "domain_force": "[('mrp_production_id', 'in', user.partner_id.commercial_partner_id.production_ids.ids)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_move_subcontractor_rule",
+   "values": {
+    "name": "Stock Moves Subcontractor",
+    "model_id": {
+     "$ref": "stock.model_stock_move"
+    },
+    "domain_force": "[\n        '|', \n            '|',\n                ('production_id.subcontractor_id', '=', user.partner_id.commercial_partner_id.id),\n                ('move_orig_ids.production_id.subcontractor_id', 'in', user.partner_id.commercial_partner_id.ids),\n            ('raw_material_production_id.subcontractor_id', 'in', user.partner_id.commercial_partner_id.ids)\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_move_line_subcontractor_rule",
+   "values": {
+    "name": "Stock Move Lines Subcontractor",
+    "model_id": {
+     "$ref": "model_stock_move_line"
+    },
+    "domain_force": "[\n        '|', \n            '|',\n                ('move_id.production_id.subcontractor_id', '=', user.partner_id.commercial_partner_id.id),\n                ('move_id.move_orig_ids.production_id.subcontractor_id', 'in', user.partner_id.commercial_partner_id.ids),\n            ('move_id.raw_material_production_id.subcontractor_id', 'in', user.partner_id.commercial_partner_id.ids),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "picking_subcontractor_rule",
+   "values": {
+    "name": "Stock Pickings Subcontractor",
+    "model_id": {
+     "$ref": "model_stock_picking"
+    },
+    "domain_force": "[('partner_id.commercial_partner_id', '=', user.partner_id.commercial_partner_id.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "picking_type_subcontractor_rule",
+   "values": {
+    "name": "Stock Picking Types Subcontractor",
+    "model_id": {
+     "$ref": "stock.model_stock_picking_type"
+    },
+    "domain_force": "['|', ('id', 'in', user.partner_id.commercial_partner_id.picking_ids.picking_type_id.ids), ('id', 'in', user.partner_id.commercial_partner_id.production_ids.picking_type_id.ids)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_location_subcontractor_rule",
+   "values": {
+    "name": "Stock Locations Subcontractor",
+    "model_id": {
+     "$ref": "stock.model_stock_location"
+    },
+    "domain_force": "[\n            '|',\n                '|',\n                    '|',\n                        '|', \n                            ('child_ids', 'in', user.partner_id.commercial_partner_id.picking_ids.location_id.ids), \n                            ('child_ids', 'in', user.partner_id.commercial_partner_id.picking_ids.location_dest_id.ids),\n                        '|', \n                            ('id', 'in', user.partner_id.commercial_partner_id.picking_ids.location_id.ids), \n                            ('id', 'in', user.partner_id.commercial_partner_id.picking_ids.location_dest_id.ids),\n                    '|',\n                        ('id', 'in', user.partner_id.commercial_partner_id.picking_ids.picking_type_id.warehouse_id.view_location_id.ids),\n                        ('id', 'in', user.partner_id.commercial_partner_id.production_ids.production_location_id.ids),\n                ('id', 'in', user.partner_id.commercial_partner_id.production_ids.move_finished_ids.move_dest_ids.location_id.ids),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_warehouse_subcontractor_rule",
+   "values": {
+    "name": "Warehouses Subcontractor",
+    "model_id": {
+     "$ref": "stock.model_stock_warehouse"
+    },
+    "domain_force": "[('id', 'in', user.partner_id.commercial_partner_id.picking_ids.picking_type_id.warehouse_id.ids)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_lot_subcontracting_rule",
+   "values": {
+    "name": "Stock Lot Subcontractor",
+    "model_id": {
+     "$ref": "stock.model_stock_lot"
+    },
+    "domain_force": "[\n        '|',\n            '|',\n                ('product_id', 'in', user.partner_id.commercial_partner_id.bom_ids.product_id.ids),\n                ('product_id', 'in', user.partner_id.commercial_partner_id.bom_ids.product_tmpl_id.product_variant_ids.ids),\n            ('product_id', 'in', user.partner_id.commercial_partner_id.bom_ids.bom_line_ids.product_id.ids),\n            ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_template_subcontracting_rule",
+   "values": {
+    "name": "Product Template Subcontractor",
+    "model_id": {
+     "$ref": "product.model_product_template"
+    },
+    "domain_force": "[\n        '|',\n            '|',\n                ('id', 'in', user.partner_id.commercial_partner_id.bom_ids.product_id.product_tmpl_id.ids),\n                ('id', 'in', user.partner_id.commercial_partner_id.bom_ids.product_tmpl_id.ids),\n            ('id', 'in', user.partner_id.commercial_partner_id.bom_ids.bom_line_ids.product_id.product_tmpl_id.ids),\n            ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "uom_subcontracting_rule",
+   "values": {
+    "name": "UoM Subcontractor",
+    "model_id": {
+     "$ref": "uom.model_uom_uom"
+    },
+    "domain_force": "[\n        '|',\n            '|',\n                ('category_id', 'in', user.partner_id.commercial_partner_id.bom_ids.product_id.product_tmpl_id.uom_id.category_id.ids),\n                ('category_id', 'in', user.partner_id.commercial_partner_id.bom_ids.product_tmpl_id.uom_id.category_id.ids),\n            ('category_id', 'in', user.partner_id.commercial_partner_id.bom_ids.bom_line_ids.product_id.product_tmpl_id.uom_id.category_id.ids),\n            ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "subcontracting_portal_view_production_action",
+   "values": {
+    "name": "Subcontracting Portal",
+    "res_model": "stock.picking",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "subcontracting_portal_production_form_view"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_subcontract",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.product_delivery_02"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "type": "subcontract",
+    "subcontractor_ids": [
+     [
+      4,
+      {
+       "$ref": "base.res_partner_12"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.partner_demo_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_line_subcontract",
+   "values": {
+    "product_id": {
+     "$ref": "mrp.product_product_computer_desk_screw"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "bom_id": {
+     "$ref": "mrp_bom_subcontract"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_subcontracting",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.product_delivery_02_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "sequence": "1",
+    "delay": "1",
+    "min_qty": "1",
+    "price": "27",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_delivery_02",
+   "values": {
+    "route_ids": [
+     [
+      4,
+      {
+       "$ref": "stock.route_warehouse0_mto"
+      }
+     ]
+    ]
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_subcontracting_portal_stock_picking",
+   "model": "stock.stock.picking",
+   "model_xmlid": "stock.model_stock_picking",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_picking_type",
+   "model": "stock.stock.picking.type",
+   "model_xmlid": "stock.model_stock_picking_type",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_stock_move",
+   "model": "stock.stock.move",
+   "model_xmlid": "stock.model_stock_move",
+   "group": "base.group_portal",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_stock_move_line",
+   "model": "stock.stock.move.line",
+   "model_xmlid": "stock.model_stock_move_line",
+   "group": "base.group_portal",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_subcontracting_portal_warehouse",
+   "model": "stock.stock.warehouse",
+   "model_xmlid": "stock.model_stock_warehouse",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_lot",
+   "model": "stock.stock.lot",
+   "model_xmlid": "stock.model_stock_lot",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_location",
+   "model": "stock.stock.location",
+   "model_xmlid": "stock.model_stock_location",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_production",
+   "model": "mrp.mrp.production",
+   "model_xmlid": "mrp.model_mrp_production",
+   "group": "base.group_portal",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_bom",
+   "model": "mrp.mrp.bom",
+   "model_xmlid": "mrp.model_mrp_bom",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_bom_line",
+   "model": "mrp.mrp.bom.line",
+   "model_xmlid": "mrp.model_mrp_bom_line",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_consumption_warning",
+   "model": "mrp.mrp.consumption.warning",
+   "model_xmlid": "mrp.model_mrp_consumption_warning",
+   "group": "base.group_portal",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_consumption_warning_line",
+   "model": "mrp.mrp.consumption.warning.line",
+   "model_xmlid": "mrp.model_mrp_consumption_warning_line",
+   "group": "base.group_portal",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_product",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_product_template",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_uom",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_subcontracting_portal_barcode_nomenclature_stock_user",
+   "model": "barcodes.barcode.nomenclature",
+   "model_xmlid": "barcodes.model_barcode_nomenclature",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

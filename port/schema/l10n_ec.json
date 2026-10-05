@@ -1,0 +1,422 @@
+{
+ "application": false,
+ "author": "TRESCLOUD (https://trescloud.com)",
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/account_tax_report_data.xml",
+  "data/res.bank.csv",
+  "data/l10n_latam_identification_type_data.xml",
+  "data/res_partner_data.xml",
+  "data/l10n_latam.document.type.csv",
+  "data/l10n_ec.sri.payment.csv",
+  "views/root_sri_menu.xml",
+  "views/account_tax_view.xml",
+  "views/l10n_latam_document_type_view.xml",
+  "views/l10n_ec_sri_payment.xml",
+  "views/account_journal_view.xml",
+  "views/res_partner_view.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "base",
+  "base_iban",
+  "account_debit_note",
+  "l10n_latam_invoice_document",
+  "l10n_latam_base",
+  "account"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_get_demo_data_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_ec_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_ec_res_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_ec_account_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_post_load_data"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ec_emission": {
+     "copy": false,
+     "help": "Ecuador: Emission point number that is given by the SRI.",
+     "size": 3,
+     "string": "Emission Point",
+     "type": "Char"
+    },
+    "l10n_ec_emission_address_id": {
+     "comodel": "res.partner",
+     "domain": "['|', ('id', '=', company_partner_id), '&', ('id', 'child_of', company_partner_id), ('type', '!=', 'contact')]",
+     "help": "Ecuador: Address for electronic invoicing.",
+     "string": "Emission address",
+     "type": "Many2one"
+    },
+    "l10n_ec_entity": {
+     "copy": false,
+     "help": "Ecuador: Emission entity number that is given by the SRI.",
+     "size": 3,
+     "string": "Emission Entity",
+     "type": "Char"
+    },
+    "l10n_ec_require_emission": {
+     "compute": "_compute_l10n_ec_require_emission",
+     "help": "True if an entity and emission point must be set on the journal",
+     "string": "Require Emission",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type', 'country_code', 'l10n_latam_use_documents')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_ec_require_emission"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ec_sri_payment_id": {
+     "comodel": "l10n_ec.sri.payment",
+     "help": "Ecuador: Payment Methods Defined by the SRI.",
+     "string": "Payment Method (SRI)",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_l10n_ec_documents_allowed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_l10n_latam_documents_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_ec_formatted_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_starting_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_last_sequence_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_skip_format_document_number"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_get_starting_sequence": []
+   },
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ec_code_applied": {
+     "help": "Ecuador: Tax declaration code of the resulting amount after the calculation of the tax.",
+     "string": "Code applied",
+     "type": "Char"
+    },
+    "l10n_ec_code_ats": {
+     "help": "Ecuador: Indicates if the purchase invoice supports tax credit or cost or expenses, conforming table 5 of ATS.",
+     "string": "Code ATS",
+     "type": "Char"
+    },
+    "l10n_ec_code_base": {
+     "help": "Ecuador: Tax declaration code of the base amount prior to the calculation of the tax.",
+     "string": "Code base",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.tax",
+   "transient": false
+  },
+  "account.tax.group": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ec_type": {
+     "help": "Ecuadorian taxes subtype",
+     "selection": [
+      [
+       "vat05",
+       "VAT 5%"
+      ],
+      [
+       "vat08",
+       "VAT 8%"
+      ],
+      [
+       "vat12",
+       "VAT 12%"
+      ],
+      [
+       "vat13",
+       "VAT 13%"
+      ],
+      [
+       "vat14",
+       "VAT 14%"
+      ],
+      [
+       "vat15",
+       "VAT 15%"
+      ],
+      [
+       "zero_vat",
+       "VAT 0%"
+      ],
+      [
+       "not_charged_vat",
+       "VAT Not Charged"
+      ],
+      [
+       "exempt_vat",
+       "VAT Exempt"
+      ],
+      [
+       "ice",
+       "Special Consumptions Tax (ICE)"
+      ],
+      [
+       "irbpnr",
+       "Plastic Bottles (IRBPNR)"
+      ],
+      [
+       "withhold_vat_sale",
+       "VAT Withhold on Sales"
+      ],
+      [
+       "withhold_vat_purchase",
+       "VAT Withhold on Purchases"
+      ],
+      [
+       "withhold_income_sale",
+       "Profit Withhold on Sales"
+      ],
+      [
+       "withhold_income_purchase",
+       "Profit Withhold on Purchases"
+      ],
+      [
+       "outflows_tax",
+       "Exchange Outflows"
+      ],
+      [
+       "other",
+       "Others"
+      ]
+     ],
+     "string": "Type Ecuadorian Tax",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.tax.group",
+   "transient": false
+  },
+  "l10n_ec.sri.payment": {
+   "abstract": false,
+   "description": "SRI Payment Method",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "code": {
+     "string": "Code",
+     "type": "Char"
+    },
+    "name": {
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "l10n_ec.sri.payment",
+   "transient": false
+  },
+  "l10n_latam.document.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "internal_type": {
+     "selection_add": [
+      [
+       "purchase_liquidation",
+       "Purchase Liquidation"
+      ],
+      [
+       "withhold",
+       "Withhold"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "l10n_ec_check_format": {
+     "default": false,
+     "string": "Check Number Format EC",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_format_document_number"
+    }
+   ],
+   "name": "l10n_latam.document.type",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_localization_use_documents"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ec_vat_validation": {
+     "compute": "_compute_l10n_ec_vat_validation",
+     "help": "Error message when validating the Ecuadorian VAT",
+     "string": "VAT Error message validation",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('vat', 'country_id', 'l10n_latam_identification_type_id')"
+     ],
+     "lines": 25,
+     "name": "check_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vat', 'country_id', 'l10n_latam_identification_type_id')"
+     ],
+     "lines": 16,
+     "name": "_compute_l10n_ec_vat_validation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_l10n_ec_get_identification_type"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_ec",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_ec",
+ "stats": {
+  "fields": 15,
+  "methods": 17,
+  "models": 9,
+  "py_lines": 593
+ },
+ "summary": "Functional",
+ "title": "Ecuadorian Accounting",
+ "version": "3.9"
+}

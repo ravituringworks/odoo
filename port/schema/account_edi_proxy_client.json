@@ -1,0 +1,210 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/account_edi_proxy_client_security.xml",
+  "views/account_edi_proxy_user_views.xml"
+ ],
+ "depends": [
+  "account",
+  "certificate"
+ ],
+ "models": {
+  "account_edi_proxy_client.user": {
+   "abstract": false,
+   "description": "Account EDI proxy user",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "edi_identification": {
+     "help": "The unique id that identifies this user, typically the vat",
+     "required": true,
+     "type": "Char"
+    },
+    "edi_mode": {
+     "selection": [
+      [
+       "prod",
+       "Production mode"
+      ],
+      [
+       "test",
+       "Test mode"
+      ],
+      [
+       "demo",
+       "Demo mode"
+      ]
+     ],
+     "string": "EDI operating mode",
+     "type": "Selection"
+    },
+    "id_client": {
+     "required": true,
+     "type": "Char"
+    },
+    "private_key_id": {
+     "comodel": "certificate.key",
+     "domain": [
+      [
+       "public",
+       "=",
+       false
+      ]
+     ],
+     "help": "The key to encrypt all the user's data",
+     "required": true,
+     "string": "Private Key",
+     "type": "Many2one"
+    },
+    "proxy_type": {
+     "required": true,
+     "selection": [],
+     "type": "Selection"
+    },
+    "refresh_token": {
+     "groups": "base.group_system",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_proxy_urls"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_server_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_proxy_users"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_proxy_identification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "_make_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_iap_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_register_proxy_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_renew_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_decrypt_data"
+    }
+   ],
+   "name": "account_edi_proxy_client.user",
+   "sql_constraints": [
+    [
+     "unique_id_client",
+     "unique(id_client)",
+     "This id_client is already used on another user."
+    ],
+    [
+     "unique_active_company_proxy",
+     "",
+     "This company has an active user already created for this EDI type"
+    ]
+   ],
+   "transient": false
+  },
+  "certificate.key": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_account_edi_fernet_decrypt"
+    }
+   ],
+   "name": "certificate.key",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_edi_proxy_client_ids": {
+     "comodel": "account_edi_proxy_client.user",
+     "inverse_name": "company_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "account_edi_proxy_client",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/account_edi_proxy_client",
+ "stats": {
+  "fields": 9,
+  "methods": 11,
+  "models": 3,
+  "py_lines": 323
+ },
+ "summary": "This module adds generic features to register an Odoo DB on the proxy responsible for receiving data (via requests from web-services).",
+ "title": "Proxy features for account_edi",
+ "version": "1.0"
+}

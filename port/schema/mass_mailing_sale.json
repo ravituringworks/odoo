@@ -1,0 +1,131 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/mailing_mailing_views.xml",
+  "demo/mailing_mailing.xml"
+ ],
+ "depends": [
+  "sale",
+  "mass_mailing"
+ ],
+ "models": {
+  "mailing.mailing": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "sale_invoiced_amount": {
+     "compute": "_compute_sale_invoiced_amount",
+     "string": "Invoiced Amount",
+     "type": "Integer"
+    },
+    "sale_quotation_count": {
+     "compute": "_compute_sale_quotation_count",
+     "string": "Quotation Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mailing_domain')"
+     ],
+     "lines": 8,
+     "name": "_compute_sale_quotation_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mailing_domain')"
+     ],
+     "lines": 11,
+     "name": "_compute_sale_invoiced_amount"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_redirect_to_quotations"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_redirect_to_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_prepare_statistics_email_values"
+    }
+   ],
+   "name": "mailing.mailing",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_mailing_get_default_domain"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_mailing_get_default_domain": [
+     [
+      "state",
+      "!="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "utm.campaign": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "ab_testing_winner_selection": {
+     "selection_add": [
+      [
+       "sale_quotation_count",
+       "Quotations"
+      ],
+      [
+       "sale_invoiced_amount",
+       "Revenues"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "utm.campaign",
+   "transient": false
+  }
+ },
+ "module": "mass_mailing_sale",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/mass_mailing_sale",
+ "stats": {
+  "fields": 3,
+  "methods": 6,
+  "models": 3,
+  "py_lines": 140
+ },
+ "summary": "Add sale order UTM info on mass mailing",
+ "title": "Mass mailing on sale orders",
+ "version": "1.0"
+}

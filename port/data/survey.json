@@ -1,0 +1,7235 @@
+{
+ "module": "survey",
+ "records": [
+  {
+   "model": "report.paperformat",
+   "id": "paperformat_survey_certification",
+   "values": {
+    "name": "Survey Certification",
+    "default": true,
+    "format": "A4",
+    "orientation": "Landscape",
+    "margin_top": "0",
+    "margin_bottom": "0",
+    "margin_left": "0",
+    "margin_right": "0",
+    "header_line": false,
+    "header_spacing": "0",
+    "disable_shrinking": true,
+    "dpi": "96"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_survey_print",
+   "values": {
+    "name": "Print Survey",
+    "model_id": {
+     "$ref": "survey.model_survey_survey"
+    },
+    "binding_model_id": {
+     "$ref": "survey.model_survey_survey"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "if record:\n    action = record.action_print_survey()"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_survey_user_input_completed",
+   "values": {
+    "name": "Participation completed",
+    "res_model": "survey.user_input",
+    "default": false,
+    "description": "Participation completed.",
+    "hidden": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_survey_survey_user_input_completed",
+   "values": {
+    "name": "Participation completed",
+    "res_model": "survey.survey",
+    "default": false,
+    "hidden": false,
+    "description": "New participation completed.",
+    "parent_id": {
+     "$ref": "mt_survey_user_input_completed"
+    },
+    "relation_field": "survey_id"
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "survey_tour",
+   "values": {
+    "name": "survey_tour",
+    "sequence": "225",
+    "rainbow_man_message": "Congratulations! You are now ready to collect feedback like a pro :-)"
+   }
+  },
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_marketing_surveys",
+   "values": {
+    "description": "Helps you manage your survey for review of different users.",
+    "sequence": "20"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_survey_user",
+   "values": {
+    "name": "User",
+    "category_id": {
+     "$ref": "base.module_category_marketing_surveys"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_survey_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_marketing_surveys"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_survey_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "group_survey_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_survey_rule_survey_manager",
+   "values": {
+    "name": "Survey: manager: all",
+    "model_id": {
+     "$ref": "survey.model_survey_survey"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_survey_rule_survey_user",
+   "values": {
+    "name": "Survey: officer: unrestricted survey or in restricted users",
+    "model_id": {
+     "$ref": "survey.model_survey_survey"
+    },
+    "domain_force": "[\n                '|', ('restrict_user_ids', 'in', user.id), ('restrict_user_ids', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_user"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_question_rule_survey_manager",
+   "values": {
+    "name": "Survey question: manager: all",
+    "model_id": {
+     "$ref": "survey.model_survey_question"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_question_rule_survey_user",
+   "values": {
+    "name": "Survey question: officer: unrestricted survey or in restricted users",
+    "model_id": {
+     "$ref": "survey.model_survey_question"
+    },
+    "domain_force": "[\n                '|', ('survey_id.restrict_user_ids', 'in', user.id), ('survey_id.restrict_user_ids', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_user"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_question_answer_rule_survey_manager",
+   "values": {
+    "name": "Survey question answer: manager: all",
+    "model_id": {
+     "$ref": "survey.model_survey_question_answer"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_question_answer_rule_survey_user",
+   "values": {
+    "name": "Survey question answer: officer: unrestricted survey or in restricted users",
+    "model_id": {
+     "$ref": "survey.model_survey_question_answer"
+    },
+    "domain_force": "[\n                '|',\n                    '|', ('question_id.survey_id.restrict_user_ids', 'in', user.id), ('matrix_question_id.survey_id.restrict_user_ids', 'in', user.id),\n                    '|', ('question_id.survey_id.restrict_user_ids', '=', False), ('matrix_question_id.survey_id.restrict_user_ids', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_user"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_user_input_rule_survey_manager",
+   "values": {
+    "name": "Survey user input: manager: all non specialized surveys",
+    "model_id": {
+     "$ref": "survey.model_survey_user_input"
+    },
+    "domain_force": "[('survey_id.survey_type', 'in', ('assessment', 'custom', 'live_session', 'survey'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_user_input_line_rule_survey_manager",
+   "values": {
+    "name": "Survey user input line: manager: all non specialized surveys",
+    "model_id": {
+     "$ref": "survey.model_survey_user_input_line"
+    },
+    "domain_force": "[('survey_id.survey_type', 'in', ('assessment', 'custom', 'live_session', 'survey'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_user_input_rule_survey_user",
+   "values": {
+    "name": "Survey user input: officer: unrestricted survey or in restricted users",
+    "model_id": {
+     "$ref": "survey.model_survey_user_input"
+    },
+    "domain_force": "[\n                '&', ('survey_id.survey_type', 'in', ('assessment', 'custom', 'live_session', 'survey')),\n                '|', ('survey_id.restrict_user_ids', 'in', user.id),\n                     ('survey_id.restrict_user_ids', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_user"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_user_input_line_rule_survey_user",
+   "values": {
+    "name": "Survey user input line: officer: unrestricted survey or in restricted users",
+    "model_id": {
+     "$ref": "survey.model_survey_user_input_line"
+    },
+    "domain_force": "[\n                '&', ('survey_id.survey_type', 'in', ('assessment', 'custom', 'live_session', 'survey')),\n                '|', ('survey_id.restrict_user_ids', 'in', user.id),\n                     ('survey_id.restrict_user_ids', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_user"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_invite_survey_user",
+   "values": {
+    "name": "Survey invite: officer: unrestricted or in restricted users",
+    "model_id": {
+     "$ref": "survey.model_survey_invite"
+    },
+    "domain_force": "['|',  ('survey_id.restrict_user_ids', 'in', user.id),\n                ('survey_id.restrict_user_ids', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_user"
+      }
+     ]
+    ],
+    "perm_unlink": 0,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "survey_invite_survey_manager",
+   "values": {
+    "name": "Survey invite: manager: all",
+    "model_id": {
+     "$ref": "survey.model_survey_invite"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_survey_manager"
+      }
+     ]
+    ],
+    "perm_unlink": 0,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_survey_form",
+   "values": {
+    "name": "Surveys",
+    "path": "surveys",
+    "res_model": "survey.survey",
+    "view_mode": "kanban,list,form,activity",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_survey_user_input",
+   "values": {
+    "name": "Participations",
+    "res_model": "survey.user_input",
+    "domain": [
+     [
+      "survey_id.survey_type",
+      "in",
+      [
+       "assessment",
+       "custom",
+       "live_session",
+       "survey"
+      ]
+     ]
+    ],
+    "view_mode": "list,kanban,form",
+    "view_id": {
+     "$ref": "survey_user_input_view_tree"
+    },
+    "search_view_id": {
+     "$ref": "survey_user_input_view_search"
+    },
+    "context": {
+     "search_default_group_by_survey": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "survey_user_input_line_action",
+   "values": {
+    "name": "Detailed Answers",
+    "res_model": "survey.user_input.line",
+    "domain": [
+     [
+      "survey_id.survey_type",
+      "in",
+      [
+       "assessment",
+       "custom",
+       "live_session",
+       "survey"
+      ]
+     ]
+    ],
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "survey_user_input_line_view_search"
+    },
+    "context": {
+     "search_default_group_by_survey": true,
+     "search_default_group_by_user_input": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_survey_question_form",
+   "values": {
+    "name": "Questions",
+    "res_model": "survey.question",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "survey_question_search"
+    },
+    "context": {
+     "search_default_group_by_page": true,
+     "show_survey_field": true
+    },
+    "domain": [
+     [
+      "is_page",
+      "=",
+      false
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "survey_question_answer_action",
+   "values": {
+    "name": "Suggested Values",
+    "res_model": "survey.question.answer",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "survey_question_answer_view_search"
+    },
+    "context": {
+     "search_default_group_by_question": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_action_certifications",
+   "values": {
+    "name": "Certifications Succeeded",
+    "res_model": "survey.user_input",
+    "view_mode": "list,form",
+    "context": {
+     "search_default_scoring_success": 1
+    }
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "vendor_certification_badge",
+   "values": {
+    "name": "MyCompany Vendor",
+    "description": "Congratulations, you are now official vendor of MyCompany",
+    "rule_auth": "nobody",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "survey.group_survey_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.survey",
+   "id": "survey_feedback",
+   "values": {
+    "title": "Feedback Form",
+    "access_token": "b135640d-14d4-4748-9ef6-344ca256531e",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "access_mode": "public",
+    "users_can_go_back": true,
+    "questions_layout": "page_per_section",
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p1",
+   "values": {
+    "title": "About you",
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "1",
+    "question_type": false,
+    "is_page": true,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p1_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "2",
+    "title": "Where do you live?",
+    "question_type": "char_box",
+    "question_placeholder": "Brussels",
+    "constr_mandatory": false
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p1_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "3",
+    "title": "When is your date of birth?",
+    "question_type": "date",
+    "constr_mandatory": false
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p1_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "4",
+    "title": "How frequently do you buy products online?",
+    "question_type": "simple_choice",
+    "comments_allowed": true,
+    "comment_count_as_answer": true,
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p1_q3_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p1_q3"
+    },
+    "sequence": "1",
+    "value": "Once a day"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p1_q3_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p1_q3"
+    },
+    "sequence": "2",
+    "value": "Once a week"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p1_q3_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p1_q3"
+    },
+    "sequence": "3",
+    "value": "Once a month"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p1_q3_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p1_q3"
+    },
+    "sequence": "4",
+    "value": "Once a year"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p1_q4",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "5",
+    "title": "How many times did you order products on our website?",
+    "question_type": "numerical_box",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p2",
+   "values": {
+    "title": "About our ecommerce",
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "6",
+    "is_page": true,
+    "question_type": false,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p2_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "7",
+    "title": "Which of the following words would you use to describe our products?",
+    "question_type": "multiple_choice",
+    "constr_mandatory": true,
+    "comments_allowed": true,
+    "comment_count_as_answer": false
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "sequence": "1",
+    "value": "High quality"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "sequence": "2",
+    "value": "Useful"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "sequence": "3",
+    "value": "Unique"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q1_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "sequence": "4",
+    "value": "Good value for money"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q1_sug5",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "sequence": "5",
+    "value": "Overpriced"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q1_sug6",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "sequence": "6",
+    "value": "Impractical"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q1_sug7",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "sequence": "7",
+    "value": "Ineffective"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q1_sug8",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "sequence": "8",
+    "value": "Poor quality"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p2_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "8",
+    "title": "What do you think about our new eCommerce?",
+    "question_type": "matrix",
+    "matrix_subtype": "multiple",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_col1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "1",
+    "value": "Totally disagree"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_col2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "2",
+    "value": "Disagree"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_col3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "3",
+    "value": "Agree"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_col4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "4",
+    "value": "Totally agree"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_row1",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "1",
+    "value": "The new layout and design is fresh and up-to-date"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_row2",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "2",
+    "value": "It is easy to find the product that I want"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_row3",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "3",
+    "value": "The tool to compare the products is useful to make a choice"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_row4",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "4",
+    "value": "The checkout process is clear and secure"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_feedback_p2_q2_row5",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "sequence": "5",
+    "value": "I have added products to my wishlist"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_feedback_p2_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_feedback"
+    },
+    "sequence": "9",
+    "title": "Do you have any other comments, questions, or concerns?",
+    "question_type": "text_box",
+    "constr_mandatory": false
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_answer_1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_feedback"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "email": "mark.brown23@example.com",
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_answer_2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_feedback"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_address_7"
+    },
+    "email": "billy.fox45@example.com",
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_answer_3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_feedback"
+    },
+    "partner_id": false,
+    "email": "Evelyne Gargouillis <evelyne@example.com>",
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_answer_4",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_feedback"
+    },
+    "partner_id": false,
+    "email": "Martin Tamarre <martin@example.com>",
+    "state": "in_progress"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p1_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q1"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Brussels"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p1_q2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q2"
+    },
+    "answer_type": "date",
+    "value_date": "1980-01-11"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p1_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p1_q3_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p1_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q4"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "4"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p2_q1_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q1_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p2_q1_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q1_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p2_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col3"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p2_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col3"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p2_q2_3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col2"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p2_q2_4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col4"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p2_q2_5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col2"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row5"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_1_p2_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q3"
+    },
+    "answer_type": "text_box",
+    "value_text_box": "Thanks for the good quality of your products"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p1_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q1"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Paris"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p1_q2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q2"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p1_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p1_q3_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p1_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q4"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "10"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q1_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q1_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q1_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q1_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q1_3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q1_sug4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col4"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col3"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q2_3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col3"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q2_4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col4"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q2_5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col3"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row5"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_2_p2_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q3"
+    },
+    "answer_type": "text_box",
+    "value_text_box": "I really appreciate your products. They are awesome !!"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p1_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q1"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "New York"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p1_q2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q2"
+    },
+    "answer_type": "date",
+    "value_date": "1966-06-15"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p1_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p1_q3_sug4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p1_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p1_q4"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "1"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p2_q1_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q1_sug7"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p2_q1_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q1_sug8"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p2_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p2_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col2"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p2_q2_3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p2_q2_4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col3"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p2_q2_5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_feedback_p2_q2_col1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_feedback_p2_q2_row5"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_answer_3_p2_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_feedback_p2_q3"
+    },
+    "answer_type": "text_box",
+    "value_text_box": "The customizable desk received is not the one I ordered on your website and the quality is very poor! Really disappointed."
+   }
+  },
+  {
+   "model": "survey.survey",
+   "id": "vendor_certification",
+   "values": {
+    "title": "MyCompany Vendor Certification",
+    "access_token": "4ead4bc8-b8f2-4760-a682-1fde8ddb95ac",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "access_mode": "public",
+    "questions_layout": "page_per_question",
+    "users_can_go_back": true,
+    "users_login_required": true,
+    "scoring_type": "scoring_with_answers",
+    "certification": true,
+    "certification_mail_template_id": {
+     "$ref": "mail_template_certification"
+    },
+    "is_time_limited": "limited",
+    "time_limit": "10.0",
+    "is_attempts_limited": true,
+    "attempts_limit": "2",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "certification_give_badge": "True",
+    "certification_badge_id": {
+     "$ref": "vendor_certification_badge"
+    },
+    "background_image": ""
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_1",
+   "values": {
+    "title": "Products",
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "1",
+    "is_page": true,
+    "question_type": false,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_1_question_1",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "2",
+    "title": "Do we sell Acoustic Bloc Screens?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_1_choice_1",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_1"
+    },
+    "sequence": "1",
+    "value": "No"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_1_choice_2",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_1"
+    },
+    "sequence": "2",
+    "value": "Yes",
+    "is_correct": true,
+    "answer_score": "2.0"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_1_question_2",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "3",
+    "title": "Select all the existing products",
+    "question_type": "multiple_choice"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_2_choice_1",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "sequence": "1",
+    "value": "Chair floor protection",
+    "is_correct": true,
+    "answer_score": "1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_2_choice_2",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "sequence": "2",
+    "value": "Fanta",
+    "answer_score": "-1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_2_choice_3",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "sequence": "3",
+    "value": "Conference chair",
+    "is_correct": true,
+    "answer_score": "1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_2_choice_4",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "sequence": "4",
+    "value": "Drawer",
+    "is_correct": true,
+    "answer_score": "1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_2_choice_5",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "sequence": "5",
+    "value": "Customizable Lamp",
+    "answer_score": "-1.0"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_1_question_3",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "4",
+    "title": "Select all the available customizations for our Customizable Desk",
+    "question_type": "multiple_choice"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_3_choice_1",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "sequence": "1",
+    "value": "Color",
+    "is_correct": true,
+    "answer_score": "1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_3_choice_2",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "sequence": "2",
+    "value": "Height",
+    "answer_score": "-1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_3_choice_3",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "sequence": "3",
+    "value": "Width",
+    "is_correct": true,
+    "answer_score": "1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_3_choice_4",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "sequence": "4",
+    "value": "Legs",
+    "is_correct": true,
+    "answer_score": "1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_3_choice_5",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "sequence": "5",
+    "value": "Number of drawers",
+    "answer_score": "-1.0"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_1_question_4",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "5",
+    "title": "How many versions of the Corner Desk do we have?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_4_choice_1",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_4"
+    },
+    "sequence": "1",
+    "value": "1"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_4_choice_2",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_4"
+    },
+    "sequence": "2",
+    "value": "2",
+    "is_correct": true,
+    "answer_score": "2.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_4_choice_3",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_4"
+    },
+    "sequence": "3",
+    "value": "3"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_1_question_4_choice_4",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_4"
+    },
+    "sequence": "4",
+    "value": "4"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_1_question_5",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "6",
+    "title": "Do you think we have missing products in our catalog? (not rated)",
+    "question_type": "text_box",
+    "question_placeholder": "If yes, explain what you think is missing, give examples."
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_2",
+   "values": {
+    "title": "Prices",
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "is_page": true,
+    "question_type": false,
+    "sequence": "7",
+    "description": "<p>Test your knowledge of our prices.</p>"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_2_question_1",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "8",
+    "title": "How much do we sell our Cable Management Box?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_1_choice_1",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "sequence": "1",
+    "value": "$20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_1_choice_2",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "sequence": "2",
+    "value": "$50"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_1_choice_3",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "sequence": "3",
+    "value": "$80"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_1_choice_4",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "sequence": "4",
+    "value": "$100",
+    "is_correct": true,
+    "answer_score": "2.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_1_choice_5",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "sequence": "5",
+    "value": "$200"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_1_choice_6",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "sequence": "6",
+    "value": "$300"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_2_question_2",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "9",
+    "title": "Select all the products that sell for $100 or more",
+    "question_type": "multiple_choice"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_2_choice_1",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "sequence": "1",
+    "value": "Corner Desk Right Sit",
+    "answer_score": "1.0",
+    "is_correct": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_2_choice_2",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "sequence": "2",
+    "value": "Desk Combination",
+    "answer_score": "1.0",
+    "is_correct": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_2_choice_3",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "sequence": "3",
+    "value": "Cabinet with Doors",
+    "answer_score": "-1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_2_choice_4",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "sequence": "4",
+    "value": "Large Desk",
+    "answer_score": "1.0",
+    "is_correct": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_2_choice_5",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "sequence": "5",
+    "value": "Letter Tray",
+    "answer_score": "-1.0"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_2_choice_5",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "sequence": "6",
+    "value": "Office Chair Black",
+    "answer_score": "-1.0"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_2_question_3",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "10",
+    "title": "What do you think about our prices (not rated)?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_3_choice_1",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "sequence": "1",
+    "value": "Very underpriced"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_3_choice_2",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "sequence": "2",
+    "value": "Underpriced"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_3_choice_3",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "sequence": "3",
+    "value": "Correctly priced"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_3_choice_4",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "sequence": "4",
+    "value": "A little bit overpriced"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "vendor_certification_page_2_question_3_choice_5",
+   "values": {
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "sequence": "5",
+    "value": "A lot overpriced"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_3",
+   "values": {
+    "title": "Policies",
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "is_page": true,
+    "question_type": false,
+    "sequence": "11",
+    "description": "<p>Test your knowledge of our policies.</p>"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_3_question_1",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "12",
+    "title": "How many days is our money-back guarantee?",
+    "question_type": "numerical_box",
+    "is_scored_question": true,
+    "answer_numerical_box": "30",
+    "answer_score": "1.0",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_3_question_2",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "13",
+    "title": "If a customer purchases a product on 6 January 2020, what is the latest day we expect to ship it?",
+    "question_type": "date",
+    "is_scored_question": true,
+    "answer_date": "2020-01-08",
+    "answer_score": "1.0"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_3_question_3",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "14",
+    "title": "If a customer purchases a 1 year warranty on 6 January 2020, when do we expect the warranty to expire?",
+    "question_type": "datetime",
+    "is_scored_question": true,
+    "answer_datetime": "2021-01-07 00:00:01",
+    "answer_score": "1.0",
+    "question_placeholder": "Beware of leap years!"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_3_question_4",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "15",
+    "title": "What day to you think is best for us to start having an annual sale (not rated)?",
+    "question_type": "date",
+    "answer_score": "0"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_3_question_5",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "16",
+    "title": "What day and time do you think most customers are most likely to call customer service (not rated)?",
+    "question_type": "datetime",
+    "answer_score": "0"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "vendor_certification_page_3_question_6",
+   "values": {
+    "survey_id": {
+     "$ref": "vendor_certification"
+    },
+    "sequence": "17",
+    "title": "How many chairs do you think we should aim to sell in a year (not rated)?",
+    "question_type": "numerical_box",
+    "answer_score": "0"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_vendor_certification_answer_1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.vendor_certification"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_address_3"
+    },
+    "email": "douglas.fletcher51@example.com",
+    "end_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=3, minutes=10)"
+    },
+    "start_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=3, minutes=50)"
+    },
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_vendor_certification_answer_2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.vendor_certification"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_address_7"
+    },
+    "email": "billy.fox45@example.com",
+    "end_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=0, hours=3, minutes=0)"
+    },
+    "start_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=0, hours=3, minutes=50)"
+    },
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_vendor_certification_answer_3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.vendor_certification"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_address_15"
+    },
+    "email": "brandon.freeman55@example.com",
+    "end_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=0, hours=3, minutes=30)"
+    },
+    "start_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=0, hours=3, minutes=50)"
+    },
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_vendor_certification_answer_4",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.vendor_certification"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "email": "oscar.morgan11@example.com",
+    "end_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=0, hours=2, minutes=30)"
+    },
+    "start_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=0, hours=2, minutes=50)"
+    },
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_1_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_2_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_2_choice_3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q2_3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_2_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q3_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_3_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q3_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_3_choice_3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q3_3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_3_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_4"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_4_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p1_q5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_5"
+    },
+    "answer_type": "text_box",
+    "value_text_box": "I think it misses a product but I don't know what"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p2_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_1_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p2_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p2_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p2_q2_3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p2_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_3_choice_3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p3_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_1"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "30"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p3_q2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_2"
+    },
+    "answer_type": "date",
+    "value_date": "2020-01-08"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p3_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_3"
+    },
+    "answer_type": "datetime",
+    "value_datetime": "2021-01-07 00:00:01"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p3_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_4"
+    },
+    "answer_type": "date",
+    "value_date": "2020-01-01"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p3_q5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_5"
+    },
+    "answer_type": "datetime",
+    "value_datetime": "2021-01-01 01:00:01"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_1_p3_q6",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_1"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_6"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "1000"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p1_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_1_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p1_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_2_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p1_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_2_choice_3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p1_q3_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_3_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p1_q3_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_3_choice_3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p1_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_4"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_4_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p1_q5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_5"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p2_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_1_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p2_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p2_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p2_q2_3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p2_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_3_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p3_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_1"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "30"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p3_q2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_2"
+    },
+    "answer_type": "date",
+    "value_date": "2020-01-09"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p3_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_3"
+    },
+    "answer_type": "datetime",
+    "value_datetime": "2021-01-07 00:00:01"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p3_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_4"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p3_q5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_5"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_2_p3_q6",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_2"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_6"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "0"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p1_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_1_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p1_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_2_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p1_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_2_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p1_q3_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_3_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p1_q3_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_3_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p1_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_4"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_4_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p1_q5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_5"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p2_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_1_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p2_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p2_q2_2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p2_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_3_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p3_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_1"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "30"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p3_q2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_2"
+    },
+    "answer_type": "date",
+    "value_date": "2020-01-08"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p3_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_3"
+    },
+    "answer_type": "datetime",
+    "value_datetime": "2021-01-06 23:59:59"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p3_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_4"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p3_q5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_5"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_3_p3_q6",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_3"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_6"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p1_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_1_choice_1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p1_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_2_choice_3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p1_q3_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_3_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p1_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_4"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_1_question_4_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p1_q5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_1_question_5"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p2_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_1_choice_2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p2_q2_1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_2_choice_4"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p2_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_2_question_3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "vendor_certification_page_2_question_3_choice_5"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p3_q1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_1"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "2"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p3_q2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_2"
+    },
+    "answer_type": "date",
+    "value_date": "2020-01-08"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p3_q3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_3"
+    },
+    "answer_type": "datetime",
+    "value_datetime": "2021-01-07 00:00:01"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p3_q4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_4"
+    },
+    "answer_type": "date",
+    "value_date": "2019-12-31"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p3_q5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_5"
+    },
+    "answer_type": "datetime",
+    "value_datetime": "2021-01-01 13:00:01"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_vendor_certification_answer_4_p3_q6",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_vendor_certification_answer_4"
+    },
+    "question_id": {
+     "$ref": "vendor_certification_page_3_question_6"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.survey",
+   "id": "survey_demo_quiz",
+   "values": {
+    "title": "Quiz about our Company",
+    "access_token": "b137640d-9876-1234-abcd-344ca256531e",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "access_mode": "public",
+    "users_can_go_back": false,
+    "scoring_type": "scoring_with_answers",
+    "scoring_success_min": "55",
+    "questions_layout": "page_per_question",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "background_image": ""
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p1",
+   "values": {
+    "title": "Who are you?",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "1",
+    "question_type": false,
+    "is_page": true,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p1_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "2",
+    "title": "What is your email?",
+    "question_type": "char_box",
+    "constr_mandatory": true,
+    "validation_email": true,
+    "save_as_email": true,
+    "question_placeholder": "ex@mple.com"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p1_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "3",
+    "title": "What is your nickname?",
+    "question_type": "char_box",
+    "question_placeholder": "Don't be shy, be wild!",
+    "constr_mandatory": true,
+    "save_as_nickname": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p1_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "4",
+    "title": "Where are you from?",
+    "question_type": "char_box",
+    "question_placeholder": "Brussels, Belgium",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p1_q4",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "5",
+    "title": "How old are you?",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "question_type": "numerical_box",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p2",
+   "values": {
+    "title": "Our Company in a few questions ...",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "10",
+    "question_type": false,
+    "is_page": true,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p2_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "11",
+    "title": "When is Mitchell Admin born?",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "question_type": "date",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p2_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "12",
+    "title": "When did precisely Marc Demo crop its first apple tree?",
+    "question_type": "datetime",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p2_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "13",
+    "title": "Give the list of all types of wood we sell.",
+    "question_type": "text_box",
+    "constr_mandatory": false
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p3",
+   "values": {
+    "title": "Fruits and vegetables",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "20",
+    "question_type": false,
+    "is_page": true,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p3_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "21",
+    "title": "Which category does a tomato belong to",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "question_type": "simple_choice",
+    "comments_allowed": true,
+    "comment_count_as_answer": true,
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q1"
+    },
+    "sequence": "1",
+    "value": "Fruits",
+    "is_correct": true,
+    "answer_score": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q1"
+    },
+    "sequence": "2",
+    "value": "Vegetables",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q1"
+    },
+    "sequence": "3",
+    "value": "Space stations"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p3_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "22",
+    "title": "Which of the following would you use to pollinate",
+    "question_type": "simple_choice",
+    "comments_allowed": true,
+    "comment_count_as_answer": false,
+    "constr_mandatory": true,
+    "is_time_limited": true,
+    "time_limit": "15"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q2_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q2"
+    },
+    "sequence": "1",
+    "value": "Bees",
+    "is_correct": true,
+    "answer_score": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q2_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q2"
+    },
+    "sequence": "2",
+    "value": "Dogs"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q2_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q2"
+    },
+    "sequence": "3",
+    "value": "Mooses"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p3_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "23",
+    "title": "Select trees that made more than 20K sales this year",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "question_type": "multiple_choice",
+    "constr_mandatory": false,
+    "comments_allowed": true,
+    "comment_count_as_answer": true,
+    "is_time_limited": true,
+    "time_limit": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q3_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "sequence": "1",
+    "value": "Apple Trees",
+    "is_correct": true,
+    "answer_score": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q3_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "sequence": "2",
+    "value": "Lemon Trees",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q3_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "sequence": "3",
+    "value": "Baobab Trees",
+    "answer_score": "-10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q3_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "sequence": "4",
+    "value": "Cookies",
+    "answer_score": "-10"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p3_q4",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "24",
+    "title": "A \"Citrus\" could give you ...",
+    "question_type": "multiple_choice",
+    "constr_mandatory": true,
+    "comments_allowed": true,
+    "comment_count_as_answer": false,
+    "is_time_limited": true,
+    "time_limit": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q4_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "sequence": "1",
+    "value": "Pomelos",
+    "is_correct": true,
+    "answer_score": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q4_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "sequence": "2",
+    "value": "Grapefruits",
+    "is_correct": true,
+    "answer_score": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q4_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "sequence": "3",
+    "value": "Cosmic rays",
+    "answer_score": "-10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q4_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "sequence": "4",
+    "value": "Bricks",
+    "answer_score": "-10"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p3_q5",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "25",
+    "title": "How often should you water those plants",
+    "question_type": "matrix",
+    "matrix_subtype": "simple",
+    "constr_mandatory": true,
+    "comments_allowed": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q5_row1",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "sequence": "1",
+    "value": "Cactus"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q5_row2",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "sequence": "2",
+    "value": "Ficus"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q5_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "sequence": "1",
+    "value": "Once a month"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q5_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "sequence": "2",
+    "value": "Once a week"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p3_q6",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "26",
+    "title": "When do you harvest those fruits",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "question_type": "matrix",
+    "matrix_subtype": "multiple",
+    "constr_mandatory": true,
+    "comments_allowed": false
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q6_row1",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "sequence": "1",
+    "value": "Apples"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q6_row2",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "sequence": "2",
+    "value": "Strawberries"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q6_row3",
+   "values": {
+    "matrix_question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "sequence": "3",
+    "value": "Clementine"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q6_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "sequence": "1",
+    "value": "Spring"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q6_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "sequence": "2",
+    "value": "Summer"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q6_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "sequence": "3",
+    "value": "Autumn"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p3_q6_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "sequence": "4",
+    "value": "Winter"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p4",
+   "values": {
+    "title": "Trees",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "30",
+    "is_page": true,
+    "question_type": false,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p4_q1",
+   "values": {
+    "title": "Dogwood is from which family of trees?",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "31",
+    "question_type": "simple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q1"
+    },
+    "sequence": "1",
+    "value": "Pinaceae",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q1"
+    },
+    "sequence": "2",
+    "value": "Ulmaceae",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q1"
+    },
+    "sequence": "3",
+    "value": "Cornaceae",
+    "value_image": "",
+    "is_correct": true,
+    "answer_score": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q1_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q1"
+    },
+    "sequence": "4",
+    "value": "Salicaceae",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p4_q2",
+   "values": {
+    "title": "In which country did the bonsai technique develop?",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "32",
+    "question_type": "simple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q2_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q2"
+    },
+    "sequence": "1",
+    "value": "Japan",
+    "value_image": "",
+    "is_correct": true,
+    "answer_score": "20"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q2_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q2"
+    },
+    "sequence": "2",
+    "value": "China",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q2_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q2"
+    },
+    "sequence": "3",
+    "value": "Vietnam",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q2_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q2"
+    },
+    "sequence": "4",
+    "value": "South Korea",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p4_q3",
+   "values": {
+    "title": "Is the wood of a coniferous hard or soft?",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "33",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q3_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q3"
+    },
+    "sequence": "1",
+    "value": "Hard"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q3_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q3"
+    },
+    "sequence": "2",
+    "value": "Soft",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p4_q4",
+   "values": {
+    "title": "From which continent is native the Scots pine (pinus sylvestris)?",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "34",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q4_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q4"
+    },
+    "sequence": "1",
+    "value": "Africa",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q4_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q4"
+    },
+    "sequence": "2",
+    "value": "Asia",
+    "is_correct": true,
+    "answer_score": "20",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q4_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q4"
+    },
+    "sequence": "3",
+    "value": "Europe",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q4_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q4"
+    },
+    "sequence": "4",
+    "value": "South America",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p4_q5",
+   "values": {
+    "title": "In the list below, select all the coniferous.",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "35",
+    "question_type": "multiple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q5_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "sequence": "1",
+    "value": "Douglas Fir",
+    "value_image": "",
+    "is_correct": true,
+    "answer_score": "5"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q5_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "sequence": "2",
+    "value": "Norway Spruce",
+    "value_image": "",
+    "is_correct": true,
+    "answer_score": "5"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q5_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "sequence": "3",
+    "value": "European Yew",
+    "value_image": "",
+    "is_correct": true,
+    "answer_score": "5"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q5_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "sequence": "4",
+    "value": "Mountain Pine",
+    "value_image": "",
+    "is_correct": true,
+    "answer_score": "5"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p4_q6",
+   "values": {
+    "title": "After watching this video, will you swear that you are not going to procrastinate to trim your hedge this year?",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "36",
+    "question_type": "simple_choice",
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q6_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q6"
+    },
+    "sequence": "1",
+    "value": "Yes",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q6_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q6"
+    },
+    "sequence": "2",
+    "value": "No"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p4_q6_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q6"
+    },
+    "sequence": "3",
+    "value": "Perhaps",
+    "answer_score": "-10"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p5",
+   "values": {
+    "title": "Your feeling",
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "40",
+    "question_type": false,
+    "is_page": true,
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_quiz_p5_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_quiz"
+    },
+    "sequence": "41",
+    "title": "What do you think about this survey?",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "question_type": "simple_choice",
+    "comments_allowed": true,
+    "comment_count_as_answer": true,
+    "constr_mandatory": false
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p5_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p5_q1"
+    },
+    "sequence": "1",
+    "value": "Good"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p5_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p5_q1"
+    },
+    "sequence": "2",
+    "value": "Not Good, Not Bad"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p5_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p5_q1"
+    },
+    "sequence": "3",
+    "value": "Iznogoud"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_quiz_p5_q1_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_quiz_p5_q1"
+    },
+    "sequence": "4",
+    "value": "I have no idea, I'm a dog!"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_demo_quiz_answer_1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_demo_quiz"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "email": "mark.brown23@example.com",
+    "end_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=3, minutes=30)"
+    },
+    "start_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=4, minutes=50)"
+    },
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_demo_quiz_answer_2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_demo_quiz"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "email": "admin@yourcompany.example.com",
+    "end_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=2, minutes=50)"
+    },
+    "start_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=3, minutes=50)"
+    },
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_demo_quiz_answer_3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_demo_quiz"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "email": "joel.willis63@example.com",
+    "end_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=2, minutes=10)"
+    },
+    "start_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=2, minutes=50)"
+    },
+    "state": "done"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_demo_quiz_answer_4",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_demo_quiz"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_address_28"
+    },
+    "email": "colleen.diaz83@example.com",
+    "start_datetime": {
+     "$unevaluated": "datetime.now() - timedelta(days=1, hours=0, minutes=50)"
+    },
+    "state": "in_progress"
+   }
+  },
+  {
+   "model": "survey.user_input",
+   "id": "survey_demo_quiz_answer_5",
+   "values": {
+    "survey_id": {
+     "$ref": "survey.survey_demo_quiz"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_address_34"
+    },
+    "email": "travis.mendoza24@example.com",
+    "state": "new"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p1_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q1"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "mark.brown23@example.com"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p1_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q2"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Mark Brown"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p1_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q3"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Brussels"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p1_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q4"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "36"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p2_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q1"
+    },
+    "answer_type": "date",
+    "value_date": {
+     "$unevaluated": "DateTime.today() - relativedelta(years=36)"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p2_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q2"
+    },
+    "answer_type": "datetime",
+    "value_datetime": {
+     "$unevaluated": "DateTime.now().replace(year=2017, month=10, day=2, hour=2, minute=27, second=0)"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p2_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q3"
+    },
+    "answer_type": "text_box",
+    "value_text_box": "Oak, ash, pine"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q1"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q1_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q2"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q2_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q2_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q2"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Mooses?? Really?"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "answer_is_correct": true,
+    "answer_score": "10",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q3_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q3_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "answer_score": "-10",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q3_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q4_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q4_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "answer_score": "-10",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q4_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q5_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q5_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q5_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q5_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q5_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q5_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q6_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q6_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p3_q6_l3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p4_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q1_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p4_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q2_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p4_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q3_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p4_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q4"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q4_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p4_q5_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q5_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p4_q5_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q5_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_1_p4_q6_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_1"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q6_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p1_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q1"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "admin@yourcompany.example.com"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p1_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q2"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Mitchell Admin"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p1_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q3"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Ottawa"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p1_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q4"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "48"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p2_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q1"
+    },
+    "answer_type": "date",
+    "value_date": {
+     "$unevaluated": "DateTime.today() + relativedelta(years=24)"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p2_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q2"
+    },
+    "answer_type": "datetime",
+    "value_datetime": {
+     "$unevaluated": "DateTime.now().replace(year=2011, month=8, day=21, hour=15, minute=34, second=0)"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p2_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q3"
+    },
+    "skipped": true
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q1"
+    },
+    "answer_is_correct": true,
+    "answer_score": "10",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q1_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q2_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q2_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q2"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Mooses are best pollinators of the world!"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q3_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q3_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "I sold a 30K raspberry tree once."
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q4_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q5_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q5_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q5_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q5_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q5_sug2"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q5_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q6_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q6_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug2"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p3_q6_l3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug3"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p4_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q1_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p4_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q2"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q2_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p4_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q3"
+    },
+    "answer_is_correct": true,
+    "answer_score": "10",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q3_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p4_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q4"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q4_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p4_q5_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q5_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p4_q5_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q5_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_2_p4_q6_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_2"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q6_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p1_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q1"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "joel.willis63@example.com"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p1_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q2"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Jo\u00ebl Willis"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p1_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q3"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Brussels"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p1_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p1_q4"
+    },
+    "answer_type": "numerical_box",
+    "value_numerical_box": "28"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p2_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q1"
+    },
+    "answer_type": "date",
+    "value_date": {
+     "$unevaluated": "DateTime.today() - relativedelta(years=38)"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p2_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q2"
+    },
+    "answer_type": "datetime",
+    "value_datetime": {
+     "$unevaluated": "DateTime.now().replace(year=2005, month=4, day=18, hour=10, minute=0, second=0)"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p2_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p2_q3"
+    },
+    "answer_type": "text_box",
+    "value_text_box": "Oak, fur, pine, red pine"
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q1"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Both fruit (seeds, par of the plant) and vegetable (culinary use), obviously."
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q2"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q2_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q3_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q3_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "answer_is_correct": true,
+    "answer_score": "10",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q3_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q3_l3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q3"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "You forgot the strawberry tree."
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q4_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q4_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "answer_is_correct": true,
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q4_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q4_l3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "answer_score": "-10",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q4_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q4_l4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q4"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Gives the beeest cosmics rays man. So juicy."
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q5_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q5_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q5_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q5_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q5_sug2"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q5_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q5_l3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q5"
+    },
+    "answer_type": "char_box",
+    "value_char_box": "Well sometimes I forget them, they survived. Almost."
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q6_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug3"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q6_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug4"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q6_l3",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug1"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q6_l4",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug2"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p3_q6_l5",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p3_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p3_q6_sug4"
+    },
+    "matrix_row_id": {
+     "$ref": "survey_demo_quiz_p3_q6_row3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p4_q1_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q1"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q1_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p4_q2_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q2"
+    },
+    "answer_score": "20",
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q2_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p4_q3_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q3"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q3_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p4_q4_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q4"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q4_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p4_q5_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q5_sug2"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p4_q5_l2",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q5"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q5_sug3"
+    }
+   }
+  },
+  {
+   "model": "survey.user_input.line",
+   "id": "survey_demo_quiz_answer_3_p4_q6_l1",
+   "values": {
+    "user_input_id": {
+     "$ref": "survey_demo_quiz_answer_3"
+    },
+    "question_id": {
+     "$ref": "survey_demo_quiz_p4_q6"
+    },
+    "answer_type": "suggestion",
+    "suggested_answer_id": {
+     "$ref": "survey_demo_quiz_p4_q6_sug1"
+    }
+   }
+  },
+  {
+   "model": "survey.survey",
+   "id": "survey_demo_burger_quiz",
+   "values": {
+    "title": "Burger Quiz",
+    "access_token": "burger00-quiz-1234-abcd-344ca2tgb31e",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "access_mode": "public",
+    "users_can_go_back": true,
+    "scoring_type": "scoring_with_answers",
+    "scoring_success_min": "55",
+    "is_time_limited": "limited",
+    "time_limit": "10.0",
+    "questions_layout": "page_per_question",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "background_image": ""
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p1",
+   "values": {
+    "title": "Start",
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "1",
+    "question_type": false,
+    "is_page": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p1_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "2",
+    "title": "Pick a subject",
+    "question_type": "multiple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p1_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p1_q1"
+    },
+    "sequence": "1",
+    "value": "Geography"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p1_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p1_q1"
+    },
+    "sequence": "2",
+    "value": "History"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p1_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p1_q1"
+    },
+    "sequence": "3",
+    "value": "Sciences"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p1_q1_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p1_q1"
+    },
+    "sequence": "4",
+    "value": "Art & Culture"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p2",
+   "values": {
+    "title": "Geography",
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "100",
+    "question_type": false,
+    "is_page": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p2_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "110",
+    "title": "How long is the White Nile river?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug1"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q1"
+    },
+    "sequence": "1",
+    "value": "1450 km"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q1"
+    },
+    "sequence": "2",
+    "value": "3700 km",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q1"
+    },
+    "sequence": "3",
+    "value": "6650 km"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p2_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "120",
+    "title": "What is the biggest city in the world?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug1"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q2_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q2"
+    },
+    "sequence": "1",
+    "value": "Shanghai"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q2_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q2"
+    },
+    "sequence": "2",
+    "value": "Tokyo",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q2_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q2"
+    },
+    "sequence": "3",
+    "value": "New York"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q2_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q2"
+    },
+    "sequence": "4",
+    "value": "Istanbul"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p2_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "130",
+    "title": "Which is the highest volcano in Europe?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug1"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q3_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q3"
+    },
+    "sequence": "1",
+    "value": "Mount Teide (Spain - Tenerife)"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q3_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q3"
+    },
+    "sequence": "2",
+    "value": "Eyjafjallaj\u00f6kull (Iceland)"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q3_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q3"
+    },
+    "sequence": "3",
+    "value": "Mount Etna (Italy - Sicily)"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p2_q3_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p2_q3"
+    },
+    "sequence": "4",
+    "value": "Mount Elbrus (Russia)",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p3",
+   "values": {
+    "title": "History",
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "200",
+    "question_type": false,
+    "is_page": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p3_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "210",
+    "title": "When did Genghis Khan die?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug2"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q1"
+    },
+    "sequence": "1",
+    "value": "1227",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q1"
+    },
+    "sequence": "2",
+    "value": "1324"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q1"
+    },
+    "sequence": "3",
+    "value": "1055"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p3_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "220",
+    "title": "Who is the architect of the Great Pyramid of Giza?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug2"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q2_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q2"
+    },
+    "sequence": "1",
+    "value": "Imhotep"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q2_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q2"
+    },
+    "sequence": "2",
+    "value": "Amenhotep"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q2_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q2"
+    },
+    "sequence": "3",
+    "value": "Hemiunu",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q2_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q2"
+    },
+    "sequence": "4",
+    "value": "Papyrus"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p3_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "230",
+    "title": "How many years did the 100 years war last?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug2"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q3_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q3"
+    },
+    "sequence": "1",
+    "value": "99 years"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q3_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q3"
+    },
+    "sequence": "2",
+    "value": "100 years"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q3_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q3"
+    },
+    "sequence": "3",
+    "value": "116 years",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p3_q3_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p3_q3"
+    },
+    "sequence": "4",
+    "value": "127 years"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p4",
+   "values": {
+    "title": "Sciences",
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "300",
+    "question_type": false,
+    "is_page": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p4_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "310",
+    "title": "Who received a Nobel prize in Physics for the discovery of neutrino oscillations, which shows that neutrinos have mass?",
+    "question_type": "multiple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug3"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q1"
+    },
+    "sequence": "1",
+    "value": "Arthur B. McDonald",
+    "is_correct": true,
+    "answer_score": "5"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q1"
+    },
+    "sequence": "2",
+    "value": "Peter W. Higgs"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q1"
+    },
+    "sequence": "3",
+    "value": "Takaaki Kajita",
+    "is_correct": true,
+    "answer_score": "5"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q1_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q1"
+    },
+    "sequence": "4",
+    "value": "Willard S. Boyle"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p4_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "320",
+    "title": "What is, approximately, the critical mass of plutonium-239?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug3"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q2_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q2"
+    },
+    "sequence": "1",
+    "value": "5.7 kg"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q2_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q2"
+    },
+    "sequence": "2",
+    "value": "10 kg",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q2_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q2"
+    },
+    "sequence": "3",
+    "value": "16.2 kg"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q2_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q2"
+    },
+    "sequence": "4",
+    "value": "47 kg"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p4_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "330",
+    "title": "Can Humans ever directly see a photon?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug3"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q3_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q3"
+    },
+    "sequence": "1",
+    "value": "Yes, that's the only thing a human eye can see.",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p4_q3_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p4_q3"
+    },
+    "sequence": "2",
+    "value": "No, it's too small for the human eye."
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p5",
+   "values": {
+    "title": "Art & Culture",
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "400",
+    "question_type": false,
+    "is_page": true
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p5_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "410",
+    "title": "Which Musician is not in the 27th Club?",
+    "question_type": "multiple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug4"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q1"
+    },
+    "sequence": "1",
+    "value": "Kurt Cobain"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q1"
+    },
+    "sequence": "2",
+    "value": "Kim Jong-hyun"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q1"
+    },
+    "sequence": "3",
+    "value": "Avicii",
+    "is_correct": true,
+    "answer_score": "5"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q1_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q1"
+    },
+    "sequence": "4",
+    "value": "Cliff Burton",
+    "is_correct": true,
+    "answer_score": "5"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p5_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "420",
+    "title": "Which painting/drawing was not made by Pablo Picasso?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug4"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q2_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q2"
+    },
+    "sequence": "1",
+    "value": "",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q2_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q2"
+    },
+    "sequence": "2",
+    "value": "",
+    "value_image": "",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q2_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q2"
+    },
+    "sequence": "3",
+    "value": "",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q2_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q2"
+    },
+    "sequence": "4",
+    "value": "",
+    "value_image": ""
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_burger_quiz_p5_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_burger_quiz"
+    },
+    "sequence": "430",
+    "title": "Which quote is from Jean-Claude Van Damme",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_burger_quiz_p1_q1_sug4"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q3_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q3"
+    },
+    "sequence": "1",
+    "value": "I\u2019ve never really wanted to go to Japan. Simply because I don\u2019t like eating fish. And I know that\u2019s very popular out there in Africa."
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q3_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q3"
+    },
+    "sequence": "2",
+    "value": "I am fascinated by air. If you remove the air from the sky, all the birds would fall to the ground. And all the planes, too.",
+    "is_correct": true,
+    "answer_score": "10"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q3_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q3"
+    },
+    "sequence": "3",
+    "value": "I've been noticing gravity since I was very young!"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_burger_quiz_p5_q3_sug4",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_burger_quiz_p5_q3"
+    },
+    "sequence": "4",
+    "value": "I actually don't like thinking. I think people think I like to think a lot. And I don't. I do not like to think at all."
+   }
+  },
+  {
+   "model": "survey.survey",
+   "id": "survey_demo_food_preferences",
+   "values": {
+    "title": "Food Preferences",
+    "survey_type": "survey",
+    "access_token": "foodpref-eren-ces1-abcd-344ca2tgb31e",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "access_mode": "public",
+    "questions_layout": "one_page",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "description_done": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_food_preferences_q1",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_food_preferences"
+    },
+    "sequence": "1",
+    "title": "Are you vegetarian?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q1_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q1"
+    },
+    "sequence": "1",
+    "value": "Yes"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q1_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q1"
+    },
+    "sequence": "2",
+    "value": "No"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q1_sug3",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q1"
+    },
+    "sequence": "3",
+    "value": "It depends"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_food_preferences_q2",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_food_preferences"
+    },
+    "sequence": "2",
+    "title": "Would you prefer a veggie meal if possible?",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_food_preferences_q1_sug3"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q2_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q2"
+    },
+    "sequence": "1",
+    "value": "Yes"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q2_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q2"
+    },
+    "sequence": "2",
+    "value": "No"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_food_preferences_q3",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_food_preferences"
+    },
+    "sequence": "3",
+    "title": "Choose your green meal",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_food_preferences_q1_sug1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_food_preferences_q2_sug1"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q3_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q3"
+    },
+    "sequence": "1",
+    "value": "Vegetarian pizza"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q3_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q3"
+    },
+    "sequence": "2",
+    "value": "Vegetarian burger"
+   }
+  },
+  {
+   "model": "survey.question",
+   "id": "survey_demo_food_preferences_q4",
+   "values": {
+    "survey_id": {
+     "$ref": "survey_demo_food_preferences"
+    },
+    "sequence": "4",
+    "title": "Choose your meal",
+    "question_type": "simple_choice",
+    "constr_mandatory": true,
+    "triggering_answer_ids": [
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_food_preferences_q1_sug2"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "survey.survey_demo_food_preferences_q2_sug2"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q4_sug1",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q4"
+    },
+    "sequence": "1",
+    "value": "Steak with french fries"
+   }
+  },
+  {
+   "model": "survey.question.answer",
+   "id": "survey_demo_food_preferences_q4_sug2",
+   "values": {
+    "question_id": {
+     "$ref": "survey_demo_food_preferences_q4"
+    },
+    "sequence": "2",
+    "value": "Fish"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_surveys",
+   "name": "Surveys",
+   "sequence": "130",
+   "groups": "group_survey_user",
+   "web_icon": "survey,static/description/icon.png"
+  },
+  {
+   "id": "survey_menu_questions",
+   "name": "Questions & Answers",
+   "parent": "menu_surveys",
+   "sequence": "90"
+  },
+  {
+   "id": "menu_survey_form",
+   "name": "Surveys",
+   "parent": "menu_surveys",
+   "action": "action_survey_form",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_survey_type_form1",
+   "name": "Participations",
+   "parent": "menu_surveys",
+   "action": "action_survey_user_input",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_survey_question_form1",
+   "name": "Questions",
+   "parent": "survey_menu_questions",
+   "action": "action_survey_question_form",
+   "sequence": "2"
+  },
+  {
+   "id": "menu_survey_label_form1",
+   "name": "Suggested Values",
+   "parent": "survey_menu_questions",
+   "action": "survey_question_answer_action",
+   "sequence": "3"
+  },
+  {
+   "id": "menu_survey_response_line_form",
+   "name": "Detailed Answers",
+   "parent": "survey_menu_questions",
+   "action": "survey_user_input_line_action",
+   "sequence": "4"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_survey_all",
+   "model": "survey.survey",
+   "model_xmlid": "model_survey_survey",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_user",
+   "model": "survey.survey",
+   "model_xmlid": "model_survey_survey",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_survey_user",
+   "model": "survey.survey",
+   "model_xmlid": "model_survey_survey",
+   "group": "group_survey_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_survey_manager",
+   "model": "survey.survey",
+   "model_xmlid": "model_survey_survey",
+   "group": "group_survey_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_question_all",
+   "model": "survey.question",
+   "model_xmlid": "model_survey_question",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_question_user",
+   "model": "survey.question",
+   "model_xmlid": "model_survey_question",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_question_survey_user",
+   "model": "survey.question",
+   "model_xmlid": "model_survey_question",
+   "group": "group_survey_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_question_survey_manager",
+   "model": "survey.question",
+   "model_xmlid": "model_survey_question",
+   "group": "group_survey_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_question_answer_all",
+   "model": "survey.question.answer",
+   "model_xmlid": "model_survey_question_answer",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_question_answer_user",
+   "model": "survey.question.answer",
+   "model_xmlid": "model_survey_question_answer",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_question_answer_survey_user",
+   "model": "survey.question.answer",
+   "model_xmlid": "model_survey_question_answer",
+   "group": "group_survey_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_question_answer_survey_manager",
+   "model": "survey.question.answer",
+   "model_xmlid": "model_survey_question_answer",
+   "group": "group_survey_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_user_input_all",
+   "model": "survey.user.input",
+   "model_xmlid": "model_survey_user_input",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_user_input_user",
+   "model": "survey.user.input",
+   "model_xmlid": "model_survey_user_input",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_user_input_survey_user",
+   "model": "survey.user.input",
+   "model_xmlid": "model_survey_user_input",
+   "group": "group_survey_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_user_input_survey_manager",
+   "model": "survey.user.input",
+   "model_xmlid": "model_survey_user_input",
+   "group": "group_survey_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_user_input_line_all",
+   "model": "survey.user.input.line",
+   "model_xmlid": "model_survey_user_input_line",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_user_input_line_user",
+   "model": "survey.user.input.line",
+   "model_xmlid": "model_survey_user_input_line",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_user_input_line_survey_user",
+   "model": "survey.user.input.line",
+   "model_xmlid": "model_survey_user_input_line",
+   "group": "group_survey_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_survey_user_input_line_survey_manager",
+   "model": "survey.user.input.line",
+   "model_xmlid": "model_survey_user_input_line",
+   "group": "group_survey_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_gamification_badge_survey_user",
+   "model": "gamification.badge",
+   "model_xmlid": "model_gamification_badge",
+   "group": "group_survey_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_survey_invite",
+   "model": "survey.invite",
+   "model_xmlid": "model_survey_invite",
+   "group": "survey.group_survey_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

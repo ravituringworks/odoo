@@ -1,0 +1,139 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Inventory",
+ "data_files": [
+  "views/production_views.xml",
+  "views/repair_views.xml"
+ ],
+ "depends": [
+  "repair",
+  "mrp"
+ ],
+ "models": {
+  "mrp.production": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "repair_count": {
+     "compute": "_compute_repair_count",
+     "groups": "stock.group_stock_user",
+     "string": "Count of source repairs",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_dest_ids.repair_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_repair_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_view_repair_orders"
+    }
+   ],
+   "name": "mrp.production",
+   "transient": false
+  },
+  "repair.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "production_count": {
+     "compute": "_compute_production_count",
+     "groups": "mrp.group_mrp_user",
+     "string": "Count of MOs generated",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('procurement_group_id.stock_move_ids.created_production_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_production_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_explode"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_view_mrp_productions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_action_add_from_catalog_extra_context"
+    }
+   ],
+   "name": "repair.order",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_prepare_phantom_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_phantom_move_values"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  }
+ },
+ "module": "mrp_repair",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/mrp_repair",
+ "stats": {
+  "fields": 2,
+  "methods": 10,
+  "models": 3,
+  "py_lines": 148
+ },
+ "summary": "",
+ "title": "Mrp Repairs",
+ "version": "1.0"
+}

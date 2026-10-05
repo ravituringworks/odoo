@@ -1,0 +1,423 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Purchase",
+ "data_files": [
+  "views/mrp_bom_views.xml",
+  "views/purchase_order_views.xml",
+  "views/mrp_production_views.xml",
+  "views/stock_orderpoint_views.xml",
+  "security/ir.model.access.csv",
+  "data/purchase_mrp_demo.xml"
+ ],
+ "depends": [
+  "mrp",
+  "purchase_stock"
+ ],
+ "models": {
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_stock_valuation_layers"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "mrp.bom": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('product_id', 'product_tmpl_id', 'bom_line_ids', 'byproduct_ids', 'operation_ids')"
+     ],
+     "lines": 12,
+     "name": "_check_bom_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_round_last_line_done"
+    }
+   ],
+   "name": "mrp.bom",
+   "transient": false
+  },
+  "mrp.bom.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "cost_share": {
+     "digits": 0,
+     "help": "The percentage of the component repartition cost when purchasing a kit.The total of all components' cost have to be equal to 100.",
+     "string": "Cost Share (%)",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_cost_share"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_bom_done_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_line_done_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_line_cost_share"
+    }
+   ],
+   "name": "mrp.bom.line",
+   "transient": false
+  },
+  "mrp.production": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchase_order_count": {
+     "compute": "_compute_purchase_order_count",
+     "groups": "purchase.group_purchase_user",
+     "string": "Count of generated PO",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('procurement_group_id.stock_move_ids.created_purchase_line_ids.order_id', 'procurement_group_id.stock_move_ids.move_orig_ids.purchase_line_id.order_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_purchase_order_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_view_purchase_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_document_iterate_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_purchase_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_merge_orig_links"
+    }
+   ],
+   "name": "mrp.production",
+   "transient": false
+  },
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mrp_production_count": {
+     "compute": "_compute_mrp_production_count",
+     "groups": "mrp.group_mrp_user",
+     "string": "Count of MO Source",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.move_dest_ids.group_id.mrp_production_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_mrp_production_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_mrp_productions"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_view_mrp_productions"
+    }
+   ],
+   "name": "purchase.order",
+   "transient": false
+  },
+  "purchase.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_kit_quantities_from_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_compute_qty_received"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_upstream_documents_and_responsibles"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_qty_procurement"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_move_dests_initial_demand"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_sale_order_line_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_prepare_stock_moves"
+    }
+   ],
+   "name": "purchase.order.line",
+   "sel_methods": {
+    "_get_move_dests_initial_demand": [],
+    "_get_qty_procurement": []
+   },
+   "transient": false
+  },
+  "report.mrp.report_bom_structure": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "_format_route_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_resupply_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_buy_route"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_resupply_availability"
+    }
+   ],
+   "name": "report.mrp.report_bom_structure",
+   "sel_methods": {
+    "_get_resupply_availability": []
+   },
+   "transient": false
+  },
+  "report.mrp.report_mo_overview": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_extra_replenishments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_format_extra_replenishment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_replenishment_receipt"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_resupply_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_doc_in_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_origin"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_replenishment_mo_cost"
+    }
+   ],
+   "name": "report.mrp.report_mo_overview",
+   "sel_methods": {
+    "_get_origin": [],
+    "_get_replenishment_mo_cost": [],
+    "_is_doc_in_done": []
+   },
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_phantom_move_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_kit_ratio"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_merge_moves_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_valuation_price_and_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_qty_received_without_self"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_round_in_svl_value"
+    }
+   ],
+   "name": "stock.move",
+   "sel_methods": {
+    "_get_qty_received_without_self": []
+   },
+   "transient": false
+  }
+ },
+ "module": "purchase_mrp",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/purchase_mrp",
+ "stats": {
+  "fields": 3,
+  "methods": 40,
+  "models": 9,
+  "py_lines": 551
+ },
+ "summary": "This module provides facility to the user to install mrp and purchase modules at a time.",
+ "title": "Purchase and MRP Management",
+ "version": "1.0"
+}

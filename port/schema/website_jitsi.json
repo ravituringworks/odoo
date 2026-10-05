@@ -1,0 +1,234 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/chat_room_templates.xml",
+  "views/chat_room_views.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "website"
+ ],
+ "models": {
+  "chat.room": {
+   "abstract": false,
+   "description": "Chat Room",
+   "extension": false,
+   "fields": {
+    "is_full": {
+     "compute": "_compute_is_full",
+     "string": "Full",
+     "type": "Boolean"
+    },
+    "jitsi_server_domain": {
+     "compute": "_compute_jitsi_server_domain",
+     "help": "The Jitsi server domain can be customized through the settings to use a different server than the default \"meet.jit.si\"",
+     "string": "Jitsi Server Domain",
+     "type": "Char"
+    },
+    "lang_id": {
+     "comodel": "res.lang",
+     "default": {
+      "$lambda": "self.env['res.lang'].search([('code', '=', self.env.user.lang)], limit=1)"
+     },
+     "string": "Language",
+     "type": "Many2one"
+    },
+    "last_activity": {
+     "copy": false,
+     "default": {
+      "$lambda": "fields.Datetime.now()"
+     },
+     "readonly": true,
+     "string": "Last Activity",
+     "type": "Datetime"
+    },
+    "max_capacity": {
+     "default": "8",
+     "required": true,
+     "selection": [
+      [
+       "4",
+       "4"
+      ],
+      [
+       "8",
+       "8"
+      ],
+      [
+       "12",
+       "12"
+      ],
+      [
+       "16",
+       "16"
+      ],
+      [
+       "20",
+       "20"
+      ],
+      [
+       "no_limit",
+       "No limit"
+      ]
+     ],
+     "string": "Max capacity",
+     "type": "Selection"
+    },
+    "max_participant_reached": {
+     "copy": false,
+     "help": "Maximum number of participant reached in the room at the same time",
+     "readonly": true,
+     "string": "Max participant reached",
+     "type": "Integer"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "self._default_name()"
+     },
+     "required": true,
+     "string": "Room Name",
+     "type": "Char"
+    },
+    "participant_count": {
+     "copy": false,
+     "default": 0,
+     "string": "Participant count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('max_capacity', 'participant_count')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_full"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_jitsi_server_domain"
+    }
+   ],
+   "name": "chat.room",
+   "transient": false
+  },
+  "chat.room.mixin": {
+   "abstract": true,
+   "description": "Chat Room Mixin",
+   "extension": false,
+   "fields": {
+    "chat_room_id": {
+     "comodel": "chat.room",
+     "copy": false,
+     "ondelete": "set null",
+     "readonly": true,
+     "string": "Chat Room",
+     "type": "Many2one"
+    },
+    "room_is_full": {
+     "related": "chat_room_id.is_full",
+     "string": "Room Is Full",
+     "type": "Boolean"
+    },
+    "room_lang_id": {
+     "comodel": "res.lang",
+     "readonly": false,
+     "related": "chat_room_id.lang_id",
+     "string": "Language",
+     "type": "Many2one"
+    },
+    "room_last_activity": {
+     "related": "chat_room_id.last_activity",
+     "string": "Last activity",
+     "type": "Datetime"
+    },
+    "room_max_capacity": {
+     "readonly": false,
+     "related": "chat_room_id.max_capacity",
+     "required": true,
+     "string": "Max capacity",
+     "type": "Selection"
+    },
+    "room_max_participant_reached": {
+     "related": "chat_room_id.max_participant_reached",
+     "string": "Peak participants",
+     "type": "Integer"
+    },
+    "room_name": {
+     "related": "chat_room_id.name",
+     "string": "Room Name",
+     "type": "Char"
+    },
+    "room_participant_count": {
+     "readonly": false,
+     "related": "chat_room_id.participant_count",
+     "string": "Participant count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_jitsi_sanitize_name"
+    }
+   ],
+   "name": "chat.room.mixin",
+   "transient": false
+  }
+ },
+ "module": "website_jitsi",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_jitsi",
+ "stats": {
+  "fields": 16,
+  "methods": 8,
+  "models": 2,
+  "py_lines": 213
+ },
+ "summary": "Create Jitsi room on website.",
+ "title": "Website Jitsi",
+ "version": "1.0"
+}

@@ -1,0 +1,179 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden/Tests",
+ "data_files": [
+  "data.xml",
+  "ir.model.access.csv",
+  "views.xml"
+ ],
+ "depends": [
+  "base",
+  "web",
+  "web_tour",
+  "mail"
+ ],
+ "models": {
+  "test_http.galaxy": {
+   "abstract": false,
+   "description": "Galaxy",
+   "extension": false,
+   "fields": {
+    "name": {
+     "help": "The galaxy common name.",
+     "required": true,
+     "type": "Char"
+    },
+    "picture": {
+     "groups": "base.group_user",
+     "type": "Image"
+    },
+    "stargate_ids": {
+     "comodel": "test_http.stargate",
+     "inverse_name": "galaxy_id",
+     "string": "stargates",
+     "type": "One2many"
+    },
+    "translated_name": {
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "render"
+    }
+   ],
+   "name": "test_http.galaxy",
+   "transient": false
+  },
+  "test_http.stargate": {
+   "abstract": false,
+   "description": "Stargate",
+   "extension": false,
+   "fields": {
+    "address": {
+     "required": true,
+     "type": "Char"
+    },
+    "availability": {
+     "default": 0.99,
+     "type": "Float"
+    },
+    "galaxy_id": {
+     "comodel": "test_http.galaxy",
+     "required": true,
+     "type": "Many2one"
+    },
+    "galaxy_picture": {
+     "related": "galaxy_id.picture",
+     "store": false,
+     "type": "Image"
+    },
+    "glyph_attach": {
+     "type": "Image"
+    },
+    "glyph_compute": {
+     "compute": "_compute_glyph_compute",
+     "type": "Image"
+    },
+    "glyph_inline": {
+     "type": "Image"
+    },
+    "glyph_related": {
+     "related": "glyph_attach",
+     "store": true,
+     "string": "Glyph 128",
+     "type": "Image"
+    },
+    "has_galaxy_crystal": {
+     "compute": "_compute_has_galaxy_crystal",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    },
+    "last_use_date": {
+     "type": "Date"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Char"
+    },
+    "sgc_designation": {
+     "compute": "_compute_sgc_designation",
+     "store": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('galaxy_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_has_galaxy_crystal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sgc_designation')"
+     ],
+     "lines": 4,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('address')"
+     ],
+     "lines": 14,
+     "name": "_compute_sgc_designation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('glyph_attach')"
+     ],
+     "lines": 3,
+     "name": "_compute_glyph_compute"
+    }
+   ],
+   "name": "test_http.stargate",
+   "sql_constraints": [
+    [
+     "address_length",
+     "CHECK(LENGTH(address) = 6)",
+     "Local addresses have 6 glyphs"
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "test_http",
+ "path": "/Volumes/fast01/source/git-oss/odoo/odoo/addons/test_http",
+ "stats": {
+  "fields": 16,
+  "methods": 5,
+  "models": 2,
+  "py_lines": 441
+ },
+ "summary": "A module to test HTTP",
+ "title": "Test HTTP",
+ "version": "1.0"
+}

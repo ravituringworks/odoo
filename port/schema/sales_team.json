@@ -1,0 +1,615 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "security/sales_team_security.xml",
+  "security/ir.model.access.csv",
+  "data/crm_team_data.xml",
+  "views/crm_tag_views.xml",
+  "views/crm_team_views.xml",
+  "views/crm_team_member_views.xml",
+  "views/mail_activity_views.xml",
+  "data/crm_team_demo.xml",
+  "data/crm_tag_demo.xml"
+ ],
+ "depends": [
+  "base",
+  "mail"
+ ],
+ "models": {
+  "crm.tag": {
+   "abstract": false,
+   "description": "CRM Tag",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "string": "Color",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Tag Name",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    }
+   ],
+   "name": "crm.tag",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "crm.team": {
+   "abstract": false,
+   "description": "Sales Team",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If the active field is set to false, it will allow you to hide the Sales Team without removing it.",
+     "type": "Boolean"
+    },
+    "color": {
+     "help": "The color of the channel",
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "index": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "crm_team_member_all_ids": {
+     "comodel": "crm.team.member",
+     "inverse_name": "crm_team_id",
+     "string": "Sales Team Members (incl. inactive)",
+     "type": "One2many"
+    },
+    "crm_team_member_ids": {
+     "comodel": "crm.team.member",
+     "help": "Add members to automatically assign their documents to this sales team.",
+     "inverse_name": "crm_team_id",
+     "string": "Sales Team Members",
+     "type": "One2many"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "dashboard_button_name": {
+     "compute": "_compute_dashboard_button_name",
+     "string": "Dashboard Button",
+     "type": "Char"
+    },
+    "dashboard_graph_data": {
+     "compute": "_compute_dashboard_graph",
+     "type": "Text"
+    },
+    "favorite_user_ids": {
+     "column1": "team_id",
+     "column2": "user_id",
+     "comodel": "res.users",
+     "default": {
+      "$ref": "_get_default_favorite_user_ids"
+     },
+     "relation_table": "team_favorite_user_rel",
+     "string": "Favorite Members",
+     "type": "Many2many"
+    },
+    "is_favorite": {
+     "compute": "_compute_is_favorite",
+     "help": "Favorite teams to display them in the dashboard and access them easily.",
+     "string": "Show on dashboard",
+     "type": "Boolean"
+    },
+    "is_membership_multi": {
+     "compute": "_compute_is_membership_multi",
+     "help": "If True, users may belong to several sales teams. Otherwise membership is limited to a single sales team.",
+     "string": "Multiple Memberships Allowed",
+     "type": "Boolean"
+    },
+    "member_company_ids": {
+     "comodel": "res.company",
+     "compute": "_compute_member_company_ids",
+     "help": "UX: Limit to team company or all if no company",
+     "type": "Many2many"
+    },
+    "member_ids": {
+     "comodel": "res.users",
+     "compute": "_compute_member_ids",
+     "domain": "['&', ('share', '=', False), ('company_ids', 'in', member_company_ids)]",
+     "help": "Users assigned to this team.",
+     "string": "Salespersons",
+     "type": "Many2many"
+    },
+    "member_warning": {
+     "compute": "_compute_member_warning",
+     "string": "Membership Issue Warning",
+     "type": "Text"
+    },
+    "name": {
+     "required": true,
+     "string": "Sales Team",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Team Leader",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 63,
+     "name": "_get_default_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_favorite_user_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id')"
+     ],
+     "lines": 11,
+     "name": "_constrains_company_members"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sequence')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_membership_multi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_team_member_ids.active')"
+     ],
+     "lines": 3,
+     "name": "_compute_member_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_inverse_member_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_membership_multi', 'member_ids')"
+     ],
+     "lines": 22,
+     "name": "_compute_member_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_member_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'name')"
+     ],
+     "lines": 6,
+     "name": "_compute_member_company_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_is_favorite"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_is_favorite"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_dashboard_button_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_dashboard_graph"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 8,
+     "name": "_unlink_except_default"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_primary_channel_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_add_members_to_favorites"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_get_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_graph_get_dates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_graph_date_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_graph_get_table"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_graph_x_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_graph_y_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_extra_sql_conditions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_graph_title_and_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_graph_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_get_dashboard_graph_data"
+    }
+   ],
+   "name": "crm.team",
+   "order": "sequence ASC, create_date DESC, id DESC",
+   "sel_methods": {
+    "_get_default_favorite_user_ids": [
+     [
+      6,
+      0
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "crm.team.member": {
+   "abstract": false,
+   "description": "Sales Team Member",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "related": "user_id.company_id",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "crm_team_id": {
+     "comodel": "crm.team",
+     "default": false,
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "email": {
+     "related": "user_id.email",
+     "string": "Email",
+     "type": "Char"
+    },
+    "image_128": {
+     "related": "user_id.image_128",
+     "string": "Image (128)",
+     "type": "Image"
+    },
+    "image_1920": {
+     "related": "user_id.image_1920",
+     "string": "Image",
+     "type": "Image"
+    },
+    "is_membership_multi": {
+     "compute": "_compute_is_membership_multi",
+     "help": "If True, users may belong to several sales teams. Otherwise membership is limited to a single sales team.",
+     "string": "Multiple Memberships Allowed",
+     "type": "Boolean"
+    },
+    "member_warning": {
+     "compute": "_compute_member_warning",
+     "type": "Text"
+    },
+    "mobile": {
+     "related": "user_id.mobile",
+     "string": "Mobile",
+     "type": "Char"
+    },
+    "name": {
+     "readonly": false,
+     "related": "user_id.display_name",
+     "string": "Name",
+     "type": "Char"
+    },
+    "phone": {
+     "related": "user_id.phone",
+     "string": "Phone",
+     "type": "Char"
+    },
+    "user_company_ids": {
+     "comodel": "res.company",
+     "compute": "_compute_user_company_ids",
+     "help": "UX: Limit to team company or all if no company",
+     "type": "Many2many"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "domain": "[('share', '=', False), ('id', 'not in', user_in_teams_ids), ('company_ids', 'in', user_company_ids)]",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Salesperson",
+     "type": "Many2one"
+    },
+    "user_in_teams_ids": {
+     "comodel": "res.users",
+     "compute": "_compute_user_in_teams_ids",
+     "help": "UX: Give users not to add in the currently chosen team to avoid duplicates",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('crm_team_id', 'user_id', 'active')"
+     ],
+     "lines": 34,
+     "name": "_constrains_membership"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('crm_team_id', 'user_id')"
+     ],
+     "lines": 8,
+     "name": "_constrains_company_membership"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_team_id', 'is_membership_multi', 'user_id')",
+      "api.depends_context('default_crm_team_id')"
+     ],
+     "lines": 18,
+     "name": "_compute_user_in_teams_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_team_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_user_company_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_team_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_membership_multi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_membership_multi', 'active', 'user_id', 'crm_team_id')"
+     ],
+     "lines": 28,
+     "name": "_compute_member_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 18,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_synchronize_memberships"
+    }
+   ],
+   "name": "crm.team.member",
+   "order": "create_date ASC, id",
+   "rec_name": "user_id",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "crm_team_ids": {
+     "column1": "user_id",
+     "column2": "crm_team_id",
+     "comodel": "crm.team",
+     "compute": "_compute_crm_team_ids",
+     "copy": false,
+     "readonly": true,
+     "relation_table": "crm_team_member",
+     "string": "Sales Teams",
+     "type": "Many2many"
+    },
+    "crm_team_member_ids": {
+     "comodel": "crm.team.member",
+     "inverse_name": "user_id",
+     "string": "Sales Team Members",
+     "type": "One2many"
+    },
+    "sale_team_id": {
+     "comodel": "crm.team",
+     "compute": "_compute_sale_team_id",
+     "help": "Main user sales team. Used notably for pipeline, or to set sales team in invoicing or subscription.",
+     "readonly": true,
+     "store": true,
+     "string": "User Sales Team",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_team_member_ids.active')"
+     ],
+     "lines": 3,
+     "name": "_compute_crm_team_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_crm_team_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_team_member_ids.crm_team_id', 'crm_team_member_ids.create_date', 'crm_team_member_ids.active')"
+     ],
+     "lines": 7,
+     "name": "_compute_sale_team_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_archive"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "sales_team",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sales_team",
+ "stats": {
+  "fields": 36,
+  "methods": 42,
+  "models": 4,
+  "py_lines": 684
+ },
+ "summary": "Sales Teams",
+ "title": "Sales Teams",
+ "version": "1.1"
+}

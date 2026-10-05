@@ -1,0 +1,1587 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Website/Live Chat",
+ "data_files": [
+  "security/im_livechat_channel_security.xml",
+  "security/ir.model.access.csv",
+  "data/mail_templates.xml",
+  "data/im_livechat_channel_data.xml",
+  "data/im_livechat_chatbot_data.xml",
+  "data/digest_data.xml",
+  "views/chatbot_script_answer_views.xml",
+  "views/chatbot_script_step_views.xml",
+  "views/chatbot_script_views.xml",
+  "views/rating_rating_views.xml",
+  "views/discuss_channel_views.xml",
+  "views/im_livechat_channel_views.xml",
+  "views/im_livechat_channel_templates.xml",
+  "views/im_livechat_chatbot_templates.xml",
+  "views/res_users_views.xml",
+  "views/digest_views.xml",
+  "views/webclient_templates.xml",
+  "report/im_livechat_report_channel_views.xml",
+  "report/im_livechat_report_operator_views.xml",
+  "demo/im_livechat_channel/im_livechat_channel.xml",
+  "demo/im_livechat_channel/im_livechat_session_1.xml",
+  "demo/im_livechat_channel/im_livechat_session_2.xml",
+  "demo/im_livechat_channel/im_livechat_session_3.xml",
+  "demo/im_livechat_channel/im_livechat_session_4.xml",
+  "demo/im_livechat_channel/im_livechat_session_5.xml",
+  "demo/im_livechat_channel/im_livechat_session_6.xml",
+  "demo/im_livechat_channel/im_livechat_session_7.xml",
+  "demo/im_livechat_channel/im_livechat_session_8.xml",
+  "demo/im_livechat_channel/im_livechat_session_9.xml",
+  "demo/im_livechat_channel/im_livechat_session_10.xml",
+  "demo/im_livechat_channel/im_livechat_session_11.xml"
+ ],
+ "depends": [
+  "mail",
+  "rating",
+  "digest",
+  "utm"
+ ],
+ "models": {
+  "chatbot.message": {
+   "abstract": false,
+   "description": "Chatbot Message",
+   "extension": false,
+   "fields": {
+    "discuss_channel_id": {
+     "comodel": "discuss.channel",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Discussion Channel",
+     "type": "Many2one"
+    },
+    "mail_message_id": {
+     "comodel": "mail.message",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Related Mail Message",
+     "type": "Many2one"
+    },
+    "script_step_id": {
+     "comodel": "chatbot.script.step",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Chatbot Step",
+     "type": "Many2one"
+    },
+    "user_raw_answer": {
+     "string": "User's raw answer",
+     "type": "Html"
+    },
+    "user_script_answer_id": {
+     "comodel": "chatbot.script.answer",
+     "ondelete": "set null",
+     "string": "User's answer",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "chatbot.message",
+   "order": "create_date desc, id desc",
+   "rec_name": "discuss_channel_id",
+   "sql_constraints": [
+    [
+     "_unique_mail_message_id",
+     "unique (mail_message_id)",
+     "A mail.message can only be linked to a single chatbot message"
+    ]
+   ],
+   "transient": false
+  },
+  "chatbot.script": {
+   "abstract": false,
+   "description": "Chatbot Script",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "first_step_warning": {
+     "compute": "_compute_first_step_warning",
+     "selection": [
+      [
+       "first_step_operator",
+       "First Step Operator"
+      ],
+      [
+       "first_step_invalid",
+       "First Step Invalid"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "image_1920": {
+     "readonly": false,
+     "related": "operator_partner_id.image_1920",
+     "type": "Image"
+    },
+    "livechat_channel_count": {
+     "compute": "_compute_livechat_channel_count",
+     "string": "Livechat Channel Count",
+     "type": "Integer"
+    },
+    "operator_partner_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Bot Operator",
+     "type": "Many2one"
+    },
+    "script_step_ids": {
+     "comodel": "chatbot.script.step",
+     "copy": true,
+     "inverse_name": "chatbot_script_id",
+     "string": "Script Steps",
+     "type": "One2many"
+    },
+    "title": {
+     "default": "Chatbot",
+     "required": true,
+     "string": "Title",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "image.mixin",
+    "utm.source.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('script_step_ids')"
+     ],
+     "lines": 4,
+     "name": "_check_question_selection"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('script_step_ids')"
+     ],
+     "lines": 4,
+     "name": "_onchange_script_step_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_livechat_channel_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('script_step_ids.step_type')"
+     ],
+     "lines": 16,
+     "name": "_compute_first_step_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 16,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_welcome_steps"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_post_welcome_steps"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_view_livechat_channels"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_format_for_frontend"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_validate_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_chatbot_language"
+    }
+   ],
+   "name": "chatbot.script",
+   "order": "title, id",
+   "rec_name": "title",
+   "transient": false
+  },
+  "chatbot.script.answer": {
+   "abstract": false,
+   "description": "Chatbot Script Answer",
+   "extension": false,
+   "fields": {
+    "chatbot_script_id": {
+     "related": "script_step_id.chatbot_script_id",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Answer",
+     "translate": true,
+     "type": "Char"
+    },
+    "redirect_link": {
+     "help": "The visitor will be redirected to this link upon clicking the option (note that the script will end if the link is external to the livechat website).",
+     "string": "Redirect Link",
+     "type": "Char"
+    },
+    "script_step_id": {
+     "comodel": "chatbot.script.step",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Script Step",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('script_step_id')",
+      "api.depends_context('chatbot_script_answer_display_short_name')"
+     ],
+     "lines": 11,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_search_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_to_store"
+    }
+   ],
+   "name": "chatbot.script.answer",
+   "order": "script_step_id, sequence, id",
+   "transient": false
+  },
+  "chatbot.script.step": {
+   "abstract": false,
+   "description": "Chatbot Script Step",
+   "extension": false,
+   "fields": {
+    "answer_ids": {
+     "comodel": "chatbot.script.answer",
+     "copy": true,
+     "inverse_name": "script_step_id",
+     "string": "Answers",
+     "type": "One2many"
+    },
+    "chatbot_script_id": {
+     "comodel": "chatbot.script",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Chatbot",
+     "type": "Many2one"
+    },
+    "is_forward_operator_child": {
+     "compute": "_compute_is_forward_operator_child",
+     "type": "Boolean"
+    },
+    "message": {
+     "string": "Message",
+     "translate": true,
+     "type": "Text"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "step_type": {
+     "default": "text",
+     "required": true,
+     "selection": [
+      [
+       "text",
+       "Text"
+      ],
+      [
+       "question_selection",
+       "Question"
+      ],
+      [
+       "question_email",
+       "Email"
+      ],
+      [
+       "question_phone",
+       "Phone"
+      ],
+      [
+       "forward_operator",
+       "Forward to Operator"
+      ],
+      [
+       "free_input_single",
+       "Free Input"
+      ],
+      [
+       "free_input_multi",
+       "Free Input (Multi-Line)"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "triggering_answer_ids": {
+     "comodel": "chatbot.script.answer",
+     "compute": "_compute_triggering_answer_ids",
+     "copy": false,
+     "domain": "[('script_step_id.sequence', '<', sequence)]",
+     "help": "Show this step only if all of these answers have been selected.",
+     "readonly": false,
+     "store": true,
+     "string": "Only If",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sequence')"
+     ],
+     "lines": 6,
+     "name": "_compute_triggering_answer_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sequence', 'triggering_answer_ids', 'chatbot_script_id.script_step_ids.triggering_answer_ids', 'chatbot_script_id.script_step_ids.answer_ids', 'chatbot_script_id.script_step_ids.sequence')"
+     ],
+     "lines": 16,
+     "name": "_compute_is_forward_operator_child"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 45,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_chatbot_prepare_customer_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_fetch_next_step"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_parent_step"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_is_last_step"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_process_answer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_process_step"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_process_step_forward_operator"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_format_for_frontend"
+    }
+   ],
+   "name": "chatbot.script.step",
+   "order": "sequence, id",
+   "rec_name": "message",
+   "transient": false
+  },
+  "digest.digest": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "kpi_livechat_conversations": {
+     "string": "Conversations handled",
+     "type": "Boolean"
+    },
+    "kpi_livechat_conversations_value": {
+     "compute": "_compute_kpi_livechat_conversations_value",
+     "type": "Integer"
+    },
+    "kpi_livechat_rating": {
+     "string": "% of Happiness",
+     "type": "Boolean"
+    },
+    "kpi_livechat_rating_value": {
+     "compute": "_compute_kpi_livechat_rating_value",
+     "digits": [
+      16,
+      2
+     ],
+     "type": "Float"
+    },
+    "kpi_livechat_response": {
+     "string": "Time to answer (sec)",
+     "type": "Boolean"
+    },
+    "kpi_livechat_response_value": {
+     "compute": "_compute_kpi_livechat_response_value",
+     "digits": [
+      16,
+      2
+     ],
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_kpi_livechat_rating_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_kpi_livechat_conversations_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_kpi_livechat_response_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_kpis_actions"
+    }
+   ],
+   "name": "digest.digest",
+   "transient": false
+  },
+  "discuss.channel": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "anonymous_name": {
+     "string": "Anonymous Name",
+     "type": "Char"
+    },
+    "channel_type": {
+     "ondelete": {
+      "livechat": "cascade"
+     },
+     "selection_add": [
+      [
+       "livechat",
+       "Livechat Conversation"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "chatbot_current_step_id": {
+     "comodel": "chatbot.script.step",
+     "string": "Chatbot Current Step",
+     "type": "Many2one"
+    },
+    "chatbot_message_ids": {
+     "comodel": "chatbot.message",
+     "inverse_name": "discuss_channel_id",
+     "string": "Chatbot Messages",
+     "type": "One2many"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "help": "Country of the visitor of the channel",
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "duration": {
+     "compute": "_compute_duration",
+     "help": "Duration of the session in hours",
+     "string": "Duration",
+     "type": "Float"
+    },
+    "livechat_active": {
+     "help": "Livechat session is active until visitor leaves the conversation.",
+     "string": "Is livechat ongoing?",
+     "type": "Boolean"
+    },
+    "livechat_channel_id": {
+     "comodel": "im_livechat.channel",
+     "index": "btree_not_null",
+     "string": "Channel",
+     "type": "Many2one"
+    },
+    "livechat_operator_id": {
+     "comodel": "res.partner",
+     "index": "btree_not_null",
+     "string": "Operator",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "rating.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('message_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_duration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 14,
+     "name": "_gc_empty_livechat_sessions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "execute_command_history"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_visitor_leave_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_close_livechat_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_rating_get_parent_field_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_email_livechat_transcript"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_channel_history"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_chatbot_find_customer_values_in_messages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_chatbot_post_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_chatbot_validate_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_message_post_after_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_chatbot_restart"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_types_allowing_seen_infos"
+    }
+   ],
+   "name": "discuss.channel",
+   "sel_methods": {
+    "_message_post_after_hook": []
+   },
+   "sql_constraints": [
+    [
+     "livechat_operator_id",
+     "CHECK((channel_type = 'livechat' and livechat_operator_id is not null) or (channel_type != 'livechat'))",
+     "Livechat Operator ID is required for a channel of type livechat."
+    ]
+   ],
+   "transient": false
+  },
+  "discuss.channel.member": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 12,
+     "name": "_gc_unpin_livechat_sessions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_store_partner_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_rtc_invite_members_domain"
+    }
+   ],
+   "name": "discuss.channel.member",
+   "sel_methods": {
+    "_get_store_partner_fields": []
+   },
+   "transient": false
+  },
+  "im_livechat.channel": {
+   "abstract": false,
+   "description": "Livechat Channel",
+   "extension": false,
+   "fields": {
+    "are_you_inside": {
+     "compute": "_are_you_inside",
+     "readonly": true,
+     "store": false,
+     "string": "Are you inside the matrix?",
+     "type": "Boolean"
+    },
+    "available_operator_ids": {
+     "comodel": "res.users",
+     "compute": "_compute_available_operator_ids",
+     "type": "Many2many"
+    },
+    "button_background_color": {
+     "default": "#875A7B",
+     "help": "Default background color of the Livechat button",
+     "type": "Char"
+    },
+    "button_text": {
+     "default": {
+      "$ref": "_default_button_text"
+     },
+     "help": "Default text displayed on the Livechat Support Button",
+     "string": "Text of the Button",
+     "translate": true,
+     "type": "Char"
+    },
+    "button_text_color": {
+     "default": "#FFFFFF",
+     "help": "Default text color of the Livechat button",
+     "type": "Char"
+    },
+    "channel_ids": {
+     "comodel": "discuss.channel",
+     "inverse_name": "livechat_channel_id",
+     "string": "Sessions",
+     "type": "One2many"
+    },
+    "chatbot_script_count": {
+     "compute": "_compute_chatbot_script_count",
+     "string": "Number of Chatbot",
+     "type": "Integer"
+    },
+    "default_message": {
+     "default": {
+      "$ref": "_default_default_message"
+     },
+     "help": "This is an automated 'welcome' message that your visitor will see when they initiate a new conversation.",
+     "string": "Welcome Message",
+     "translate": true,
+     "type": "Char"
+    },
+    "header_background_color": {
+     "default": "#875A7B",
+     "help": "Default background color of the channel header once open",
+     "type": "Char"
+    },
+    "image_128": {
+     "string": "Image",
+     "type": "Image"
+    },
+    "input_placeholder": {
+     "help": "Text that prompts the user to initiate the chat.",
+     "string": "Chat Input Placeholder",
+     "translate": true,
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Channel Name",
+     "type": "Char"
+    },
+    "nbr_channel": {
+     "compute": "_compute_nbr_channel",
+     "readonly": true,
+     "store": false,
+     "string": "Number of conversation",
+     "type": "Integer"
+    },
+    "rule_ids": {
+     "comodel": "im_livechat.channel.rule",
+     "inverse_name": "channel_id",
+     "string": "Rules",
+     "type": "One2many"
+    },
+    "script_external": {
+     "compute": "_compute_script_external",
+     "readonly": true,
+     "store": false,
+     "string": "Script (external)",
+     "type": "Html"
+    },
+    "title_color": {
+     "default": "#FFFFFF",
+     "help": "Default title color of the channel once open",
+     "type": "Char"
+    },
+    "user_ids": {
+     "column1": "channel_id",
+     "column2": "user_id",
+     "comodel": "res.users",
+     "default": {
+      "$ref": "_default_user_ids"
+     },
+     "relation_table": "im_livechat_channel_im_user",
+     "string": "Operators",
+     "type": "Many2many"
+    },
+    "web_page": {
+     "compute": "_compute_web_page_link",
+     "help": "URL to a static page where you client can discuss with the operator of the channel.",
+     "readonly": true,
+     "store": false,
+     "string": "Web Page",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "rating.parent.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_user_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_button_text"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_default_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_are_you_inside"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_ids.im_status')"
+     ],
+     "lines": 3,
+     "name": "_compute_available_operator_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rule_ids.chatbot_script_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_chatbot_script_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_script_external"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_web_page_link"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('channel_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_nbr_channel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_join"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_quit"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_view_rating"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_view_chatbot_scripts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_get_livechat_discuss_channel_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_get_less_active_operator"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 78,
+     "name": "_get_operator"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_channel_infos"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "get_livechat_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_to_store"
+    }
+   ],
+   "name": "im_livechat.channel",
+   "sel_methods": {
+    "_default_user_ids": [
+     [
+      6,
+      0
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "im_livechat.channel.rule": {
+   "abstract": false,
+   "description": "Livechat Channel Rules",
+   "extension": false,
+   "fields": {
+    "action": {
+     "default": "display_button",
+     "help": "* 'Show' displays the chat button on the pages.\n* 'Show with notification' is 'Show' in addition to a floating text just next to the button.\n* 'Open automatically' displays the button and automatically opens the conversation pane on larger screens. On small screens, this behaves like 'Show'.\n* 'Hide' hides the chat button on the pages.\n",
+     "required": true,
+     "selection": [
+      [
+       "display_button",
+       "Show"
+      ],
+      [
+       "display_button_and_text",
+       "Show with notification"
+      ],
+      [
+       "auto_popup",
+       "Open automatically"
+      ],
+      [
+       "hide_button",
+       "Hide"
+      ]
+     ],
+     "string": "Live Chat Button",
+     "type": "Selection"
+    },
+    "auto_popup_timer": {
+     "default": 0,
+     "help": "Delay (in seconds) to automatically open the conversation window. Note: the selected action must be 'Open automatically' otherwise this parameter will not be taken into account.",
+     "string": "Open automatically timer",
+     "type": "Integer"
+    },
+    "channel_id": {
+     "comodel": "im_livechat.channel",
+     "help": "The channel of the rule",
+     "string": "Channel",
+     "type": "Many2one"
+    },
+    "chatbot_only_if_no_operator": {
+     "help": "Enable the bot only if there is no operator available",
+     "string": "Enabled only if no operator",
+     "type": "Boolean"
+    },
+    "chatbot_script_id": {
+     "comodel": "chatbot.script",
+     "string": "Chatbot",
+     "type": "Many2one"
+    },
+    "country_ids": {
+     "column1": "channel_id",
+     "column2": "country_id",
+     "comodel": "res.country",
+     "help": "The rule will only be applied for these countries. Example: if you select 'Belgium' and 'United States' and that you set the action to 'Hide', the chat button will be hidden on the specified URL from the visitors located in these 2 countries. This feature requires GeoIP installed on your server.",
+     "relation_table": "im_livechat_channel_country_rel",
+     "string": "Country",
+     "type": "Many2many"
+    },
+    "regex_url": {
+     "help": "Regular expression specifying the web pages this rule will be applied on.",
+     "string": "URL Regex",
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "help": "Given the order to find a matching rule. If 2 rules are matching for the given url/country, the one with the lowest sequence will be chosen.",
+     "string": "Matching order",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "match_rule"
+    }
+   ],
+   "name": "im_livechat.channel.rule",
+   "order": "sequence asc",
+   "transient": false
+  },
+  "im_livechat.report.channel": {
+   "abstract": false,
+   "description": "Livechat Support Channel Report",
+   "extension": false,
+   "fields": {
+    "channel_id": {
+     "comodel": "discuss.channel",
+     "readonly": true,
+     "string": "Conversation",
+     "type": "Many2one"
+    },
+    "channel_name": {
+     "readonly": true,
+     "string": "Channel Name",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "readonly": true,
+     "string": "Country of the visitor",
+     "type": "Many2one"
+    },
+    "day_number": {
+     "help": "1 is Monday, 7 is Sunday",
+     "readonly": true,
+     "string": "Day Number",
+     "type": "Char"
+    },
+    "days_of_activity": {
+     "help": "Number of days since the first session of the operator",
+     "readonly": true,
+     "string": "Days of activity",
+     "type": "Integer"
+    },
+    "duration": {
+     "digits": [
+      16,
+      2
+     ],
+     "help": "Duration of the conversation (in seconds)",
+     "readonly": true,
+     "string": "Average duration",
+     "type": "Float"
+    },
+    "is_anonymous": {
+     "readonly": true,
+     "string": "Is visitor anonymous",
+     "type": "Integer"
+    },
+    "is_happy": {
+     "readonly": true,
+     "string": "Visitor is Happy",
+     "type": "Integer"
+    },
+    "is_unrated": {
+     "readonly": true,
+     "string": "Session not rated",
+     "type": "Integer"
+    },
+    "is_without_answer": {
+     "help": "A session is without answer if the operator did not answer. \n                                       If the visitor is also the operator, the session will always be answered.",
+     "readonly": true,
+     "string": "Session(s) without answer",
+     "type": "Integer"
+    },
+    "livechat_channel_id": {
+     "comodel": "im_livechat.channel",
+     "readonly": true,
+     "string": "Channel",
+     "type": "Many2one"
+    },
+    "nbr_message": {
+     "help": "Number of message in the conversation",
+     "readonly": true,
+     "string": "Average message",
+     "type": "Integer"
+    },
+    "nbr_speaker": {
+     "help": "Number of different speakers",
+     "readonly": true,
+     "string": "# of speakers",
+     "type": "Integer"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Operator",
+     "type": "Many2one"
+    },
+    "rating": {
+     "readonly": true,
+     "string": "Rating",
+     "type": "Integer"
+    },
+    "rating_text": {
+     "readonly": true,
+     "string": "Satisfaction Rate",
+     "type": "Char"
+    },
+    "start_date": {
+     "readonly": true,
+     "string": "Start Date of session",
+     "type": "Datetime"
+    },
+    "start_date_hour": {
+     "readonly": true,
+     "string": "Hour of start Date of session",
+     "type": "Char"
+    },
+    "start_hour": {
+     "readonly": true,
+     "string": "Start Hour of session",
+     "type": "Char"
+    },
+    "technical_name": {
+     "readonly": true,
+     "string": "Code",
+     "type": "Char"
+    },
+    "time_to_answer": {
+     "digits": [
+      16,
+      2
+     ],
+     "help": "Average time in seconds to give the first answer to the visitor",
+     "readonly": true,
+     "string": "Time to answer (sec)",
+     "type": "Float"
+    },
+    "uuid": {
+     "readonly": true,
+     "string": "UUID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "init"
+    }
+   ],
+   "name": "im_livechat.report.channel",
+   "order": "start_date, technical_name",
+   "transient": false
+  },
+  "im_livechat.report.operator": {
+   "abstract": false,
+   "description": "Livechat Support Operator Report",
+   "extension": false,
+   "fields": {
+    "channel_id": {
+     "comodel": "discuss.channel",
+     "readonly": true,
+     "string": "Conversation",
+     "type": "Many2one"
+    },
+    "duration": {
+     "digits": [
+      16,
+      2
+     ],
+     "help": "Duration of the conversation (in seconds)",
+     "readonly": true,
+     "string": "Average duration",
+     "type": "Float"
+    },
+    "livechat_channel_id": {
+     "comodel": "im_livechat.channel",
+     "readonly": true,
+     "string": "Channel",
+     "type": "Many2one"
+    },
+    "nbr_channel": {
+     "readonly": true,
+     "string": "# of Sessions",
+     "type": "Integer"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Operator",
+     "type": "Many2one"
+    },
+    "rating": {
+     "help": "Average rating given by the visitor",
+     "readonly": true,
+     "string": "Average rating",
+     "type": "Float"
+    },
+    "start_date": {
+     "readonly": true,
+     "string": "Start Date of session",
+     "type": "Datetime"
+    },
+    "time_to_answer": {
+     "digits": [
+      16,
+      2
+     ],
+     "help": "Average time to give the first answer to the visitor",
+     "readonly": true,
+     "string": "Time to answer",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "init"
+    }
+   ],
+   "name": "im_livechat.report.operator",
+   "order": "livechat_channel_id, partner_id",
+   "transient": false
+  },
+  "ir.qweb": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_bundles_to_pregenarate"
+    }
+   ],
+   "name": "ir.qweb",
+   "transient": false
+  },
+  "mail.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "parent_author_name": {
+     "compute": "_compute_parent_author_name",
+     "type": "Char"
+    },
+    "parent_body": {
+     "compute": "_compute_parent_body",
+     "type": "Html"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_parent_author_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id.body')"
+     ],
+     "lines": 3,
+     "name": "_compute_parent_body"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_author_to_store"
+    }
+   ],
+   "name": "mail.message",
+   "transient": false
+  },
+  "rating.rating": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_res_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_open_rated_object"
+    }
+   ],
+   "name": "rating.rating",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "user_livechat_username": {
+     "compute": "_compute_user_livechat_username",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_search_for_channel_invite_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_ids.livechat_username')"
+     ],
+     "lines": 3,
+     "name": "_compute_user_livechat_username"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_bus_send_history_message"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_access_livechat": {
+     "compute": "_compute_has_access_livechat",
+     "readonly": true,
+     "store": false,
+     "string": "Has access to Livechat",
+     "type": "Boolean"
+    },
+    "livechat_lang_ids": {
+     "comodel": "res.lang",
+     "compute": "_compute_livechat_lang_ids",
+     "store": false,
+     "string": "Livechat Languages",
+     "type": "Many2many"
+    },
+    "livechat_username": {
+     "compute": "_compute_livechat_username",
+     "store": false,
+     "string": "Livechat Username",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_WRITEABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_users_settings_id.livechat_username')"
+     ],
+     "lines": 3,
+     "name": "_compute_livechat_username"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_livechat_username"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_users_settings_id.livechat_lang_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_livechat_lang_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_livechat_lang_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_has_access_livechat"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_init_store_data"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "res.users.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "livechat_lang_ids": {
+     "comodel": "res.lang",
+     "help": "These languages, in addition to your main language, will be used to assign you to Live Chat sessions.",
+     "string": "Livechat languages",
+     "type": "Many2many"
+    },
+    "livechat_username": {
+     "help": "This username will be used as your name in the livechat channels.",
+     "string": "Livechat Username",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.users.settings",
+   "transient": false
+  }
+ },
+ "module": "im_livechat",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/im_livechat",
+ "stats": {
+  "fields": 103,
+  "methods": 93,
+  "models": 17,
+  "py_lines": 2739
+ },
+ "summary": "Chat with your website visitors",
+ "title": "Live Chat",
+ "version": "1.0"
+}

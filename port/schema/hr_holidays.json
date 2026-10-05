@@ -1,0 +1,4470 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Time Off",
+ "data_files": [
+  "data/report_paperformat.xml",
+  "data/mail_activity_type_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/hr_holidays_data.xml",
+  "data/ir_cron_data.xml",
+  "data/hr_holidays_tour.xml",
+  "security/hr_holidays_security.xml",
+  "security/ir.model.access.csv",
+  "views/resource_views.xml",
+  "views/hr_leave_views.xml",
+  "views/hr_leave_type_views.xml",
+  "views/hr_leave_allocation_views.xml",
+  "views/hr_leave_accrual_views.xml",
+  "views/hr_leave_mandatory_day_views.xml",
+  "views/mail_activity_views.xml",
+  "views/calendar_views.xml",
+  "wizard/hr_holidays_cancel_leave_views.xml",
+  "wizard/hr_holidays_summary_employees_views.xml",
+  "wizard/hr_leave_generate_multi_wizard_views.xml",
+  "wizard/hr_leave_allocation_generate_multi_wizard_views.xml",
+  "report/hr_holidays_templates.xml",
+  "report/hr_holidays_reports.xml",
+  "report/hr_leave_reports.xml",
+  "report/hr_leave_report_calendar.xml",
+  "report/hr_leave_employee_type_report.xml",
+  "views/hr_views.xml",
+  "views/hr_holidays_views.xml",
+  "data/hr_holidays_demo.xml"
+ ],
+ "depends": [
+  "hr",
+  "calendar",
+  "resource"
+ ],
+ "models": {
+  "calendar.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_need_video_call"
+    }
+   ],
+   "name": "calendar.event",
+   "sel_methods": {
+    "_need_video_call": []
+   },
+   "transient": false
+  },
+  "hr.department": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "absence_of_today": {
+     "compute": "_compute_leave_count",
+     "string": "Absence by Today",
+     "type": "Integer"
+    },
+    "allocation_to_approve_count": {
+     "compute": "_compute_leave_count",
+     "string": "Allocation to Approve",
+     "type": "Integer"
+    },
+    "leave_to_approve_count": {
+     "compute": "_compute_leave_count",
+     "string": "Time Off to Approve",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_compute_leave_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_action_context"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_leave_department"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_open_allocation_department"
+    }
+   ],
+   "name": "hr.department",
+   "transient": false
+  },
+  "hr.departure.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 37,
+     "name": "action_register_departure"
+    }
+   ],
+   "name": "hr.departure.wizard",
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "current_leave_id": {
+     "comodel": "hr.leave.type",
+     "compute": "_compute_current_leave",
+     "groups": "hr.group_hr_user",
+     "string": "Current Time Off Type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_current_leave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_user_m2o_to_empty_on_archived_employees"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_time_off_dashboard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_leave_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "get_mandatory_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_special_days_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "get_public_holidays_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "get_allocation_requests_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_public_holidays"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "get_mandatory_days_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_get_mandatory_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_hours_per_day"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.employee.base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allocation_count": {
+     "compute": "_compute_allocation_count",
+     "string": "Total number of days allocated.",
+     "type": "Float"
+    },
+    "allocation_display": {
+     "compute": "_compute_allocation_remaining_display",
+     "type": "Char"
+    },
+    "allocation_remaining_display": {
+     "compute": "_compute_allocation_remaining_display",
+     "type": "Char"
+    },
+    "allocations_count": {
+     "compute": "_compute_allocation_count",
+     "string": "Total number of allocations",
+     "type": "Integer"
+    },
+    "current_leave_state": {
+     "compute": "_compute_leave_status",
+     "selection": [
+      [
+       "confirm",
+       "Waiting Approval"
+      ],
+      [
+       "refuse",
+       "Refused"
+      ],
+      [
+       "validate1",
+       "Waiting Second Approval"
+      ],
+      [
+       "validate",
+       "Approved"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Current Time Off Status",
+     "type": "Selection"
+    },
+    "hr_icon_display": {
+     "selection_add": [
+      [
+       "presence_holiday_absent",
+       "On leave"
+      ],
+      [
+       "presence_holiday_present",
+       "Present but on leave"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "is_absent": {
+     "compute": "_compute_leave_status",
+     "string": "Absent Today",
+     "type": "Boolean"
+    },
+    "leave_date_from": {
+     "compute": "_compute_leave_status",
+     "string": "From Date",
+     "type": "Date"
+    },
+    "leave_date_to": {
+     "compute": "_compute_leave_status",
+     "string": "To Date",
+     "type": "Date"
+    },
+    "leave_manager_id": {
+     "comodel": "res.users",
+     "compute": "_compute_leave_manager",
+     "domain": "[('share', '=', False), ('company_ids', 'in', company_id)]",
+     "help": "Select the user responsible for approving \"Time Off\" of this employee.\nIf empty, the approval is done by an Administrator or Approver (determined in settings/users).",
+     "readonly": false,
+     "store": true,
+     "string": "Time Off",
+     "type": "Many2one"
+    },
+    "leaves_count": {
+     "compute": "_compute_remaining_leaves",
+     "string": "Number of Time Off",
+     "type": "Float"
+    },
+    "remaining_leaves": {
+     "compute": "_compute_remaining_leaves",
+     "help": "Total number of paid time off allocated to this employee, change this value to create allocation/time off request. Total based on all the time off types without overriding limit.",
+     "string": "Available Time Off Days",
+     "type": "Float"
+    },
+    "show_leaves": {
+     "compute": "_compute_show_leaves",
+     "string": "Able to see Remaining Time Off",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_presence_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_remaining_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_contextual_employee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 212,
+     "name": "_get_consumed_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_remaining_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_compute_allocation_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_compute_allocation_remaining_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_presence_icon"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_first_working_interval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_compute_leave_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_leave_manager"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_show_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_search_absent_employee"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 14,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 79,
+     "name": "write"
+    }
+   ],
+   "name": "hr.employee.base",
+   "transient": false
+  },
+  "hr.holidays.cancel.leave": {
+   "abstract": false,
+   "description": "Cancel Time Off Wizard",
+   "extension": false,
+   "fields": {
+    "leave_id": {
+     "comodel": "hr.leave",
+     "required": true,
+     "string": "Time Off Request",
+     "type": "Many2one"
+    },
+    "reason": {
+     "required": true,
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_cancel_leave"
+    }
+   ],
+   "name": "hr.holidays.cancel.leave",
+   "transient": true
+  },
+  "hr.holidays.summary.employee": {
+   "abstract": false,
+   "description": "HR Time Off Summary Report By Employee",
+   "extension": false,
+   "fields": {
+    "date_from": {
+     "default": {
+      "$lambda": "time.strftime('%Y-%m-01')"
+     },
+     "required": true,
+     "string": "From",
+     "type": "Date"
+    },
+    "emp": {
+     "column1": "sum_id",
+     "column2": "emp_id",
+     "comodel": "hr.employee",
+     "relation_table": "summary_emp_rel",
+     "string": "Employee(s)",
+     "type": "Many2many"
+    },
+    "holiday_type": {
+     "default": "Approved",
+     "required": true,
+     "selection": [
+      [
+       "Approved",
+       "Approved"
+      ],
+      [
+       "Confirmed",
+       "Confirmed"
+      ],
+      [
+       "both",
+       "Both Approved and Confirmed"
+      ]
+     ],
+     "string": "Select Time Off Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "print_report"
+    }
+   ],
+   "name": "hr.holidays.summary.employee",
+   "transient": true
+  },
+  "hr.leave": {
+   "abstract": false,
+   "description": "Time Off",
+   "extension": false,
+   "fields": {
+    "active_employee": {
+     "related": "employee_id.active",
+     "string": "Employee Active",
+     "type": "Boolean"
+    },
+    "attachment_ids": {
+     "comodel": "ir.attachment",
+     "inverse_name": "res_id",
+     "string": "Attachments",
+     "type": "One2many"
+    },
+    "can_approve": {
+     "compute": "_compute_can_approve",
+     "string": "Can Approve",
+     "type": "Boolean"
+    },
+    "can_cancel": {
+     "compute": "_compute_can_cancel",
+     "string": "Can Cancel",
+     "type": "Boolean"
+    },
+    "can_reset": {
+     "compute": "_compute_can_reset",
+     "string": "Can reset",
+     "type": "Boolean"
+    },
+    "color": {
+     "related": "holiday_status_id.color",
+     "string": "Color",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "date_from": {
+     "compute": "_compute_date_from_to",
+     "index": true,
+     "store": true,
+     "string": "Start Date",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "date_to": {
+     "compute": "_compute_date_from_to",
+     "store": true,
+     "string": "End Date",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_department_id",
+     "readonly": false,
+     "store": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "duration_display": {
+     "compute": "_compute_duration_display",
+     "help": "Field allowing to see the leave request duration in days or hours depending on the leave_type_request_unit",
+     "store": true,
+     "string": "Requested (Days/Hours)",
+     "type": "Char"
+    },
+    "employee_company_id": {
+     "related": "employee_id.company_id",
+     "store": true,
+     "string": "Employee Company",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "default": {
+      "$lambda": "self.env.user.employee_id"
+     },
+     "domain": {
+      "$lambda": "self._get_employee_domain()"
+     },
+     "index": true,
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Employee",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "first_approver_id": {
+     "comodel": "hr.employee",
+     "copy": false,
+     "help": "This area is automatically filled by the user who validate the time off",
+     "readonly": true,
+     "string": "First Approval",
+     "type": "Many2one"
+    },
+    "has_mandatory_day": {
+     "compute": "_compute_has_mandatory_day",
+     "type": "Boolean"
+    },
+    "holiday_status_id": {
+     "comodel": "hr.leave.type",
+     "compute": "_compute_from_employee_id",
+     "domain": "[\n            ('company_id', 'in', [employee_company_id, False]),\n            '|',\n                ('requires_allocation', '=', 'no'),\n                ('has_valid_allocation', '=', True),\n        ]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Time Off Type",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "is_hatched": {
+     "compute": "_compute_is_hatched",
+     "string": "Hatched",
+     "type": "Boolean"
+    },
+    "is_striked": {
+     "compute": "_compute_is_hatched",
+     "string": "Striked",
+     "type": "Boolean"
+    },
+    "last_several_days": {
+     "compute": "_compute_last_several_days",
+     "string": "All day",
+     "type": "Boolean"
+    },
+    "leave_type_increases_duration": {
+     "compute": "_compute_leave_type_increases_duration",
+     "type": "Boolean"
+    },
+    "leave_type_request_unit": {
+     "readonly": true,
+     "related": "holiday_status_id.request_unit",
+     "type": "Selection"
+    },
+    "leave_type_support_document": {
+     "related": "holiday_status_id.support_document",
+     "type": "Boolean"
+    },
+    "manager_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_from_employee_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "meeting_id": {
+     "comodel": "calendar.event",
+     "copy": false,
+     "string": "Meeting",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_description",
+     "copy": false,
+     "string": "Description",
+     "type": "Char"
+    },
+    "notes": {
+     "readonly": false,
+     "string": "Reasons",
+     "type": "Text"
+    },
+    "number_of_days": {
+     "compute": "_compute_duration",
+     "help": "Number of days of the time off request. Used in the calculation.",
+     "store": true,
+     "string": "Duration (Days)",
+     "tracking": true,
+     "type": "Float"
+    },
+    "number_of_hours": {
+     "compute": "_compute_duration",
+     "help": "Number of hours of the time off request. Used in the calculation.",
+     "store": true,
+     "string": "Duration (Hours)",
+     "tracking": true,
+     "type": "Float"
+    },
+    "private_name": {
+     "groups": "hr_holidays.group_hr_holidays_user",
+     "string": "Time Off Description",
+     "type": "Char"
+    },
+    "request_date_from": {
+     "string": "Request Start Date",
+     "type": "Date"
+    },
+    "request_date_from_period": {
+     "default": "am",
+     "selection": [
+      [
+       "am",
+       "Morning"
+      ],
+      [
+       "pm",
+       "Afternoon"
+      ]
+     ],
+     "string": "Date Period Start",
+     "type": "Selection"
+    },
+    "request_date_to": {
+     "string": "Request End Date",
+     "type": "Date"
+    },
+    "request_hour_from": {
+     "string": "Hour from",
+     "type": "Float"
+    },
+    "request_hour_to": {
+     "string": "Hour to",
+     "type": "Float"
+    },
+    "request_unit_half": {
+     "compute": "_compute_request_unit_half",
+     "readonly": false,
+     "store": true,
+     "string": "Half Day",
+     "type": "Boolean"
+    },
+    "request_unit_hours": {
+     "compute": "_compute_request_unit_hours",
+     "readonly": false,
+     "store": true,
+     "string": "Custom Hours",
+     "type": "Boolean"
+    },
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "compute": "_compute_resource_calendar_id",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "second_approver_id": {
+     "comodel": "hr.employee",
+     "copy": false,
+     "help": "This area is automatically filled by the user who validate the time off with second level (If time off type need second validation)",
+     "readonly": true,
+     "string": "Second Approval",
+     "type": "Many2one"
+    },
+    "state": {
+     "copy": false,
+     "default": "confirm",
+     "help": {
+      "$expr": "\"The status is set to 'To Submit', when a time off request is created.\" + \"\\nThe status is 'To Approve', when time off request is confirmed by user.\" + \"\\nThe status is 'Refused', when time off reques"
+     },
+     "readonly": false,
+     "selection": [
+      [
+       "confirm",
+       "To Approve"
+      ],
+      [
+       "refuse",
+       "Refused"
+      ],
+      [
+       "validate1",
+       "Second Approval"
+      ],
+      [
+       "validate",
+       "Approved"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "store": true,
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "supported_attachment_ids": {
+     "comodel": "ir.attachment",
+     "compute": "_compute_supported_attachment_ids",
+     "string": "Attach File",
+     "type": "Many2many"
+    },
+    "supported_attachment_ids_count": {
+     "compute": "_compute_supported_attachment_ids",
+     "type": "Integer"
+    },
+    "tz": {
+     "compute": "_compute_tz",
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "type": "Selection"
+    },
+    "tz_mismatch": {
+     "compute": "_compute_tz_mismatch",
+     "type": "Boolean"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "index": true,
+     "readonly": true,
+     "related": "employee_id.user_id",
+     "store": true,
+     "string": "User",
+     "type": "Many2one"
+    },
+    "validation_type": {
+     "readonly": false,
+     "related": "holiday_status_id.leave_validation_type",
+     "string": "Validation Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.main.attachment"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_default_get_request_dates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('request_hour_from', 'request_hour_to')"
+     ],
+     "lines": 9,
+     "name": "_onchange_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 10,
+     "name": "_compute_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_search_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_resource_calendar_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('request_date_from_period', 'request_hour_from', 'request_hour_to', 'request_date_from', 'request_date_to', 'request_unit_half', 'request_unit_hours', 'employee_id')"
+     ],
+     "lines": 29,
+     "name": "_compute_date_from_to"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('holiday_status_id', 'request_unit_hours')"
+     ],
+     "lines": 4,
+     "name": "_compute_request_unit_half"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('holiday_status_id', 'request_unit_half')"
+     ],
+     "lines": 4,
+     "name": "_compute_request_unit_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_employee_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_from_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_department_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_from', 'date_to', 'holiday_status_id')"
+     ],
+     "lines": 30,
+     "name": "_compute_has_mandatory_day"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('leave_type_request_unit', 'number_of_days')"
+     ],
+     "lines": 5,
+     "name": "_compute_leave_type_increases_duration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 82,
+     "name": "_get_durations"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_from', 'date_to', 'resource_calendar_id', 'holiday_status_id.request_unit')"
+     ],
+     "lines": 6,
+     "name": "_compute_duration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('number_of_days')"
+     ],
+     "lines": 3,
+     "name": "_compute_last_several_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tz')",
+      "api.depends_context('uid')"
+     ],
+     "lines": 3,
+     "name": "_compute_tz_mismatch"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('resource_calendar_id.tz')"
+     ],
+     "lines": 3,
+     "name": "_compute_tz"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('number_of_hours', 'number_of_days', 'leave_type_request_unit')"
+     ],
+     "lines": 15,
+     "name": "_compute_duration_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'employee_id', 'department_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_can_reset"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'employee_id', 'department_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_can_approve"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('state', 'employee_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_can_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_hatched"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('leave_type_support_document', 'attachment_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_supported_attachment_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_supported_attachment_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_from', 'date_to', 'employee_id')"
+     ],
+     "lines": 62,
+     "name": "_check_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_from', 'date_to', 'employee_id')"
+     ],
+     "lines": 6,
+     "name": "_check_date_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_check_validity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tz', 'date_from', 'date_to', 'employee_id', 'holiday_status_id', 'number_of_hours', 'leave_type_request_unit', 'number_of_days', 'department_id')",
+      "api.depends_context('short_name', 'hide_employee_name', 'groupby')"
+     ],
+     "lines": 35,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "onchange"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "add_follower"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_from', 'date_to')"
+     ],
+     "lines": 4,
+     "name": "_check_mandatory_day"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_check_double_validation_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 40,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 14,
+     "name": "_unlink_if_correct_states"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_redirect_suggested_company"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "action_open_records"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_prepare_resource_leave_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_create_resource_leave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_remove_resource_leave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_validate_leave_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_prepare_holidays_meeting_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_reset_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_approve"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_leaves_on_public_holiday"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 83,
+     "name": "_split_leaves"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 26,
+     "name": "action_validate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 20,
+     "name": "action_refuse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_notify_manager"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_action_user_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_force_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_post_leave_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_check_approval_update"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "open_pending_requests"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_responsible_for_approval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "activity_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_notify_change"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "message_subscribe"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "get_unusual_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_to_utc"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 57,
+     "name": "_get_hour_from_to"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 35,
+     "name": "_cancel_invalid_leaves"
+    }
+   ],
+   "name": "hr.leave",
+   "order": "date_from desc",
+   "sel_methods": {
+    "_search_description": [
+     [
+      "id",
+      "in"
+     ]
+    ],
+    "_track_subtype": []
+   },
+   "sql_constraints": [
+    [
+     "date_check2",
+     "CHECK ((date_from <= date_to))",
+     "The start date must be before or equal to the end date."
+    ],
+    [
+     "date_check3",
+     "CHECK ((request_date_from <= request_date_to))",
+     "The request start date must be before or equal to the request end date."
+    ],
+    [
+     "duration_check",
+     "CHECK ( number_of_days >= 0 )",
+     "If you want to change the number of days you should use the 'period' mode"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.leave.accrual.level": {
+   "abstract": false,
+   "description": "Accrual Plan Level",
+   "extension": false,
+   "fields": {
+    "accrual_plan_id": {
+     "comodel": "hr.leave.accrual.plan",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Accrual Plan",
+     "type": "Many2one"
+    },
+    "accrual_validity": {
+     "string": "Accrual Validity",
+     "type": "Boolean"
+    },
+    "accrual_validity_count": {
+     "default": "1",
+     "help": "You can define a period of time where the days carried over will be available",
+     "string": "Accrual Validity Count",
+     "type": "Integer"
+    },
+    "accrual_validity_type": {
+     "default": "day",
+     "help": "This field defines the unit of time after which the accrual ends.",
+     "required": true,
+     "selection": [
+      [
+       "day",
+       "Days"
+      ],
+      [
+       "month",
+       "Months"
+      ]
+     ],
+     "string": "Accrual Validity Type",
+     "type": "Selection"
+    },
+    "accrued_gain_time": {
+     "related": "accrual_plan_id.accrued_gain_time",
+     "type": "Selection"
+    },
+    "action_with_unused_accruals": {
+     "default": "all",
+     "help": "When the Carry-Over Time is reached, according to Plan's setting, select what you want to happen with the unused time off: None (time will be reset to zero), All accrued time carried over to the next period; or Carryover with a maximum).",
+     "required": true,
+     "selection": [
+      [
+       "lost",
+       "None. Accrued time reset to 0"
+      ],
+      [
+       "all",
+       "All accrued time carried over"
+      ],
+      [
+       "maximum",
+       "Carry over with a maximum"
+      ]
+     ],
+     "string": "Carry over",
+     "type": "Selection"
+    },
+    "added_value": {
+     "default": 1,
+     "digits": [
+      16,
+      5
+     ],
+     "help": "The number of hours/days that will be incremented in the specified Time Off Type for every period",
+     "required": true,
+     "string": "Rate",
+     "type": "Float"
+    },
+    "added_value_type": {
+     "compute": "_compute_added_value_type",
+     "default": "day",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "day",
+       "Days"
+      ],
+      [
+       "hour",
+       "Hours"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "can_modify_value_type": {
+     "compute": "_compute_can_modify_value_type",
+     "type": "Boolean"
+    },
+    "cap_accrued_time": {
+     "default": true,
+     "help": "When the field is checked the balance of an allocation using this accrual plan will never exceed the specified amount.",
+     "string": "Cap accrued time",
+     "type": "Boolean"
+    },
+    "cap_accrued_time_yearly": {
+     "help": "When the field is checked the total amount accrued each year will be capped at the specified amount",
+     "string": "Milestone cap",
+     "type": "Boolean"
+    },
+    "first_day": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "first_day_display": {
+     "compute": "_compute_days_display",
+     "selection": {
+      "$ref": "_get_selection_days"
+     },
+     "type": "Selection"
+    },
+    "first_month": {
+     "default": "jan",
+     "selection": [
+      [
+       "jan",
+       "January"
+      ],
+      [
+       "feb",
+       "February"
+      ],
+      [
+       "mar",
+       "March"
+      ],
+      [
+       "apr",
+       "April"
+      ],
+      [
+       "may",
+       "May"
+      ],
+      [
+       "jun",
+       "June"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "first_month_day": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "first_month_day_display": {
+     "compute": "_compute_days_display",
+     "selection": {
+      "$ref": "_get_selection_days"
+     },
+     "type": "Selection"
+    },
+    "frequency": {
+     "default": "daily",
+     "required": true,
+     "selection": [
+      [
+       "hourly",
+       "Hourly"
+      ],
+      [
+       "daily",
+       "Daily"
+      ],
+      [
+       "weekly",
+       "Weekly"
+      ],
+      [
+       "bimonthly",
+       "Twice a month"
+      ],
+      [
+       "monthly",
+       "Monthly"
+      ],
+      [
+       "biyearly",
+       "Twice a year"
+      ],
+      [
+       "yearly",
+       "Yearly"
+      ]
+     ],
+     "string": "Frequency",
+     "type": "Selection"
+    },
+    "maximum_leave": {
+     "compute": "_compute_maximum_leave",
+     "digits": [
+      16,
+      2
+     ],
+     "help": "Choose a cap for this accrual.",
+     "readonly": false,
+     "store": true,
+     "string": "Limit to",
+     "type": "Float"
+    },
+    "maximum_leave_yearly": {
+     "digits": [
+      16,
+      2
+     ],
+     "string": "Yearly limit to",
+     "type": "Float"
+    },
+    "postpone_max_days": {
+     "help": "Set a maximum of accruals an allocation keeps at the end of the year.",
+     "string": "Maximum amount of accruals to transfer",
+     "type": "Integer"
+    },
+    "second_day": {
+     "default": 15,
+     "type": "Integer"
+    },
+    "second_day_display": {
+     "compute": "_compute_days_display",
+     "selection": {
+      "$ref": "_get_selection_days"
+     },
+     "type": "Selection"
+    },
+    "second_month": {
+     "default": "jul",
+     "selection": [
+      [
+       "jul",
+       "July"
+      ],
+      [
+       "aug",
+       "August"
+      ],
+      [
+       "sep",
+       "September"
+      ],
+      [
+       "oct",
+       "October"
+      ],
+      [
+       "nov",
+       "November"
+      ],
+      [
+       "dec",
+       "December"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "second_month_day": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "second_month_day_display": {
+     "compute": "_compute_days_display",
+     "selection": {
+      "$ref": "_get_selection_days"
+     },
+     "type": "Selection"
+    },
+    "sequence": {
+     "compute": "_compute_sequence",
+     "help": "Sequence is generated automatically by start time delta.",
+     "store": true,
+     "string": "sequence",
+     "type": "Integer"
+    },
+    "start_count": {
+     "default": "1",
+     "help": "The accrual starts after a defined period from the allocation start date. This field defines the number of days, months or years after which accrual is used.",
+     "string": "Start after",
+     "type": "Integer"
+    },
+    "start_type": {
+     "default": "day",
+     "help": "This field defines the unit of time after which the accrual starts.",
+     "required": true,
+     "selection": [
+      [
+       "day",
+       "Days"
+      ],
+      [
+       "month",
+       "Months"
+      ],
+      [
+       "year",
+       "Years"
+      ]
+     ],
+     "string": " ",
+     "type": "Selection"
+    },
+    "week_day": {
+     "default": "mon",
+     "required": true,
+     "selection": [
+      [
+       "mon",
+       "Monday"
+      ],
+      [
+       "tue",
+       "Tuesday"
+      ],
+      [
+       "wed",
+       "Wednesday"
+      ],
+      [
+       "thu",
+       "Thursday"
+      ],
+      [
+       "fri",
+       "Friday"
+      ],
+      [
+       "sat",
+       "Saturday"
+      ],
+      [
+       "sun",
+       "Sunday"
+      ]
+     ],
+     "string": "Allocation on",
+     "type": "Selection"
+    },
+    "yearly_day": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "yearly_day_display": {
+     "compute": "_compute_days_display",
+     "selection": {
+      "$ref": "_get_selection_days"
+     },
+     "type": "Selection"
+    },
+    "yearly_month": {
+     "default": "jan",
+     "selection": [
+      [
+       "jan",
+       "January"
+      ],
+      [
+       "feb",
+       "February"
+      ],
+      [
+       "mar",
+       "March"
+      ],
+      [
+       "apr",
+       "April"
+      ],
+      [
+       "may",
+       "May"
+      ],
+      [
+       "jun",
+       "June"
+      ],
+      [
+       "jul",
+       "July"
+      ],
+      [
+       "aug",
+       "August"
+      ],
+      [
+       "sep",
+       "September"
+      ],
+      [
+       "oct",
+       "October"
+      ],
+      [
+       "nov",
+       "November"
+      ],
+      [
+       "dec",
+       "December"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('cap_accrued_time', 'maximum_leave')"
+     ],
+     "lines": 4,
+     "name": "_check_maximum_leave"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('start_count', 'start_type')"
+     ],
+     "lines": 9,
+     "name": "_compute_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('accrual_plan_id', 'accrual_plan_id.level_ids', 'accrual_plan_id.time_off_type_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_can_modify_value_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('accrual_plan_id', 'accrual_plan_id.level_ids', 'accrual_plan_id.time_off_type_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_added_value_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('first_day', 'second_day', 'first_month_day', 'second_month_day', 'yearly_day')"
+     ],
+     "lines": 8,
+     "name": "_compute_days_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('cap_accrued_time')"
+     ],
+     "lines": 3,
+     "name": "_compute_maximum_leave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_first_day_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_second_day_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_first_month_day_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_second_month_day_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_yearly_day_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_get_next_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_get_previous_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_level_transition_date"
+    }
+   ],
+   "name": "hr.leave.accrual.level",
+   "order": "sequence asc",
+   "sql_constraints": [
+    [
+     "check_dates",
+     "CHECK( (frequency IN ('daily', 'hourly')) or(week_day IS NOT NULL AND frequency = 'weekly') or (first_day > 0 AND second_day > first_day AND first_day <= 31 AND second_day <= 31 AND frequency = 'bimonthly') or (first_day > 0 AND first_day <= 31 AND frequency = 'monthly')or (first_month_day > 0 AND first_month_day <= 31 AND second_month_day > 0 AND second_month_day <= 31 AND frequency = 'biyearly') or (yearly_day > 0 AND yearly_day <= 31 AND frequency = 'yearly'))",
+     "The dates you've set up aren't correct. Please check them."
+    ],
+    [
+     "start_count_check",
+     "CHECK( start_count >= 0 )",
+     "You can not start an accrual in the past."
+    ],
+    [
+     "added_value_greater_than_zero",
+     "CHECK(added_value > 0)",
+     "You must give a rate greater than 0 in accrual plan levels."
+    ],
+    [
+     "valid_yearly_cap_value",
+     "CHECK(cap_accrued_time_yearly IS NOT TRUE OR COALESCE(maximum_leave_yearly, 0) > 0)",
+     "You cannot have a cap on yearly accrued time without setting a maximum amount."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.leave.accrual.plan": {
+   "abstract": false,
+   "description": "Accrual Plan",
+   "extension": false,
+   "fields": {
+    "accrued_gain_time": {
+     "default": "end",
+     "required": true,
+     "selection": [
+      [
+       "start",
+       "At the start of the accrual period"
+      ],
+      [
+       "end",
+       "At the end of the accrual period"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "added_value_type": {
+     "compute": "_compute_added_value_type",
+     "selection": [
+      [
+       "day",
+       "Days"
+      ],
+      [
+       "hour",
+       "Hours"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "allocation_ids": {
+     "comodel": "hr.leave.allocation",
+     "inverse_name": "accrual_plan_id",
+     "type": "One2many"
+    },
+    "carryover_date": {
+     "default": "year_start",
+     "required": true,
+     "selection": [
+      [
+       "year_start",
+       "At the start of the year"
+      ],
+      [
+       "allocation",
+       "At the allocation date"
+      ],
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "string": "Carry-Over Time",
+     "type": "Selection"
+    },
+    "carryover_day": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "carryover_day_display": {
+     "compute": "_compute_carryover_day_display",
+     "selection": {
+      "$ref": "_get_selection_days"
+     },
+     "type": "Selection"
+    },
+    "carryover_month": {
+     "default": "jan",
+     "selection": [
+      [
+       "jan",
+       "January"
+      ],
+      [
+       "feb",
+       "February"
+      ],
+      [
+       "mar",
+       "March"
+      ],
+      [
+       "apr",
+       "April"
+      ],
+      [
+       "may",
+       "May"
+      ],
+      [
+       "jun",
+       "June"
+      ],
+      [
+       "jul",
+       "July"
+      ],
+      [
+       "aug",
+       "August"
+      ],
+      [
+       "sep",
+       "September"
+      ],
+      [
+       "oct",
+       "October"
+      ],
+      [
+       "nov",
+       "November"
+      ],
+      [
+       "dec",
+       "December"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "readonly": false,
+     "store": "True",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "employees_count": {
+     "compute": "_compute_employee_count",
+     "string": "Employees",
+     "type": "Integer"
+    },
+    "is_based_on_worked_time": {
+     "compute": "_compute_is_based_on_worked_time",
+     "help": "If checked, the accrual period will be calculated according to the work days, not calendar days.",
+     "readonly": false,
+     "store": true,
+     "string": "Based on worked time",
+     "type": "Boolean"
+    },
+    "level_count": {
+     "compute": "_compute_level_count",
+     "string": "Levels",
+     "type": "Integer"
+    },
+    "level_ids": {
+     "comodel": "hr.leave.accrual.level",
+     "copy": true,
+     "inverse_name": "accrual_plan_id",
+     "string": "Milestone",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "show_transition_mode": {
+     "compute": "_compute_show_transition_mode",
+     "type": "Boolean"
+    },
+    "time_off_type_id": {
+     "comodel": "hr.leave.type",
+     "help": "Specify if this accrual plan can only be used with this Time Off Type.\n                Leave empty if this accrual plan can be used with any Time Off Type.",
+     "string": "Time Off Type",
+     "type": "Many2one"
+    },
+    "transition_mode": {
+     "default": "immediately",
+     "help": "Specify what occurs if a level transition takes place in the middle of a pay period.\n\n                'Immediately' will switch the employee to the new accrual level on the exact date during the ongoing pay period.\n\n                'After this accrual's period' will keep the employee on the same accrual level until the ongoing pay period is complete.\n                After it is complete, the new level will take effect when the next pay period begins.",
+     "required": true,
+     "selection": [
+      [
+       "immediately",
+       "Immediately"
+      ],
+      [
+       "end_of_accrual",
+       "After this accrual's period"
+      ]
+     ],
+     "string": "Milestone Transition",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('level_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_transition_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('level_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_level_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allocation_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_employee_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('time_off_type_id.company_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('accrued_gain_time')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_based_on_worked_time"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('level_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_added_value_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('carryover_day')"
+     ],
+     "lines": 4,
+     "name": "_compute_carryover_day_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_carryover_day_display"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_open_accrual_plan_employees"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 10,
+     "name": "_prevent_used_plan_unlink"
+    }
+   ],
+   "name": "hr.leave.accrual.plan",
+   "transient": false
+  },
+  "hr.leave.allocation": {
+   "abstract": false,
+   "description": "Time Off Allocation",
+   "extension": false,
+   "fields": {
+    "accrual_plan_id": {
+     "comodel": "hr.leave.accrual.plan",
+     "compute": "_compute_accrual_plan_id",
+     "domain": "['|', ('time_off_type_id', '=', False), ('time_off_type_id', '=', holiday_status_id)]",
+     "readonly": false,
+     "store": true,
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "active_employee": {
+     "readonly": true,
+     "related": "employee_id.active",
+     "string": "Active Employee",
+     "type": "Boolean"
+    },
+    "actual_lastcall": {
+     "type": "Date"
+    },
+    "allocation_type": {
+     "default": "regular",
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "regular",
+       "Regular Allocation"
+      ],
+      [
+       "accrual",
+       "Accrual Allocation"
+      ]
+     ],
+     "string": "Allocation Type",
+     "type": "Selection"
+    },
+    "already_accrued": {
+     "type": "Boolean"
+    },
+    "approver_id": {
+     "comodel": "hr.employee",
+     "copy": false,
+     "help": "This area is automatically filled by the user who validates the allocation",
+     "readonly": true,
+     "string": "First Approval",
+     "type": "Many2one"
+    },
+    "can_approve": {
+     "compute": "_compute_can_approve",
+     "string": "Can Approve",
+     "type": "Boolean"
+    },
+    "carried_over_days_expiration_date": {
+     "string": "Carried over days expiration date",
+     "type": "Date"
+    },
+    "date_from": {
+     "copy": false,
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "index": true,
+     "required": true,
+     "string": "Start Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "date_to": {
+     "copy": false,
+     "string": "End Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_department_id",
+     "readonly": false,
+     "store": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "duration_display": {
+     "compute": "_compute_duration_display",
+     "help": "Field allowing to see the allocation duration in days or hours depending on the type_request_unit",
+     "string": "Allocated (Days/Hours)",
+     "type": "Char"
+    },
+    "employee_company_id": {
+     "readonly": true,
+     "related": "employee_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "default": {
+      "$lambda": "self.env.user.employee_id"
+     },
+     "domain": {
+      "$ref": "_domain_employee_id"
+     },
+     "index": true,
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Employee",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "expiring_carryover_days": {
+     "string": "The number of carried over days that will expire on carried_over_days_expiration_date",
+     "type": "Float"
+    },
+    "holiday_status_id": {
+     "comodel": "hr.leave.type",
+     "compute": "_compute_holiday_status_id",
+     "default": {
+      "$ref": "_default_holiday_status_id"
+     },
+     "domain": {
+      "$ref": "_domain_holiday_status_id"
+     },
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Time Off Type",
+     "type": "Many2one"
+    },
+    "is_name_custom": {
+     "readonly": true,
+     "store": false,
+     "type": "Boolean"
+    },
+    "is_officer": {
+     "compute": "_compute_is_officer",
+     "type": "Boolean"
+    },
+    "last_executed_carryover_date": {
+     "type": "Date"
+    },
+    "lastcall": {
+     "readonly": true,
+     "string": "Date of the last accrual allocation",
+     "type": "Date"
+    },
+    "leaves_taken": {
+     "compute": "_compute_leaves",
+     "string": "Time off Taken",
+     "type": "Float"
+    },
+    "manager_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_manager_id",
+     "store": true,
+     "string": "Manager",
+     "type": "Many2one"
+    },
+    "max_leaves": {
+     "compute": "_compute_leaves",
+     "type": "Float"
+    },
+    "name": {
+     "compute": "_compute_description",
+     "readonly": false,
+     "store": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "name_validity": {
+     "compute": "_compute_description_validity",
+     "string": "Description with validity",
+     "type": "Char"
+    },
+    "nextcall": {
+     "default": false,
+     "readonly": true,
+     "string": "Date of the next accrual allocation",
+     "type": "Date"
+    },
+    "notes": {
+     "readonly": false,
+     "string": "Reasons",
+     "type": "Text"
+    },
+    "number_of_days": {
+     "compute": "_compute_number_of_days",
+     "default": 1,
+     "help": "Duration in days. Reference field to use when necessary.",
+     "readonly": false,
+     "store": true,
+     "string": "Number of Days",
+     "tracking": true,
+     "type": "Float"
+    },
+    "number_of_days_display": {
+     "compute": "_compute_number_of_days_display",
+     "help": "For an Accrual Allocation, this field contains the theorical amount of time given to the employee, due to a previous start date, on the first run of the plan. This can be manually edited.",
+     "string": "Duration (days)",
+     "type": "Float"
+    },
+    "number_of_hours_display": {
+     "compute": "_compute_number_of_hours_display",
+     "help": "For an Accrual Allocation, this field contains the theorical amount of time given to the employee, due to a previous start date, on the first run of the plan. This can be manually edited.",
+     "store": true,
+     "string": "Duration (hours)",
+     "type": "Float"
+    },
+    "second_approver_id": {
+     "comodel": "hr.employee",
+     "copy": false,
+     "help": "This area is automatically filled by the user who validates the allocation with second level (If time off type need second validation)",
+     "readonly": true,
+     "string": "Second Approval",
+     "type": "Many2one"
+    },
+    "state": {
+     "copy": false,
+     "default": "confirm",
+     "help": "The status is 'To Approve', when an allocation request is created.\nThe status is 'Refused', when an allocation request is refused by manager.\nThe status is 'Approved', when an allocation request is approved by manager.",
+     "readonly": true,
+     "selection": [
+      [
+       "confirm",
+       "To Approve"
+      ],
+      [
+       "refuse",
+       "Refused"
+      ],
+      [
+       "validate1",
+       "Second Approval"
+      ],
+      [
+       "validate",
+       "Approved"
+      ]
+     ],
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "type_request_unit": {
+     "compute": "_compute_type_request_unit",
+     "selection": [
+      [
+       "hour",
+       "Hours"
+      ],
+      [
+       "half_day",
+       "Half Day"
+      ],
+      [
+       "day",
+       "Day"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "validation_type": {
+     "readonly": true,
+     "related": "holiday_status_id.allocation_validation_type",
+     "string": "Validation Type",
+     "type": "Selection"
+    },
+    "yearly_accrued_amount": {
+     "type": "Float"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_default_holiday_status_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_domain_holiday_status_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_domain_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_from', 'date_to')"
+     ],
+     "lines": 3,
+     "name": "_check_date_from_date_to"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('allocation_type')"
+     ],
+     "lines": 2,
+     "name": "_compute_is_officer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_title"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('name')"
+     ],
+     "lines": 5,
+     "name": "_onchange_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('holiday_status_id', 'number_of_days')"
+     ],
+     "lines": 4,
+     "name": "_compute_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'date_from', 'date_to')"
+     ],
+     "lines": 16,
+     "name": "_compute_description_validity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'holiday_status_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('number_of_days')"
+     ],
+     "lines": 3,
+     "name": "_compute_number_of_days_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('number_of_days', 'employee_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_number_of_hours_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('number_of_hours_display', 'number_of_days_display')"
+     ],
+     "lines": 7,
+     "name": "_compute_duration_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 11,
+     "name": "_compute_can_approve"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_department_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_manager_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('accrual_plan_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_holiday_status_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('holiday_status_id', 'number_of_hours_display', 'number_of_days_display', 'type_request_unit', 'employee_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_number_of_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('holiday_status_id', 'allocation_type')"
+     ],
+     "lines": 14,
+     "name": "_compute_accrual_plan_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_accrual_plan_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_request_unit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allocation_type', 'holiday_status_id', 'accrual_plan_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_type_request_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_carryover_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_add_days_to_allocation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_get_current_accrual_plan_level_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_accrual_plan_level_work_entry_prorata"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_process_accrual_plan_level"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 234,
+     "name": "_process_accrual_plans"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_update_accrual"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_future_leaves_on"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "onchange"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'holiday_status_id', 'type_request_unit', 'number_of_days')"
+     ],
+     "lines": 8,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_add_lastcalls"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "add_follower"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 23,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_if_correct_states"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_if_no_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_redirect_suggested_company"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_set_to_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_approve"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_validate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_action_approve"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_refuse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_check_approval_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_initialize_accrual_plan_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('allocation_type')"
+     ],
+     "lines": 5,
+     "name": "_onchange_allocation_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('date_from', 'accrual_plan_id', 'date_to', 'employee_id')"
+     ],
+     "lines": 8,
+     "name": "_onchange_date_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_responsible_for_approval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 49,
+     "name": "activity_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "message_subscribe"
+    }
+   ],
+   "name": "hr.leave.allocation",
+   "order": "create_date desc",
+   "sel_methods": {
+    "_domain_employee_id": [
+     [
+      "company_id",
+      "in"
+     ],
+     [
+      "leave_manager_id",
+      "="
+     ]
+    ],
+    "_domain_holiday_status_id": [
+     [
+      "employee_requests",
+      "="
+     ]
+    ],
+    "_track_subtype": []
+   },
+   "sql_constraints": [
+    [
+     "duration_check",
+     "CHECK( ( number_of_days > 0 AND allocation_type='regular') or (allocation_type != 'regular'))",
+     "The duration must be greater than 0."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.leave.allocation.generate.multi.wizard": {
+   "abstract": false,
+   "description": "Generate time off allocations for multiple employees",
+   "extension": false,
+   "fields": {
+    "accrual_plan_id": {
+     "comodel": "hr.leave.accrual.plan",
+     "domain": "['|', ('time_off_type_id', '=', False), ('time_off_type_id', '=', holiday_status_id)]",
+     "type": "Many2one"
+    },
+    "allocation_mode": {
+     "default": "employee",
+     "help": "Allow to create requests in batchs:\n- By Employee: for a specific employee\n- By Company: all employees of the specified company\n- By Department: all employees of the specified department\n- By Employee Tag: all employees of the specific employee group category",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "employee",
+       "By Employee"
+      ],
+      [
+       "company",
+       "By Company"
+      ],
+      [
+       "department",
+       "By Department"
+      ],
+      [
+       "category",
+       "By Employee Tag"
+      ]
+     ],
+     "string": "Allocation Mode",
+     "type": "Selection"
+    },
+    "allocation_type": {
+     "default": "regular",
+     "required": true,
+     "selection": [
+      [
+       "regular",
+       "Regular Allocation"
+      ],
+      [
+       "accrual",
+       "Accrual Allocation"
+      ]
+     ],
+     "string": "Allocation Type",
+     "type": "Selection"
+    },
+    "category_id": {
+     "comodel": "hr.employee.category",
+     "string": "Employee Tag",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "date_from": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "required": true,
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "date_to": {
+     "string": "End Date",
+     "type": "Date"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "type": "Many2one"
+    },
+    "duration": {
+     "string": "Allocation",
+     "type": "Float"
+    },
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "domain": "[('company_id', '=', company_id)]",
+     "string": "Employees",
+     "type": "Many2many"
+    },
+    "holiday_status_id": {
+     "comodel": "hr.leave.type",
+     "domain": "[('company_id', 'in', [company_id, False])]",
+     "required": true,
+     "string": "Time Off Type",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "store": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "notes": {
+     "string": "Reasons",
+     "type": "Text"
+    },
+    "request_unit": {
+     "related": "holiday_status_id.request_unit",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('holiday_status_id', 'duration')"
+     ],
+     "lines": 3,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_title"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_employees_from_allocation_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_prepare_allocation_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 26,
+     "name": "action_generate_allocations"
+    }
+   ],
+   "name": "hr.leave.allocation.generate.multi.wizard",
+   "transient": true
+  },
+  "hr.leave.employee.type.report": {
+   "abstract": false,
+   "description": "Time Off Summary / Report",
+   "extension": false,
+   "fields": {
+    "active_employee": {
+     "readonly": true,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "date_from": {
+     "readonly": true,
+     "string": "Start Date",
+     "type": "Datetime"
+    },
+    "date_to": {
+     "readonly": true,
+     "string": "End Date",
+     "type": "Datetime"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "readonly": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "readonly": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "holiday_status": {
+     "selection": [
+      [
+       "taken",
+       "Taken"
+      ],
+      [
+       "left",
+       "Left"
+      ],
+      [
+       "planned",
+       "Planned"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "leave_type": {
+     "comodel": "hr.leave.type",
+     "readonly": true,
+     "string": "Time Off Type",
+     "type": "Many2one"
+    },
+    "number_of_days": {
+     "readonly": true,
+     "string": "Number of Days",
+     "type": "Float"
+    },
+    "number_of_hours": {
+     "readonly": true,
+     "string": "Number of Hours",
+     "type": "Float"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "cancel",
+       "Cancelled"
+      ],
+      [
+       "confirm",
+       "To Approve"
+      ],
+      [
+       "refuse",
+       "Refused"
+      ],
+      [
+       "validate1",
+       "Second Approval"
+      ],
+      [
+       "validate",
+       "Approved"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 207,
+     "name": "init"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "action_time_off_analysis"
+    }
+   ],
+   "name": "hr.leave.employee.type.report",
+   "order": "date_from DESC, employee_id",
+   "transient": false
+  },
+  "hr.leave.generate.multi.wizard": {
+   "abstract": false,
+   "description": "Generate time off for multiple employees",
+   "extension": false,
+   "fields": {
+    "allocation_mode": {
+     "default": "employee",
+     "help": "Allow to create requests in batchs:\n- By Employee: for a specific employee\n- By Company: all employees of the specified company\n- By Department: all employees of the specified department\n- By Employee Tag: all employees of the specific employee group category",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "employee",
+       "By Employee"
+      ],
+      [
+       "company",
+       "By Company"
+      ],
+      [
+       "department",
+       "By Department"
+      ],
+      [
+       "category",
+       "By Employee Tag"
+      ]
+     ],
+     "string": "Allocation Mode",
+     "type": "Selection"
+    },
+    "category_id": {
+     "comodel": "hr.employee.category",
+     "string": "Employee Tag",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "date_from": {
+     "required": true,
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "date_to": {
+     "required": true,
+     "string": "End Date",
+     "type": "Date"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "type": "Many2one"
+    },
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "domain": "[('company_id', '=', company_id)]",
+     "string": "Employees",
+     "type": "Many2many"
+    },
+    "holiday_status_id": {
+     "comodel": "hr.leave.type",
+     "domain": "[('company_id', 'in', [company_id, False])]",
+     "required": true,
+     "string": "Time Off Type",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Description",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_employees_from_allocation_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_prepare_employees_holiday_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 48,
+     "name": "action_generate_time_off"
+    }
+   ],
+   "name": "hr.leave.generate.multi.wizard",
+   "transient": true
+  },
+  "hr.leave.mandatory.day": {
+   "abstract": false,
+   "description": "Mandatory Day",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$lambda": "randint(1, 11)"
+     },
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "department_ids": {
+     "comodel": "hr.department",
+     "string": "Departments",
+     "type": "Many2many"
+    },
+    "end_date": {
+     "required": true,
+     "type": "Date"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "string": "Working Hours",
+     "type": "Many2one"
+    },
+    "start_date": {
+     "required": true,
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.leave.mandatory.day",
+   "order": "start_date desc, end_date desc",
+   "sql_constraints": [
+    [
+     "date_from_after_day_to",
+     "CHECK(start_date <= end_date)",
+     "The start date must be anterior than the end date."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.leave.report": {
+   "abstract": false,
+   "description": "Time Off Summary / Report",
+   "extension": false,
+   "fields": {
+    "allocation_id": {
+     "comodel": "hr.leave.allocation",
+     "readonly": true,
+     "string": "Allocation Request",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "date_from": {
+     "readonly": true,
+     "string": "Start Date",
+     "type": "Datetime"
+    },
+    "date_to": {
+     "readonly": true,
+     "string": "End Date",
+     "type": "Datetime"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "readonly": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "holiday_status_id": {
+     "comodel": "hr.leave.type",
+     "readonly": true,
+     "string": "Time Off Type",
+     "type": "Many2one"
+    },
+    "leave_id": {
+     "comodel": "hr.leave",
+     "readonly": true,
+     "string": "Time Off Request",
+     "type": "Many2one"
+    },
+    "leave_type": {
+     "readonly": true,
+     "selection": [
+      [
+       "allocation",
+       "Allocation"
+      ],
+      [
+       "request",
+       "Time Off"
+      ]
+     ],
+     "string": "Request Type",
+     "type": "Selection"
+    },
+    "name": {
+     "readonly": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "number_of_days": {
+     "readonly": true,
+     "string": "Number of Days",
+     "type": "Float"
+    },
+    "number_of_hours": {
+     "readonly": true,
+     "string": "Number of Hours",
+     "type": "Float"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "cancel",
+       "Cancelled"
+      ],
+      [
+       "confirm",
+       "To Approve"
+      ],
+      [
+       "refuse",
+       "Refused"
+      ],
+      [
+       "validate1",
+       "Second Approval"
+      ],
+      [
+       "validate",
+       "Approved"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "hr.manager.department.report"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "init"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_record"
+    }
+   ],
+   "name": "hr.leave.report",
+   "order": "date_from DESC, employee_id",
+   "transient": false
+  },
+  "hr.leave.report.calendar": {
+   "abstract": false,
+   "description": "Time Off Calendar",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "description": {
+     "groups": "hr_holidays.group_hr_holidays_user",
+     "readonly": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "duration": {
+     "readonly": true,
+     "string": "Duration",
+     "type": "Float"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "holiday_status_id": {
+     "comodel": "hr.leave.type",
+     "groups": "hr_holidays.group_hr_holidays_user",
+     "readonly": true,
+     "string": "Time Off Type",
+     "type": "Many2one"
+    },
+    "is_absent": {
+     "related": "employee_id.is_absent",
+     "type": "Boolean"
+    },
+    "is_hatched": {
+     "readonly": true,
+     "string": "Hatched",
+     "type": "Boolean"
+    },
+    "is_manager": {
+     "compute": "_compute_is_manager",
+     "string": "Manager",
+     "type": "Boolean"
+    },
+    "is_striked": {
+     "readonly": true,
+     "string": "Striked",
+     "type": "Boolean"
+    },
+    "job_id": {
+     "comodel": "hr.job",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "leave_id": {
+     "comodel": "hr.leave",
+     "groups": "hr_holidays.group_hr_holidays_user",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "leave_manager_id": {
+     "related": "employee_id.leave_manager_id",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "start_datetime": {
+     "readonly": true,
+     "string": "From",
+     "type": "Datetime"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "cancel",
+       "Cancelled"
+      ],
+      [
+       "confirm",
+       "To Approve"
+      ],
+      [
+       "refuse",
+       "Refused"
+      ],
+      [
+       "validate1",
+       "Second Approval"
+      ],
+      [
+       "validate",
+       "Approved"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "stop_datetime": {
+     "readonly": true,
+     "string": "To",
+     "type": "Datetime"
+    },
+    "tz": {
+     "readonly": true,
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "string": "Timezone",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "get_unusual_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id.name', 'leave_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('leave_manager_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_manager"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_approve"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_validate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_refuse"
+    }
+   ],
+   "name": "hr.leave.report.calendar",
+   "order": "start_datetime DESC, employee_id",
+   "transient": false
+  },
+  "hr.leave.type": {
+   "abstract": false,
+   "description": "Time Off Type",
+   "extension": false,
+   "fields": {
+    "accrual_count": {
+     "compute": "_compute_accrual_count",
+     "string": "Accruals count",
+     "type": "Float"
+    },
+    "accruals_ids": {
+     "comodel": "hr.leave.accrual.plan",
+     "inverse_name": "time_off_type_id",
+     "type": "One2many"
+    },
+    "active": {
+     "default": true,
+     "help": "If the active field is set to false, it will allow you to hide the time off type without removing it.",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "allocation_count": {
+     "compute": "_compute_allocation_count",
+     "string": "Allocations",
+     "type": "Integer"
+    },
+    "allocation_notif_subtype_id": {
+     "comodel": "mail.message.subtype",
+     "default": {
+      "$lambda": "self.env.ref('hr_holidays.mt_leave_allocation', raise_if_not_found=False)"
+     },
+     "string": "Allocation Notification Subtype",
+     "type": "Many2one"
+    },
+    "allocation_validation_type": {
+     "default": "hr",
+     "help": "Select the level of approval needed in case of request by employee\n            #     - No validation needed: The employee's request is automatically approved.\n            #     - Approved by Time Off Officer: The employee's request need to be manually approved\n            #       by the Time Off Officer, Employee's Approver or both.",
+     "selection": [
+      [
+       "no_validation",
+       "No Validation"
+      ],
+      [
+       "hr",
+       "By Time Off Officer"
+      ],
+      [
+       "manager",
+       "By Employee's Approver"
+      ],
+      [
+       "both",
+       "By Employee's Approver and Time Off Officer"
+      ]
+     ],
+     "string": "Approval",
+     "type": "Selection"
+    },
+    "allows_negative": {
+     "help": "If checked, users request can exceed the allocated days and balance can go in negative.",
+     "string": "Allow Negative Cap",
+     "type": "Boolean"
+    },
+    "color": {
+     "help": "The color selected here will be used in every screen with the time off type.",
+     "string": "Color",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "country_code": {
+     "readonly": true,
+     "related": "country_id.code",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "readonly": true,
+     "related": "company_id.country_id",
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "create_calendar_meeting": {
+     "default": true,
+     "help": "If this field is checked, every leave request of this type will have a corresponding entry in the calendar application. There will be no entry if this stays unchecked.",
+     "string": "Display Time Off in Calendar",
+     "type": "Boolean"
+    },
+    "employee_requests": {
+     "default": "no",
+     "help": "Extra Days Requests Allowed: User can request an allocation for himself.\n\n        Not Allowed: User cannot request an allocation.",
+     "required": true,
+     "selection": [
+      [
+       "yes",
+       "Extra Days Requests Allowed"
+      ],
+      [
+       "no",
+       "Not Allowed"
+      ]
+     ],
+     "string": "Employee Requests",
+     "type": "Selection"
+    },
+    "group_days_leave": {
+     "compute": "_compute_group_days_leave",
+     "string": "Group Time Off",
+     "type": "Float"
+    },
+    "has_valid_allocation": {
+     "compute": "_compute_valid",
+     "help": "This indicates if it is still possible to use this type of leave",
+     "type": "Boolean"
+    },
+    "icon_id": {
+     "comodel": "ir.attachment",
+     "domain": "[('res_model', '=', 'hr.leave.type'), ('res_field', '=', 'icon_id')]",
+     "string": "Cover Image",
+     "type": "Many2one"
+    },
+    "include_public_holidays_in_duration": {
+     "default": false,
+     "help": "Public holidays should be counted in the leave duration when applying for leaves",
+     "string": "Public Holiday Included",
+     "type": "Boolean"
+    },
+    "leave_notif_subtype_id": {
+     "comodel": "mail.message.subtype",
+     "default": {
+      "$lambda": "self.env.ref('hr_holidays.mt_leave', raise_if_not_found=False)"
+     },
+     "string": "Time Off Notification Subtype",
+     "type": "Many2one"
+    },
+    "leave_validation_type": {
+     "default": "hr",
+     "selection": [
+      [
+       "no_validation",
+       "No Validation"
+      ],
+      [
+       "hr",
+       "By Time Off Officer"
+      ],
+      [
+       "manager",
+       "By Employee's Approver"
+      ],
+      [
+       "both",
+       "By Employee's Approver and Time Off Officer"
+      ]
+     ],
+     "string": "Time Off Validation",
+     "type": "Selection"
+    },
+    "leaves_taken": {
+     "compute": "_compute_leaves",
+     "help": "This value is given by the sum of all time off requests with a negative value.",
+     "string": "Time off Already Taken",
+     "type": "Float"
+    },
+    "max_allowed_negative": {
+     "help": "Define the maximum level of negative days this kind of time off can reach. Value must be at least 1.",
+     "string": "Maximum Excess Amount",
+     "type": "Integer"
+    },
+    "max_leaves": {
+     "compute": "_compute_leaves",
+     "help": "This value is given by the sum of all time off requests with a positive value.",
+     "string": "Maximum Allowed",
+     "type": "Float"
+    },
+    "name": {
+     "required": true,
+     "string": "Time Off Type",
+     "translate": true,
+     "type": "Char"
+    },
+    "request_unit": {
+     "default": "day",
+     "required": true,
+     "selection": [
+      [
+       "day",
+       "Day"
+      ],
+      [
+       "half_day",
+       "Half Day"
+      ],
+      [
+       "hour",
+       "Hours"
+      ]
+     ],
+     "string": "Take Time Off in",
+     "type": "Selection"
+    },
+    "requires_allocation": {
+     "default": "yes",
+     "help": "Yes: Time off requests need to have a valid allocation.\n\n              No Limit: Time Off requests can be taken without any prior allocation.",
+     "required": true,
+     "selection": [
+      [
+       "yes",
+       "Yes"
+      ],
+      [
+       "no",
+       "No Limit"
+      ]
+     ],
+     "string": "Requires allocation",
+     "type": "Selection"
+    },
+    "responsible_ids": {
+     "column1": "hr_leave_type_id",
+     "column2": "res_users_id",
+     "comodel": "res.users",
+     "domain": {
+      "$lambda": "[('groups_id', 'in', self.env.ref('hr_holidays.group_hr_holidays_user').id), ('share', '=', False), ('company_ids', 'in', self.env.company.id)]"
+     },
+     "help": "Choose the Time Off Officers who will be notified to approve allocation or Time Off Request. If empty, nobody will be notified",
+     "relation_table": "hr_leave_type_res_users_rel",
+     "string": "Notified Time Off Officer",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "default": 100,
+     "help": "The type with the smallest sequence is the default value in time off request",
+     "type": "Integer"
+    },
+    "show_on_dashboard": {
+     "default": true,
+     "help": "Non-visible allocations can still be selected when taking a leave, but will simply not be displayed on the leave dashboard.",
+     "type": "Boolean"
+    },
+    "support_document": {
+     "string": "Supporting Document",
+     "type": "Boolean"
+    },
+    "time_type": {
+     "default": "leave",
+     "help": "The distinction between working time (ex. Attendance) and absence (ex. Training) will be used in the computation of Accrual's plan rate.",
+     "selection": [
+      [
+       "other",
+       "Worked Time"
+      ],
+      [
+       "leave",
+       "Absence"
+      ]
+     ],
+     "string": "Kind of Time Off",
+     "type": "Selection"
+    },
+    "unpaid": {
+     "default": false,
+     "string": "Is Unpaid",
+     "type": "Boolean"
+    },
+    "virtual_remaining_leaves": {
+     "compute": "_compute_leaves",
+     "help": "Maximum Time Off Allowed - Time Off Already Taken - Time Off Waiting Approval",
+     "string": "Virtual Remaining Time Off",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_model_sorting_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 41,
+     "name": "_search_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('include_public_holidays_in_duration')"
+     ],
+     "lines": 29,
+     "name": "_check_overlapping_public_holidays"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('requires_allocation', 'max_leaves', 'virtual_remaining_leaves')"
+     ],
+     "lines": 22,
+     "name": "_compute_valid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_load_records_write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('requires_allocation')"
+     ],
+     "lines": 3,
+     "name": "check_allocation_requirement_edit_validity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_search_max_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_search_virtual_remaining_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('employee_id', 'default_employee_id', 'default_date_from')"
+     ],
+     "lines": 16,
+     "name": "_compute_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_compute_allocation_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_compute_group_days_leave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_accrual_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_requests')"
+     ],
+     "lines": 4,
+     "name": "_compute_allocation_validation_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "requested_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('requires_allocation', 'virtual_remaining_leaves', 'max_leaves', 'request_unit')",
+      "api.depends_context('holiday_status_display_name', 'employee_id')"
+     ],
+     "lines": 15,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_search"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_see_days_allocated"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_see_group_leaves"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_see_accrual_plans"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "has_accrual_allocation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "get_allocation_data_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 129,
+     "name": "get_allocation_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "_get_closest_expiring_leaves_date_and_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_carried_over_days_expiration_data"
+    }
+   ],
+   "name": "hr.leave.type",
+   "order": "sequence",
+   "sel_methods": {
+    "_load_records_write": [],
+    "_search": [],
+    "_search_max_leaves": [
+     [
+      "id",
+      "in"
+     ]
+    ],
+    "_search_virtual_remaining_leaves": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "check_negative",
+     "CHECK(NOT allows_negative OR max_allowed_negative > 0)",
+     "The maximum excess amount should be greater than 0. If you want to set 0, disable the negative cap instead."
+    ]
+   ],
+   "transient": false
+  },
+  "mail.activity.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_model_info_by_xmlid"
+    }
+   ],
+   "name": "mail.activity.type",
+   "transient": false
+  },
+  "mail.message.subtype": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_department_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_update_department_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    }
+   ],
+   "name": "mail.message.subtype",
+   "transient": false
+  },
+  "report.hr_holidays.report_holidayssummary": {
+   "abstract": true,
+   "description": "Holidays Summary Report",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_header_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_date_is_day_off"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_day"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_months"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_get_leaves_summary"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_employees"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_data_from_report"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_holidays_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.hr_holidays.report_holidayssummary",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_im_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_on_leave_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_to_store"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allocation_count": {
+     "related": "employee_id.allocation_count",
+     "type": "Float"
+    },
+    "allocation_display": {
+     "related": "employee_id.allocation_display",
+     "type": "Char"
+    },
+    "allocation_remaining_display": {
+     "related": "employee_id.allocation_remaining_display",
+     "type": "Char"
+    },
+    "current_leave_state": {
+     "related": "employee_id.current_leave_state",
+     "type": "Selection"
+    },
+    "hr_icon_display": {
+     "related": "employee_id.hr_icon_display",
+     "type": "Selection"
+    },
+    "is_absent": {
+     "related": "employee_id.is_absent",
+     "type": "Boolean"
+    },
+    "leave_date_to": {
+     "related": "employee_id.leave_date_to",
+     "type": "Date"
+    },
+    "leave_manager_id": {
+     "related": "employee_id.leave_manager_id",
+     "type": "Many2one"
+    },
+    "show_leaves": {
+     "related": "employee_id.show_leaves",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_im_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_on_leave_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_clean_leave_responsible_users"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "resource.calendar": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "associated_leaves_count": {
+     "compute": "_compute_associated_leaves_count",
+     "string": "Time Off Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_associated_leaves_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_flexible_leaves_date"
+    }
+   ],
+   "name": "resource.calendar",
+   "transient": false
+  },
+  "resource.calendar.leaves": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "holiday_id": {
+     "comodel": "hr.leave",
+     "string": "Time Off Request",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_from', 'date_to', 'calendar_id')"
+     ],
+     "lines": 18,
+     "name": "_check_compare_dates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_time_domain_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_reevaluate_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_convert_timezone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_ensure_datetime"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_public_holidays_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    }
+   ],
+   "name": "resource.calendar.leaves",
+   "transient": false
+  }
+ },
+ "module": "hr_holidays",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_holidays",
+ "stats": {
+  "fields": 265,
+  "methods": 267,
+  "models": 25,
+  "py_lines": 6080
+ },
+ "summary": "Allocate PTOs and follow leaves requests",
+ "title": "Time Off",
+ "version": "1.6"
+}

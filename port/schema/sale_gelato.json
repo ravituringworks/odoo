@@ -1,0 +1,373 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "data/product_data.xml",
+  "data/delivery_carrier_data.xml",
+  "data/mail_template_data.xml",
+  "views/delivery_carrier_views.xml",
+  "views/product_document_views.xml",
+  "views/product_product_views.xml",
+  "views/product_template_views.xml",
+  "wizards/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "sale_management",
+  "delivery"
+ ],
+ "models": {
+  "delivery.carrier": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "delivery_type": {
+     "ondelete": {
+      "gelato": "cascade"
+     },
+     "selection_add": [
+      [
+       "gelato",
+       "Gelato"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "gelato_shipping_service_type": {
+     "default": "normal",
+     "required": true,
+     "selection": [
+      [
+       "normal",
+       "Standard Delivery"
+      ],
+      [
+       "express",
+       "Express Delivery"
+      ]
+     ],
+     "string": "Gelato Shipping Service Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_is_available_for_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "available_carriers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "gelato_rate_shipment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_ensure_partner_address_is_complete"
+    }
+   ],
+   "name": "delivery.carrier",
+   "sel_methods": {
+    "_is_available_for_order": []
+   },
+   "transient": false
+  },
+  "product.document": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_gelato": {
+     "readonly": true,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_gelato_prepare_file_payload"
+    }
+   ],
+   "name": "product.document",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "gelato_product_uid": {
+     "readonly": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "gelato_image_ids": {
+     "comodel": "product.document",
+     "domain": [
+      [
+       "is_gelato",
+       "=",
+       true
+      ]
+     ],
+     "inverse_name": "res_id",
+     "readonly": true,
+     "string": "Gelato Print Images",
+     "type": "One2many"
+    },
+    "gelato_missing_images": {
+     "compute": "_compute_gelato_missing_images",
+     "string": "Missing Print Images",
+     "type": "Boolean"
+    },
+    "gelato_product_uid": {
+     "compute": "_compute_gelato_product_uid",
+     "readonly": true,
+     "string": "Gelato Product UID",
+     "type": "Char"
+    },
+    "gelato_template_ref": {
+     "help": "Synchronize to fetch variants from Gelato",
+     "string": "Gelato Template Reference",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.gelato_product_uid')"
+     ],
+     "lines": 2,
+     "name": "_compute_gelato_product_uid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_inverse_gelato_product_uid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('gelato_image_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_gelato_missing_images"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 43,
+     "name": "action_sync_gelato_template_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 64,
+     "name": "_create_attributes_from_gelato_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_create_print_images_from_gelato_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_related_fields_variant_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_product_document_domain"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "gelato_api_key": {
+     "groups": "base.group_system",
+     "string": "Gelato API Key",
+     "type": "Char"
+    },
+    "gelato_webhook_secret": {
+     "groups": "base.group_system",
+     "string": "Gelato Webhook Secret",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "gelato_api_key": {
+     "readonly": false,
+     "related": "company_id.gelato_api_key",
+     "type": "Char"
+    },
+    "gelato_webhook_secret": {
+     "readonly": false,
+     "related": "company_id.gelato_webhook_secret",
+     "type": "Char"
+    },
+    "module_sale_gelato": {
+     "string": "Gelato",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_gelato_prepare_address_payload"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_prevent_mixing_gelato_and_non_gelato_products"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_delivery_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_create_order_on_gelato"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_gelato_prepare_items_payload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_confirm_order_on_gelato"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_delete_order_on_gelato"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  }
+ },
+ "module": "sale_gelato",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_gelato",
+ "stats": {
+  "fields": 13,
+  "methods": 23,
+  "models": 9,
+  "py_lines": 850
+ },
+ "summary": "Place orders through Gelato's print-on-demand service",
+ "title": "Gelato",
+ "version": null
+}

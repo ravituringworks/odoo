@@ -1,0 +1,120 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/CRM",
+ "data_files": [
+  "data/ir_cron.xml",
+  "data/ir_action.xml",
+  "data/mail_templates.xml",
+  "views/crm_lead_views.xml",
+  "views/res_config_settings_view.xml"
+ ],
+ "depends": [
+  "iap_crm",
+  "iap_mail"
+ ],
+ "models": {
+  "crm.lead": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "iap_enrich_done": {
+     "help": "Whether IAP service for lead enrichment based on email has been performed on this lead.",
+     "string": "Enrichment done",
+     "type": "Boolean"
+    },
+    "show_enrich_button": {
+     "compute": "_compute_show_enrich_button",
+     "string": "Allow manual enrich",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_from', 'probability', 'iap_enrich_done', 'reveal_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_enrich_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_iap_enrich_leads_cron"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 66,
+     "name": "iap_enrich"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 47,
+     "name": "_iap_enrich_from_response"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_merge_get_fields_specific"
+    }
+   ],
+   "name": "crm.lead",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "set_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "crm_iap_enrich",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/crm_iap_enrich",
+ "stats": {
+  "fields": 2,
+  "methods": 8,
+  "models": 2,
+  "py_lines": 208
+ },
+ "summary": "Enrich Leads/Opportunities using email address domain",
+ "title": "Lead Enrichment",
+ "version": "1.1"
+}

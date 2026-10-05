@@ -1,0 +1,603 @@
+{
+ "application": false,
+ "author": "ADHOC SA",
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "views/account_journal_view.xml",
+  "views/account_move_line_view.xml",
+  "views/account_move_view.xml",
+  "views/l10n_latam_document_type_view.xml",
+  "views/report_templates.xml",
+  "report/invoice_report_view.xml",
+  "wizards/account_move_reversal_view.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "account",
+  "account_debit_note"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_latam_document_account_journal"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.debit.note": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "create_debit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_default_values"
+    }
+   ],
+   "name": "account.debit.note",
+   "transient": false
+  },
+  "account.invoice.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_latam_document_type_id": {
+     "comodel": "l10n_latam.document.type",
+     "index": true,
+     "string": "Document Type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_select"
+    }
+   ],
+   "name": "account.invoice.report",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_latam_company_use_documents": {
+     "compute": "_compute_l10n_latam_company_use_documents",
+     "type": "Boolean"
+    },
+    "l10n_latam_use_documents": {
+     "help": "If active: will be using for legal invoicing (invoices, debit/credit notes). If not set means that will be used to register accounting entries not related to invoicing legal documents. For Example: Receipts, Tax Payments, Register journal entries",
+     "string": "Use Documents?",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_latam_company_use_documents"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id', 'type')"
+     ],
+     "lines": 3,
+     "name": "_onchange_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_has_sequence_holes"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_latam_use_documents')"
+     ],
+     "lines": 5,
+     "name": "check_use_document"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type', 'l10n_latam_use_documents')"
+     ],
+     "lines": 5,
+     "name": "_compute_debit_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type', 'l10n_latam_use_documents')"
+     ],
+     "lines": 5,
+     "name": "_compute_refund_sequence"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_latam_available_document_type_ids": {
+     "comodel": "l10n_latam.document.type",
+     "compute": "_compute_l10n_latam_available_document_types",
+     "type": "Many2many"
+    },
+    "l10n_latam_document_number": {
+     "compute": "_compute_l10n_latam_document_number",
+     "readonly": false,
+     "string": "Document Number",
+     "type": "Char"
+    },
+    "l10n_latam_document_type_id": {
+     "comodel": "l10n_latam.document.type",
+     "compute": "_compute_l10n_latam_document_type",
+     "index": "btree_not_null",
+     "readonly": false,
+     "store": true,
+     "string": "Document Type",
+     "type": "Many2one"
+    },
+    "l10n_latam_document_type_id_code": {
+     "related": "l10n_latam_document_type_id.code",
+     "string": "Doc Type",
+     "type": "Char"
+    },
+    "l10n_latam_manual_document_number": {
+     "compute": "_compute_l10n_latam_manual_document_number",
+     "string": "Manual Number",
+     "type": "Boolean"
+    },
+    "l10n_latam_use_documents": {
+     "related": "journal_id.l10n_latam_use_documents",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_document_type_id')"
+     ],
+     "lines": 16,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_name_placeholder"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_document_type_id', 'journal_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_l10n_latam_manual_document_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_manual_document_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 10,
+     "name": "_compute_l10n_latam_document_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_latam_document_type_id', 'l10n_latam_document_number', 'partner_id')"
+     ],
+     "lines": 11,
+     "name": "_inverse_l10n_latam_document_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_latam_document_type_id')"
+     ],
+     "lines": 6,
+     "name": "_onchange_l10n_latam_document_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('journal_id', 'l10n_latam_document_type_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_highest_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_deduce_sequence_number_reset"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_last_sequence_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_skip_format_document_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_starting_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('state', 'l10n_latam_document_type_id')"
+     ],
+     "lines": 19,
+     "name": "_check_l10n_latam_documents"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('move_type', 'l10n_latam_document_type_id')"
+     ],
+     "lines": 8,
+     "name": "_check_invoice_type_document_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_l10n_latam_documents_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('journal_id', 'partner_id', 'company_id', 'move_type', 'debit_origin_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_latam_available_document_types"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_available_document_type_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_l10n_latam_document_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_made_sequence_gap"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_next_made_sequence_gap"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_auto_init": [],
+    "_deduce_sequence_number_reset": [],
+    "_get_l10n_latam_documents_domain": [
+     [
+      "internal_type",
+      "in"
+     ],
+     [
+      "country_id",
+      "="
+     ]
+    ],
+    "_get_starting_sequence": [],
+    "_post": []
+   },
+   "sql_constraints": [
+    [
+     "unique_name",
+     "",
+     "Another entry with the same name already exists."
+    ],
+    [
+     "unique_name_latam",
+     "",
+     "Another entry with the same name already exists."
+    ]
+   ],
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_latam_document_type_id": {
+     "index": "btree_not_null",
+     "related": "move_id.l10n_latam_document_type_id",
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_auto_init"
+    }
+   ],
+   "name": "account.move.line",
+   "sel_methods": {
+    "_auto_init": []
+   },
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_latam_available_document_type_ids": {
+     "comodel": "l10n_latam.document.type",
+     "compute": "_compute_documents_info",
+     "type": "Many2many"
+    },
+    "l10n_latam_document_number": {
+     "string": "Document Number",
+     "type": "Char"
+    },
+    "l10n_latam_document_type_id": {
+     "comodel": "l10n_latam.document.type",
+     "compute": "_compute_document_type",
+     "domain": "[('id', 'in', l10n_latam_available_document_type_ids)]",
+     "ondelete": "cascade",
+     "readonly": false,
+     "store": true,
+     "string": "Document Type",
+     "type": "Many2one"
+    },
+    "l10n_latam_manual_document_number": {
+     "compute": "_compute_l10n_latam_manual_document_number",
+     "string": "Manual Number",
+     "type": "Boolean"
+    },
+    "l10n_latam_use_documents": {
+     "compute": "_compute_documents_info",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_document_type_id', 'journal_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_l10n_latam_manual_document_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_reverse_type_map"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_available_document_type_ids', 'journal_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_document_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids', 'journal_id')"
+     ],
+     "lines": 20,
+     "name": "_compute_documents_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_prepare_default_reversal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_latam_document_number', 'l10n_latam_document_type_id')"
+     ],
+     "lines": 6,
+     "name": "_onchange_l10n_latam_document_number"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "l10n_latam.document.type": {
+   "abstract": false,
+   "description": "Latam Document Type",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "code": {
+     "help": "Code used by different localizations",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "help": "Country in which this type of document is valid",
+     "index": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "doc_code_prefix": {
+     "help": "Prefix for Documents Codes on Invoices and Account Moves. For eg. 'FA ' will build 'FA 0001-0000001' Document Number",
+     "string": "Document Code Prefix",
+     "type": "Char"
+    },
+    "internal_type": {
+     "help": "Analog to odoo account.move.move_type but with more options allowing to identify the kind of document we are working with. (not only related to account.move, could be for documents of other models like stock.picking)",
+     "selection": [
+      [
+       "invoice",
+       "Invoices"
+      ],
+      [
+       "debit_note",
+       "Debit Notes"
+      ],
+      [
+       "credit_note",
+       "Credit Notes"
+      ],
+      [
+       "all",
+       "All Documents"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "name": {
+     "help": "The document name",
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "report_name": {
+     "help": "Name that will be printed in reports, for example \"CREDIT NOTE\"",
+     "string": "Name on Reports",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "help": "To set in which order show the documents type taking into account the most commonly used first",
+     "required": true,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_format_document_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "l10n_latam.document.type",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_localization_use_documents"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "l10n_latam_invoice_document",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_latam_invoice_document",
+ "stats": {
+  "fields": 23,
+  "methods": 41,
+  "models": 9,
+  "py_lines": 534
+ },
+ "summary": "LATAM Document Types",
+ "title": "LATAM Document",
+ "version": "1.1"
+}

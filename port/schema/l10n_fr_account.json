@@ -1,0 +1,272 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "data/account_chart_template_data.xml",
+  "data/account_data.xml",
+  "data/tax_report_data.xml",
+  "views/report_invoice.xml",
+  "views/res_partner_views.xml",
+  "wizard/account_fr_fec_export_wizard_view.xml",
+  "security/ir.model.access.csv",
+  "data/res.bank.csv",
+  "data/l10n_fr_account_demo.xml"
+ ],
+ "depends": [
+  "base_iban",
+  "base_vat",
+  "account",
+  "l10n_fr"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_fr_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_get_fr_res_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_fr_account_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_fr_reconcile_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_mc_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_deref_account_tags"
+    }
+   ],
+   "name": "account.chart.template",
+   "sel_methods": {
+    "_deref_account_tags": []
+   },
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_fr_is_company_french": {
+     "compute": "_compute_l10n_fr_is_company_french",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_view"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.country_code')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_fr_is_company_french"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code', 'move_type')"
+     ],
+     "lines": 5,
+     "name": "_compute_show_delivery_date"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "l10n_fr.fec.export.wizard": {
+   "abstract": false,
+   "description": "Fichier Echange Informatise",
+   "extension": false,
+   "fields": {
+    "date_from": {
+     "default": {
+      "$lambda": "self._context.get('report_dates', {}).get('date_from')"
+     },
+     "required": true,
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "date_to": {
+     "default": {
+      "$lambda": "self._context.get('report_dates', {}).get('date_to')"
+     },
+     "required": true,
+     "string": "End Date",
+     "type": "Date"
+    },
+    "exclude_zero": {
+     "string": "Exclude lines at 0",
+     "type": "Boolean"
+    },
+    "excluded_journal_ids": {
+     "comodel": "account.journal",
+     "domain": "[('company_id', 'parent_of', current_company_id)]",
+     "string": "Excluded Journals",
+     "type": "Many2many"
+    },
+    "export_type": {
+     "default": "official",
+     "required": true,
+     "selection": [
+      [
+       "official",
+       "Official FEC report (posted entries only)"
+      ],
+      [
+       "nonofficial",
+       "Non-official FEC report (posted and unposted entries)"
+      ]
+     ],
+     "string": "Export Type",
+     "type": "Selection"
+    },
+    "filename": {
+     "readonly": true,
+     "size": 256,
+     "string": "Filename",
+     "type": "Char"
+    },
+    "test_file": {
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('test_file')"
+     ],
+     "lines": 3,
+     "name": "_onchange_export_file"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_base_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_do_query_unaffected_earnings"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_company_legal_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 264,
+     "name": "_get_fec_stream"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "generate_fec"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "create_fec_report_action"
+    }
+   ],
+   "name": "l10n_fr.fec.export.wizard",
+   "sel_methods": {
+    "_get_base_domain": [
+     [
+      "company_id",
+      "in"
+     ],
+     [
+      "parent_state",
+      "="
+     ],
+     [
+      "journal_id",
+      "not in"
+     ],
+     [
+      "balance",
+      "!="
+     ]
+    ]
+   },
+   "transient": true
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_fr_rounding_difference_loss_account_id": {
+     "comodel": "account.account",
+     "type": "Many2one"
+    },
+    "l10n_fr_rounding_difference_profit_account_id": {
+     "comodel": "account.account",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "l10n_fr_account",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_fr_account",
+ "stats": {
+  "fields": 10,
+  "methods": 16,
+  "models": 4,
+  "py_lines": 548
+ },
+ "summary": "This is the module to manage the accounting chart for France in Odoo.",
+ "title": "France - Accounting",
+ "version": "2.2"
+}

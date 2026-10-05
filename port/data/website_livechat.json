@@ -1,0 +1,196 @@
+{
+ "module": "website_livechat",
+ "records": [
+  {
+   "model": "ir.actions.act_window",
+   "id": "website_visitor_livechat_session_action",
+   "values": {
+    "name": "Visitor's Sessions",
+    "res_model": "discuss.channel",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_tree"
+    },
+    "domain": {
+     "$unevaluated": "[('livechat_visitor_id', '=', active_id), ('has_message', '=', True)]"
+    },
+    "context": {
+     "$unevaluated": "{\n                'search_default_livechat_visitor_id': [active_id],\n                'default_livechat_visitor_id': active_id,\n            }"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "website_visitor_livechat_session_action_tree",
+   "values": {
+    "sequence": "1",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_tree"
+    },
+    "act_window_id": {
+     "$ref": "website_livechat.website_visitor_livechat_session_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "website_visitor_livechat_session_action_form",
+   "values": {
+    "sequence": "2",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "im_livechat.discuss_channel_view_form"
+    },
+    "act_window_id": {
+     "$ref": "website_livechat.website_visitor_livechat_session_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "website_livechat_send_chat_request_action_server",
+   "values": {
+    "name": "Send Chat Requests",
+    "model_id": {
+     "$ref": "model_website_visitor"
+    },
+    "binding_model_id": {
+     "$ref": "model_website_visitor"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "if records:\n                action = records.action_send_chat_request()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "im_livechat_channel_action_add",
+   "values": {
+    "name": "New Channel",
+    "res_model": "im_livechat.channel",
+    "view_mode": "form",
+    "target": "new",
+    "view_id": {
+     "$ref": "im_livechat_channel_view_form_add"
+    }
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "im_livechat_channel_rule_public",
+   "values": {
+    "name": "website_livechat.channel.public",
+    "model_id": {
+     "$ref": "im_livechat.model_im_livechat_channel"
+    },
+    "domain_force": "[('website_published', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": 1,
+    "perm_create": 0,
+    "perm_write": 0,
+    "perm_unlink": 0
+   }
+  },
+  {
+   "model": "website",
+   "id": "website.default_website",
+   "values": {
+    "channel_id": {
+     "$ref": "im_livechat.im_livechat_channel_data"
+    }
+   }
+  },
+  {
+   "model": "im_livechat.channel.rule",
+   "id": "website_livechat_channel_rule_chatbot",
+   "values": {
+    "regex_url": "/contactus",
+    "sequence": "5",
+    "action": "auto_popup",
+    "auto_popup_timer": "2",
+    "chatbot_script_id": {
+     "$ref": "im_livechat.chatbot_script_welcome_bot"
+    },
+    "channel_id": {
+     "$ref": "im_livechat.im_livechat_channel_data"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "website_livechat_visitor_menu",
+   "name": "Visitors",
+   "parent": "im_livechat.menu_livechat_root",
+   "action": "website.website_visitors_action",
+   "sequence": "15",
+   "groups": "im_livechat.im_livechat_group_user"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_im_livechat_channel_public_public",
+   "model": "im.livechat.im.livechat.channel",
+   "model_xmlid": "im_livechat.model_im_livechat_channel",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_im_livechat_channel_public_portal",
+   "model": "im.livechat.im.livechat.channel",
+   "model_xmlid": "im_livechat.model_im_livechat_channel",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_im_livechat_channel_public_employee",
+   "model": "im.livechat.im.livechat.channel",
+   "model_xmlid": "im_livechat.model_im_livechat_channel",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_visitor_livechat_users",
+   "model": "website.visitor",
+   "model_xmlid": "model_website_visitor",
+   "group": "im_livechat.im_livechat_group_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_track_livechat_users",
+   "model": "website.website.track",
+   "model_xmlid": "website.model_website_track",
+   "group": "im_livechat.im_livechat_group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

@@ -1,0 +1,356 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "data/sale_expense_data.xml",
+  "views/product_view.xml",
+  "views/hr_expense_views.xml",
+  "views/sale_order_views.xml",
+  "views/hr_expense_sheet_views.xml"
+ ],
+ "depends": [
+  "sale_management",
+  "hr_expense"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_reverse_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "button_draft"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_sale_can_be_reinvoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_so_mapping_from_expense"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_sale_determine_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_sale_prepare_sale_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_sale_create_reinvoice_sale_line"
+    }
+   ],
+   "name": "account.move.line",
+   "sel_methods": {
+    "_sale_can_be_reinvoice": []
+   },
+   "transient": false
+  },
+  "hr.expense": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "can_be_reinvoiced": {
+     "compute": "_compute_can_be_reinvoiced",
+     "string": "Can be reinvoiced",
+     "type": "Boolean"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "compute": "_compute_sale_order_id",
+     "domain": "[('state', '=', 'sale'), ('company_id', '=', company_id)]",
+     "help": "If the category has an expense policy, it will be reinvoiced on this sales order",
+     "index": "btree_not_null",
+     "readonly": false,
+     "store": true,
+     "string": "Customer to Reinvoice",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.expense_policy')"
+     ],
+     "lines": 3,
+     "name": "_compute_can_be_reinvoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('can_be_reinvoiced')"
+     ],
+     "lines": 3,
+     "name": "_compute_sale_order_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('sale_order_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_sale_order_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_split_values"
+    }
+   ],
+   "name": "hr.expense",
+   "transient": false
+  },
+  "hr.expense.sheet": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_count": {
+     "compute": "_compute_sale_order_count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_sale_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_get_sale_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_sale_expense_reset_sol_quantities"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_reset_expense_sheets"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_open_sale_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_do_create_moves"
+    }
+   ],
+   "name": "hr.expense.sheet",
+   "sel_methods": {
+    "_do_create_moves": []
+   },
+   "transient": false
+  },
+  "hr.expense.split": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "can_be_reinvoiced": {
+     "compute": "_compute_can_be_reinvoiced",
+     "string": "Can be reinvoiced",
+     "type": "Boolean"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "compute": "_compute_sale_order_id",
+     "domain": "[('state', '=', 'sale'), ('company_id', '=', company_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Customer to Reinvoice",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_can_be_reinvoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('can_be_reinvoiced')"
+     ],
+     "lines": 3,
+     "name": "_compute_sale_order_id"
+    }
+   ],
+   "name": "hr.expense.split",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_policy_tooltip": {
+     "compute": "_compute_expense_policy_tooltip",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('lang')",
+      "api.depends('expense_policy')"
+     ],
+     "lines": 16,
+     "name": "_compute_expense_policy_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('can_be_expensed')"
+     ],
+     "lines": 7,
+     "name": "_compute_visible_expense_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('can_be_expensed')"
+     ],
+     "lines": 3,
+     "name": "_compute_expense_policy"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_count": {
+     "compute": "_compute_expense_count",
+     "string": "# of Expenses",
+     "type": "Integer"
+    },
+    "expense_ids": {
+     "comodel": "hr.expense",
+     "copy": false,
+     "domain": [
+      [
+       "state",
+       "=",
+       "done"
+      ]
+     ],
+     "inverse_name": "sale_order_id",
+     "readonly": true,
+     "string": "Expenses",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_search_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_expense_count"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_search_display_name": []
+   },
+   "transient": false
+  }
+ },
+ "module": "sale_expense",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_expense",
+ "stats": {
+  "fields": 8,
+  "methods": 26,
+  "models": 7,
+  "py_lines": 335
+ },
+ "summary": "Quotation, Sales Orders, Delivery & Invoicing Control",
+ "title": "Sales Expense",
+ "version": "1.0"
+}

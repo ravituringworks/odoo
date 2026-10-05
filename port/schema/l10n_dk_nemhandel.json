@@ -1,0 +1,1123 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "data/cron.xml",
+  "data/nemhandel_onboarding_tour.xml",
+  "security/ir.model.access.csv",
+  "views/account_journal_dashboard_views.xml",
+  "views/account_move_views.xml",
+  "views/res_partner_views.xml",
+  "views/res_config_settings_views.xml",
+  "wizard/nemhandel_registration_views.xml",
+  "demo/l10n_dk_nemhandel_demo.xml"
+ ],
+ "depends": [
+  "account_edi_proxy_client",
+  "account_edi_ubl_cii",
+  "l10n_dk"
+ ],
+ "models": {
+  "account.edi.xml.oioubl_21": {
+   "abstract": true,
+   "description": "OIOUBL 2.1",
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "account.edi.xml.ubl_21"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_export_invoice_filename"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_currency_decimal_places"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_export_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_export_invoice_constraints_new"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_add_invoice_header_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_document_type_code_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_address_node"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_get_party_node"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_tax_subtotal_node"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_add_invoice_payment_means_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_add_invoice_monetary_total_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_tax_category_node"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_add_invoice_payment_terms_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_add_document_line_price_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_retrieve_rebate_val"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_line_discount_allowance_charge_node"
+    }
+   ],
+   "name": "account.edi.xml.oioubl_21",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_nemhandel_journal": {
+     "string": "Journal used for Nemhandel",
+     "type": "Boolean"
+    },
+    "l10n_dk_nemhandel_proxy_state": {
+     "related": "company_id.l10n_dk_nemhandel_proxy_state",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "nemhandel_get_new_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "nemhandel_get_message_status"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "nemhandel_message_uuid": {
+     "copy": false,
+     "string": "Nemhandel message ID",
+     "type": "Char"
+    },
+    "nemhandel_move_state": {
+     "compute": "_compute_nemhandel_move_state",
+     "copy": false,
+     "selection": [
+      [
+       "ready",
+       "Ready to send"
+      ],
+      [
+       "to_send",
+       "Queued"
+      ],
+      [
+       "processing",
+       "Pending Reception"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "error",
+       "Error"
+      ]
+     ],
+     "store": true,
+     "string": "Nemhandel status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 18,
+     "name": "_compute_nemhandel_move_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_ubl_cii_builder_from_xml_tree"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_cancel_nemhandel_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_need_ubl_cii_xml"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_get_ubl_cii_builder_from_xml_tree": []
+   },
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_invoice_edi_format"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_is_applicable_to_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_is_applicable_to_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_hook_if_errors"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 81,
+     "name": "_call_web_service_after_invoice_pdf_render"
+    }
+   ],
+   "name": "account.move.send",
+   "sel_methods": {
+    "_get_default_invoice_edi_format": [],
+    "_hook_if_errors": [],
+    "_is_applicable_to_company": [],
+    "_is_applicable_to_move": []
+   },
+   "transient": false
+  },
+  "account.move.send.batch.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_summary_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_send_and_print"
+    }
+   ],
+   "name": "account.move.send.batch.wizard",
+   "transient": false
+  },
+  "account.move.send.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_compute_sending_method_checkboxes"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_send_and_print"
+    }
+   ],
+   "name": "account.move.send.wizard",
+   "transient": false
+  },
+  "account_edi_proxy_client.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "nemhandel_verification_code": {
+     "string": "Nemhandel SMS verification code",
+     "type": "Char"
+    },
+    "proxy_type": {
+     "ondelete": {
+      "nemhandel": "cascade"
+     },
+     "selection_add": [
+      [
+       "nemhandel",
+       "Nemhandel"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_proxy_urls"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_call_nemhandel_proxy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_check_user_on_alternative_service"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cron_nemhandel_get_new_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cron_nemhandel_get_message_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cron_nemhandel_get_participant_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cron_nemhandel_webhook_keepalive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_proxy_identification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_register_proxy_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_nemhandel_import_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_nemhandel_get_new_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_nemhandel_process_new_messages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_nemhandel_post_process_new_messages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_nemhandel_get_message_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_nemhandel_get_documents_for_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_nemhandel_process_messages_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_nemhandel_get_participant_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_nemhandel_company_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_nemhandel_register_as_receiver"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_nemhandel_deregister_participant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_generate_nemhandel_webhook_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_nemhandel_user_from_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_nemhandel_reset_webhook"
+    }
+   ],
+   "name": "account_edi_proxy_client.user",
+   "transient": false
+  },
+  "nemhandel.registration": {
+   "abstract": false,
+   "description": "Nemhandel Registration",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "contact_email": {
+     "readonly": false,
+     "related": "company_id.nemhandel_contact_email",
+     "required": true,
+     "type": "Char"
+    },
+    "edi_mode": {
+     "compute": "_compute_edi_mode",
+     "readonly": false,
+     "selection": [
+      [
+       "demo",
+       "Demo"
+      ],
+      [
+       "test",
+       "Test"
+      ],
+      [
+       "prod",
+       "Live"
+      ]
+     ],
+     "string": "EDI mode",
+     "type": "Selection"
+    },
+    "edi_user_id": {
+     "comodel": "account_edi_proxy_client.user",
+     "compute": "_compute_edi_user_id",
+     "string": "EDI user",
+     "type": "Many2one"
+    },
+    "identifier_type": {
+     "readonly": false,
+     "related": "company_id.nemhandel_identifier_type",
+     "required": true,
+     "type": "Selection"
+    },
+    "identifier_value": {
+     "readonly": false,
+     "related": "company_id.nemhandel_identifier_value",
+     "required": true,
+     "type": "Char"
+    },
+    "l10n_dk_nemhandel_proxy_state": {
+     "readonly": false,
+     "related": "company_id.l10n_dk_nemhandel_proxy_state",
+     "type": "Selection"
+    },
+    "phone_number": {
+     "readonly": false,
+     "related": "company_id.nemhandel_phone_number",
+     "type": "Char"
+    },
+    "verification_code": {
+     "readonly": false,
+     "related": "edi_user_id.nemhandel_verification_code",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('identifier_value')"
+     ],
+     "lines": 4,
+     "name": "_onchange_identifier_value"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('phone_number')"
+     ],
+     "lines": 13,
+     "name": "_onchange_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.account_edi_proxy_client_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_edi_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('edi_user_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_edi_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_edi_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_action_open_nemhandel_form"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_action_send_notification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "button_nemhandel_registration_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "button_nemhandel_receiver_registration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "button_update_nemhandel_user_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "send_nemhandel_verification_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "button_check_nemhandel_verification_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "button_deregister_nemhandel_participant"
+    }
+   ],
+   "name": "nemhandel.registration",
+   "transient": true
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_dk_nemhandel_proxy_state": {
+     "default": "not_registered",
+     "required": true,
+     "selection": [
+      [
+       "not_registered",
+       "Not registered"
+      ],
+      [
+       "in_verification",
+       "In verification"
+      ],
+      [
+       "receiver",
+       "Can send and receive"
+      ],
+      [
+       "rejected",
+       "Rejected"
+      ]
+     ],
+     "string": "Nemhandel status",
+     "type": "Selection"
+    },
+    "nemhandel_contact_email": {
+     "compute": "_compute_nemhandel_contact_email",
+     "help": "Primary contact email for Nemhandel-related communication",
+     "readonly": false,
+     "store": true,
+     "string": "Nemhandel Contact email",
+     "type": "Char"
+    },
+    "nemhandel_edi_user": {
+     "comodel": "account_edi_proxy_client.user",
+     "compute": "_compute_nemhandel_edi_user",
+     "type": "Many2one"
+    },
+    "nemhandel_identifier_type": {
+     "readonly": false,
+     "related": "partner_id.nemhandel_identifier_type",
+     "type": "Selection"
+    },
+    "nemhandel_identifier_value": {
+     "readonly": false,
+     "related": "partner_id.nemhandel_identifier_value",
+     "type": "Char"
+    },
+    "nemhandel_phone_number": {
+     "compute": "_compute_nemhandel_phone_number",
+     "help": "You will receive a verification code to this phone number",
+     "readonly": false,
+     "store": true,
+     "string": "Nemhandel Phone number (for validation)",
+     "type": "Char"
+    },
+    "nemhandel_purchase_journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_nemhandel_purchase_journal_id",
+     "domain": [
+      [
+       "type",
+       "=",
+       "purchase"
+      ]
+     ],
+     "readonly": false,
+     "store": true,
+     "string": "Nemhandel Purchase Journal",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_check_phonenumbers_import"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_sanitize_nemhandel_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('nemhandel_phone_number')"
+     ],
+     "lines": 4,
+     "name": "_check_nemhandel_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('nemhandel_purchase_journal_id')"
+     ],
+     "lines": 4,
+     "name": "_check_nemhandel_purchase_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_dk_nemhandel_proxy_state')"
+     ],
+     "lines": 10,
+     "name": "_compute_nemhandel_purchase_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email')"
+     ],
+     "lines": 4,
+     "name": "_compute_nemhandel_contact_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('phone')"
+     ],
+     "lines": 9,
+     "name": "_compute_nemhandel_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_edi_proxy_client_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_nemhandel_edi_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_nemhandel_edi_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_nemhandel_webhook_endpoint"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_dk_nemhandel_proxy_state": {
+     "readonly": false,
+     "related": "company_id.l10n_dk_nemhandel_proxy_state",
+     "type": "Selection"
+    },
+    "nemhandel_contact_email": {
+     "readonly": false,
+     "related": "company_id.nemhandel_contact_email",
+     "type": "Char"
+    },
+    "nemhandel_edi_identification": {
+     "related": "nemhandel_edi_user.edi_identification",
+     "string": "Nemhandel identification",
+     "type": "Char"
+    },
+    "nemhandel_edi_mode": {
+     "related": "nemhandel_edi_user.edi_mode",
+     "string": "Nemhandel EDI operating mode",
+     "type": "Selection"
+    },
+    "nemhandel_edi_user": {
+     "related": "company_id.nemhandel_edi_user",
+     "type": "Many2one"
+    },
+    "nemhandel_identifier_type": {
+     "readonly": false,
+     "related": "company_id.nemhandel_identifier_type",
+     "type": "Selection"
+    },
+    "nemhandel_identifier_value": {
+     "readonly": false,
+     "related": "company_id.nemhandel_identifier_value",
+     "type": "Char"
+    },
+    "nemhandel_phone_number": {
+     "readonly": false,
+     "related": "company_id.nemhandel_phone_number",
+     "type": "Char"
+    },
+    "nemhandel_purchase_journal_id": {
+     "readonly": false,
+     "related": "company_id.nemhandel_purchase_journal_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.account_edi_proxy_client_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_nemhandel_edi_user"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_open_nemhandel_form"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "button_update_nemhandel_user_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "button_deregister_nemhandel_participant"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_edi_format": {
+     "selection_add": [
+      [
+       "oioubl_21",
+       "OIOUBL 2.1"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "invoice_sending_method": {
+     "selection_add": [
+      [
+       "nemhandel",
+       "By Nemhandel"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "is_using_nemhandel": {
+     "compute": "_compute_is_using_nemhandel",
+     "type": "Boolean"
+    },
+    "nemhandel_identifier_type": {
+     "compute": "_compute_nemhandel_identifier_type",
+     "help": "Unique identifier used by OIOUBL and Nemhandel",
+     "readonly": false,
+     "selection": [
+      [
+       "0088",
+       "EAN/GLN"
+      ],
+      [
+       "0184",
+       "CVR"
+      ],
+      [
+       "9918",
+       "IBAN"
+      ],
+      [
+       "0198",
+       "SE"
+      ]
+     ],
+     "store": true,
+     "string": "Nemhandel Endpoint Type",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "nemhandel_identifier_value": {
+     "compute": "_compute_nemhandel_identifier_value",
+     "help": "Code used to identify the Endpoint on Nemhandel",
+     "readonly": false,
+     "store": true,
+     "string": "Nemhandel Endpoint",
+     "tracking": true,
+     "type": "Char"
+    },
+    "nemhandel_verification_state": {
+     "selection": [
+      [
+       "not_verified",
+       "Not verified yet"
+      ],
+      [
+       "not_valid",
+       "Not on Nemhandel"
+      ],
+      [
+       "valid",
+       "Valid"
+      ]
+     ],
+     "string": "Nemhandel endpoint verification",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code', 'vat', 'company_registry')"
+     ],
+     "lines": 8,
+     "name": "_compute_nemhandel_identifier_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code', 'vat', 'company_registry', 'nemhandel_identifier_type')"
+     ],
+     "lines": 14,
+     "name": "_compute_nemhandel_identifier_value"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('allowed_company_ids')",
+      "api.depends('invoice_edi_format')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_using_nemhandel"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('invoice_edi_format', 'invoice_sending_method')"
+     ],
+     "lines": 3,
+     "name": "_check_nemhandel_send_oioubl"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_edi_builder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_ubl_cii_formats_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_suggested_invoice_edi_format"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_get_nemhandel_participant_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 32,
+     "name": "_nemhandel_lookup_participant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_l10n_dk_nemhandel_log_verification_state_update"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_check_nemhandel_participant_exists"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_update_nemhandel_state_per_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "button_nemhandel_check_partner_endpoint"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_nemhandel_verification_state"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_get_edi_builder": [],
+    "_get_suggested_invoice_edi_format": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_dk_nemhandel",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_dk_nemhandel",
+ "stats": {
+  "fields": 37,
+  "methods": 97,
+  "models": 11,
+  "py_lines": 2128
+ },
+ "summary": "This module is used to send/receive documents with Nemhandel",
+ "title": "Denmark EDI - Nemhandel",
+ "version": "1.0"
+}

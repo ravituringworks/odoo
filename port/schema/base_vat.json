@@ -1,0 +1,508 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "data/ir_cron.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml"
+ ],
+ "depends": [
+  "account"
+ ],
+ "models": {
+  "account.fiscal.position": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "adjust_vals_country_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('country_id', 'foreign_vat')"
+     ],
+     "lines": 26,
+     "name": "_validate_foreign_vat"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "raise_vat_error_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_vat_valid"
+    }
+   ],
+   "name": "account.fiscal.position",
+   "sel_methods": {
+    "_get_vat_valid": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "vat_check_vies": {
+     "string": "Verify VAT Numbers",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "vat_check_vies": {
+     "readonly": false,
+     "related": "company_id.vat_check_vies",
+     "string": "Verify VAT Numbers",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "perform_vies_validation": {
+     "compute": "_compute_perform_vies_validation",
+     "type": "Boolean"
+    },
+    "vies_valid": {
+     "compute": "_compute_vies_valid",
+     "help": "European VAT numbers are automatically checked on the VIES database.",
+     "readonly": false,
+     "store": true,
+     "string": "Intra-Community Valid",
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "vies_vat_to_check": {
+     "compute": "_compute_vies_vat_to_check",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_split_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "simple_vat_check"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vat', 'country_id')"
+     ],
+     "lines": 19,
+     "name": "_compute_vies_vat_to_check"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_get_country_specific_vat_variants"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('vies_vat_to_check')"
+     ],
+     "lines": 10,
+     "name": "_compute_perform_vies_validation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "fix_eu_vat_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('vat', 'country_id')"
+     ],
+     "lines": 26,
+     "name": "check_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_vat_validation_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vies_vat_to_check')"
+     ],
+     "lines": 15,
+     "name": "_compute_vies_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 36,
+     "name": "_get_iap_vies_credentials"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_iap_vies_endpoint"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_check_vies_iap"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_cron_check_vies_iap"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_check_vies_update_iap"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_update_vies_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_run_vat_test"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "_build_vat_error_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "check_vat_al"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "check_vat_do"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "check_vat_ro"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "check_vat_gr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "check_vat_gt"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "check_vat_hu"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "check_vat_ch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "is_valid_ruc_ec"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "check_vat_ec"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_ie_check_char"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "check_vat_ie"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "check_vat_mx"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "check_vat_no"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "check_vat_pe"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "check_vat_ph"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "check_vat_ru"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "check_vat_tr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "check_vat_sa"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "check_vat_ua"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "check_vat_uy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "check_vat_ve"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "check_vat_in"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "check_vat_t"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "check_vat_br"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "check_vat_cr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "format_vat_eu"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "format_vat_ch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "check_vat_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "check_vat_th"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "check_vat_de"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "check_vat_il"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "check_vat_ma"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "check_vat_vn"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "format_vat_sm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "check_vat_tw"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_fix_vat_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_convert_hu_local_to_eu_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "base_vat",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/base_vat",
+ "stats": {
+  "fields": 5,
+  "methods": 62,
+  "models": 4,
+  "py_lines": 1117
+ },
+ "summary": "VAT validation for Partner's VAT numbers.",
+ "title": "VAT Number Validation",
+ "version": "1.0"
+}

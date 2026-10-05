@@ -1,0 +1,152 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/sms_data.xml",
+  "views/res_config_settings_views.xml",
+  "wizard/confirm_stock_sms_views.xml",
+  "security/ir.model.access.csv",
+  "security/sms_security.xml"
+ ],
+ "depends": [
+  "stock",
+  "sms"
+ ],
+ "models": {
+  "confirm.stock.sms": {
+   "abstract": false,
+   "description": "Confirm Stock SMS",
+   "extension": false,
+   "fields": {
+    "pick_ids": {
+     "comodel": "stock.picking",
+     "relation_table": "stock_picking_sms_rel",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "send_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "dont_send_sms"
+    }
+   ],
+   "name": "confirm.stock.sms",
+   "transient": true
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_received_warning_stock_sms": {
+     "type": "Boolean"
+    },
+    "stock_move_sms_validation": {
+     "default": true,
+     "string": "SMS Confirmation",
+     "type": "Boolean"
+    },
+    "stock_sms_confirmation_template_id": {
+     "comodel": "sms.template",
+     "default": {
+      "$ref": "_default_confirmation_sms_picking_template"
+     },
+     "domain": "[('model', '=', 'stock.picking')]",
+     "help": "SMS sent to the customer once the order is delivered.",
+     "string": "SMS Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_confirmation_sms_picking_template"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "stock_move_sms_validation": {
+     "readonly": false,
+     "related": "company_id.stock_move_sms_validation",
+     "string": "SMS Validation with stock move",
+     "type": "Boolean"
+    },
+    "stock_sms_confirmation_template_id": {
+     "readonly": false,
+     "related": "company_id.stock_sms_confirmation_template_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_pre_action_done_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_check_warn_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_action_generate_warn_sms_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_send_confirmation_email"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  }
+ },
+ "module": "stock_sms",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/stock_sms",
+ "stats": {
+  "fields": 6,
+  "methods": 7,
+  "models": 4,
+  "py_lines": 151
+ },
+ "summary": "Send text messages when final stock move",
+ "title": "Stock - SMS",
+ "version": "1.0"
+}

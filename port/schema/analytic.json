@@ -1,0 +1,1085 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "security/analytic_security.xml",
+  "security/ir.model.access.csv",
+  "views/analytic_line_views.xml",
+  "views/analytic_account_views.xml",
+  "views/analytic_plan_views.xml",
+  "views/analytic_distribution_model_views.xml",
+  "data/analytic_data.xml",
+  "data/analytic_account_demo.xml"
+ ],
+ "depends": [
+  "base",
+  "mail",
+  "uom"
+ ],
+ "models": {
+  "account.analytic.account": {
+   "abstract": false,
+   "description": "Analytic Account",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "Deactivate the account.",
+     "string": "Active",
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "balance": {
+     "compute": "_compute_debit_credit_balance",
+     "string": "Balance",
+     "type": "Monetary"
+    },
+    "code": {
+     "index": "btree",
+     "string": "Reference",
+     "tracking": true,
+     "type": "Char"
+    },
+    "color": {
+     "related": "plan_id.color",
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "credit": {
+     "compute": "_compute_debit_credit_balance",
+     "string": "Credit",
+     "type": "Monetary"
+    },
+    "currency_id": {
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "debit": {
+     "compute": "_compute_debit_credit_balance",
+     "string": "Debit",
+     "type": "Monetary"
+    },
+    "line_ids": {
+     "comodel": "account.analytic.line",
+     "inverse_name": "auto_account_id",
+     "string": "Analytic Lines",
+     "type": "One2many"
+    },
+    "name": {
+     "index": "trigram",
+     "required": true,
+     "string": "Analytic Account",
+     "tracking": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "plan_id": {
+     "comodel": "account.analytic.plan",
+     "required": true,
+     "string": "Plan",
+     "type": "Many2one"
+    },
+    "root_plan_id": {
+     "comodel": "account.analytic.plan",
+     "related": "plan_id.root_id",
+     "store": true,
+     "string": "Root Plan",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id')"
+     ],
+     "lines": 7,
+     "name": "_check_company_consistency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code', 'partner_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "web_read"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_read_group_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_read_group_postprocess_aggregate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids.amount')"
+     ],
+     "lines": 38,
+     "name": "_compute_debit_credit_balance"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_update_accounts_in_analytic_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    }
+   ],
+   "name": "account.analytic.account",
+   "order": "plan_id, name asc",
+   "sel_methods": {
+    "_read_group_postprocess_aggregate": [],
+    "_read_group_select": []
+   },
+   "transient": false
+  },
+  "account.analytic.applicability": {
+   "abstract": false,
+   "description": "Analytic Plan's Applicabilities",
+   "extension": false,
+   "fields": {
+    "analytic_plan_id": {
+     "comodel": "account.analytic.plan",
+     "type": "Many2one"
+    },
+    "applicability": {
+     "required": true,
+     "selection": [
+      [
+       "optional",
+       "Optional"
+      ],
+      [
+       "mandatory",
+       "Mandatory"
+      ],
+      [
+       "unavailable",
+       "Unavailable"
+      ]
+     ],
+     "string": "Applicability",
+     "type": "Selection"
+    },
+    "business_domain": {
+     "required": true,
+     "selection": [
+      [
+       "general",
+       "Miscellaneous"
+      ]
+     ],
+     "string": "Domain",
+     "type": "Selection"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_score"
+    }
+   ],
+   "name": "account.analytic.applicability",
+   "transient": false
+  },
+  "account.analytic.distribution.model": {
+   "abstract": false,
+   "description": "Analytic Distribution Model",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "help": "Select a company for which the analytic distribution will be used (e.g. create new customer invoice or Sales order if we select this company, it will automatically take this as an analytic account)",
+     "ondelete": "cascade",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "partner_category_id": {
+     "comodel": "res.partner.category",
+     "help": "Select a partner category for which the analytic distribution will be used (e.g. create new customer invoice or Sales order if we select this partner, it will automatically take this as an analytic account)",
+     "ondelete": "cascade",
+     "string": "Partner Category",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "help": "Select a partner for which the analytic distribution will be used (e.g. create new customer invoice or Sales order if we select this partner, it will automatically take this as an analytic account)",
+     "ondelete": "cascade",
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "analytic.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id')"
+     ],
+     "lines": 19,
+     "name": "_check_company_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_get_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_default_search_domain_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_applicable_models"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_create_domain"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_read_distribution_model"
+    }
+   ],
+   "name": "account.analytic.distribution.model",
+   "order": "sequence, id desc",
+   "rec_name": "create_date",
+   "transient": false
+  },
+  "account.analytic.line": {
+   "abstract": false,
+   "description": "Analytic Line",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "default": 0.0,
+     "required": true,
+     "string": "Amount",
+     "type": "Monetary"
+    },
+    "analytic_distribution": {
+     "compute": "_compute_analytic_distribution",
+     "string": "Analytic Distribution",
+     "type": "Json"
+    },
+    "analytic_precision": {
+     "default": {
+      "$lambda": "self.env['decimal.precision'].precision_get('Percentage Analytic')"
+     },
+     "store": false,
+     "type": "Integer"
+    },
+    "category": {
+     "default": "other",
+     "selection": [
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "store": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "index": true,
+     "required": true,
+     "string": "Date",
+     "type": "Date"
+    },
+    "name": {
+     "required": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "readonly": true,
+     "related": "product_uom_id.category_id",
+     "string": "UoM Category",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "unit_amount": {
+     "default": 0.0,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.context.get('user_id', self.env.user.id)"
+     },
+     "index": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "analytic.plan.fields.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_inverse_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_split_amount_fname"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_condition_to_sql"
+    }
+   ],
+   "name": "account.analytic.line",
+   "order": "date desc, id desc",
+   "sel_methods": {
+    "_condition_to_sql": []
+   },
+   "transient": false
+  },
+  "account.analytic.plan": {
+   "abstract": false,
+   "description": "Analytic Plans",
+   "extension": false,
+   "fields": {
+    "account_count": {
+     "compute": "_compute_analytic_account_count",
+     "string": "Analytic Accounts Count",
+     "type": "Integer"
+    },
+    "account_ids": {
+     "comodel": "account.analytic.account",
+     "inverse_name": "plan_id",
+     "string": "Accounts",
+     "type": "One2many"
+    },
+    "all_account_count": {
+     "compute": "_compute_all_analytic_account_count",
+     "string": "All Analytic Accounts Count",
+     "type": "Integer"
+    },
+    "applicability_ids": {
+     "comodel": "account.analytic.applicability",
+     "domain": "[('company_id', '=', current_company_id)]",
+     "inverse_name": "analytic_plan_id",
+     "string": "Applicability",
+     "type": "One2many"
+    },
+    "children_count": {
+     "compute": "_compute_children_count",
+     "string": "Children Plans Count",
+     "type": "Integer"
+    },
+    "children_ids": {
+     "comodel": "account.analytic.plan",
+     "inverse_name": "parent_id",
+     "string": "Childrens",
+     "type": "One2many"
+    },
+    "color": {
+     "default": {
+      "$ref": "_default_color"
+     },
+     "string": "Color",
+     "type": "Integer"
+    },
+    "complete_name": {
+     "compute": "_compute_complete_name",
+     "store": true,
+     "string": "Complete Name",
+     "type": "Char"
+    },
+    "default_applicability": {
+     "readonly": false,
+     "selection": [
+      [
+       "optional",
+       "Optional"
+      ],
+      [
+       "mandatory",
+       "Mandatory"
+      ],
+      [
+       "unavailable",
+       "Unavailable"
+      ]
+     ],
+     "string": "Default Applicability",
+     "type": "Selection"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Text"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "parent_id": {
+     "comodel": "account.analytic.plan",
+     "domain": "['!', ('id', 'child_of', id)]",
+     "ondelete": "cascade",
+     "string": "Parent",
+     "type": "Many2one"
+    },
+    "parent_path": {
+     "index": "btree",
+     "type": "Char"
+    },
+    "root_id": {
+     "comodel": "account.analytic.plan",
+     "compute": "_compute_root_id",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_color"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_all_plans"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_strict_column_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_column_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_inverse_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_inverse_parent_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id', 'parent_path')"
+     ],
+     "lines": 3,
+     "name": "_compute_root_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_search_root_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'parent_id.complete_name')"
+     ],
+     "lines": 6,
+     "name": "_compute_complete_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_analytic_account_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_ids', 'children_ids')"
+     ],
+     "lines": 22,
+     "name": "_compute_all_analytic_account_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('children_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_children_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('parent_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_parent_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_analytical_accounts"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_view_children_plans"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "get_relevant_plans"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_applicability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_hierarchy_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_is_subplan_field_used"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_find_plan_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_find_related_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_sync_all_plan_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_sync_plan_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "write"
+    }
+   ],
+   "name": "account.analytic.plan",
+   "order": "sequence asc, id",
+   "parent_store": true,
+   "rec_name": "complete_name",
+   "sel_methods": {
+    "_search_root_id": [
+     [
+      "parent_path",
+      "=like"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "analytic.mixin": {
+   "abstract": true,
+   "description": "Analytic Mixin",
+   "extension": false,
+   "fields": {
+    "analytic_distribution": {
+     "compute": "_compute_analytic_distribution",
+     "copy": true,
+     "readonly": false,
+     "store": true,
+     "string": "Analytic Distribution",
+     "type": "Json"
+    },
+    "analytic_precision": {
+     "default": {
+      "$lambda": "self.env['decimal.precision'].precision_get('Percentage Analytic')"
+     },
+     "store": false,
+     "type": "Integer"
+    },
+    "distribution_analytic_account_ids": {
+     "comodel": "account.analytic.account",
+     "compute": "_compute_distribution_analytic_account_ids",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_query_analytic_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_analytic_account_ids_from_distributions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('analytic_distribution')"
+     ],
+     "lines": 6,
+     "name": "_compute_distribution_analytic_account_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_distribution_analytic_account_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_condition_to_sql"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_read_group_groupby"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_read_group_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_count_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "mapped"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "filtered_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_validate_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_sanitize_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_modifiying_distribution_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_merge_distribution"
+    }
+   ],
+   "name": "analytic.mixin",
+   "sel_methods": {
+    "_read_group_groupby": [],
+    "_read_group_select": []
+   },
+   "transient": false
+  },
+  "analytic.plan.fields.mixin": {
+   "abstract": true,
+   "description": "Analytic Plan Fields",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "account.analytic.account",
+     "index": true,
+     "ondelete": "restrict",
+     "string": "Project Account",
+     "type": "Many2one"
+    },
+    "auto_account_id": {
+     "comodel": "account.analytic.account",
+     "compute": "_compute_auto_account",
+     "string": "Analytic Account",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('analytic_plan_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_auto_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_auto_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_search_auto_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_plan_fnames"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_analytic_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_distribution_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_mandatory_plans"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_plan_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_account_node_context"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains(lambda self: self._get_plan_fnames())"
+     ],
+     "lines": 5,
+     "name": "_check_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "fields_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_view"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_patch_view"
+    }
+   ],
+   "name": "analytic.plan.fields.mixin",
+   "sel_methods": {
+    "_get_plan_domain": [
+     [
+      "plan_id",
+      "child_of"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "ir.config_parameter": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "write"
+    }
+   ],
+   "name": "ir.config_parameter",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "group_analytic_accounting": {
+     "string": "Analytic Accounting",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "analytic",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/analytic",
+ "stats": {
+  "fields": 55,
+  "methods": 81,
+  "models": 9,
+  "py_lines": 1352
+ },
+ "summary": "Module for defining analytic accounting object.",
+ "title": "Analytic Accounting",
+ "version": "1.2"
+}

@@ -1,0 +1,136 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/sms_data.xml",
+  "views/calendar_views.xml"
+ ],
+ "depends": [
+  "calendar",
+  "sms"
+ ],
+ "models": {
+  "calendar.alarm": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "alarm_type": {
+     "ondelete": {
+      "sms": "set default"
+     },
+     "selection_add": [
+      [
+       "sms",
+       "SMS Text Message"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "sms_notify_responsible": {
+     "string": "Notify Responsible",
+     "type": "Boolean"
+    },
+    "sms_template_id": {
+     "comodel": "sms.template",
+     "compute": "_compute_sms_template_id",
+     "domain": [
+      [
+       "model",
+       "in",
+       [
+        "calendar.event"
+       ]
+      ]
+     ],
+     "help": "Template used to render SMS reminder content.",
+     "readonly": false,
+     "store": true,
+     "string": "SMS Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('alarm_type', 'sms_template_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_sms_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('duration', 'interval', 'alarm_type', 'sms_notify_responsible')"
+     ],
+     "lines": 6,
+     "name": "_onchange_duration_interval"
+    }
+   ],
+   "name": "calendar.alarm",
+   "transient": false
+  },
+  "calendar.alarm_manager": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_send_reminder"
+    }
+   ],
+   "name": "calendar.alarm_manager",
+   "transient": false
+  },
+  "calendar.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_do_sms_reminder"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_send_sms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_trigger_alarm_types"
+    }
+   ],
+   "name": "calendar.event",
+   "transient": false
+  }
+ },
+ "module": "calendar_sms",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/calendar_sms",
+ "stats": {
+  "fields": 3,
+  "methods": 6,
+  "models": 3,
+  "py_lines": 116
+ },
+ "summary": "Send text messages as event reminders",
+ "title": "Calendar - SMS",
+ "version": "1.1"
+}

@@ -1,0 +1,347 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "wizard/privacy_lookup_wizard_views.xml",
+  "views/privacy_log_views.xml",
+  "security/ir.model.access.csv",
+  "data/ir_actions_server_data.xml"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "privacy.log": {
+   "abstract": false,
+   "description": "Privacy Log",
+   "extension": false,
+   "fields": {
+    "additional_note": {
+     "type": "Text"
+    },
+    "anonymized_email": {
+     "required": true,
+     "type": "Char"
+    },
+    "anonymized_name": {
+     "required": true,
+     "type": "Char"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "required": true,
+     "type": "Datetime"
+    },
+    "execution_details": {
+     "type": "Text"
+    },
+    "records_description": {
+     "string": "Found Records",
+     "type": "Text"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "required": true,
+     "string": "Handled By",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_anonymize_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_anonymize_email"
+    }
+   ],
+   "name": "privacy.log",
+   "rec_name": "user_id",
+   "transient": false
+  },
+  "privacy.lookup.wizard": {
+   "abstract": false,
+   "description": "Privacy Lookup Wizard",
+   "extension": false,
+   "fields": {
+    "email": {
+     "required": true,
+     "type": "Char"
+    },
+    "execution_details": {
+     "compute": "_compute_execution_details",
+     "store": true,
+     "type": "Text"
+    },
+    "line_count": {
+     "compute": "_compute_line_count",
+     "type": "Integer"
+    },
+    "line_ids": {
+     "comodel": "privacy.lookup.wizard.line",
+     "inverse_name": "wizard_id",
+     "type": "One2many"
+    },
+    "log_id": {
+     "comodel": "privacy.log",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "records_description": {
+     "compute": "_compute_records_description",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_line_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_query_models_blacklist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 117,
+     "name": "_get_query"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_lookup"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_post_log"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids.execution_details')"
+     ],
+     "lines": 4,
+     "name": "_compute_execution_details"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids')"
+     ],
+     "lines": 13,
+     "name": "_compute_records_description"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_open_lines"
+    }
+   ],
+   "name": "privacy.lookup.wizard",
+   "transient": true
+  },
+  "privacy.lookup.wizard.line": {
+   "abstract": false,
+   "description": "Privacy Lookup Wizard Line",
+   "extension": false,
+   "fields": {
+    "execution_details": {
+     "default": "",
+     "type": "Char"
+    },
+    "has_active": {
+     "compute": "_compute_has_active",
+     "store": true,
+     "type": "Boolean"
+    },
+    "is_active": {
+     "type": "Boolean"
+    },
+    "is_unlinked": {
+     "type": "Boolean"
+    },
+    "res_id": {
+     "required": true,
+     "string": "Resource ID",
+     "type": "Integer"
+    },
+    "res_model": {
+     "readonly": true,
+     "related": "res_model_id.model",
+     "store": true,
+     "string": "Document Model",
+     "type": "Char"
+    },
+    "res_model_id": {
+     "comodel": "ir.model",
+     "ondelete": "cascade",
+     "string": "Related Document Model",
+     "type": "Many2one"
+    },
+    "res_name": {
+     "compute": "_compute_res_name",
+     "store": true,
+     "string": "Resource name",
+     "type": "Char"
+    },
+    "resource_ref": {
+     "compute": "_compute_resource_ref",
+     "selection_method": "_selection_target_model",
+     "string": "Record",
+     "type": "Reference"
+    },
+    "wizard_id": {
+     "comodel": "privacy.lookup.wizard",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_selection_target_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id', 'is_unlinked')"
+     ],
+     "lines": 11,
+     "name": "_compute_resource_ref"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_set_resource_ref"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_has_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_res_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('is_active')"
+     ],
+     "lines": 7,
+     "name": "_onchange_is_active"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_unlink"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_archive_all"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_unlink_all"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_record"
+    }
+   ],
+   "name": "privacy.lookup.wizard.line",
+   "transient": true
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_privacy_lookup"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "privacy_lookup",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/privacy_lookup",
+ "stats": {
+  "fields": 24,
+  "methods": 23,
+  "models": 4,
+  "py_lines": 404
+ },
+ "summary": "",
+ "title": "Privacy",
+ "version": "1.0"
+}

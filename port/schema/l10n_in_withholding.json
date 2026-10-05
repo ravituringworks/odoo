@@ -1,0 +1,662 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/l10n_in.section.alert.csv",
+  "data/account_tax_report_tcs_data.xml",
+  "data/account_tax_report_tds_data.xml",
+  "data/account_tax_report_tcs_it_act_25_data.xml",
+  "data/account_tax_report_tds_it_act_25_data.xml",
+  "wizard/l10n_in_withhold_wizard.xml",
+  "views/l10n_in_section_alert_views.xml",
+  "views/account_account_views.xml",
+  "views/account_move_views.xml",
+  "views/account_move_line_views.xml",
+  "views/account_payment_views.xml",
+  "views/account_tax_views.xml",
+  "views/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "l10n_in"
+ ],
+ "models": {
+  "account.account": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_tds_tcs_section_id": {
+     "comodel": "l10n_in.section.alert",
+     "string": "TCS/TDS Section",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.account",
+   "transient": false
+  },
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_in_withholding_account_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_in_withholding_account_tax"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_in_base_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_display_higher_tcs_button": {
+     "compute": "_compute_l10n_in_display_higher_tcs_button",
+     "string": "Display higher TCS button",
+     "type": "Boolean"
+    },
+    "l10n_in_is_withholding": {
+     "copy": false,
+     "help": "Technical field to identify Indian withholding entry",
+     "string": "Is Indian TDS Entry",
+     "type": "Boolean"
+    },
+    "l10n_in_tcs_tds_warning": {
+     "compute": "_compute_l10n_in_tcs_tds_warning",
+     "string": "TDC/TCS Warning",
+     "type": "Char"
+    },
+    "l10n_in_total_withholding_amount": {
+     "compute": "_compute_l10n_in_total_withholding_amount",
+     "help": "Total withholding amount for the move",
+     "string": "Total Indian TDS Amount",
+     "type": "Monetary"
+    },
+    "l10n_in_withhold_move_ids": {
+     "comodel": "account.move",
+     "inverse_name": "l10n_in_withholding_ref_move_id",
+     "string": "Indian TDS Entries",
+     "type": "One2many"
+    },
+    "l10n_in_withholding_line_ids": {
+     "comodel": "account.move.line",
+     "compute": "_compute_l10n_in_withholding_line_ids",
+     "inverse_name": "move_id",
+     "string": "Indian TDS Lines",
+     "type": "One2many"
+    },
+    "l10n_in_withholding_ref_move_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "help": "Reference move for withholding entry",
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Indian TDS Ref Move",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids', 'l10n_in_is_withholding')"
+     ],
+     "lines": 7,
+     "name": "_compute_l10n_in_withholding_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_l10n_in_total_withholding_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_l10n_in_invalid_tax_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_line_ids.tax_ids', 'commercial_partner_id.l10n_in_pan')"
+     ],
+     "lines": 17,
+     "name": "_compute_l10n_in_warning"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_l10n_in_apply_higher_tax"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_in_warning')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_in_display_higher_tcs_button"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_l10n_in_withholding_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_get_sections_aggregate_sum_by_pan"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_in_is_warning_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_line_ids.price_total')"
+     ],
+     "lines": 55,
+     "name": "_compute_l10n_in_tcs_tds_warning"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_withhold_tax_amount": {
+     "compute": "_compute_withhold_tax_amount",
+     "string": "TDS Tax Amount",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tax_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_withhold_tax_amount"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_total_withholding_amount": {
+     "related": "move_id.l10n_in_total_withholding_amount",
+     "type": "Monetary"
+    },
+    "l10n_in_withhold_move_ids": {
+     "related": "move_id.l10n_in_withhold_move_ids",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_l10n_in_withholding_entries"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_section_id": {
+     "comodel": "l10n_in.section.alert",
+     "string": "Section",
+     "type": "Many2one"
+    },
+    "l10n_in_tds_tax_type": {
+     "selection": [
+      [
+       "sale",
+       "Sale"
+      ],
+      [
+       "purchase",
+       "Purchase"
+      ]
+     ],
+     "string": "TDS Tax Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_in.section.alert": {
+   "abstract": false,
+   "description": "indian section alert",
+   "extension": false,
+   "fields": {
+    "aggregate_limit": {
+     "string": "Aggregate limit",
+     "type": "Float"
+    },
+    "aggregate_period": {
+     "default": "fiscal_yearly",
+     "selection": [
+      [
+       "monthly",
+       "Monthly"
+      ],
+      [
+       "fiscal_yearly",
+       "Financial Yearly"
+      ]
+     ],
+     "string": "Aggregate Period",
+     "type": "Selection"
+    },
+    "consider_amount": {
+     "default": "untaxed_amount",
+     "required": true,
+     "selection": [
+      [
+       "untaxed_amount",
+       "Untaxed Amount"
+      ],
+      [
+       "total_amount",
+       "Total Amount"
+      ]
+     ],
+     "string": "Consider",
+     "type": "Selection"
+    },
+    "is_aggregate_limit": {
+     "string": "Aggregate",
+     "type": "Boolean"
+    },
+    "is_per_transaction_limit": {
+     "string": "Per Transaction",
+     "type": "Boolean"
+    },
+    "l10n_in_section_tax_ids": {
+     "comodel": "account.tax",
+     "inverse_name": "l10n_in_section_id",
+     "string": "Taxes",
+     "type": "One2many"
+    },
+    "name": {
+     "string": "Section Name",
+     "type": "Char"
+    },
+    "per_transaction_limit": {
+     "string": "Per Transaction limit",
+     "type": "Float"
+    },
+    "tax_source_type": {
+     "selection": [
+      [
+       "tds",
+       "TDS"
+      ],
+      [
+       "tcs",
+       "TCS"
+      ]
+     ],
+     "string": "Tax Source Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tax_source_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_warning_message"
+    }
+   ],
+   "name": "l10n_in.section.alert",
+   "sql_constraints": [
+    [
+     "per_transaction_limit",
+     "CHECK(per_transaction_limit >= 0)",
+     "Per transaction limit must be positive"
+    ],
+    [
+     "aggregate_limit",
+     "CHECK(aggregate_limit >= 0)",
+     "Aggregate limit must be positive"
+    ]
+   ],
+   "transient": false
+  },
+  "l10n_in.withhold.wizard": {
+   "abstract": false,
+   "description": "Withhold Wizard",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "string": "Date",
+     "type": "Date"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_journal",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Journal",
+     "type": "Many2one"
+    },
+    "l10n_in_tds_tax_type": {
+     "compute": "_compute_l10n_in_tds_tax_type",
+     "string": "Indian Tax Type",
+     "type": "Char"
+    },
+    "l10n_in_withholding_warning": {
+     "compute": "_compute_l10n_in_withholding_warning",
+     "string": "Withholding warning",
+     "type": "Json"
+    },
+    "reference": {
+     "string": "Reference",
+     "type": "Char"
+    },
+    "related_move_id": {
+     "comodel": "account.move",
+     "readonly": true,
+     "string": "Invoice/Bill",
+     "type": "Many2one"
+    },
+    "related_payment_id": {
+     "comodel": "account.payment",
+     "readonly": true,
+     "string": "Payment",
+     "type": "Many2one"
+    },
+    "type_name": {
+     "compute": "_compute_type_name",
+     "string": "Type",
+     "type": "Char"
+    },
+    "withhold_line_ids": {
+     "comodel": "l10n_in.withhold.wizard.line",
+     "inverse_name": "withhold_id",
+     "readonly": false,
+     "store": true,
+     "string": "TDS Lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('related_move_id', 'related_payment_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_l10n_in_tds_tax_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('related_move_id', 'related_payment_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_type_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('related_move_id', 'related_payment_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_journal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('related_payment_id', 'related_move_id', 'l10n_in_tds_tax_type', 'withhold_line_ids')"
+     ],
+     "lines": 14,
+     "name": "_compute_l10n_in_withholding_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_withhold_type"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 29,
+     "name": "action_create_and_post_withhold"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_withhold_header"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_prepare_withhold_move_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_validate_withhold_data_on_post"
+    }
+   ],
+   "name": "l10n_in.withhold.wizard",
+   "transient": true
+  },
+  "l10n_in.withhold.wizard.line": {
+   "abstract": false,
+   "description": "Withhold Wizard Lines",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "compute": "_compute_amount",
+     "store": true,
+     "string": "TDS Amount",
+     "type": "Monetary"
+    },
+    "base": {
+     "string": "Base",
+     "type": "Monetary"
+    },
+    "currency_id": {
+     "related": "withhold_id.currency_id",
+     "type": "Many2one"
+    },
+    "l10n_in_tds_tax_type": {
+     "related": "withhold_id.l10n_in_tds_tax_type",
+     "type": "Char"
+    },
+    "tax_id": {
+     "comodel": "account.tax",
+     "required": true,
+     "string": "TDS Tax",
+     "type": "Many2one"
+    },
+    "withhold_id": {
+     "comodel": "l10n_in.withhold.wizard",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('base', 'amount')"
+     ],
+     "lines": 7,
+     "name": "_check_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tax_id', 'base')"
+     ],
+     "lines": 7,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_tax_compute_all_helper"
+    }
+   ],
+   "name": "l10n_in.withhold.wizard.line",
+   "transient": true
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_withholding_account_id": {
+     "comodel": "account.account",
+     "string": "TDS Account",
+     "type": "Many2one"
+    },
+    "l10n_in_withholding_journal_id": {
+     "comodel": "account.journal",
+     "string": "TDS Journal",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_withholding_account_id": {
+     "readonly": false,
+     "related": "company_id.l10n_in_withholding_account_id",
+     "type": "Many2one"
+    },
+    "l10n_in_withholding_journal_id": {
+     "readonly": false,
+     "related": "company_id.l10n_in_withholding_journal_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "l10n_in_withholding",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_in_withholding",
+ "stats": {
+  "fields": 43,
+  "methods": 31,
+  "models": 11,
+  "py_lines": 714
+ },
+ "summary": "Support for Indian TDS (Tax Deducted at Source).",
+ "title": "Indian - TDS and TCS",
+ "version": "1.0"
+}

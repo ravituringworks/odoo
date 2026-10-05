@@ -1,0 +1,1604 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Lunch",
+ "data_files": [
+  "security/lunch_security.xml",
+  "security/ir.model.access.csv",
+  "report/lunch_cashmove_report_views.xml",
+  "views/lunch_templates.xml",
+  "views/lunch_alert_views.xml",
+  "views/lunch_cashmove_views.xml",
+  "views/lunch_location_views.xml",
+  "views/lunch_orders_views.xml",
+  "views/lunch_product_views.xml",
+  "views/lunch_supplier_views.xml",
+  "views/res_config_settings.xml",
+  "views/lunch_views.xml",
+  "data/mail_template_data.xml",
+  "data/lunch_data.xml",
+  "data/lunch_demo.xml"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "lunch.alert": {
+   "abstract": false,
+   "description": "Lunch Alert",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "available_today": {
+     "compute": "_compute_available_today",
+     "string": "Is Displayed Today",
+     "type": "Boolean"
+    },
+    "cron_id": {
+     "comodel": "ir.cron",
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "fri": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "location_ids": {
+     "comodel": "lunch.location",
+     "string": "Location",
+     "type": "Many2many"
+    },
+    "message": {
+     "required": true,
+     "string": "Message",
+     "translate": true,
+     "type": "Html"
+    },
+    "mode": {
+     "default": "alert",
+     "selection": [
+      [
+       "alert",
+       "Alert in app"
+      ],
+      [
+       "chat",
+       "Chat notification"
+      ]
+     ],
+     "string": "Display",
+     "type": "Selection"
+    },
+    "mon": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Alert Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "notification_moment": {
+     "default": "am",
+     "required": true,
+     "selection": [
+      [
+       "am",
+       "AM"
+      ],
+      [
+       "pm",
+       "PM"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "notification_time": {
+     "default": 10.0,
+     "string": "Notification Time",
+     "type": "Float"
+    },
+    "recipients": {
+     "default": "everyone",
+     "selection": [
+      [
+       "everyone",
+       "Everyone"
+      ],
+      [
+       "last_week",
+       "Employee who ordered last week"
+      ],
+      [
+       "last_month",
+       "Employee who ordered last month"
+      ],
+      [
+       "last_year",
+       "Employee who ordered last year"
+      ]
+     ],
+     "string": "Recipients",
+     "type": "Selection"
+    },
+    "sat": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "sun": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "thu": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "tue": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "tz": {
+     "default": {
+      "$lambda": "self.env.user.tz or 'UTC'"
+     },
+     "required": true,
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "until": {
+     "string": "Show Until",
+     "type": "Date"
+    },
+    "wed": {
+     "default": true,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun')"
+     ],
+     "lines": 6,
+     "name": "_compute_available_today"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_search_available_today"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_sync_cron"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 28,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_notify_chat"
+    }
+   ],
+   "name": "lunch.alert",
+   "order": "write_date desc, id",
+   "sql_constraints": [
+    [
+     "notification_time_range",
+     "CHECK(notification_time >= 0 and notification_time <= 12)",
+     "Notification time must be between 0 and 12"
+    ]
+   ],
+   "transient": false
+  },
+  "lunch.cashmove": {
+   "abstract": false,
+   "description": "Lunch Cashmove",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "required": true,
+     "string": "Amount",
+     "type": "Float"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "default": {
+      "$lambda": "self.env.company.currency_id"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "required": true,
+     "string": "Date",
+     "type": "Date"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Text"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.uid"
+     },
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "get_wallet_balance"
+    }
+   ],
+   "name": "lunch.cashmove",
+   "order": "date desc",
+   "transient": false
+  },
+  "lunch.cashmove.report": {
+   "abstract": false,
+   "description": "Cashmoves report",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "string": "Amount",
+     "type": "Float"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date": {
+     "string": "Date",
+     "type": "Date"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Text"
+    },
+    "id": {
+     "string": "ID",
+     "type": "Integer"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "init"
+    }
+   ],
+   "name": "lunch.cashmove.report",
+   "order": "date desc",
+   "transient": false
+  },
+  "lunch.location": {
+   "abstract": false,
+   "description": "Lunch Locations",
+   "extension": false,
+   "fields": {
+    "address": {
+     "string": "Address",
+     "type": "Text"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Location Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "lunch.location",
+   "transient": false
+  },
+  "lunch.order": {
+   "abstract": false,
+   "description": "Lunch Order",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "available_on_date": {
+     "compute": "_compute_available_on_date",
+     "type": "Boolean"
+    },
+    "available_today": {
+     "related": "supplier_id.available_today",
+     "type": "Boolean"
+    },
+    "available_toppings_1": {
+     "compute": "_compute_available_toppings",
+     "help": "Are extras available for this product",
+     "type": "Boolean"
+    },
+    "available_toppings_2": {
+     "compute": "_compute_available_toppings",
+     "help": "Are extras available for this product",
+     "type": "Boolean"
+    },
+    "available_toppings_3": {
+     "compute": "_compute_available_toppings",
+     "help": "Are extras available for this product",
+     "type": "Boolean"
+    },
+    "category_id": {
+     "related": "product_id.category_id",
+     "store": true,
+     "string": "Product Category",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company.id"
+     },
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "company_id.currency_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "readonly": false,
+     "required": true,
+     "string": "Order Date",
+     "type": "Date"
+    },
+    "display_add_button": {
+     "compute": "_compute_display_add_button",
+     "type": "Boolean"
+    },
+    "display_reorder_button": {
+     "compute": "_compute_display_reorder_button",
+     "type": "Boolean"
+    },
+    "display_toppings": {
+     "compute": "_compute_display_toppings",
+     "store": true,
+     "string": "Extras",
+     "type": "Text"
+    },
+    "image_128": {
+     "compute": "_compute_product_images",
+     "type": "Image"
+    },
+    "image_1920": {
+     "compute": "_compute_product_images",
+     "type": "Image"
+    },
+    "lunch_location_id": {
+     "comodel": "lunch.location",
+     "default": {
+      "$lambda": "self.env.user.last_lunch_location_id"
+     },
+     "type": "Many2one"
+    },
+    "name": {
+     "readonly": true,
+     "related": "product_id.name",
+     "string": "Product Name",
+     "type": "Char"
+    },
+    "note": {
+     "string": "Notes",
+     "type": "Text"
+    },
+    "notified": {
+     "default": false,
+     "type": "Boolean"
+    },
+    "order_deadline_passed": {
+     "compute": "_compute_order_deadline_passed",
+     "type": "Boolean"
+    },
+    "price": {
+     "compute": "_compute_total_price",
+     "readonly": true,
+     "store": true,
+     "string": "Total Price",
+     "type": "Monetary"
+    },
+    "product_description": {
+     "related": "product_id.description",
+     "string": "Description",
+     "type": "Html"
+    },
+    "product_id": {
+     "comodel": "lunch.product",
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "quantity": {
+     "default": 1,
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "state": {
+     "default": "new",
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "new",
+       "To Order"
+      ],
+      [
+       "ordered",
+       "Ordered"
+      ],
+      [
+       "sent",
+       "Sent"
+      ],
+      [
+       "confirmed",
+       "Received"
+      ],
+      [
+       "cancelled",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "supplier_id": {
+     "index": true,
+     "related": "product_id.supplier_id",
+     "store": true,
+     "string": "Vendor",
+     "type": "Many2one"
+    },
+    "topping_ids_1": {
+     "column1": "order_id",
+     "column2": "topping_id",
+     "comodel": "lunch.topping",
+     "domain": [
+      [
+       "topping_category",
+       "=",
+       1
+      ]
+     ],
+     "relation_table": "lunch_order_topping",
+     "string": "Extras 1",
+     "type": "Many2many"
+    },
+    "topping_ids_2": {
+     "column1": "order_id",
+     "column2": "topping_id",
+     "comodel": "lunch.topping",
+     "domain": [
+      [
+       "topping_category",
+       "=",
+       2
+      ]
+     ],
+     "relation_table": "lunch_order_topping",
+     "string": "Extras 2",
+     "type": "Many2many"
+    },
+    "topping_ids_3": {
+     "column1": "order_id",
+     "column2": "topping_id",
+     "comodel": "lunch.topping",
+     "domain": [
+      [
+       "topping_category",
+       "=",
+       3
+      ]
+     ],
+     "relation_table": "lunch_order_topping",
+     "string": "Extras 3",
+     "type": "Many2many"
+    },
+    "topping_label_1": {
+     "related": "product_id.supplier_id.topping_label_1",
+     "type": "Char"
+    },
+    "topping_label_2": {
+     "related": "product_id.supplier_id.topping_label_2",
+     "type": "Char"
+    },
+    "topping_label_3": {
+     "related": "product_id.supplier_id.topping_label_3",
+     "type": "Char"
+    },
+    "topping_quantity_1": {
+     "related": "product_id.supplier_id.topping_quantity_1",
+     "type": "Selection"
+    },
+    "topping_quantity_2": {
+     "related": "product_id.supplier_id.topping_quantity_2",
+     "type": "Selection"
+    },
+    "topping_quantity_3": {
+     "related": "product_id.supplier_id.topping_quantity_3",
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.uid"
+     },
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_images"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('category_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_available_toppings"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 14,
+     "name": "_compute_display_add_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('show_reorder_button')",
+      "api.depends('state')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_reorder_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date', 'supplier_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_available_on_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('supplier_id', 'date')"
+     ],
+     "lines": 9,
+     "name": "_compute_order_deadline_passed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_topping_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_extract_toppings"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('topping_ids_1', 'topping_ids_2', 'topping_ids_3')"
+     ],
+     "lines": 16,
+     "name": "_check_topping_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 16,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_find_matching_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('topping_ids_1', 'topping_ids_2', 'topping_ids_3', 'product_id', 'quantity')"
+     ],
+     "lines": 3,
+     "name": "_compute_total_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('topping_ids_1', 'topping_ids_2', 'topping_ids_3')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_toppings"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "update_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "add_to_cart"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_check_wallet"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_reorder"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_reset"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_send"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_notify"
+    }
+   ],
+   "name": "lunch.order",
+   "order": "id desc",
+   "transient": false
+  },
+  "lunch.product": {
+   "abstract": false,
+   "description": "Lunch Product",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "category_id": {
+     "comodel": "lunch.product.category",
+     "required": true,
+     "string": "Product Category",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": false,
+     "related": "supplier_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Html"
+    },
+    "favorite_user_ids": {
+     "column1": "product_id",
+     "column2": "user_id",
+     "comodel": "res.users",
+     "relation_table": "lunch_product_favorite_user_rel",
+     "type": "Many2many"
+    },
+    "is_available_at": {
+     "comodel": "lunch.location",
+     "compute": "_compute_is_available_at",
+     "string": "Product Availability",
+     "type": "Many2one"
+    },
+    "is_favorite": {
+     "compute": "_compute_is_favorite",
+     "type": "Boolean"
+    },
+    "is_new": {
+     "compute": "_compute_is_new",
+     "type": "Boolean"
+    },
+    "last_order_date": {
+     "compute": "_compute_last_order_date",
+     "type": "Date"
+    },
+    "name": {
+     "required": true,
+     "string": "Product Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "new_until": {
+     "string": "New Until",
+     "type": "Date"
+    },
+    "price": {
+     "digits": "Account",
+     "required": true,
+     "string": "Price",
+     "type": "Float"
+    },
+    "product_image": {
+     "compute": "_compute_product_image",
+     "type": "Image"
+    },
+    "supplier_id": {
+     "comodel": "lunch.supplier",
+     "required": true,
+     "string": "Vendor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "image.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('image_128', 'category_id.image_128')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_image"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('new_until')"
+     ],
+     "lines": 7,
+     "name": "_compute_is_new"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('favorite_user_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_favorite"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 13,
+     "name": "_compute_last_order_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_is_available_at"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_search_is_available_at"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_sync_active_from_related"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_is_favorite"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "write"
+    }
+   ],
+   "name": "lunch.product",
+   "order": "name",
+   "transient": false
+  },
+  "lunch.product.category": {
+   "abstract": false,
+   "description": "Lunch Product Category",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "image_1920": {
+     "default": {
+      "$ref": "_default_image"
+     },
+     "type": "Image"
+    },
+    "name": {
+     "required": true,
+     "string": "Product Category",
+     "translate": true,
+     "type": "Char"
+    },
+    "product_count": {
+     "compute": "_compute_product_count",
+     "help": "The number of products related to this category",
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "image.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_default_image"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_product_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "toggle_active"
+    }
+   ],
+   "name": "lunch.product.category",
+   "transient": false
+  },
+  "lunch.supplier": {
+   "abstract": false,
+   "description": "Lunch Supplier",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "automatic_email_time": {
+     "default": 12.0,
+     "required": true,
+     "string": "Order Time",
+     "type": "Float"
+    },
+    "available_location_ids": {
+     "comodel": "lunch.location",
+     "string": "Location",
+     "type": "Many2many"
+    },
+    "available_today": {
+     "compute": "_compute_available_today",
+     "string": "This is True when if the supplier is available today",
+     "type": "Boolean"
+    },
+    "city": {
+     "readonly": false,
+     "related": "partner_id.city",
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": false,
+     "related": "partner_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "readonly": false,
+     "related": "partner_id.country_id",
+     "type": "Many2one"
+    },
+    "cron_id": {
+     "comodel": "ir.cron",
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "delivery": {
+     "default": "no_delivery",
+     "selection": [
+      [
+       "delivery",
+       "Delivery"
+      ],
+      [
+       "no_delivery",
+       "No Delivery"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "email": {
+     "readonly": false,
+     "related": "partner_id.email",
+     "type": "Char"
+    },
+    "email_formatted": {
+     "readonly": true,
+     "related": "partner_id.email_formatted",
+     "type": "Char"
+    },
+    "fri": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "moment": {
+     "default": "am",
+     "required": true,
+     "selection": [
+      [
+       "am",
+       "AM"
+      ],
+      [
+       "pm",
+       "PM"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "mon": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "name": {
+     "readonly": false,
+     "related": "partner_id.name",
+     "string": "Name",
+     "type": "Char"
+    },
+    "order_deadline_passed": {
+     "compute": "_compute_order_deadline_passed",
+     "type": "Boolean"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "required": true,
+     "string": "Vendor",
+     "type": "Many2one"
+    },
+    "phone": {
+     "readonly": false,
+     "related": "partner_id.phone",
+     "type": "Char"
+    },
+    "recurrency_end_date": {
+     "help": "This field is used in order to ",
+     "string": "Until",
+     "type": "Date"
+    },
+    "responsible_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "domain": {
+      "$lambda": "[('groups_id', 'in', self.env.ref('lunch.group_lunch_manager').id)]"
+     },
+     "help": "The responsible is the person that will order lunch for everyone. It will be used as the 'from' when sending the automatic email.",
+     "string": "Responsible",
+     "type": "Many2one"
+    },
+    "sat": {
+     "type": "Boolean"
+    },
+    "send_by": {
+     "default": "phone",
+     "selection": [
+      [
+       "phone",
+       "Phone"
+      ],
+      [
+       "mail",
+       "Email"
+      ]
+     ],
+     "string": "Send Order By",
+     "type": "Selection"
+    },
+    "show_confirm_button": {
+     "compute": "_compute_buttons",
+     "type": "Boolean"
+    },
+    "show_order_button": {
+     "compute": "_compute_buttons",
+     "type": "Boolean"
+    },
+    "state_id": {
+     "comodel": "res.country.state",
+     "readonly": false,
+     "related": "partner_id.state_id",
+     "type": "Many2one"
+    },
+    "street": {
+     "readonly": false,
+     "related": "partner_id.street",
+     "type": "Char"
+    },
+    "street2": {
+     "readonly": false,
+     "related": "partner_id.street2",
+     "type": "Char"
+    },
+    "sun": {
+     "type": "Boolean"
+    },
+    "thu": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "topping_ids_1": {
+     "comodel": "lunch.topping",
+     "domain": [
+      [
+       "topping_category",
+       "=",
+       1
+      ]
+     ],
+     "inverse_name": "supplier_id",
+     "type": "One2many"
+    },
+    "topping_ids_2": {
+     "comodel": "lunch.topping",
+     "domain": [
+      [
+       "topping_category",
+       "=",
+       2
+      ]
+     ],
+     "inverse_name": "supplier_id",
+     "type": "One2many"
+    },
+    "topping_ids_3": {
+     "comodel": "lunch.topping",
+     "domain": [
+      [
+       "topping_category",
+       "=",
+       3
+      ]
+     ],
+     "inverse_name": "supplier_id",
+     "type": "One2many"
+    },
+    "topping_label_1": {
+     "default": "Extras",
+     "required": true,
+     "string": "Extra 1 Label",
+     "type": "Char"
+    },
+    "topping_label_2": {
+     "default": "Beverages",
+     "required": true,
+     "string": "Extra 2 Label",
+     "type": "Char"
+    },
+    "topping_label_3": {
+     "default": "Extra Label 3",
+     "required": true,
+     "string": "Extra 3 Label",
+     "type": "Char"
+    },
+    "topping_quantity_1": {
+     "default": "0_more",
+     "required": true,
+     "selection": [
+      [
+       "0_more",
+       "None or More"
+      ],
+      [
+       "1_more",
+       "One or More"
+      ],
+      [
+       "1",
+       "Only One"
+      ]
+     ],
+     "string": "Extra 1 Quantity",
+     "type": "Selection"
+    },
+    "topping_quantity_2": {
+     "default": "0_more",
+     "required": true,
+     "selection": [
+      [
+       "0_more",
+       "None or More"
+      ],
+      [
+       "1_more",
+       "One or More"
+      ],
+      [
+       "1",
+       "Only One"
+      ]
+     ],
+     "string": "Extra 2 Quantity",
+     "type": "Selection"
+    },
+    "topping_quantity_3": {
+     "default": "0_more",
+     "required": true,
+     "selection": [
+      [
+       "0_more",
+       "None or More"
+      ],
+      [
+       "1_more",
+       "One or More"
+      ],
+      [
+       "1",
+       "Only One"
+      ]
+     ],
+     "string": "Extra 3 Quantity",
+     "type": "Selection"
+    },
+    "tue": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "tz": {
+     "default": {
+      "$lambda": "self.env.user.tz or 'UTC'"
+     },
+     "required": true,
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "wed": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "zip_code": {
+     "readonly": false,
+     "related": "partner_id.zip",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('phone')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_sync_cron"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 33,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_cancel_future_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_current_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_send_auto_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurrency_end_date', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun')"
+     ],
+     "lines": 6,
+     "name": "_compute_available_today"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_available_on_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('available_today', 'automatic_email_time', 'send_by')"
+     ],
+     "lines": 12,
+     "name": "_compute_order_deadline_passed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_search_available_today"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_compute_buttons"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_send_orders"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_confirm_orders"
+    }
+   ],
+   "name": "lunch.supplier",
+   "sql_constraints": [
+    [
+     "automatic_email_time_range",
+     "CHECK(automatic_email_time >= 0 AND automatic_email_time <= 12)",
+     "Automatic Email Sending Time should be between 0 and 12"
+    ]
+   ],
+   "transient": false
+  },
+  "lunch.topping": {
+   "abstract": false,
+   "description": "Lunch Extras",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "price": {
+     "required": true,
+     "string": "Price",
+     "type": "Monetary"
+    },
+    "supplier_id": {
+     "comodel": "lunch.supplier",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "topping_category": {
+     "default": 1,
+     "required": true,
+     "string": "Topping Category",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('price')",
+      "api.depends_context('company')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "lunch.topping",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "lunch_minimum_threshold": {
+     "type": "Float"
+    },
+    "lunch_notify_message": {
+     "default": "Your lunch has been delivered.\nEnjoy your meal!",
+     "translate": true,
+     "type": "Html"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "company_lunch_minimum_threshold": {
+     "readonly": false,
+     "related": "company_id.lunch_minimum_threshold",
+     "string": "Maximum Allowed Overdraft",
+     "type": "Float"
+    },
+    "company_lunch_notify_message": {
+     "readonly": false,
+     "related": "company_id.lunch_notify_message",
+     "string": "Lunch notification message",
+     "type": "Html"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "favorite_lunch_product_ids": {
+     "column1": "user_id",
+     "column2": "product_id",
+     "comodel": "lunch.product",
+     "relation_table": "lunch_product_favorite_user_rel",
+     "type": "Many2many"
+    },
+    "last_lunch_location_id": {
+     "comodel": "lunch.location",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "lunch",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/lunch",
+ "stats": {
+  "fields": 145,
+  "methods": 66,
+  "models": 12,
+  "py_lines": 1429
+ },
+ "summary": "Handle lunch orders of your employees",
+ "title": "Lunch",
+ "version": "1.0"
+}

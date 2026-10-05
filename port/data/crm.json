@@ -1,0 +1,5308 @@
+{
+ "module": "crm",
+ "records": [
+  {
+   "model": "res.groups",
+   "id": "group_use_lead",
+   "values": {
+    "name": "Show Lead Menu",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_use_recurring_revenues",
+   "values": {
+    "name": "Show Recurring Revenues Menu",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "ir.ui.menu",
+   "id": "contacts.res_partner_menu_config",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "crm_rule_personal_lead",
+   "values": {
+    "name": "Personal Leads",
+    "model_id": {
+     "$ref": "model_crm_lead"
+    },
+    "domain_force": "['|',('user_id','=',user.id),('user_id','=',False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "crm_lead_company_rule",
+   "values": {
+    "name": "CRM Lead Multi-Company",
+    "model_id": {
+     "$ref": "model_crm_lead"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "crm_rule_all_lead",
+   "values": {
+    "name": "All Leads",
+    "model_id": {
+     "$ref": "model_crm_lead"
+    },
+    "domain_force": "[(1,'=',1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "crm_activity_report_rule_all_activities",
+   "values": {
+    "name": "All Activities",
+    "model_id": {
+     "$ref": "model_crm_activity_report"
+    },
+    "domain_force": "[(1,'=',1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "crm_activity_report_rule_personal_activities",
+   "values": {
+    "name": "Personal Activities",
+    "model_id": {
+     "$ref": "model_crm_activity_report"
+    },
+    "domain_force": "['|',('user_id','=',user.id),('user_id','=',False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "crm_activity_report_rule_multi_company",
+   "values": {
+    "name": "CRM Lead Multi-Company",
+    "model_id": {
+     "$ref": "model_crm_activity_report"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_plan_rule_group_sale_manager_lead",
+   "values": {
+    "name": "Manager can manage lead plans",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_manager"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "mail.model_mail_activity_plan"
+    },
+    "domain_force": "[('res_model', '=', 'crm.lead')]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_plan_templates_rule_group_sale_manager_lead",
+   "values": {
+    "name": "Manager can manage lead plan templates",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_manager"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "mail.model_mail_activity_plan_template"
+    },
+    "domain_force": "[('plan_id.res_model', '=', 'crm.lead')]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "crm.lead.scoring.frequency.field",
+   "id": "frequency_field_state_id",
+   "values": {
+    "field_id": {
+     "$ref": "crm.field_crm_lead__state_id"
+    }
+   }
+  },
+  {
+   "model": "crm.lead.scoring.frequency.field",
+   "id": "frequency_field_country_id",
+   "values": {
+    "field_id": {
+     "$ref": "crm.field_crm_lead__country_id"
+    }
+   }
+  },
+  {
+   "model": "crm.lead.scoring.frequency.field",
+   "id": "frequency_field_phone_state",
+   "values": {
+    "field_id": {
+     "$ref": "crm.field_crm_lead__phone_state"
+    }
+   }
+  },
+  {
+   "model": "crm.lead.scoring.frequency.field",
+   "id": "frequency_field_email_state",
+   "values": {
+    "field_id": {
+     "$ref": "crm.field_crm_lead__email_state"
+    }
+   }
+  },
+  {
+   "model": "crm.lead.scoring.frequency.field",
+   "id": "frequency_field_source_id",
+   "values": {
+    "field_id": {
+     "$ref": "crm.field_crm_lead__source_id"
+    }
+   }
+  },
+  {
+   "model": "crm.lead.scoring.frequency.field",
+   "id": "frequency_field_lang_id",
+   "values": {
+    "field_id": {
+     "$ref": "crm.field_crm_lead__lang_id"
+    }
+   }
+  },
+  {
+   "model": "crm.lead.scoring.frequency.field",
+   "id": "frequency_field_tag_ids",
+   "values": {
+    "field_id": {
+     "$ref": "crm.field_crm_lead__tag_ids"
+    }
+   }
+  },
+  {
+   "model": "ir.config_parameter",
+   "id": "crm_pls_fields_param",
+   "values": {
+    "key": "crm.pls_fields",
+    "value": "phone_state,email_state"
+   }
+  },
+  {
+   "model": "ir.config_parameter",
+   "id": "crm_pls_start_date_param",
+   "values": {
+    "key": "crm.pls_start_date",
+    "value": {
+     "$unevaluated": "(datetime.now() - timedelta(days=8)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "crm.lost.reason",
+   "id": "lost_reason_1",
+   "values": {
+    "name": "Too expensive"
+   }
+  },
+  {
+   "model": "crm.lost.reason",
+   "id": "lost_reason_2",
+   "values": {
+    "name": "We don't have people/skills"
+   }
+  },
+  {
+   "model": "crm.lost.reason",
+   "id": "lost_reason_3",
+   "values": {
+    "name": "Not enough stock"
+   }
+  },
+  {
+   "model": "crm.stage",
+   "id": "stage_lead1",
+   "values": {
+    "name": "New",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "crm.stage",
+   "id": "stage_lead2",
+   "values": {
+    "name": "Qualified",
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "crm.stage",
+   "id": "stage_lead3",
+   "values": {
+    "name": "Proposition",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "crm.stage",
+   "id": "stage_lead4",
+   "values": {
+    "name": "Won",
+    "fold": false,
+    "is_won": "True",
+    "sequence": "70"
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "sales_team.team_sales_department",
+   "values": {
+    "alias_name": "info"
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "sales_team.salesteam_website_sales",
+   "values": {
+    "use_opportunities": false
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "sales_team.pos_sales_team",
+   "values": {
+    "use_opportunities": false
+   }
+  },
+  {
+   "model": "digest.digest",
+   "id": "digest.digest_digest_default",
+   "values": {
+    "kpi_crm_lead_created": "True",
+    "kpi_crm_opportunities_won": "True"
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_crm_0",
+   "values": {
+    "name": "Tip: Convert incoming emails into opportunities",
+    "sequence": "200",
+    "group_id": {
+     "$ref": "sales_team.group_sale_salesman_all_leads"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_crm_1",
+   "values": {
+    "name": "Tip: Did you know Odoo has built-in lead mining?",
+    "sequence": "1500",
+    "group_id": {
+     "$ref": "sales_team.group_sale_salesman_all_leads"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_crm_2",
+   "values": {
+    "name": "Tip: Opportunity win rate is predicted with AI",
+    "sequence": "1700",
+    "group_id": {
+     "$ref": "sales_team.group_sale_salesman_all_leads"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_crm_3",
+   "values": {
+    "name": "Tip: Manage your pipeline",
+    "sequence": "2600",
+    "group_id": {
+     "$ref": "sales_team.group_sale_salesman_all_leads"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_crm_4",
+   "values": {
+    "name": "Tip: Do not waste time recording customers' data",
+    "sequence": "2800",
+    "group_id": {
+     "$ref": "sales_team.group_sale_salesman_all_leads"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_crm_5",
+   "values": {
+    "name": "Tip: Turn a selection of opportunities into a map",
+    "sequence": "3000",
+    "group_id": {
+     "$ref": "sales_team.group_sale_salesman_all_leads"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_crm_6",
+   "values": {
+    "name": "Tip: Identify Bottlenecks at a glance",
+    "sequence": "3600",
+    "group_id": {
+     "$ref": "sales_team.group_sale_salesman"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_crm_7",
+   "values": {
+    "name": "Tip: Turn Sales Forecasting into Child's Play",
+    "sequence": "4400",
+    "group_id": {
+     "$ref": "sales_team.group_sale_salesman"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_your_pipeline",
+   "values": {
+    "name": "Crm: My Pipeline",
+    "path": "crm",
+    "model_id": {
+     "$ref": "crm.model_crm_team"
+    },
+    "state": "code",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "code": "action = model.action_your_pipeline()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_opportunity_forecast",
+   "values": {
+    "name": "Crm: Forecast",
+    "model_id": {
+     "$ref": "crm.model_crm_team"
+    },
+    "state": "code",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "code": "action = model.action_opportunity_forecast()"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_lead_create",
+   "values": {
+    "name": "Opportunity Created",
+    "hidden": true,
+    "res_model": "crm.lead",
+    "default": false,
+    "description": "Lead/Opportunity created"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_lead_stage",
+   "values": {
+    "name": "Stage Changed",
+    "res_model": "crm.lead",
+    "default": false,
+    "description": "Stage changed"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_lead_won",
+   "values": {
+    "name": "Opportunity Won",
+    "res_model": "crm.lead",
+    "default": false,
+    "description": "Opportunity won"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_lead_lost",
+   "values": {
+    "name": "Opportunity Lost",
+    "res_model": "crm.lead",
+    "default": false,
+    "description": "Opportunity lost"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_lead_restored",
+   "values": {
+    "name": "Opportunity Restored",
+    "res_model": "crm.lead",
+    "default": false,
+    "description": "Opportunity restored"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_lead",
+   "values": {
+    "name": "Opportunity Created",
+    "sequence": "10",
+    "res_model": "crm.team",
+    "default": true,
+    "parent_id": {
+     "$ref": "mt_lead_create"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_lead_stage",
+   "values": {
+    "name": "Opportunity Stage Changed",
+    "sequence": "11",
+    "res_model": "crm.team",
+    "parent_id": {
+     "$ref": "mt_lead_stage"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_lead_won",
+   "values": {
+    "name": "Opportunity Won",
+    "sequence": "12",
+    "res_model": "crm.team",
+    "parent_id": {
+     "$ref": "mt_lead_won"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_lead_lost",
+   "values": {
+    "name": "Opportunity Lost",
+    "sequence": "13",
+    "res_model": "crm.team",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_lead_lost"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_lead_restored",
+   "values": {
+    "name": "Opportunity Restored",
+    "sequence": "14",
+    "res_model": "crm.team",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_lead_restored"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "crm.recurring.plan",
+   "id": "crm_recurring_plan_monthly",
+   "values": {
+    "name": "Monthly",
+    "number_of_months": "1"
+   }
+  },
+  {
+   "model": "crm.recurring.plan",
+   "id": "crm_recurring_plan_yearly",
+   "values": {
+    "name": "Yearly",
+    "number_of_months": "12"
+   }
+  },
+  {
+   "model": "crm.recurring.plan",
+   "id": "crm_recurring_plan_over_3_years",
+   "values": {
+    "name": "Over 3 years",
+    "number_of_months": "36"
+   }
+  },
+  {
+   "model": "crm.recurring.plan",
+   "id": "crm_recurring_plan_over_5_years",
+   "values": {
+    "name": "Over 5 years",
+    "number_of_months": "60"
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "crm_tour",
+   "values": {
+    "name": "crm_tour",
+    "sequence": "10",
+    "rainbow_man_message": "Congrats, best of luck catching such big fish! :)"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_lost_action",
+   "values": {
+    "name": "Mark Lost",
+    "res_model": "crm.lead.lost",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "crm_lead_lost_view_form"
+    },
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "context": {
+     "$unevaluated": "{\n                'dialog_size' : 'medium',\n                'default_lead_ids': active_ids,\n            }"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_crm_lead2opportunity_partner",
+   "values": {
+    "name": "Convert to opportunity",
+    "res_model": "crm.lead2opportunity.partner",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_crm_lead2opportunity_partner"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_crm_send_mass_convert",
+   "values": {
+    "name": "Convert to opportunities",
+    "res_model": "crm.lead2opportunity.partner.mass",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_crm_lead2opportunity_partner_mass"
+    },
+    "target": "new",
+    "context": {},
+    "binding_model_id": {
+     "$ref": "model_crm_lead"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_merge_opportunities",
+   "values": {
+    "name": "Merge",
+    "res_model": "crm.merge.opportunity",
+    "view_mode": "form",
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "model_crm_lead"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_pls_update_action",
+   "values": {
+    "name": "Update Probabilities",
+    "res_model": "crm.lead.pls.update",
+    "view_mode": "form",
+    "target": "new",
+    "view_id": {
+     "$ref": "crm_lead_pls_update_view_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_recurring_plan_action",
+   "values": {
+    "name": "Recurring Plans",
+    "res_model": "crm.recurring.plan",
+    "view_mode": "list",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lost_reason_action",
+   "values": {
+    "name": "Lost Reasons",
+    "res_model": "crm.lost.reason",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_stage_action",
+   "values": {
+    "name": "Stages",
+    "res_model": "crm.stage",
+    "view_id": {
+     "$ref": "crm.crm_stage_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_crm_opportunity_calendar_event_new",
+   "values": {
+    "name": "Meetings",
+    "res_model": "calendar.event",
+    "view_mode": "list,form,calendar",
+    "context": {
+     "$unevaluated": "{'default_duration': 4.0, 'default_opportunity_id': active_id}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_lead_mail_compose",
+   "values": {
+    "name": "Send email",
+    "res_model": "mail.compose.message",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "default_composition_mode": "comment"
+    },
+    "binding_model_id": {
+     "$ref": "model_crm_lead"
+    },
+    "binding_view_types": "form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_lead_mass_mail",
+   "values": {
+    "name": "Send email",
+    "res_model": "mail.compose.message",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "default_composition_mode": "mass_mail"
+    },
+    "binding_model_id": {
+     "$ref": "model_crm_lead"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_all_leads",
+   "values": {
+    "name": "Leads",
+    "res_model": "crm.lead",
+    "view_mode": "list,kanban,graph,pivot,calendar,form,activity",
+    "domain": [
+     "|",
+     [
+      "type",
+      "=",
+      "lead"
+     ],
+     [
+      "type",
+      "=",
+      false
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_leads_filter"
+    },
+    "context": {
+     "default_type": "lead",
+     "search_default_type": "lead",
+     "search_default_to_process": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_all_leads_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "crm_case_tree_view_leads"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_all_leads"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_all_leads_view_kanban",
+   "values": {
+    "sequence": 2,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "view_crm_lead_kanban"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_all_leads"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_all_leads_view_calendar",
+   "values": {
+    "sequence": 3,
+    "view_mode": "calendar",
+    "view_id": {
+     "$ref": "crm_case_calendar_view_leads"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_all_leads"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_all_leads_view_pivot",
+   "values": {
+    "sequence": 4,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "crm_lead_view_pivot"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_all_leads"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_all_leads_view_graph",
+   "values": {
+    "sequence": 5,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "crm_lead_view_graph"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_all_leads"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_action_my_activities",
+   "values": {
+    "name": "My Activities",
+    "res_model": "crm.lead",
+    "view_mode": "list,kanban,graph,pivot,calendar,form,activity",
+    "view_id": {
+     "$ref": "crm_lead_view_list_activities"
+    },
+    "domain": [
+     [
+      "active",
+      "in",
+      [
+       true,
+       false
+      ]
+     ],
+     [
+      "activity_ids.active",
+      "in",
+      [
+       true,
+       false
+      ]
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_my_activities_filter"
+    },
+    "context": {
+     "default_type": "opportunity",
+     "force_search_count": 1,
+     "search_default_assigned_to_me": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_my_activities_view_tree",
+   "values": {
+    "sequence": "1",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "crm.crm_lead_view_list_activities"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_my_activities"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_opportunities",
+   "values": {
+    "name": "Opportunities",
+    "res_model": "crm.lead",
+    "view_mode": "kanban,list,graph,pivot,form,calendar,activity",
+    "domain": [
+     [
+      "type",
+      "=",
+      "opportunity"
+     ]
+    ],
+    "context": {
+     "default_type": "opportunity"
+    },
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_opportunities_filter"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_opportunities_view_kanban",
+   "values": {
+    "sequence": 0,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "crm_case_kanban_view_leads"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_opportunities"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_opportunities_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "crm.crm_case_tree_view_oppor"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_opportunities"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_opportunities_view_graph",
+   "values": {
+    "sequence": 3,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "crm_lead_view_graph"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_opportunities"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_opportunities_view_pivot",
+   "values": {
+    "sequence": 4,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "crm_lead_view_pivot"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_opportunities"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_opportunities_view_calendar",
+   "values": {
+    "sequence": 5,
+    "view_mode": "calendar",
+    "view_id": {
+     "$ref": "crm_case_calendar_view_leads"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_opportunities"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_action_pipeline",
+   "values": {
+    "name": "Pipeline",
+    "res_model": "crm.lead",
+    "view_mode": "kanban,list,graph,pivot,form,calendar,activity",
+    "domain": [
+     [
+      "type",
+      "=",
+      "opportunity"
+     ]
+    ],
+    "context": {
+     "default_type": "opportunity",
+     "search_default_assigned_to_me": 1
+    },
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_opportunities_filter"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_pipeline_view_kanban",
+   "values": {
+    "sequence": 0,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "crm_case_kanban_view_leads"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_pipeline"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_pipeline_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "crm.crm_case_tree_view_oppor"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_pipeline"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_pipeline_view_calendar",
+   "values": {
+    "sequence": 2,
+    "view_mode": "calendar",
+    "view_id": {
+     "$ref": "crm_case_calendar_view_leads"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_pipeline"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_pipeline_view_pivot",
+   "values": {
+    "sequence": 3,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "crm_lead_view_pivot"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_pipeline"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_pipeline_view_graph",
+   "values": {
+    "sequence": 5,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "crm_lead_view_graph"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_pipeline"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_action_forecast",
+   "values": {
+    "name": "Forecast",
+    "res_model": "crm.lead",
+    "view_mode": "kanban,graph,pivot,list,form",
+    "domain": [
+     [
+      "type",
+      "=",
+      "opportunity"
+     ]
+    ],
+    "context": {
+     "default_type": "opportunity",
+     "search_default_assigned_to_me": 1,
+     "search_default_forecast": 1,
+     "search_default_date_deadline": 1,
+     "forecast_field": "date_deadline"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    },
+    "search_view_id": {
+     "$ref": "crm.crm_lead_view_search_forecast"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_forecast_view_kanban",
+   "values": {
+    "sequence": 0,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "crm_lead_view_kanban_forecast"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_forecast"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_forecast_view_graph",
+   "values": {
+    "sequence": 1,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "crm_lead_view_graph_forecast"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_forecast"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_forecast_view_pivot",
+   "values": {
+    "sequence": 2,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "crm_lead_view_pivot_forecast"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_forecast"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "crm_lead_action_forecast_view_tree",
+   "values": {
+    "sequence": 3,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "crm_lead_view_tree_forecast"
+    },
+    "act_window_id": {
+     "$ref": "crm_lead_action_forecast"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_action_open_lead_form",
+   "values": {
+    "name": "New Lead",
+    "res_model": "crm.lead",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "crm_lead_view_form"
+    },
+    "domain": [
+     [
+      "type",
+      "=",
+      "lead"
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{\n                'search_default_team_id': [active_id],\n                'default_team_id': active_id,\n                'default_type': 'lead',\n            }"
+    },
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_leads_filter"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sales_team.crm_team_member_action",
+   "values": {
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_plan_action_lead",
+   "values": {
+    "name": "Lead Plans",
+    "res_model": "mail.activity.plan",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "mail.mail_activity_plan_view_search"
+    },
+    "context": {
+     "default_res_model": "crm.lead"
+    },
+    "domain": [
+     [
+      "res_model",
+      "=",
+      "crm.lead"
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sales_team.mail_activity_type_action_config_sales",
+   "values": {
+    "domain": [
+     "|",
+     [
+      "res_model",
+      "=",
+      false
+     ],
+     [
+      "res_model",
+      "in",
+      [
+       "crm.lead",
+       "res.partner"
+      ]
+     ]
+    ],
+    "context": {
+     "default_res_model": "crm.lead"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_config_settings_action",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_id": {
+     "$ref": "res_config_settings_view_form"
+    },
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "crm",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_activity_report_action",
+   "values": {
+    "name": "Activities",
+    "res_model": "crm.activity.report",
+    "view_mode": "graph,pivot,list",
+    "context": {
+     "search_default_completion_date": 1,
+     "pivot_column_groupby": [
+      "subtype_id",
+      "mail_activity_type_id"
+     ],
+     "pivot_row_groupby": [
+      "date:month"
+     ],
+     "graph_mode": "bar",
+     "graph_groupbys": [
+      "date:month",
+      "subtype_id"
+     ]
+    },
+    "domain": [],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_activity_report_action_team",
+   "values": {
+    "name": "Pipeline Activities",
+    "res_model": "crm.activity.report",
+    "view_mode": "graph,pivot,list",
+    "context": {
+     "$unevaluated": "{'search_default_team_id': active_id}"
+    },
+    "domain": [],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_opportunity_report_action",
+   "values": {
+    "name": "Pipeline Analysis",
+    "res_model": "crm.lead",
+    "view_mode": "graph,pivot,list,form",
+    "search_view_id": {
+     "$ref": "crm.crm_opportunity_report_view_search"
+    },
+    "context": {
+     "search_default_filter_opportunity": true,
+     "search_default_current": true
+    },
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "graph",
+       "view_id": {
+        "$ref": "crm_opportunity_report_view_graph"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "pivot",
+       "view_id": {
+        "$ref": "crm_opportunity_report_view_pivot"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "crm_lead_view_tree_opportunity_reporting"
+       }
+      }
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_opportunity_report_action_lead",
+   "values": {
+    "name": "Leads Analysis",
+    "res_model": "crm.lead",
+    "view_mode": "graph,pivot,list",
+    "search_view_id": {
+     "$ref": "crm.crm_opportunity_report_view_search"
+    },
+    "context": {
+     "search_default_filter_active": 1,
+     "search_default_filter_inactive": 1,
+     "search_default_filter_create_date": 1
+    },
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "graph",
+       "view_id": {
+        "$ref": "crm_opportunity_report_view_graph_lead"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "pivot",
+       "view_id": {
+        "$ref": "crm_opportunity_report_view_pivot_lead"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "crm_lead_view_form"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "crm_lead_view_tree_reporting"
+       }
+      }
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_case_form_view_salesteams_lead",
+   "values": {
+    "name": "Leads",
+    "res_model": "crm.lead",
+    "view_mode": "list,kanban,form",
+    "domain": [
+     "|",
+     [
+      "type",
+      "=",
+      "lead"
+     ],
+     [
+      "type",
+      "=",
+      false
+     ]
+    ],
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "crm_case_tree_view_leads"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "view_crm_lead_kanban"
+       }
+      }
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_leads_filter"
+    },
+    "context": {
+     "$unevaluated": "{\n                    'search_default_team_id': [active_id],\n                    'default_team_id': active_id,\n                    'default_type': 'lead',\n     "
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_case_form_view_salesteams_opportunity",
+   "values": {
+    "name": "Opportunities",
+    "res_model": "crm.lead",
+    "view_mode": "kanban,list,graph,form,calendar,pivot",
+    "domain": [
+     [
+      "type",
+      "=",
+      "opportunity"
+     ]
+    ],
+    "view_id": {
+     "$ref": "crm.crm_case_kanban_view_leads"
+    },
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_opportunities_filter"
+    },
+    "context": {
+     "$unevaluated": "{\n                    'search_default_team_id': [active_id],\n                    'default_team_id': active_id,\n                    'default_type': 'opportunity'"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_action_team_overdue_opportunity",
+   "values": {
+    "name": "Overdue Opportunities",
+    "res_model": "crm.lead",
+    "view_mode": "kanban,list,graph,form,calendar,pivot",
+    "domain": [
+     [
+      "type",
+      "=",
+      "opportunity"
+     ]
+    ],
+    "view_id": {
+     "$ref": "crm.crm_case_kanban_view_leads"
+    },
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_opportunities_filter"
+    },
+    "context": {
+     "$unevaluated": "{\n                    'search_default_team_id': [active_id],\n                    'search_default_overdue_opp': 1,\n                    'default_team_id': active_"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_report_crm_lead_salesteam",
+   "values": {
+    "name": "Leads Analysis",
+    "res_model": "crm.lead",
+    "context": {
+     "$unevaluated": "{'search_default_team_id': [active_id], 'search_default_filter_create_date': 1}"
+    },
+    "domain": [],
+    "view_mode": "graph,pivot,list,form",
+    "view_id": {
+     "$ref": "crm_lead_view_graph"
+    },
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_leads_filter"
+    },
+    "help": "Leads Analysis allows you to check different CRM related information like the treatment delays or number of leads per state. You can sort out your leads analysis by different groups to get accurate grained analysis."
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_report_crm_lead_salesteam_view_graph",
+   "values": {
+    "sequence": "2",
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "crm_lead_view_graph"
+    },
+    "act_window_id": {
+     "$ref": "action_report_crm_lead_salesteam"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_report_crm_lead_salesteam_view_pivot",
+   "values": {
+    "sequence": "3",
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "crm_lead_view_pivot"
+    },
+    "act_window_id": {
+     "$ref": "action_report_crm_lead_salesteam"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_report_crm_lead_salesteam_view_tree",
+   "values": {
+    "sequence": "4",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "crm_lead_view_tree_reporting"
+    },
+    "act_window_id": {
+     "$ref": "action_report_crm_lead_salesteam"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_report_crm_opportunity_salesteam",
+   "values": {
+    "name": "Pipeline Analysis",
+    "res_model": "crm.lead",
+    "view_mode": "graph,pivot,list,form",
+    "search_view_id": {
+     "$ref": "crm.crm_opportunity_report_view_search"
+    },
+    "context": {
+     "$unevaluated": "{\n                'search_default_team_id': [active_id],\n                'list_view_ref': 'crm.crm_lead_view_tree_opportunity_reporting',\n                'searc"
+    },
+    "domain": [],
+    "help": "Opportunities Analysis gives you an instant access to your opportunities with information such as the expected revenue, planned cost, missed deadlines or the number of interactions per opportunity. This report is mainly used by the sales manager in order to do the periodic review with the channels of the sales pipeline."
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_crm_tag_kanban_view_salesteams_oppor11",
+   "values": {
+    "sequence": 0,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "crm_case_kanban_view_leads"
+    },
+    "act_window_id": {
+     "$ref": "crm_case_form_view_salesteams_opportunity"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_crm_tag_tree_view_salesteams_oppor11",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "crm_case_tree_view_oppor"
+    },
+    "act_window_id": {
+     "$ref": "crm_case_form_view_salesteams_opportunity"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_opportunity_form",
+   "values": {
+    "name": "New Opportunity",
+    "res_model": "crm.lead",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "crm_lead_view_form"
+    },
+    "domain": [
+     [
+      "type",
+      "=",
+      "opportunity"
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{\n                    'search_default_team_id': [active_id],\n                    'default_team_id': active_id,\n                    'default_type': 'opportunity'"
+    },
+    "search_view_id": {
+     "$ref": "crm.view_crm_case_opportunities_filter"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sales_team.crm_team_action_pipeline",
+   "values": {
+    "domain": [
+     [
+      "use_opportunities",
+      "=",
+      true
+     ]
+    ]
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "sales_team.team_sales_department",
+   "values": {
+    "assignment_domain": "[['probability', '>=', 20]]"
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "sales_team.crm_team_1",
+   "values": {
+    "use_leads": "True",
+    "assignment_domain": "[['phone', '!=', False]]"
+   }
+  },
+  {
+   "model": "crm.team.member",
+   "id": "sales_team.crm_team_member_admin_sales",
+   "values": {
+    "assignment_max": "30",
+    "assignment_domain": "[['probability', '>=', 20]]"
+   }
+  },
+  {
+   "model": "crm.team.member",
+   "id": "sales_team.crm_team_member_demo_team_1",
+   "values": {
+    "assignment_max": "45",
+    "assignment_domain": "[['probability', '>=', 5]]"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_activity_demo_followup_quote",
+   "values": {
+    "name": "Follow-up Quote",
+    "icon": "fa-file-text-o",
+    "res_model": "crm.lead",
+    "delay_count": "30"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_activity_demo_make_quote",
+   "values": {
+    "name": "Make Quote",
+    "icon": "fa-file-text-o",
+    "res_model": "crm.lead",
+    "delay_count": "15"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_activity_demo_call_demo",
+   "values": {
+    "name": "Call for Demo",
+    "icon": "fa-phone",
+    "res_model": "crm.lead",
+    "delay_count": "10",
+    "category": "phonecall"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_activity_type_demo_email_with_template",
+   "values": {
+    "name": "Email: Welcome Demo",
+    "icon": "fa-envelope",
+    "res_model": "crm.lead",
+    "mail_template_ids": [
+     [
+      4,
+      {
+       "$ref": "crm.mail_template_demo_crm_lead"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_1",
+   "values": {
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=8)"
+    },
+    "type": "lead",
+    "name": "Club Office Furnitures",
+    "contact_name": "Jacques Dunagan",
+    "partner_name": "Le Club SARL",
+    "email_from": "jdunagan@leclub.example.com",
+    "function": "Training Manager",
+    "country_id": {
+     "$ref": "base.fr"
+    },
+    "city": "Paris",
+    "zip": "93190",
+    "street": "Rue L\u00e9on Dierx 73",
+    "phone": "+33 1 25 54 45 69",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor6"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_services"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case1_1",
+   "values": {
+    "subject": "Inquiry",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_1"
+    },
+    "author_id": false,
+    "email_from": "jdunagan@leclub.example.com",
+    "body": "<p>Hello,<br />\n            I am Jacques from Le Club SARL. I am interested in attending a training organized by your company.<br />\n            Can you send me the details?</p>",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_2",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "type": "lead",
+    "name": "Design Software",
+    "contact_name": "Marc Dufour",
+    "partner_name": "The Oil Company",
+    "email_from": "md@oilcompany.fr",
+    "function": "Purchase Manager",
+    "country_id": {
+     "$ref": "base.fr"
+    },
+    "city": "Bordeaux",
+    "zip": "33000",
+    "street": "Rue Ignasse Blanchoux 214/32",
+    "phone": "+33 1 25 54 45 69",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor2"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_christmas_special"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_website"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_newsletter"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case2_1",
+   "values": {
+    "subject": "Need Details",
+    "model": "crm.lead",
+    "author_id": false,
+    "email_from": "md@oilcompany.fr",
+    "res_id": {
+     "$ref": "crm_case_2"
+    },
+    "body": "Want to know features and benefits of using the new software.",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_3",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=2)"
+    },
+    "type": "lead",
+    "name": "Pricing for 25 desks",
+    "contact_name": "John Miller",
+    "partner_name": "The Kompany",
+    "email_from": "contact@thekompany.example.com",
+    "country_id": {
+     "$ref": "base.us"
+    },
+    "city": "New York",
+    "zip": "10001",
+    "street": "Lafayette Ave 450/12",
+    "phone": "+1 555 754 3010",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor4"
+       },
+       {
+        "$ref": "sales_team.categ_oppor5"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_google_adwords"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_facebook"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_4",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=2)"
+    },
+    "type": "lead",
+    "name": "Campbell: Chairs",
+    "contact_name": "Henry Campbell",
+    "partner_name": "Burstein Applebee",
+    "email_from": "hmc@yahoo.example.com",
+    "country_id": {
+     "$ref": "base.uk"
+    },
+    "city": "Manchester",
+    "zip": "03101",
+    "street": "United Street 68",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor5"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_banner"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_newsletter"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_5",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=4)"
+    },
+    "type": "lead",
+    "name": "Quotation for 50 Chairs",
+    "contact_name": "Carrie Helle",
+    "partner_name": "Stonage IT",
+    "email_from": "helle@stonageit.example.com",
+    "function": "Purchase Manager",
+    "country_id": {
+     "$ref": "base.us"
+    },
+    "city": "Philadelphia",
+    "zip": "1909",
+    "street": "West Allegheny Ave 800",
+    "phone": "+1 813 494 5005",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "description": "",
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case5_1",
+   "values": {
+    "subject": "Inquiry",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_5"
+    },
+    "author_id": false,
+    "email_from": "helle@stonageit.example.com",
+    "body": "<p>Hi,<br />\nCan you send me a quotation for 20 computers with speakers?<br />\nRegards,<br />\nCarrie Helle,<br />\nPurchase Manager<br />\nStonage IT,<br />\nPhiladelphia<br />\nContact: +1 813 494 5005</p>",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_6",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=5)"
+    },
+    "type": "lead",
+    "name": "Opensides: Need Info",
+    "contact_name": "Tina Pinero",
+    "partner_name": "Opensides",
+    "email_from": "tina@opensides.example.com",
+    "function": "Consultant",
+    "country_id": {
+     "$ref": "base.it"
+    },
+    "city": "Roma",
+    "zip": "00118",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor3"
+       },
+       {
+        "$ref": "sales_team.categ_oppor4"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_services"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_7",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=5)"
+    },
+    "type": "lead",
+    "name": "Gardner: Desks Replacement",
+    "contact_name": "Wendi Baltz",
+    "partner_name": "Gardner Group",
+    "function": "Journalist",
+    "country_id": {
+     "$ref": "base.br"
+    },
+    "city": "Rio de Janeiro",
+    "zip": "29000",
+    "street": "R. Sen. Pompeu",
+    "phone": "+11 55 21 5555 5555",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor4"
+       }
+      ]
+     ]
+    ],
+    "priority": "0",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_8",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "type": "lead",
+    "name": "Product Catalog",
+    "contact_name": "Logan",
+    "partner_name": "ESM Expert",
+    "email_from": "logan_expert@gmail.example.com",
+    "function": "Sales",
+    "country_id": {
+     "$ref": "base.uk"
+    },
+    "city": "London",
+    "zip": "E1AB",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor4"
+       },
+       {
+        "$ref": "sales_team.categ_oppor8"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case8_1",
+   "values": {
+    "subject": "Inquiry",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_8"
+    },
+    "author_id": false,
+    "email_from": "logan_expert@gmail.example.com",
+    "body": "<p>Hi,<br />\nCould you send me your product catalogue please?<br />\nRegards,<br />\nDavid Logan<br />\nESM Expert<br />",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_9",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=4)"
+    },
+    "type": "lead",
+    "name": "Reseller: Office furnitures",
+    "contact_name": "Delisle Albert",
+    "partner_name": "Marketing Business",
+    "email_from": "d.albert@marketing-business.example.com",
+    "function": "Sales",
+    "country_id": {
+     "$ref": "base.uk"
+    },
+    "city": "Oxford",
+    "zip": "OX1 1RQ",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor4"
+       },
+       {
+        "$ref": "sales_team.categ_oppor7"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=4)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_10",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=2)"
+    },
+    "type": "lead",
+    "name": "Design Software Info",
+    "contact_name": "Jose Garcia",
+    "partner_name": "Solar IT",
+    "function": "Medical illustrator",
+    "email_from": "jga@solar.example.com",
+    "country_id": {
+     "$ref": "base.es"
+    },
+    "city": "Madrid",
+    "zip": "28001",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case10_1",
+   "values": {
+    "subject": "Inquiry",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_10"
+    },
+    "author_id": false,
+    "email_from": "jga@solar.example.com",
+    "body": "<p>Hi,<br />\nI would like to know more about specification and cost of laptops of your company.<br />\nThanks,<br />\nAndrew</p>",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_11",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=5)"
+    },
+    "type": "lead",
+    "name": "Estimation for Office Furnitures",
+    "contact_name": "Thomas Passot",
+    "partner_name": "Acme Corporation",
+    "email_from": "p.thomas@acme-example-company.com",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "function": "Functional Consultant",
+    "country_id": {
+     "$ref": "base.be"
+    },
+    "city": "Wavre",
+    "zip": "1300",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor7"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_12",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "type": "lead",
+    "name": "Quotation for 100 Desks",
+    "contact_name": "Bojing H\u00fa",
+    "partner_name": "Incom Corporation",
+    "email_from": "bhu.a100@ic.example.com",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "country_id": {
+     "$ref": "base.cn"
+    },
+    "city": "Shenzhen",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_website"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_13",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "type": "opportunity",
+    "name": "Quote for 12 Tables",
+    "expected_revenue": "40000",
+    "probability": "10.0",
+    "contact_name": "Will McEncroe",
+    "partner_name": "Rediff Mail",
+    "email_from": "willmac@rediffmail.example.com",
+    "country_id": {
+     "$ref": "base.au"
+    },
+    "city": "Melbourne",
+    "street": "Kensington Road 189",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_14",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "type": "opportunity",
+    "name": "Office Design Project",
+    "color": "7",
+    "expected_revenue": "24000",
+    "probability": "10.0",
+    "email_from": "info@agrolait.com",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor2"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_website"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_15",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "type": "opportunity",
+    "name": "Info about services",
+    "expected_revenue": "25000",
+    "probability": "30.0",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "email_from": "virginie@agrolait.com",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_services"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_direct"
+    }
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "msg_case15_attach1",
+   "values": {
+    "datas": "bWlncmF0aW9uIHRlc3Q=",
+    "name": "YourCompany2012.doc",
+    "res_model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_15"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case15_1",
+   "values": {
+    "subject": "Plan to buy RedHat servers",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_15"
+    },
+    "author_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "email_from": "virginie@agrolait.fr",
+    "body": "<div>\n            <p>Hello,</p>\n            <p>I am interested in your company's products and I plan to buy a new laptop having latest technologies as well as an affordable price.</p>\n            <p>Could you please send me the product catalog?</p>",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case15_2",
+   "values": {
+    "subject": "Re: Plan to buy RedHat servers",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_15"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "<p>Dear customer,<br/>\n            Thanks for showing interest in our products! As requested, I send to you our products catalog.<br />\n            To be able to finely tune the solution, we would like to know precise needs. This way we wil be able to help you choosing the right infrastructure according to your requirements.<br/>\n            Best regards,</p>",
+    "parent_id": {
+     "$ref": "msg_case15_1"
+    },
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "attachment_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "msg_case15_attach1"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case15_3",
+   "values": {
+    "subject": "Re: Plan to buy RedHat servers",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_15"
+    },
+    "email_from": "virginie@agrolait.fr",
+    "author_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "body": "<p>Thanks for the information!<br />I asked a precise specification to our technical expert. Here is what we precisely need:</p>\n            <ul>\n                <li>weekly backups, every Monday</li>\n                <li>backup time is not a blocking point for us, as we are closed all Monday, leaving time enough to perform the backup</li>\n                <li>reliability is very important; we need redundant servers and rollback capacity</li>\n                <li>a total capacity of about 2 TB</li>\n            </ul>\n            <p>Best regards,</p>",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "parent_id": {
+     "$ref": "msg_case15_1"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case15_4",
+   "values": {
+    "subject": "Re: Plan to buy RedHat servers",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_15"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "<p>Hello</p>\n            <p>After our discussion with our technical experts, here is the offer of YourCompany. We believe it will meet every requirement you had in mind. Please feel free to contact me for any detail or technical detail that is not clear enough for you.</p>\n            <p>Notice that as agreed on phone, we offer you a <b>10% discount on the hardware</b>!</p>\n            <p>Best regards,</p>",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "parent_id": {
+     "$ref": "msg_case15_1"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_16",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=2)"
+    },
+    "type": "opportunity",
+    "name": "Global Solutions: Furnitures",
+    "expected_revenue": "3800",
+    "probability": "90.0",
+    "contact_name": "Robin Smith",
+    "partner_name": "Global Solutions",
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "country_id": {
+     "$ref": "base.uk"
+    },
+    "city": "Liverpool",
+    "zip": "L25 4RL",
+    "street": "Union Road",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor5"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_17",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=3)"
+    },
+    "type": "opportunity",
+    "name": "Balmer Inc: Potential Distributor",
+    "expected_revenue": "1000",
+    "probability": "35.0",
+    "partner_name": "BalmerInc S.A.",
+    "contact_name": "Oliver Passot",
+    "email_from": "olivier.passo@balmer.inc.sa",
+    "phone": "+32 469 12 45 78",
+    "country_id": {
+     "$ref": "base.be"
+    },
+    "city": "Brussels",
+    "zip": "1100",
+    "street": "Rue des Palais 51, bte 33",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor3"
+       },
+       {
+        "$ref": "sales_team.categ_oppor4"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_website"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case17_1",
+   "values": {
+    "subject": "Catalog to send",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_17"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "<p>They just want pricing information about our services. I think sending our catalog should be sufficient.</p>",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_18",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=7)"
+    },
+    "type": "opportunity",
+    "name": "DeltaPC: 10 Computer Desks",
+    "expected_revenue": 35000,
+    "probability": 25.0,
+    "contact_name": "Leland Martinez",
+    "email_from": "info@deltapc.example.com",
+    "partner_name": "Delta PC",
+    "city": "London",
+    "street": "3661 Station Street",
+    "country_id": {
+     "$ref": "base.uk"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor4"
+       },
+       {
+        "$ref": "sales_team.categ_oppor6"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(weeks=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "active": 1,
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_services"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_newsletter"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case18_1",
+   "values": {
+    "subject": "Inquiry",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_18"
+    },
+    "author_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "body": "<p>Hello!<br />\n            I am Leland Martinez, from the Delta PC. Maybe you remember, we talked a bit last month at this international conference.<br />\n            We would like to attend a training, but we are not quite sure about what we can ask. Maybe we should meet and talk about that?<br />\n            Best regards,</p>",
+    "message_type": "email",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case18_2",
+   "values": {
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_18"
+    },
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "body": "<p>It seems very interesting. As you say, first of all we will have to define precisely what the training will be about, and your precise needs.</p>",
+    "message_type": "comment",
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    },
+    "parent_id": {
+     "$ref": "msg_case18_1"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_19",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=7)"
+    },
+    "type": "opportunity",
+    "name": "Customizable Desk",
+    "color": "3",
+    "expected_revenue": "15000",
+    "probability": "65.5",
+    "contact_name": "Nhomar",
+    "partner_name": "Vauxoo",
+    "email_from": "vauxoo@yourcompany.example.com",
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "country_id": {
+     "$ref": "base.ve"
+    },
+    "city": "Caracas",
+    "zip": "1090",
+    "street": "3rd Floor, Room 3-C,",
+    "street2": "Carretera Panamericana, Km 1, Urb. Delgado Chalbaud",
+    "phone": "+58 212 681 0538",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_20",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=7)"
+    },
+    "type": "opportunity",
+    "name": "Distributor Contract",
+    "expected_revenue": "19800",
+    "contact_name": "John M. Brown",
+    "partner_name": "Epic Technologies",
+    "email_from": "john.b@tech.info",
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "country_id": {
+     "$ref": "base.us"
+    },
+    "zip": "60610",
+    "city": "Chicago",
+    "phone": "+1 312 349 2324",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor4"
+       },
+       {
+        "$ref": "sales_team.categ_oppor8"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_services"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_21",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "type": "opportunity",
+    "name": "Office Design and Architecture",
+    "expected_revenue": "9000",
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "country_id": {
+     "$ref": "base.uk"
+    },
+    "city": "Birmingham",
+    "zip": "B46 3AG",
+    "street": "Cannon Hill Park",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor7"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_services"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_phone"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_22",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=8)"
+    },
+    "type": "opportunity",
+    "name": "5 VP Chairs",
+    "expected_revenue": "5600",
+    "probability": "30.0",
+    "contact_name": "Benjamin Flores",
+    "partner_name": "Nebula Business",
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor3"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_23",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=7)"
+    },
+    "type": "opportunity",
+    "name": "Access to Online Catalog",
+    "expected_revenue": "2000",
+    "probability": "80.0",
+    "partner_id": {
+     "$ref": "base.res_partner_18"
+    },
+    "priority": "0",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor3"
+       }
+      ]
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_fall_drive"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_direct"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_newsletter"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_24",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=7)"
+    },
+    "type": "opportunity",
+    "name": "Need 20 Desks",
+    "expected_revenue": "60000",
+    "probability": "90.0",
+    "email_from": "info@mycompany.net",
+    "country_id": {
+     "$ref": "base.pe"
+    },
+    "city": "Lima",
+    "priority": "0",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor7"
+       }
+      ]
+     ]
+    ],
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_website"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_25",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "type": "opportunity",
+    "name": "Modern Open Space",
+    "expected_revenue": "4500",
+    "probability": "60",
+    "contact_name": "Henry Jordan",
+    "partner_name": "E-light Industry",
+    "email_from": "henry@elight.com",
+    "country_id": {
+     "$ref": "base.ar"
+    },
+    "city": "Buenos Aires",
+    "zip": "B7313",
+    "street": "Palermo, Capital Federal",
+    "street2": "C1414CMS Capital Federal",
+    "priority": "2",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor4"
+       }
+      ]
+     ]
+    ],
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_services"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_phone"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_26",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=6)"
+    },
+    "type": "opportunity",
+    "name": "Open Space Design",
+    "expected_revenue": "11000",
+    "probability": "45",
+    "email_from": "info@agrolait.com",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "priority": "2",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor2"
+       }
+      ]
+     ]
+    ],
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date_open": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_website"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_27",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "type": "opportunity",
+    "name": "Interest in your products",
+    "expected_revenue": "2000",
+    "probability": "80",
+    "email_from": "info@agrolait.com",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "priority": "2",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor2"
+       }
+      ]
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_28",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - timedelta(days=1)"
+    },
+    "type": "opportunity",
+    "name": "Furnish a 60m\u00b2 office",
+    "expected_revenue": "7500",
+    "probability": "20",
+    "email_from": "info@agrolait.com",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "priority": "0",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       },
+       {
+        "$ref": "sales_team.categ_oppor5"
+       }
+      ]
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.today() + relativedelta(days=12)"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead1"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_29",
+   "values": {
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=1)"
+    },
+    "type": "lead",
+    "name": "Club Office More Desks",
+    "contact_name": "Jacques Dunagan",
+    "partner_name": "Le Club SARL",
+    "email_from": "jdunagan@leclub.example.com",
+    "function": "Training Manager",
+    "country_id": {
+     "$ref": "base.fr"
+    },
+    "city": "Paris",
+    "zip": "93190",
+    "street": "Rue L\u00e9on Dierx 73",
+    "phone": "+33 1 25 54 45 69",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor6"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_open": false,
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_30",
+   "values": {
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=2)"
+    },
+    "type": "lead",
+    "name": "Acadia College Furnitures",
+    "contact_name": "Gaston Rochon",
+    "partner_name": "Acadia College",
+    "email_from": "GastonRochon@example.com",
+    "function": "Director",
+    "country_id": {
+     "$ref": "base.fr"
+    },
+    "city": "Brussels",
+    "zip": "1080",
+    "street": "Rue du Commerce 93",
+    "phone": "+32 22 33 54 07",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor6"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_open": false,
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_mailing"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_31",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(months=1)"
+    },
+    "type": "opportunity",
+    "name": "Devis pour 150 tapis",
+    "partner_id": {
+     "$ref": "base.res_partner_5"
+    },
+    "expected_revenue": "40000",
+    "probability": "10.0",
+    "contact_name": "Erik N. French",
+    "email_from": "ErikNFrench@armyspy.com",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "msg_case31_1",
+   "values": {
+    "author_id": {
+     "$ref": "base.res_partner_5"
+    },
+    "body": {
+     "$unevaluated": "xml"
+    },
+    "message_type": "email",
+    "model": "crm.lead",
+    "res_id": {
+     "$ref": "crm_case_31"
+    },
+    "subtype_id": {
+     "$ref": "mail.mt_comment"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_32",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(months=2)"
+    },
+    "type": "opportunity",
+    "name": "Quote for 600 Chairs",
+    "expected_revenue": "22500",
+    "probability": "20.0",
+    "contact_name": "Erik N. French",
+    "email_from": "ErikNFrench@armyspy.com",
+    "country_id": {
+     "$ref": "base.au"
+    },
+    "city": "Chevy Chase",
+    "street": "1920 Del Dew Drive",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_1",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(months=1)"
+    },
+    "type": "lead",
+    "name": "Recurring delivery contract",
+    "expected_revenue": "36221",
+    "probability": "20",
+    "contact_name": "Max Johnson",
+    "email_from": "max123@itconsult.com",
+    "country_id": {
+     "$ref": "base.it"
+    },
+    "city": "Milan",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_2",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=18)"
+    },
+    "type": "lead",
+    "name": "Need info about pricing",
+    "expected_revenue": "28443",
+    "probability": "80",
+    "contact_name": "Aloysius Akred",
+    "email_from": "aakreda@theglobeandmail.com",
+    "country_id": {
+     "$ref": "base.gr"
+    },
+    "city": "London",
+    "street": "1 Russel square",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_3",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=24)"
+    },
+    "type": "lead",
+    "name": "Trelian New Offices",
+    "expected_revenue": "88715",
+    "probability": "12",
+    "contact_name": "Rosalynd Oxshott",
+    "partner_name": "Photobug",
+    "email_from": "roxshott9@trellian.com",
+    "country_id": {
+     "$ref": "base.br"
+    },
+    "city": "Canguaretama",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_4",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=40)"
+    },
+    "type": "lead",
+    "name": "Branded Furniture",
+    "expected_revenue": "7784",
+    "probability": "20",
+    "contact_name": "Myrna Limprecht",
+    "email_from": "mlimprecht8@fastcompany.com",
+    "country_id": {
+     "$ref": "base.pt"
+    },
+    "city": "Valejas",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_5",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=45)"
+    },
+    "type": "lead",
+    "name": "Design New Shelves",
+    "expected_revenue": "54587",
+    "probability": "81",
+    "contact_name": "Alys Kalinovich",
+    "partner_name": "Jaloo",
+    "email_from": "akalinovich7@tinypic.com",
+    "country_id": {
+     "$ref": "base.id"
+    },
+    "city": "Boafeo",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_6",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=48)"
+    },
+    "type": "lead",
+    "name": "Office chairs",
+    "expected_revenue": "5474",
+    "probability": "20",
+    "contact_name": "Jennine Jobbins",
+    "partner_name": "Shufflebeat",
+    "email_from": "jjobbins6@simplemachines.org",
+    "country_id": {
+     "$ref": "base.ru"
+    },
+    "city": "Gvardeysk",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_7",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=80)"
+    },
+    "type": "lead",
+    "name": "Cleaning subscription",
+    "expected_revenue": "11475",
+    "probability": "25",
+    "contact_name": "Elmo Espinazo",
+    "partner_name": "Realblab",
+    "email_from": "eespinazo5@reuters.com",
+    "country_id": {
+     "$ref": "base.nl"
+    },
+    "city": "Amsterdam",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor3"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_services"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_8",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=37)"
+    },
+    "type": "lead",
+    "name": "Custom Desks (100 pieces)",
+    "expected_revenue": "9987",
+    "probability": "20",
+    "contact_name": "Chalmers Redford",
+    "partner_name": "Muxo",
+    "email_from": "credford4@salon.com",
+    "country_id": {
+     "$ref": "base.ru"
+    },
+    "city": "Odoyev",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_9",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=32)"
+    },
+    "type": "lead",
+    "name": "Need a price: urgent",
+    "expected_revenue": "4482",
+    "probability": "90",
+    "contact_name": "Itch Kirvell",
+    "partner_name": "Skibox",
+    "email_from": "ikirvell3@gnu.org",
+    "country_id": {
+     "$ref": "base.id"
+    },
+    "city": "Dahu Satu",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_10",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=18)"
+    },
+    "type": "lead",
+    "name": "Furnitures for new location",
+    "expected_revenue": "22500",
+    "probability": "20",
+    "contact_name": "Napoleon Grabert",
+    "partner_name": "Twinte",
+    "email_from": "ngrabert2@dailymail.co.uk",
+    "country_id": {
+     "$ref": "base.jp"
+    },
+    "city": "Tokyo",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead2"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_11",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=52)"
+    },
+    "type": "lead",
+    "name": "Modernize old offices",
+    "expected_revenue": "99755",
+    "probability": "20",
+    "contact_name": "Franny Seiller",
+    "partner_name": "Yozio",
+    "email_from": "fseiller1@theglobeandmail.com",
+    "country_id": {
+     "$ref": "base.id"
+    },
+    "city": "Wurigelebur",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_graph_12",
+   "values": {
+    "create_date": {
+     "$unevaluated": "datetime.now() - relativedelta(days=52)"
+    },
+    "type": "lead",
+    "name": "Quote for 35 windows",
+    "expected_revenue": "41421",
+    "probability": "20",
+    "contact_name": "Tommi Brockhouse",
+    "partner_name": "Gabcube",
+    "email_from": "tbrockhouse0@google.pl",
+    "country_id": {
+     "$ref": "base.be"
+    },
+    "city": "Brussels",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "1",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(weeks=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "team_id": false,
+    "user_id": false,
+    "stage_id": {
+     "$ref": "crm.stage_lead3"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_search_engine"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_13"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "summary": "Meeting to go over pricing information.",
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_2",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_14"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Send Catalog by Email",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_3",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_15"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Call to get system requirements",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_4",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_16"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Convert to quote",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_5",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_17"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=-1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Send our service pricelist",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_6",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_18"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Call to get training needs",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_7",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_19"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=-2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Followup on the proposal",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "create_uid": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_8",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_20"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=1)).strftime('%Y-%m-%d %H:%M')"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_9",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_21"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=4)).strftime('%Y-%m-%d %H:%M')"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_10",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_22"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=-2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_11",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_23"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_12",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_24"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_13",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_25"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=0)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Conf call with technical service",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "activity_14",
+   "values": {
+    "res_id": {
+     "$ref": "crm.crm_case_26"
+    },
+    "res_model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=0)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Send Catalog by Email",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "crm_menu_root",
+   "name": "CRM",
+   "sequence": "25",
+   "groups": "sales_team.group_sale_salesman,sales_team.group_sale_manager",
+   "web_icon": "crm,static/description/icon.png"
+  },
+  {
+   "id": "crm_menu_sales",
+   "name": "Sales",
+   "parent": "crm_menu_root",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_crm_opportunities",
+   "name": "My Pipeline",
+   "parent": "crm_menu_sales",
+   "action": "crm.action_your_pipeline",
+   "sequence": "1"
+  },
+  {
+   "id": "crm_lead_menu_my_activities",
+   "name": "My Activities",
+   "parent": "crm_menu_sales",
+   "action": "crm.crm_lead_action_my_activities",
+   "sequence": "2",
+   "groups": "sales_team.group_sale_salesman"
+  },
+  {
+   "id": "sales_team_menu_team_pipeline",
+   "name": "Teams",
+   "parent": "crm_menu_sales",
+   "action": "sales_team.crm_team_action_pipeline",
+   "sequence": "4",
+   "groups": "sales_team.group_sale_manager"
+  },
+  {
+   "id": "res_partner_menu_customer",
+   "name": "Customers",
+   "parent": "crm_menu_sales",
+   "action": "base.action_partner_form",
+   "sequence": "5"
+  },
+  {
+   "id": "crm_menu_leads",
+   "name": "Leads",
+   "parent": "crm_menu_root",
+   "action": "crm.crm_lead_all_leads",
+   "sequence": "5",
+   "groups": "crm.group_use_lead"
+  },
+  {
+   "id": "crm_menu_report",
+   "name": "Reporting",
+   "parent": "crm_menu_root",
+   "sequence": "20",
+   "groups": "sales_team.group_sale_salesman"
+  },
+  {
+   "id": "crm_menu_forecast",
+   "name": "Forecast",
+   "parent": "crm_menu_report",
+   "action": "crm.action_opportunity_forecast",
+   "sequence": "1"
+  },
+  {
+   "id": "crm_opportunity_report_menu",
+   "name": "Pipeline",
+   "parent": "crm_menu_report",
+   "action": "crm.crm_opportunity_report_action",
+   "sequence": "2"
+  },
+  {
+   "id": "crm_opportunity_report_menu_lead",
+   "name": "Leads",
+   "parent": "crm_menu_report",
+   "action": "crm.crm_opportunity_report_action_lead",
+   "sequence": "3"
+  },
+  {
+   "id": "crm_activity_report_menu",
+   "name": "Activities",
+   "parent": "crm_menu_report",
+   "action": "crm_activity_report_action",
+   "sequence": "4"
+  },
+  {
+   "id": "crm_menu_config",
+   "name": "Configuration",
+   "parent": "crm_menu_root",
+   "action": "crm.action_your_pipeline",
+   "sequence": "25",
+   "groups": "sales_team.group_sale_manager"
+  },
+  {
+   "id": "crm_config_settings_menu",
+   "name": "Settings",
+   "parent": "crm_menu_config",
+   "action": "crm.crm_config_settings_action",
+   "sequence": "0",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "menu_crm_config_opportunity",
+   "name": "Opportunities",
+   "parent": "crm_menu_config",
+   "sequence": "1",
+   "groups": "sales_team.group_sale_manager"
+  },
+  {
+   "id": "crm_team_config",
+   "name": "Sales Teams",
+   "parent": "crm_menu_config",
+   "action": "sales_team.crm_team_action_config",
+   "sequence": "5"
+  },
+  {
+   "id": "crm_team_member_config",
+   "name": "Teams Members",
+   "parent": "crm_menu_config",
+   "action": "sales_team.crm_team_member_action",
+   "sequence": "6",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "crm_team_menu_config_activities",
+   "name": "Activities",
+   "parent": "crm_menu_config",
+   "sequence": "8"
+  },
+  {
+   "id": "crm_team_menu_config_activity_types",
+   "name": "Activity Types",
+   "parent": "crm_team_menu_config_activities",
+   "action": "sales_team.mail_activity_type_action_config_sales",
+   "sequence": "10"
+  },
+  {
+   "id": "mail_activity_plan_menu_config_lead",
+   "name": "Activity Plans",
+   "parent": "crm_team_menu_config_activities",
+   "action": "mail_activity_plan_action_lead",
+   "sequence": "11",
+   "groups": "sales_team.group_sale_manager"
+  },
+  {
+   "id": "crm_recurring_plan_menu_config",
+   "name": "Recurring Plans",
+   "parent": "crm_menu_config",
+   "action": "crm.crm_recurring_plan_action",
+   "sequence": "12",
+   "groups": "crm.group_use_recurring_revenues"
+  },
+  {
+   "id": "menu_crm_config_lead",
+   "name": "Pipeline",
+   "parent": "crm_menu_config",
+   "sequence": "15",
+   "groups": "sales_team.group_sale_manager"
+  },
+  {
+   "id": "menu_crm_lead_stage_act",
+   "name": "Stages",
+   "parent": "menu_crm_config_lead",
+   "action": "crm.crm_stage_action",
+   "sequence": "0",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_crm_lead_categ",
+   "name": "Tags",
+   "parent": "menu_crm_config_lead",
+   "action": "sales_team.sales_team_crm_tag_action",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_crm_lost_reason",
+   "name": "Lost Reasons",
+   "parent": "menu_crm_config_lead",
+   "action": "crm.crm_lost_reason_action",
+   "sequence": "6"
+  },
+  {
+   "id": "menu_import_crm",
+   "name": "Import & Synchronize",
+   "parent": "crm_menu_root"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_crm_lead_manager",
+   "model": "crm.lead",
+   "model_xmlid": "model_crm_lead",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_crm_lead",
+   "model": "crm.lead",
+   "model_xmlid": "model_crm_lead",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_stage",
+   "model": "crm.stage",
+   "model_xmlid": "model_crm_stage",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_stage_manager",
+   "model": "crm.stage",
+   "model_xmlid": "model_crm_stage",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_res_partner_manager",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_category_manager",
+   "model": "base.res.partner.category",
+   "model_xmlid": "base.model_res_partner_category",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_category",
+   "model": "base.res.partner.category",
+   "model_xmlid": "base.model_res_partner_category",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lost_reason_manager",
+   "model": "crm.lost.reason",
+   "model_xmlid": "model_crm_lost_reason",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_crm_lost_reason_salesman",
+   "model": "crm.lost.reason",
+   "model_xmlid": "model_crm_lost_reason",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lost_reason_user",
+   "model": "crm.lost.reason",
+   "model_xmlid": "model_crm_lost_reason",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_activity_report_user",
+   "model": "crm.activity.report",
+   "model_xmlid": "model_crm_activity_report",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_activity_report_salesman",
+   "model": "crm.activity.report",
+   "model_xmlid": "model_crm_activity_report",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_calendar_event_manager",
+   "model": "calendar.calendar.event",
+   "model_xmlid": "calendar.model_calendar_event",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_calendar_event",
+   "model": "calendar.calendar.event",
+   "model_xmlid": "calendar.model_calendar_event",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_calendar_event_type_sale_manager",
+   "model": "calendar.calendar.event.type",
+   "model_xmlid": "calendar.model_calendar_event_type",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_calendar_event_type_sale_user",
+   "model": "calendar.calendar.event.type",
+   "model_xmlid": "calendar.model_calendar_event_type",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_calendar_event_type_sale_salesman",
+   "model": "calendar.calendar.event.type",
+   "model_xmlid": "calendar.model_calendar_event_type",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_activity_type_sale_manager",
+   "model": "mail.mail.activity.type",
+   "model_xmlid": "mail.model_mail_activity_type",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_crm_lead_scoring_frequency",
+   "model": "crm.lead.scoring.frequency",
+   "model_xmlid": "model_crm_lead_scoring_frequency",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lead_scoring_frequency_system",
+   "model": "crm.lead.scoring.frequency",
+   "model_xmlid": "model_crm_lead_scoring_frequency",
+   "group": "base.group_system",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lead_scoring_frequency_field",
+   "model": "crm.lead.scoring.frequency.field",
+   "model_xmlid": "model_crm_lead_scoring_frequency_field",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lead_scoring_frequency_field_system",
+   "model": "crm.lead.scoring.frequency.field",
+   "model_xmlid": "model_crm_lead_scoring_frequency_field",
+   "group": "base.group_system",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lead_lost",
+   "model": "crm.lead.lost",
+   "model_xmlid": "model_crm_lead_lost",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lead2opportunity_partner",
+   "model": "crm.lead2opportunity.partner",
+   "model_xmlid": "model_crm_lead2opportunity_partner",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lead2opportunity_partner_mass",
+   "model": "crm.lead2opportunity.partner.mass",
+   "model_xmlid": "model_crm_lead2opportunity_partner_mass",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_merge_opportunity",
+   "model": "crm.merge.opportunity",
+   "model_xmlid": "model_crm_merge_opportunity",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "crm_recurring_plan_access_manager",
+   "model": "crm.recurring.plan",
+   "model_xmlid": "model_crm_recurring_plan",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "crm_recurring_plan_access_salesman",
+   "model": "crm.recurring.plan",
+   "model_xmlid": "model_crm_recurring_plan",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "crm_lead_pls_update_access_system",
+   "model": "crm.lead.pls.update",
+   "model_xmlid": "model_crm_lead_pls_update",
+   "group": "base.group_erp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_plan_sale_manager",
+   "model": "mail.mail.activity.plan",
+   "model_xmlid": "mail.model_mail_activity_plan",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_plan_template_sale_manager",
+   "model": "mail.mail.activity.plan.template",
+   "model_xmlid": "mail.model_mail_activity_plan_template",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

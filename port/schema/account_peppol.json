@@ -1,0 +1,1732 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "data/cron.xml",
+  "data/mail_templates_email_layouts.xml",
+  "data/res_partner_data.xml",
+  "security/ir.model.access.csv",
+  "views/account_journal_dashboard_views.xml",
+  "views/account_move_views.xml",
+  "views/account_portal_templates.xml",
+  "views/res_partner_views.xml",
+  "views/res_config_settings_views.xml",
+  "wizard/peppol_registration_views.xml",
+  "wizard/service_wizard.xml",
+  "demo/account_peppol_demo.xml"
+ ],
+ "depends": [
+  "account_edi_proxy_client",
+  "account_edi_ubl_cii"
+ ],
+ "models": {
+  "account.edi.xml.ubl_bis3": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_invoice_constraints_peppol_en16931_ubl_new"
+    }
+   ],
+   "name": "account.edi.xml.ubl_bis3",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_peppol_proxy_state": {
+     "related": "company_id.account_peppol_proxy_state",
+     "type": "Selection"
+    },
+    "is_peppol_journal": {
+     "default": false,
+     "string": "Account used for Peppol",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('type')"
+     ],
+     "lines": 6,
+     "name": "_check_type_for_peppol_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "peppol_get_new_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "peppol_get_message_status"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_peppol_ready_moves"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "peppol_is_sent": {
+     "compute": "_compute_peppol_is_sent",
+     "type": "Boolean"
+    },
+    "peppol_message_uuid": {
+     "copy": false,
+     "index": "btree_not_null",
+     "string": "PEPPOL message ID",
+     "type": "Char"
+    },
+    "peppol_move_state": {
+     "compute": "_compute_peppol_move_state",
+     "copy": false,
+     "selection": [
+      [
+       "ready",
+       "Ready to send"
+      ],
+      [
+       "to_send",
+       "Queued"
+      ],
+      [
+       "skipped",
+       "Skipped"
+      ],
+      [
+       "processing",
+       "Pending Reception"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "error",
+       "Error"
+      ]
+     ],
+     "store": true,
+     "string": "PEPPOL status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_cancel_peppol_documents"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 19,
+     "name": "_compute_peppol_move_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('peppol_move_state')"
+     ],
+     "lines": 3,
+     "name": "_compute_peppol_is_sent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('peppol_is_sent')"
+     ],
+     "lines": 4,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_notify_by_email_prepare_rendering_context"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_get_default_sending_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_peppol_what_is_peppol_alert"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_peppol_what_is_peppol_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_peppol_partner_want_peppol_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_peppol_what_is_pdp_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_get_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_get_peppol_document_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_invoice_edi_format"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_mail_layout"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_do_peppol_pre_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_is_applicable_to_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_is_applicable_to_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_hook_if_errors"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 62,
+     "name": "_call_web_service_after_invoice_pdf_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_send_peppol_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_peppol_attachments_linked_message"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_what_is_peppol_activate"
+    }
+   ],
+   "name": "account.move.send",
+   "sel_methods": {
+    "_get_default_sending_method": [],
+    "_get_mail_layout": [],
+    "_hook_if_errors": []
+   },
+   "transient": false
+  },
+  "account.move.send.batch.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_summary_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_send_and_print"
+    }
+   ],
+   "name": "account.move.send.batch.wizard",
+   "transient": false
+  },
+  "account.move.send.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_peppol_checkbox_label"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_peppol_checkbox_addendum_disable_reason"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_compute_sending_method_checkboxes"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_send_and_print"
+    }
+   ],
+   "name": "account.move.send.wizard",
+   "transient": false
+  },
+  "account_edi_proxy_client.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "peppol_verification_code": {
+     "string": "SMS verification code",
+     "type": "Char"
+    },
+    "proxy_type": {
+     "ondelete": {
+      "peppol": "cascade"
+     },
+     "selection_add": [
+      [
+       "peppol",
+       "PEPPOL"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_peppol_proxy_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_proxy_urls"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_peppol_proxy_endpoint"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_call_peppol_proxy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_can_send_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_check_company_on_peppol"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cron_peppol_get_new_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cron_peppol_get_message_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_cron_peppol_get_participant_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_proxy_identification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_peppol_import_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_type_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_peppol_get_import_journal_and_move_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_peppol_get_duplicate_message_uuids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 74,
+     "name": "_peppol_get_new_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_peppol_get_filetype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_peppol_get_decoded_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_peppol_get_import_sale_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_peppol_process_new_messages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_peppol_post_process_new_messages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_peppol_get_message_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_peppol_get_documents_for_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_peppol_process_messages_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_peppol_get_message_status_error_body"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_peppol_get_message_status_update_body"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_peppol_process_participant_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_peppol_get_participant_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_peppol_migrate_registration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_company_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_peppol_register_sender"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_peppol_register_receiver"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_peppol_register_sender_as_receiver"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_peppol_deregister_participant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_peppol_deregister_participant_to_sender"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_peppol_auto_register_services"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 25,
+     "name": "_peppol_auto_deregister_services"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_peppol_get_services"
+    }
+   ],
+   "name": "account_edi_proxy_client.user",
+   "sel_methods": {
+    "_get_proxy_identification": []
+   },
+   "transient": false
+  },
+  "account_peppol.service": {
+   "abstract": false,
+   "description": "Peppol Service",
+   "extension": false,
+   "fields": {
+    "document_identifier": {
+     "type": "Char"
+    },
+    "document_name": {
+     "type": "Char"
+    },
+    "enabled": {
+     "type": "Boolean"
+    },
+    "wizard_id": {
+     "comodel": "account_peppol.service.wizard",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account_peppol.service",
+   "order": "document_name, id",
+   "transient": true
+  },
+  "account_peppol.service.wizard": {
+   "abstract": false,
+   "description": "Peppol Services Wizard",
+   "extension": false,
+   "fields": {
+    "edi_user_id": {
+     "comodel": "account_edi_proxy_client.user",
+     "string": "EDI user",
+     "type": "Many2one"
+    },
+    "service_ids": {
+     "comodel": "account_peppol.service",
+     "inverse_name": "wizard_id",
+     "readonly": false,
+     "type": "One2many"
+    },
+    "service_info": {
+     "compute": "_compute_service_info",
+     "type": "Html"
+    },
+    "service_json": {
+     "help": "JSON representation of peppol services as retrieved from the peppol server.",
+     "type": "Json"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_compute_service_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 19,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "confirm"
+    }
+   ],
+   "name": "account_peppol.service.wizard",
+   "transient": true
+  },
+  "peppol.registration": {
+   "abstract": false,
+   "description": "Peppol Registration",
+   "extension": false,
+   "fields": {
+    "account_peppol_migration_key": {
+     "readonly": false,
+     "related": "selected_company_id.account_peppol_migration_key",
+     "type": "Char"
+    },
+    "account_peppol_proxy_state": {
+     "readonly": false,
+     "related": "company_id.account_peppol_proxy_state",
+     "type": "Selection"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "contact_email": {
+     "readonly": false,
+     "related": "selected_company_id.account_peppol_contact_email",
+     "required": true,
+     "type": "Char"
+    },
+    "edi_mode": {
+     "compute": "_compute_edi_mode",
+     "readonly": false,
+     "selection": [
+      [
+       "demo",
+       "Demo"
+      ],
+      [
+       "test",
+       "Test"
+      ],
+      [
+       "prod",
+       "Live"
+      ]
+     ],
+     "string": "EDI mode",
+     "type": "Selection"
+    },
+    "edi_mode_constraint": {
+     "compute": "_compute_edi_mode_constraint",
+     "help": "Using the config params, this field specifies which edi modes may be selected from the UI",
+     "selection": [
+      [
+       "demo",
+       "Demo"
+      ],
+      [
+       "test",
+       "Test"
+      ],
+      [
+       "prod",
+       "Live"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "edi_user_id": {
+     "comodel": "account_edi_proxy_client.user",
+     "compute": "_compute_edi_user_id",
+     "string": "EDI user",
+     "type": "Many2one"
+    },
+    "parent_company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_parent_company_id",
+     "type": "Many2one"
+    },
+    "parent_company_name": {
+     "related": "parent_company_id.name",
+     "type": "Char"
+    },
+    "peppol_eas": {
+     "compute": "_compute_peppol_eas",
+     "readonly": false,
+     "required": true,
+     "selection_method": "_get_peppol_eas_selection",
+     "store": false,
+     "type": "Selection"
+    },
+    "peppol_endpoint": {
+     "readonly": false,
+     "related": "company_id.peppol_endpoint",
+     "required": true,
+     "type": "Char"
+    },
+    "peppol_warnings": {
+     "compute": "_compute_peppol_warnings",
+     "string": "Peppol warnings",
+     "type": "Json"
+    },
+    "phone_number": {
+     "readonly": false,
+     "related": "selected_company_id.account_peppol_phone_number",
+     "type": "Char"
+    },
+    "selected_company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_selected_company_id",
+     "type": "Many2one"
+    },
+    "smp_registration": {
+     "compute": "_compute_smp_registration",
+     "help": "If not check, you will only be able to send invoices but not receive them.",
+     "readonly": false,
+     "store": true,
+     "string": "Register as a receiver",
+     "type": "Boolean"
+    },
+    "use_parent_connection": {
+     "compute": "_compute_use_parent_connection",
+     "type": "Boolean"
+    },
+    "use_parent_connection_selection": {
+     "compute": "_compute_use_parent_connection_selection",
+     "selection": [
+      [
+       "use_parent",
+       "Register using the parent company by setting the same EAS/Endpoint"
+      ],
+      [
+       "use_self",
+       "Register using the current company"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "verification_code": {
+     "readonly": false,
+     "related": "edi_user_id.peppol_verification_code",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('peppol_endpoint')"
+     ],
+     "lines": 4,
+     "name": "_onchange_peppol_endpoint"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('phone_number')"
+     ],
+     "lines": 14,
+     "name": "_onchange_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_parent_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'peppol_eas', 'peppol_endpoint')"
+     ],
+     "lines": 10,
+     "name": "_compute_use_parent_connection_selection"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('use_parent_connection_selection')"
+     ],
+     "lines": 6,
+     "name": "_compute_selected_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('use_parent_connection_selection')"
+     ],
+     "lines": 3,
+     "name": "_compute_use_parent_connection"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.account_edi_proxy_client_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_edi_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('peppol_eas', 'peppol_endpoint', 'use_parent_connection_selection', 'smp_registration')"
+     ],
+     "lines": 40,
+     "name": "_compute_peppol_warnings"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('peppol_eas', 'peppol_endpoint')"
+     ],
+     "lines": 10,
+     "name": "_compute_smp_registration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('edi_user_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_edi_mode_constraint"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('edi_user_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_edi_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inverse_edi_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.peppol_eas')"
+     ],
+     "lines": 6,
+     "name": "_compute_peppol_eas"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_peppol_eas"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_peppol_eas_selection"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_ensure_mandatory_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_ensure_pdp_not_sent_through_peppol"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_action_open_peppol_form"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_action_send_notification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 53,
+     "name": "button_register_with_kyc"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "button_peppol_sender_registration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "button_peppol_smp_registration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "button_update_peppol_user_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "button_send_peppol_verification_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "button_check_peppol_verification_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "button_register_peppol_participant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_deregister_peppol_participant"
+    }
+   ],
+   "name": "peppol.registration",
+   "transient": true
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_peppol_contact_email": {
+     "compute": "_compute_account_peppol_contact_email",
+     "help": "Primary contact email for Peppol connection related communications and notifications.\nIn particular, this email is used by Odoo to reconnect your Peppol account in case of database change.",
+     "readonly": false,
+     "store": true,
+     "string": "Primary contact email",
+     "type": "Char"
+    },
+    "account_peppol_edi_user": {
+     "comodel": "account_edi_proxy_client.user",
+     "compute": "_compute_account_peppol_edi_user",
+     "type": "Many2one"
+    },
+    "account_peppol_migration_key": {
+     "groups": "base.group_system",
+     "string": "Migration Key",
+     "type": "Char"
+    },
+    "account_peppol_phone_number": {
+     "compute": "_compute_account_peppol_phone_number",
+     "help": "This number is used for identification purposes only.",
+     "readonly": false,
+     "store": true,
+     "string": "Mobile number",
+     "type": "Char"
+    },
+    "account_peppol_proxy_state": {
+     "default": "not_registered",
+     "required": true,
+     "selection": [
+      [
+       "not_registered",
+       "Not registered"
+      ],
+      [
+       "in_verification",
+       "In verification"
+      ],
+      [
+       "sender",
+       "Can send but not receive"
+      ],
+      [
+       "smp_registration",
+       "Can send, pending registration to receive"
+      ],
+      [
+       "receiver",
+       "Can send and receive"
+      ],
+      [
+       "rejected",
+       "Rejected"
+      ]
+     ],
+     "string": "PEPPOL status",
+     "type": "Selection"
+    },
+    "peppol_can_send": {
+     "compute": "_compute_peppol_can_send",
+     "type": "Boolean"
+    },
+    "peppol_eas": {
+     "readonly": false,
+     "related": "partner_id.peppol_eas",
+     "type": "Selection"
+    },
+    "peppol_endpoint": {
+     "readonly": false,
+     "related": "partner_id.peppol_endpoint",
+     "type": "Char"
+    },
+    "peppol_parent_company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_peppol_parent_company_id",
+     "type": "Many2one"
+    },
+    "peppol_purchase_journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_peppol_purchase_journal_id",
+     "domain": [
+      [
+       "type",
+       "=",
+       "purchase"
+      ]
+     ],
+     "readonly": false,
+     "store": true,
+     "string": "PEPPOL Purchase Journal",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_reset_peppol_configuration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_check_phonenumbers_import"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_sanitize_peppol_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_check_peppol_endpoint_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_einvoicing_network_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_einvoicing_identifier_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_peppol_is_french_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('account_peppol_phone_number')"
+     ],
+     "lines": 4,
+     "name": "_check_account_peppol_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('peppol_endpoint')"
+     ],
+     "lines": 6,
+     "name": "_check_peppol_endpoint"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('peppol_purchase_journal_id')"
+     ],
+     "lines": 4,
+     "name": "_check_peppol_purchase_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_peppol_allows_document_reception"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_edi_proxy_client_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_account_peppol_edi_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('peppol_eas', 'peppol_endpoint')"
+     ],
+     "lines": 16,
+     "name": "_compute_peppol_parent_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_peppol_proxy_state')"
+     ],
+     "lines": 10,
+     "name": "_compute_peppol_purchase_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_inverse_peppol_purchase_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email')"
+     ],
+     "lines": 4,
+     "name": "_compute_account_peppol_contact_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('phone')"
+     ],
+     "lines": 9,
+     "name": "_compute_account_peppol_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_peppol_proxy_state')"
+     ],
+     "lines": 4,
+     "name": "_compute_peppol_can_send"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_sanitize_peppol_endpoint"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_sanitize_peppol_endpoint_in_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 14,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_peppol_modules_document_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_peppol_supported_document_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_peppol_edi_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_peppol_proxy_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_peppol_generate_connect_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_peppol_decode_connect_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_peppol_can_connect"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_peppol_select_kyc_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_peppol_create_connection"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_peppol_contact_email": {
+     "readonly": false,
+     "related": "company_id.account_peppol_contact_email",
+     "type": "Char"
+    },
+    "account_peppol_eas": {
+     "readonly": false,
+     "related": "company_id.peppol_eas",
+     "type": "Selection"
+    },
+    "account_peppol_edi_identification": {
+     "related": "account_peppol_edi_user.edi_identification",
+     "type": "Char"
+    },
+    "account_peppol_edi_mode": {
+     "related": "account_peppol_edi_user.edi_mode",
+     "type": "Selection"
+    },
+    "account_peppol_edi_user": {
+     "related": "company_id.account_peppol_edi_user",
+     "type": "Many2one"
+    },
+    "account_peppol_endpoint": {
+     "readonly": false,
+     "related": "company_id.peppol_endpoint",
+     "type": "Char"
+    },
+    "account_peppol_migration_key": {
+     "readonly": false,
+     "related": "company_id.account_peppol_migration_key",
+     "type": "Char"
+    },
+    "account_peppol_phone_number": {
+     "readonly": false,
+     "related": "company_id.account_peppol_phone_number",
+     "type": "Char"
+    },
+    "account_peppol_proxy_state": {
+     "readonly": false,
+     "related": "company_id.account_peppol_proxy_state",
+     "type": "Selection"
+    },
+    "account_peppol_purchase_journal_id": {
+     "readonly": false,
+     "related": "company_id.peppol_purchase_journal_id",
+     "type": "Many2one"
+    },
+    "peppol_parent_company_name": {
+     "compute": "_compute_peppol_use_parent_company",
+     "type": "Char"
+    },
+    "peppol_purchase_journal_required": {
+     "compute": "_compute_peppol_purchase_journal_required",
+     "type": "Boolean"
+    },
+    "peppol_use_parent_company": {
+     "compute": "_compute_peppol_use_parent_company",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.peppol_parent_company_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_peppol_use_parent_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_account_peppol_eligible', 'account_peppol_edi_user')"
+     ],
+     "lines": 4,
+     "name": "_compute_account_peppol_mode_constraint"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_peppol_proxy_state')"
+     ],
+     "lines": 3,
+     "name": "_compute_peppol_purchase_journal_required"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_open_peppol_form"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_peppol_proxy_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "button_update_peppol_user_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "button_peppol_smp_registration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "button_migrate_peppol_registration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_peppol_disconnect_branch_from_parent"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "button_deregister_peppol_participant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "button_peppol_reset_to_sender"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "button_peppol_reregister"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "button_account_peppol_configure_services"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_get_pdp_module_info"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "available_peppol_edi_formats": {
+     "compute": "_compute_available_peppol_edi_formats",
+     "type": "Json"
+    },
+    "available_peppol_sending_methods": {
+     "compute": "_compute_available_peppol_sending_methods",
+     "type": "Json"
+    },
+    "invoice_sending_method": {
+     "selection_add": [
+      [
+       "peppol",
+       "by Peppol"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "peppol_eas": {
+     "selection_add": [
+      [
+       "odemo",
+       "Odoo Demo ID"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "peppol_verification_state": {
+     "selection": [
+      [
+       "not_verified",
+       "Unchecked"
+      ],
+      [
+       "not_valid",
+       "Partner is not on Peppol"
+      ],
+      [
+       "not_valid_format",
+       "Partner cannot receive format"
+      ],
+      [
+       "valid",
+       "Partner is on Peppol"
+      ]
+     ],
+     "string": "Peppol status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('invoice_edi_format', 'peppol_endpoint', 'peppol_eas')"
+     ],
+     "lines": 5,
+     "name": "_onchange_verify_peppol_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('company_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_available_peppol_sending_methods"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('invoice_sending_method')"
+     ],
+     "lines": 6,
+     "name": "_compute_available_peppol_edi_formats"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('peppol_eas')"
+     ],
+     "lines": 7,
+     "name": "_compute_available_peppol_eas"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_log_verification_state_update"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_get_participant_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 34,
+     "name": "_check_peppol_participant_exists"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_peppol_lookup_participant"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 34,
+     "name": "_peppol_lookup_participant_formats_accepted"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_check_document_type_support"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_update_peppol_state_per_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_peppol_endpoint"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_peppol_eas"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "button_account_peppol_check_partner_endpoint"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 28,
+     "name": "_get_peppol_verification_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_partners_to_skip_peppol_computation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_peppol_proxy_identification_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_peppol_is_french_partner"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "account_peppol",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/account_peppol",
+ "stats": {
+  "fields": 61,
+  "methods": 165,
+  "models": 13,
+  "py_lines": 3555
+ },
+ "summary": "This module is used to send/receive documents with PEPPOL",
+ "title": "Peppol",
+ "version": "1.1"
+}

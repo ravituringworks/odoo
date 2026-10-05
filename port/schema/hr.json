@@ -1,0 +1,3295 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Employees",
+ "data_files": [
+  "security/hr_security.xml",
+  "security/ir.model.access.csv",
+  "data/digest_data.xml",
+  "data/report_paperformat.xml",
+  "wizard/hr_departure_wizard_views.xml",
+  "wizard/mail_activity_schedule_views.xml",
+  "views/mail_activity_plan_views.xml",
+  "views/hr_departure_reason_views.xml",
+  "views/hr_contract_type_views.xml",
+  "views/hr_job_views.xml",
+  "views/hr_employee_category_views.xml",
+  "views/hr_employee_public_views.xml",
+  "report/hr_employee_badge.xml",
+  "views/hr_employee_views.xml",
+  "views/hr_department_views.xml",
+  "views/hr_work_location_views.xml",
+  "views/hr_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml",
+  "views/discuss_channel_views.xml",
+  "views/res_users.xml",
+  "views/hr_templates.xml",
+  "data/hr_data.xml",
+  "data/hr_demo.xml"
+ ],
+ "depends": [
+  "base_setup",
+  "digest",
+  "phone_validation",
+  "resource_mail",
+  "web"
+ ],
+ "models": {
+  "base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_alias_get_error"
+    }
+   ],
+   "name": "base",
+   "sel_methods": {
+    "_alias_get_error": []
+   },
+   "transient": false
+  },
+  "discuss.channel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "subscription_department_ids": {
+     "comodel": "hr.department",
+     "help": "Automatically subscribe members of those departments to the channel.",
+     "string": "HR Departments",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('subscription_department_ids')"
+     ],
+     "lines": 4,
+     "name": "_constraint_subscription_department_ids_channel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_subscribe_users_automatically_get_members"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    }
+   ],
+   "name": "discuss.channel",
+   "transient": false
+  },
+  "hr.contract.type": {
+   "abstract": false,
+   "description": "Contract Type",
+   "extension": false,
+   "fields": {
+    "code": {
+     "compute": "_compute_code",
+     "readonly": false,
+     "store": true,
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 5,
+     "name": "_compute_code"
+    }
+   ],
+   "name": "hr.contract.type",
+   "order": "sequence",
+   "transient": false
+  },
+  "hr.department": {
+   "abstract": false,
+   "description": "Department",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "child_ids": {
+     "comodel": "hr.department",
+     "inverse_name": "parent_id",
+     "string": "Child Departments",
+     "type": "One2many"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "index": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "complete_name": {
+     "compute": "_compute_complete_name",
+     "store": true,
+     "string": "Complete Name",
+     "type": "Char"
+    },
+    "has_read_access": {
+     "store": false,
+     "type": "Boolean"
+    },
+    "jobs_ids": {
+     "comodel": "hr.job",
+     "inverse_name": "department_id",
+     "string": "Jobs",
+     "type": "One2many"
+    },
+    "manager_id": {
+     "comodel": "hr.employee",
+     "domain": "['|', ('company_id', '=', False), ('company_id', 'in', allowed_company_ids)]",
+     "string": "Manager",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "master_department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_master_department_id",
+     "store": true,
+     "string": "Master Department",
+     "type": "Many2one"
+    },
+    "member_ids": {
+     "comodel": "hr.employee",
+     "inverse_name": "department_id",
+     "readonly": true,
+     "string": "Members",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Department Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "note": {
+     "string": "Note",
+     "type": "Text"
+    },
+    "parent_id": {
+     "comodel": "hr.department",
+     "index": true,
+     "string": "Parent Department",
+     "type": "Many2one"
+    },
+    "parent_path": {
+     "index": true,
+     "type": "Char"
+    },
+    "plan_ids": {
+     "comodel": "mail.activity.plan",
+     "inverse_name": "department_id",
+     "type": "One2many"
+    },
+    "plans_count": {
+     "compute": "_compute_plan_count",
+     "type": "Integer"
+    },
+    "total_employee": {
+     "compute": "_compute_total_employee",
+     "string": "Total Employee",
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('hierarchical_naming')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_search_has_read_access"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "name_create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'parent_id.complete_name')"
+     ],
+     "lines": 6,
+     "name": "_compute_complete_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_path')"
+     ],
+     "lines": 3,
+     "name": "_compute_master_department_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_total_employee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_compute_plan_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('parent_id')"
+     ],
+     "lines": 3,
+     "name": "_check_parent_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_update_employee_manager"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "get_formview_action"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_plan_from_department"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 22,
+     "name": "action_employee_from_department"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_children_department_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_view_child_departments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "get_department_hierarchy"
+    }
+   ],
+   "name": "hr.department",
+   "order": "name",
+   "parent_store": true,
+   "rec_name": "complete_name",
+   "sel_methods": {
+    "_search_has_read_access": [
+     [
+      "id",
+      "child_of"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "hr.departure.reason": {
+   "abstract": false,
+   "description": "Departure Reason",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Reason",
+     "translate": true,
+     "type": "Char"
+    },
+    "reason_code": {
+     "type": "Integer"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_departure_reasons"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_default_departure_reasons"
+    }
+   ],
+   "name": "hr.departure.reason",
+   "order": "sequence",
+   "transient": false
+  },
+  "hr.departure.wizard": {
+   "abstract": false,
+   "description": "Departure Wizard",
+   "extension": false,
+   "fields": {
+    "departure_date": {
+     "default": {
+      "$ref": "_get_default_departure_date"
+     },
+     "required": true,
+     "string": "Departure Date",
+     "type": "Date"
+    },
+    "departure_description": {
+     "string": "Additional Information",
+     "type": "Html"
+    },
+    "departure_reason_id": {
+     "comodel": "hr.departure.reason",
+     "default": {
+      "$lambda": "self.env['hr.departure.reason'].search([], limit=1)"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "default": {
+      "$lambda": "self.env.context.get('active_id', None)"
+     },
+     "required": true,
+     "string": "Employee",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_employee_departure_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_default_departure_date"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_register_departure"
+    }
+   ],
+   "name": "hr.departure.wizard",
+   "transient": true
+  },
+  "hr.employee": {
+   "abstract": false,
+   "description": "Employee",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "readonly": false,
+     "related": "resource_id.active",
+     "store": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "activity_date_deadline": {
+     "groups": "hr.group_hr_user",
+     "type": "Date"
+    },
+    "activity_exception_decoration": {
+     "groups": "hr.group_hr_user",
+     "type": "Selection"
+    },
+    "activity_exception_icon": {
+     "groups": "hr.group_hr_user",
+     "type": "Char"
+    },
+    "activity_ids": {
+     "groups": "hr.group_hr_user",
+     "type": "One2many"
+    },
+    "activity_state": {
+     "groups": "hr.group_hr_user",
+     "type": "Selection"
+    },
+    "activity_summary": {
+     "groups": "hr.group_hr_user",
+     "type": "Char"
+    },
+    "activity_type_icon": {
+     "groups": "hr.group_hr_user",
+     "type": "Char"
+    },
+    "activity_type_id": {
+     "groups": "hr.group_hr_user",
+     "type": "Many2one"
+    },
+    "activity_user_id": {
+     "groups": "hr.group_hr_user",
+     "type": "Many2one"
+    },
+    "additional_note": {
+     "groups": "hr.group_hr_user",
+     "string": "Additional Note",
+     "tracking": true,
+     "type": "Text"
+    },
+    "bank_account_id": {
+     "comodel": "res.partner.bank",
+     "copy": false,
+     "domain": "[('partner_id', '=', work_contact_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "groups": "hr.group_hr_user",
+     "help": "Employee bank account to pay salaries",
+     "string": "Bank Account",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "barcode": {
+     "copy": false,
+     "groups": "hr.group_hr_user",
+     "help": "ID used for employee identification.",
+     "string": "Badge ID",
+     "type": "Char"
+    },
+    "birthday": {
+     "groups": "hr.group_hr_user",
+     "string": "Date of Birth",
+     "tracking": true,
+     "type": "Date"
+    },
+    "category_ids": {
+     "column1": "employee_id",
+     "column2": "category_id",
+     "comodel": "hr.employee.category",
+     "groups": "hr.group_hr_user",
+     "relation_table": "employee_category_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "certificate": {
+     "groups": "hr.group_hr_user",
+     "selection": [
+      [
+       "graduate",
+       "Graduate"
+      ],
+      [
+       "bachelor",
+       "Bachelor"
+      ],
+      [
+       "master",
+       "Master"
+      ],
+      [
+       "doctor",
+       "Doctor"
+      ],
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "string": "Certificate Level",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "child_ids": {
+     "comodel": "hr.employee",
+     "inverse_name": "parent_id",
+     "string": "Direct subordinates",
+     "type": "One2many"
+    },
+    "children": {
+     "groups": "hr.group_hr_user",
+     "string": "Number of Dependent Children",
+     "tracking": true,
+     "type": "Integer"
+    },
+    "color": {
+     "default": 0,
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_country_code": {
+     "groups": "base.group_system,hr.group_hr_user",
+     "readonly": true,
+     "related": "company_country_id.code",
+     "type": "Char"
+    },
+    "company_country_id": {
+     "comodel": "res.country",
+     "groups": "base.group_system,hr.group_hr_user",
+     "readonly": true,
+     "related": "company_id.country_id",
+     "string": "Company Country",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "required": true,
+     "type": "Many2one"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "groups": "hr.group_hr_user",
+     "string": "Nationality (Country)",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "country_of_birth": {
+     "comodel": "res.country",
+     "groups": "hr.group_hr_user",
+     "string": "Country of Birth",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "groups": "hr.group_hr_user",
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "department_id": {
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "departure_date": {
+     "copy": false,
+     "groups": "hr.group_hr_user",
+     "string": "Departure Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "departure_description": {
+     "copy": false,
+     "groups": "hr.group_hr_user",
+     "string": "Additional Information",
+     "type": "Html"
+    },
+    "departure_reason_id": {
+     "comodel": "hr.departure.reason",
+     "copy": false,
+     "groups": "hr.group_hr_user",
+     "ondelete": "restrict",
+     "string": "Departure Reason",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "distance_home_work": {
+     "groups": "hr.group_hr_user",
+     "string": "Home-Work Distance",
+     "tracking": true,
+     "type": "Integer"
+    },
+    "distance_home_work_unit": {
+     "default": "kilometers",
+     "groups": "hr.group_hr_user",
+     "required": true,
+     "selection": [
+      [
+       "kilometers",
+       "km"
+      ],
+      [
+       "miles",
+       "mi"
+      ]
+     ],
+     "string": "Home-Work Distance unit",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "driving_license": {
+     "groups": "hr.group_hr_user",
+     "string": "Driving License",
+     "type": "Binary"
+    },
+    "emergency_contact": {
+     "groups": "hr.group_hr_user",
+     "string": "Contact Name",
+     "tracking": true,
+     "type": "Char"
+    },
+    "emergency_phone": {
+     "groups": "hr.group_hr_user",
+     "string": "Contact Phone",
+     "tracking": true,
+     "type": "Char"
+    },
+    "employee_properties": {
+     "groups": "hr.group_hr_user",
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "employee_type": {
+     "default": "employee",
+     "groups": "hr.group_hr_user",
+     "help": "Categorize your Employees by type. This field also has an impact on contracts. Only Employees, Students and Trainee will have contract history.",
+     "required": true,
+     "selection": [
+      [
+       "employee",
+       "Employee"
+      ],
+      [
+       "worker",
+       "Worker"
+      ],
+      [
+       "student",
+       "Student"
+      ],
+      [
+       "trainee",
+       "Trainee"
+      ],
+      [
+       "contractor",
+       "Contractor"
+      ],
+      [
+       "freelance",
+       "Freelancer"
+      ]
+     ],
+     "string": "Employee Type",
+     "type": "Selection"
+    },
+    "gender": {
+     "groups": "hr.group_hr_user",
+     "selection": [
+      [
+       "male",
+       "Male"
+      ],
+      [
+       "female",
+       "Female"
+      ],
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "tracking": true,
+     "type": "Selection"
+    },
+    "has_message": {
+     "groups": "hr.group_hr_user",
+     "type": "Boolean"
+    },
+    "has_work_permit": {
+     "groups": "hr.group_hr_user",
+     "string": "Work Permit",
+     "type": "Binary"
+    },
+    "id_card": {
+     "groups": "hr.group_hr_user",
+     "string": "ID Card Copy",
+     "type": "Binary"
+    },
+    "identification_id": {
+     "groups": "hr.group_hr_user",
+     "string": "Identification No",
+     "tracking": true,
+     "type": "Char"
+    },
+    "job_id": {
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "km_home_work": {
+     "compute": "_compute_km_home_work",
+     "groups": "hr.group_hr_user",
+     "store": true,
+     "string": "Home-Work Distance in Km",
+     "type": "Integer"
+    },
+    "lang": {
+     "groups": "hr.group_hr_user",
+     "selection": {
+      "$ref": "_lang_get"
+     },
+     "string": "Lang",
+     "type": "Selection"
+    },
+    "marital": {
+     "default": "single",
+     "groups": "hr.group_hr_user",
+     "required": true,
+     "selection_method": "_get_marital_status_selection",
+     "string": "Marital Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "message_attachment_count": {
+     "groups": "hr.group_hr_user",
+     "type": "Integer"
+    },
+    "message_follower_ids": {
+     "groups": "hr.group_hr_user",
+     "type": "One2many"
+    },
+    "message_has_error": {
+     "groups": "hr.group_hr_user",
+     "type": "Boolean"
+    },
+    "message_has_error_counter": {
+     "groups": "hr.group_hr_user",
+     "type": "Integer"
+    },
+    "message_ids": {
+     "groups": "hr.group_hr_user",
+     "type": "One2many"
+    },
+    "message_is_follower": {
+     "groups": "hr.group_hr_user",
+     "type": "Boolean"
+    },
+    "message_main_attachment_id": {
+     "groups": "hr.group_hr_user",
+     "type": "Many2one"
+    },
+    "message_needaction": {
+     "groups": "hr.group_hr_user",
+     "type": "Boolean"
+    },
+    "message_needaction_counter": {
+     "groups": "hr.group_hr_user",
+     "type": "Integer"
+    },
+    "message_partner_ids": {
+     "groups": "hr.group_hr_user",
+     "type": "Many2many"
+    },
+    "my_activity_date_deadline": {
+     "groups": "hr.group_hr_user",
+     "type": "Date"
+    },
+    "name": {
+     "readonly": false,
+     "related": "resource_id.name",
+     "store": true,
+     "string": "Employee Name",
+     "tracking": true,
+     "type": "Char"
+    },
+    "notes": {
+     "groups": "hr.group_hr_user",
+     "string": "Notes",
+     "type": "Text"
+    },
+    "passport_id": {
+     "groups": "hr.group_hr_user",
+     "string": "Passport No",
+     "tracking": true,
+     "type": "Char"
+    },
+    "permit_no": {
+     "groups": "hr.group_hr_user",
+     "string": "Work Permit No",
+     "tracking": true,
+     "type": "Char"
+    },
+    "pin": {
+     "copy": false,
+     "groups": "hr.group_hr_user",
+     "help": "PIN used to Check In/Out in the Kiosk Mode of the Attendance application (if enabled in Configuration) and to change the cashier in the Point of Sale application.",
+     "string": "PIN",
+     "type": "Char"
+    },
+    "place_of_birth": {
+     "groups": "hr.group_hr_user",
+     "string": "Place of Birth",
+     "tracking": true,
+     "type": "Char"
+    },
+    "private_car_plate": {
+     "groups": "hr.group_hr_user",
+     "help": "If you have more than one car, just separate the plates by a space.",
+     "type": "Char"
+    },
+    "private_city": {
+     "groups": "hr.group_hr_user",
+     "string": "Private City",
+     "type": "Char"
+    },
+    "private_country_id": {
+     "comodel": "res.country",
+     "groups": "hr.group_hr_user",
+     "string": "Private Country",
+     "type": "Many2one"
+    },
+    "private_email": {
+     "groups": "hr.group_hr_user",
+     "string": "Private Email",
+     "type": "Char"
+    },
+    "private_phone": {
+     "groups": "hr.group_hr_user",
+     "string": "Private Phone",
+     "type": "Char"
+    },
+    "private_state_id": {
+     "comodel": "res.country.state",
+     "domain": "[('country_id', '=?', private_country_id)]",
+     "groups": "hr.group_hr_user",
+     "string": "Private State",
+     "type": "Many2one"
+    },
+    "private_street": {
+     "groups": "hr.group_hr_user",
+     "string": "Private Street",
+     "type": "Char"
+    },
+    "private_street2": {
+     "groups": "hr.group_hr_user",
+     "string": "Private Street2",
+     "type": "Char"
+    },
+    "private_zip": {
+     "groups": "hr.group_hr_user",
+     "string": "Private Zip",
+     "type": "Char"
+    },
+    "related_partners_count": {
+     "compute": "_compute_related_partners_count",
+     "groups": "hr.group_hr_user",
+     "type": "Integer"
+    },
+    "resource_calendar_id": {
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "sinid": {
+     "groups": "hr.group_hr_user",
+     "help": "Social Insurance Number",
+     "string": "SIN No",
+     "tracking": true,
+     "type": "Char"
+    },
+    "spouse_birthdate": {
+     "groups": "hr.group_hr_user",
+     "string": "Spouse Birthdate",
+     "tracking": true,
+     "type": "Date"
+    },
+    "spouse_complete_name": {
+     "groups": "hr.group_hr_user",
+     "string": "Spouse Complete Name",
+     "tracking": true,
+     "type": "Char"
+    },
+    "ssnid": {
+     "groups": "hr.group_hr_user",
+     "help": "Social Security Number",
+     "string": "SSN No",
+     "tracking": true,
+     "type": "Char"
+    },
+    "study_field": {
+     "groups": "hr.group_hr_user",
+     "string": "Field of Study",
+     "tracking": true,
+     "type": "Char"
+    },
+    "study_school": {
+     "groups": "hr.group_hr_user",
+     "string": "School",
+     "tracking": true,
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "ondelete": "restrict",
+     "readonly": false,
+     "related": "resource_id.user_id",
+     "store": true,
+     "string": "User",
+     "type": "Many2one"
+    },
+    "user_partner_id": {
+     "related": "user_id.partner_id",
+     "string": "User's partner",
+     "type": "Many2one"
+    },
+    "visa_expire": {
+     "groups": "hr.group_hr_user",
+     "string": "Visa Expiration Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "visa_no": {
+     "groups": "hr.group_hr_user",
+     "string": "Visa No",
+     "tracking": true,
+     "type": "Char"
+    },
+    "work_permit_expiration_date": {
+     "groups": "hr.group_hr_user",
+     "string": "Work Permit Expiration Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "work_permit_name": {
+     "compute": "_compute_work_permit_name",
+     "groups": "hr.group_hr_user",
+     "string": "work_permit_name",
+     "type": "Char"
+    },
+    "work_permit_scheduled_activity": {
+     "default": false,
+     "groups": "hr.group_hr_user",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "avatar.mixin",
+    "hr.employee.base",
+    "mail.activity.mixin",
+    "mail.thread.main.attachment",
+    "resource.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_lang_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "check_field_access_rights"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'user_id.avatar_1920', 'image_1920')"
+     ],
+     "lines": 2,
+     "name": "_compute_avatar_1920"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'user_id.avatar_1024', 'image_1024')"
+     ],
+     "lines": 2,
+     "name": "_compute_avatar_1024"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'user_id.avatar_512', 'image_512')"
+     ],
+     "lines": 2,
+     "name": "_compute_avatar_512"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'user_id.avatar_256', 'image_256')"
+     ],
+     "lines": 2,
+     "name": "_compute_avatar_256"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'user_id.avatar_128', 'image_128')"
+     ],
+     "lines": 2,
+     "name": "_compute_avatar_128"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_avatar"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'permit_no')"
+     ],
+     "lines": 5,
+     "name": "_compute_work_permit_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('distance_home_work', 'distance_home_work_unit')"
+     ],
+     "lines": 3,
+     "name": "_compute_km_home_work"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_km_home_work"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_partner_count_depends"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends(lambda self: self._get_partner_count_depends())"
+     ],
+     "lines": 2,
+     "name": "_compute_related_partners_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_related_partners"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_related_contacts"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 20,
+     "name": "action_create_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "search_fetch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "fetch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_check_private_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_copy_cache_from"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_cron_check_work_permit_validity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "get_view"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "get_views"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_search"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_formview_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "get_formview_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('pin')"
+     ],
+     "lines": 4,
+     "name": "_verify_pin"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('barcode')"
+     ],
+     "lines": 7,
+     "name": "_verify_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('ssnid')"
+     ],
+     "lines": 4,
+     "name": "_check_ssnid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('user_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('resource_calendar_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_timezone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_remove_work_contact_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_sync_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_resource_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 32,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_employee_m2o_to_empty_on_archived_employees"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_user_m2o_to_empty_on_archived_employees"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 6,
+     "name": "_onchange_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "generate_random_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_tz"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_tz_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_employee_attendance_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_expected_attendances"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_calendar_attendances"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_marital_status_selection"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_load_scenario"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "filter_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_import_templates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_unusual_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_age"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_phone_get_number_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_mail_get_partner_fields"
+    }
+   ],
+   "name": "hr.employee",
+   "order": "name",
+   "sel_methods": {
+    "_get_marital_status_selection": [
+     [
+      "single",
+      "Single"
+     ],
+     [
+      "married",
+      "Married"
+     ],
+     [
+      "cohabitant",
+      "Legal Cohabitant"
+     ],
+     [
+      "widower",
+      "Widower"
+     ],
+     [
+      "divorced",
+      "Divorced"
+     ]
+    ],
+    "_get_user_m2o_to_empty_on_archived_employees": [],
+    "_search": []
+   },
+   "sql_constraints": [
+    [
+     "barcode_uniq",
+     "unique (barcode)",
+     "The Badge ID must be unique, this one is already assigned to another employee."
+    ],
+    [
+     "user_uniq",
+     "unique (user_id, company_id)",
+     "A user cannot be linked to multiple employees in the same company."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.employee.base": {
+   "abstract": true,
+   "description": "Basic Employee",
+   "extension": false,
+   "fields": {
+    "active": {
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "address_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_address_id",
+     "readonly": false,
+     "store": true,
+     "string": "Work Address",
+     "type": "Many2one"
+    },
+    "coach_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_coach",
+     "domain": "['|', ('company_id', '=', False), ('company_id', 'in', allowed_company_ids)]",
+     "help": "Select the \"Employee\" who is the coach of this employee.\nThe \"Coach\" has no specific rights or responsibilities by default.",
+     "readonly": false,
+     "store": true,
+     "string": "Coach",
+     "type": "Many2one"
+    },
+    "color": {
+     "default": 0,
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "email": {
+     "related": "user_id.email",
+     "type": "Char"
+    },
+    "hr_icon_display": {
+     "compute": "_compute_presence_icon",
+     "selection": [
+      [
+       "presence_present",
+       "Present"
+      ],
+      [
+       "presence_out_of_working_hour",
+       "Out of Working hours"
+      ],
+      [
+       "presence_absent",
+       "Absent"
+      ],
+      [
+       "presence_archive",
+       "Archived"
+      ],
+      [
+       "presence_undetermined",
+       "Undetermined"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "hr_presence_state": {
+     "compute": "_compute_presence_state",
+     "default": "out_of_working_hour",
+     "selection": [
+      [
+       "present",
+       "Present"
+      ],
+      [
+       "absent",
+       "Absent"
+      ],
+      [
+       "archive",
+       "Archived"
+      ],
+      [
+       "out_of_working_hour",
+       "Out of Working hours"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "im_status": {
+     "related": "user_id.im_status",
+     "type": "Char"
+    },
+    "is_flexible": {
+     "compute": "_compute_is_flexible",
+     "store": true,
+     "type": "Boolean"
+    },
+    "is_fully_flexible": {
+     "compute": "_compute_is_flexible",
+     "store": true,
+     "type": "Boolean"
+    },
+    "job_id": {
+     "comodel": "hr.job",
+     "string": "Job Position",
+     "type": "Many2one"
+    },
+    "job_title": {
+     "compute": "_compute_job_title",
+     "readonly": false,
+     "store": true,
+     "string": "Job Title",
+     "type": "Char"
+    },
+    "last_activity": {
+     "compute": "_compute_last_activity",
+     "type": "Date"
+    },
+    "last_activity_time": {
+     "compute": "_compute_last_activity",
+     "type": "Char"
+    },
+    "member_of_department": {
+     "compute": "_compute_part_of_department",
+     "help": "Whether the employee is a member of the active user's department or one of it's child department.",
+     "string": "Member of department",
+     "type": "Boolean"
+    },
+    "mobile_phone": {
+     "compute": "_compute_work_contact_details",
+     "store": true,
+     "string": "Work Mobile",
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "newly_hired": {
+     "compute": "_compute_newly_hired",
+     "string": "Newly Hired",
+     "type": "Boolean"
+    },
+    "parent_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_parent_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', 'in', allowed_company_ids)]",
+     "readonly": false,
+     "store": true,
+     "string": "Manager",
+     "type": "Many2one"
+    },
+    "phone": {
+     "related": "user_id.phone",
+     "type": "Char"
+    },
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "type": "Many2one"
+    },
+    "resource_id": {
+     "comodel": "resource.resource",
+     "type": "Many2one"
+    },
+    "share": {
+     "related": "user_id.share",
+     "type": "Boolean"
+    },
+    "show_hr_icon_display": {
+     "compute": "_compute_presence_icon",
+     "type": "Boolean"
+    },
+    "tz": {
+     "help": "This field is used in order to define in which timezone the employee will work.",
+     "readonly": false,
+     "related": "resource_id.tz",
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "help": "",
+     "type": "Many2one"
+    },
+    "work_contact_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "string": "Work Contact",
+     "type": "Many2one"
+    },
+    "work_email": {
+     "compute": "_compute_work_contact_details",
+     "store": true,
+     "string": "Work Email",
+     "type": "Char"
+    },
+    "work_location_id": {
+     "comodel": "hr.work.location",
+     "domain": "[('address_id', '=', address_id)]",
+     "string": "Work Location",
+     "type": "Many2one"
+    },
+    "work_location_name": {
+     "compute": "_compute_work_location_name_type",
+     "string": "Work Location Name",
+     "type": "Char"
+    },
+    "work_location_type": {
+     "compute": "_compute_work_location_name_type",
+     "selection": [
+      [
+       "home",
+       "Home"
+      ],
+      [
+       "office",
+       "Office"
+      ],
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "work_phone": {
+     "compute": "_compute_phones",
+     "readonly": false,
+     "store": true,
+     "string": "Work Phone",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_new_hire_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_newly_hired"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_search_newly_hired"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('work_location_id.name', 'work_location_id.location_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_work_location_name_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_valid_employee_for_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid', 'company')",
+      "api.depends('department_id')"
+     ],
+     "lines": 15,
+     "name": "_compute_part_of_department"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_search_part_of_department"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id.im_status')"
+     ],
+     "lines": 18,
+     "name": "_compute_presence_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id')"
+     ],
+     "lines": 18,
+     "name": "_compute_last_activity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_coach"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('job_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_job_title"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('address_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_phones"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('work_contact_id', 'work_contact_id.mobile', 'work_contact_id.email')"
+     ],
+     "lines": 5,
+     "name": "_compute_work_contact_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_create_work_contacts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_inverse_work_contact_details"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_address_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('department_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_parent_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('resource_calendar_id', 'hr_presence_state')"
+     ],
+     "lines": 8,
+     "name": "_compute_presence_icon"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('resource_calendar_id.flexible_hours')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_flexible"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_get_employee_working_now"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_calendar_periods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_avatar_card_data"
+    }
+   ],
+   "name": "hr.employee.base",
+   "order": "name",
+   "transient": false
+  },
+  "hr.employee.category": {
+   "abstract": false,
+   "description": "Employee Category",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "employee_ids": {
+     "column1": "category_id",
+     "column2": "employee_id",
+     "comodel": "hr.employee",
+     "relation_table": "employee_category_rel",
+     "string": "Employees",
+     "type": "Many2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Tag Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    }
+   ],
+   "name": "hr.employee.category",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.employee.public": {
+   "abstract": false,
+   "description": "Public Employee",
+   "extension": false,
+   "fields": {
+    "active": {
+     "readonly": true,
+     "type": "Boolean"
+    },
+    "address_id": {
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "avatar_1024": {
+     "related": "employee_id.avatar_1024",
+     "string": "Avatar 1024",
+     "type": "Image"
+    },
+    "avatar_128": {
+     "related": "employee_id.avatar_128",
+     "string": "Avatar 128",
+     "type": "Image"
+    },
+    "avatar_1920": {
+     "related": "employee_id.avatar_1920",
+     "string": "Avatar",
+     "type": "Image"
+    },
+    "avatar_256": {
+     "related": "employee_id.avatar_256",
+     "string": "Avatar 256",
+     "type": "Image"
+    },
+    "avatar_512": {
+     "related": "employee_id.avatar_512",
+     "string": "Avatar 512",
+     "type": "Image"
+    },
+    "child_ids": {
+     "comodel": "hr.employee.public",
+     "inverse_name": "parent_id",
+     "readonly": true,
+     "string": "Direct subordinates",
+     "type": "One2many"
+    },
+    "coach_id": {
+     "comodel": "hr.employee.public",
+     "readonly": true,
+     "string": "Coach",
+     "type": "Many2one"
+    },
+    "color": {
+     "readonly": true,
+     "type": "Integer"
+    },
+    "company_id": {
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "create_date": {
+     "readonly": true,
+     "type": "Datetime"
+    },
+    "department_id": {
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_employee_id",
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "image_1024": {
+     "related": "employee_id.image_1024",
+     "string": "Image 1024",
+     "type": "Image"
+    },
+    "image_128": {
+     "related": "employee_id.image_128",
+     "string": "Image 128",
+     "type": "Image"
+    },
+    "image_1920": {
+     "related": "employee_id.image_1920",
+     "string": "Image",
+     "type": "Image"
+    },
+    "image_256": {
+     "related": "employee_id.image_256",
+     "string": "Image 256",
+     "type": "Image"
+    },
+    "image_512": {
+     "related": "employee_id.image_512",
+     "string": "Image 512",
+     "type": "Image"
+    },
+    "is_manager": {
+     "compute": "_compute_is_manager",
+     "type": "Boolean"
+    },
+    "job_id": {
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "job_title": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "mobile_phone": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "name": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "parent_id": {
+     "comodel": "hr.employee.public",
+     "readonly": true,
+     "string": "Manager",
+     "type": "Many2one"
+    },
+    "resource_id": {
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "tz": {
+     "readonly": true,
+     "type": "Selection"
+    },
+    "user_id": {
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "user_partner_id": {
+     "related": "user_id.partner_id",
+     "string": "User's partner",
+     "type": "Many2one"
+    },
+    "work_contact_id": {
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "work_email": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "work_location_id": {
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "work_phone": {
+     "readonly": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "hr.employee.base"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('parent_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_manager"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_manager_only_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 10,
+     "name": "_compute_manager_only_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "init"
+    }
+   ],
+   "name": "hr.employee.public",
+   "order": "name",
+   "sel_methods": {
+    "_get_manager_only_fields": []
+   },
+   "transient": false
+  },
+  "hr.job": {
+   "abstract": false,
+   "description": "Job Position",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "contract_type_id": {
+     "comodel": "hr.contract.type",
+     "string": "Employment Type",
+     "type": "Many2one"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "description": {
+     "string": "Job Description",
+     "type": "Html"
+    },
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "groups": "base.group_user",
+     "inverse_name": "job_id",
+     "string": "Employees",
+     "type": "One2many"
+    },
+    "expected_employees": {
+     "compute": "_compute_employees",
+     "help": "Expected number of employees for this job position after new recruitment.",
+     "store": true,
+     "string": "Total Forecasted Employees",
+     "type": "Integer"
+    },
+    "name": {
+     "index": "trigram",
+     "required": true,
+     "string": "Job Position",
+     "translate": true,
+     "type": "Char"
+    },
+    "no_of_employee": {
+     "compute": "_compute_employees",
+     "help": "Number of employees currently occupying this job position.",
+     "store": true,
+     "string": "Current Number of Employees",
+     "type": "Integer"
+    },
+    "no_of_recruitment": {
+     "copy": false,
+     "default": 1,
+     "help": "Number of new employees you expect to recruit.",
+     "string": "Target",
+     "type": "Integer"
+    },
+    "requirements": {
+     "string": "Requirements",
+     "type": "Text"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('no_of_recruitment', 'employee_ids.job_id', 'employee_ids.active')"
+     ],
+     "lines": 6,
+     "name": "_compute_employees"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 3,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    }
+   ],
+   "name": "hr.job",
+   "order": "sequence",
+   "sql_constraints": [
+    [
+     "name_company_uniq",
+     "unique(name, company_id, department_id)",
+     "The name of the job position must be unique per department in company!"
+    ],
+    [
+     "no_of_recruitment_positive",
+     "CHECK(no_of_recruitment >= 0)",
+     "The expected number of new employees must be positive."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.manager.department.report": {
+   "abstract": true,
+   "description": "Hr Manager Department Report",
+   "extension": false,
+   "fields": {
+    "employee_id": {
+     "comodel": "hr.employee",
+     "readonly": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "has_department_manager_access": {
+     "compute": "_compute_has_department_manager_access",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_search_has_department_manager_access"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_has_department_manager_access"
+    }
+   ],
+   "name": "hr.manager.department.report",
+   "transient": false
+  },
+  "hr.work.location": {
+   "abstract": false,
+   "description": "Work Location",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "address_id": {
+     "comodel": "res.partner",
+     "required": true,
+     "string": "Work Address",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "location_number": {
+     "type": "Char"
+    },
+    "location_type": {
+     "default": "office",
+     "required": true,
+     "selection": [
+      [
+       "home",
+       "Home"
+      ],
+      [
+       "office",
+       "Office"
+      ],
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "string": "Cover Image",
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Work Location",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.work.location",
+   "order": "name",
+   "transient": false
+  },
+  "ir.ui.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_load_menus_blacklist"
+    }
+   ],
+   "name": "ir.ui.menu",
+   "transient": false
+  },
+  "mail.activity.plan": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "department_assignable": {
+     "compute": "_compute_department_assignable",
+     "type": "Boolean"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_department_id",
+     "ondelete": "cascade",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('res_model')"
+     ],
+     "lines": 19,
+     "name": "_check_compatibility_with_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model')"
+     ],
+     "lines": 3,
+     "name": "_compute_department_assignable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model')"
+     ],
+     "lines": 3,
+     "name": "_compute_department_id"
+    }
+   ],
+   "name": "mail.activity.plan",
+   "transient": false
+  },
+  "mail.activity.plan.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "responsible_type": {
+     "ondelete": {
+      "coach": "cascade",
+      "employee": "cascade",
+      "manager": "cascade"
+     },
+     "selection_add": [
+      [
+       "coach",
+       "Coach"
+      ],
+      [
+       "manager",
+       "Manager"
+      ],
+      [
+       "employee",
+       "Employee"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('plan_id', 'responsible_type')"
+     ],
+     "lines": 5,
+     "name": "_check_responsible_hr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_closest_parent_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_determine_responsible"
+    }
+   ],
+   "name": "mail.activity.plan.template",
+   "transient": false
+  },
+  "mail.activity.schedule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_department_id",
+     "type": "Many2one"
+    },
+    "plan_department_filterable": {
+     "compute": "_compute_plan_department_filterable",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('department_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_plan_available_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model')"
+     ],
+     "lines": 3,
+     "name": "_compute_plan_department_filterable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('plan_date', 'plan_id')"
+     ],
+     "lines": 16,
+     "name": "_compute_plan_summary"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model_id', 'res_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_department_id"
+    }
+   ],
+   "name": "mail.activity.schedule",
+   "transient": false
+  },
+  "mail.alias": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "alias_contact": {
+     "ondelete": {
+      "employees": "cascade"
+     },
+     "selection_add": [
+      [
+       "employees",
+       "Authenticated Employees"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_alias_contact_description"
+    }
+   ],
+   "name": "mail.alias",
+   "sel_methods": {
+    "_get_alias_contact_description": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_properties_definition": {
+     "string": "Employee Properties",
+     "type": "PropertiesDefinition"
+    },
+    "hr_presence_control_attendance": {
+     "string": "Based on attendances",
+     "type": "Boolean"
+    },
+    "hr_presence_control_email": {
+     "string": "Based on number of emails sent",
+     "type": "Boolean"
+    },
+    "hr_presence_control_email_amount": {
+     "string": "# emails to send",
+     "type": "Integer"
+    },
+    "hr_presence_control_ip": {
+     "string": "Based on IP Address",
+     "type": "Boolean"
+    },
+    "hr_presence_control_ip_list": {
+     "string": "Valid IP addresses",
+     "type": "Char"
+    },
+    "hr_presence_control_login": {
+     "default": true,
+     "string": "Based on user status in system",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "hr_employee_self_edit": {
+     "string": "Employee Editing",
+     "type": "Boolean"
+    },
+    "hr_presence_control_email": {
+     "readonly": false,
+     "related": "company_id.hr_presence_control_email",
+     "type": "Boolean"
+    },
+    "hr_presence_control_email_amount": {
+     "readonly": false,
+     "related": "company_id.hr_presence_control_email_amount",
+     "type": "Integer"
+    },
+    "hr_presence_control_ip": {
+     "readonly": false,
+     "related": "company_id.hr_presence_control_ip",
+     "type": "Boolean"
+    },
+    "hr_presence_control_ip_list": {
+     "readonly": false,
+     "related": "company_id.hr_presence_control_ip_list",
+     "type": "Char"
+    },
+    "hr_presence_control_login": {
+     "readonly": false,
+     "related": "company_id.hr_presence_control_login",
+     "type": "Boolean"
+    },
+    "module_hr_attendance": {
+     "readonly": false,
+     "related": "company_id.hr_presence_control_attendance",
+     "type": "Boolean"
+    },
+    "module_hr_homeworking": {
+     "string": "Remote Work",
+     "type": "Boolean"
+    },
+    "module_hr_presence": {
+     "string": "Advanced Presence Control",
+     "type": "Boolean"
+    },
+    "module_hr_skills": {
+     "string": "Skills Management",
+     "type": "Boolean"
+    },
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "readonly": false,
+     "related": "company_id.resource_calendar_id",
+     "string": "Company Working Hours",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('module_hr_presence', 'hr_presence_control_email', 'hr_presence_control_ip')"
+     ],
+     "lines": 4,
+     "name": "_check_advanced_presence"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "groups": "hr.group_hr_user",
+     "help": "Related employees based on their private address",
+     "inverse_name": "work_contact_id",
+     "string": "Employees",
+     "type": "One2many"
+    },
+    "employees_count": {
+     "compute": "_compute_employees_count",
+     "groups": "hr.group_hr_user",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_employees_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_open_employees"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_all_addr"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.partner.bank": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "res.partner.bank",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "additional_note": {
+     "readonly": false,
+     "related": "employee_id.additional_note",
+     "type": "Text"
+    },
+    "address_id": {
+     "readonly": false,
+     "related": "employee_id.address_id",
+     "type": "Many2one"
+    },
+    "barcode": {
+     "readonly": false,
+     "related": "employee_id.barcode",
+     "type": "Char"
+    },
+    "birthday": {
+     "readonly": false,
+     "related": "employee_id.birthday",
+     "type": "Date"
+    },
+    "can_edit": {
+     "compute": "_compute_can_edit",
+     "type": "Boolean"
+    },
+    "category_ids": {
+     "readonly": false,
+     "related": "employee_id.category_ids",
+     "string": "Employee Tags",
+     "type": "Many2many"
+    },
+    "certificate": {
+     "readonly": false,
+     "related": "employee_id.certificate",
+     "type": "Selection"
+    },
+    "children": {
+     "readonly": false,
+     "related": "employee_id.children",
+     "type": "Integer"
+    },
+    "coach_id": {
+     "readonly": false,
+     "related": "employee_id.coach_id",
+     "type": "Many2one"
+    },
+    "country_of_birth": {
+     "readonly": false,
+     "related": "employee_id.country_of_birth",
+     "type": "Many2one"
+    },
+    "create_employee": {
+     "copy": false,
+     "default": false,
+     "store": false,
+     "string": "Technical field, whether to create an employee",
+     "type": "Boolean"
+    },
+    "create_employee_id": {
+     "comodel": "hr.employee",
+     "copy": false,
+     "store": false,
+     "string": "Technical field, bind user to this employee on create",
+     "type": "Many2one"
+    },
+    "department_id": {
+     "readonly": false,
+     "related": "employee_id.department_id",
+     "type": "Many2one"
+    },
+    "distance_home_work": {
+     "readonly": false,
+     "related": "employee_id.distance_home_work",
+     "type": "Integer"
+    },
+    "distance_home_work_unit": {
+     "readonly": false,
+     "related": "employee_id.distance_home_work_unit",
+     "type": "Selection"
+    },
+    "emergency_contact": {
+     "readonly": false,
+     "related": "employee_id.emergency_contact",
+     "type": "Char"
+    },
+    "emergency_phone": {
+     "readonly": false,
+     "related": "employee_id.emergency_phone",
+     "type": "Char"
+    },
+    "employee_bank_account_id": {
+     "readonly": false,
+     "related": "employee_id.bank_account_id",
+     "string": "Employee's Bank Account Number",
+     "type": "Many2one"
+    },
+    "employee_count": {
+     "compute": "_compute_employee_count",
+     "type": "Integer"
+    },
+    "employee_country_code": {
+     "readonly": true,
+     "related": "employee_id.company_country_code",
+     "string": "Employee's Country Code",
+     "type": "Char"
+    },
+    "employee_country_id": {
+     "readonly": false,
+     "related": "employee_id.country_id",
+     "string": "Employee's Country",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_company_employee",
+     "store": false,
+     "string": "Company employee",
+     "type": "Many2one"
+    },
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "domain": {
+      "$ref": "_employee_ids_domain"
+     },
+     "inverse_name": "user_id",
+     "string": "Related employee",
+     "type": "One2many"
+    },
+    "employee_parent_id": {
+     "readonly": false,
+     "related": "employee_id.parent_id",
+     "type": "Many2one"
+    },
+    "employee_resource_calendar_id": {
+     "readonly": true,
+     "related": "employee_id.resource_calendar_id",
+     "string": "Employee's Working Hours",
+     "type": "Many2one"
+    },
+    "employee_type": {
+     "readonly": false,
+     "related": "employee_id.employee_type",
+     "type": "Selection"
+    },
+    "gender": {
+     "readonly": false,
+     "related": "employee_id.gender",
+     "type": "Selection"
+    },
+    "hr_presence_state": {
+     "related": "employee_id.hr_presence_state",
+     "type": "Selection"
+    },
+    "identification_id": {
+     "readonly": false,
+     "related": "employee_id.identification_id",
+     "type": "Char"
+    },
+    "is_system": {
+     "compute": "_compute_is_system",
+     "type": "Boolean"
+    },
+    "job_title": {
+     "readonly": false,
+     "related": "employee_id.job_title",
+     "type": "Char"
+    },
+    "km_home_work": {
+     "readonly": false,
+     "related": "employee_id.km_home_work",
+     "type": "Integer"
+    },
+    "last_activity": {
+     "related": "employee_id.last_activity",
+     "type": "Date"
+    },
+    "last_activity_time": {
+     "related": "employee_id.last_activity_time",
+     "type": "Char"
+    },
+    "marital": {
+     "readonly": false,
+     "related": "employee_id.marital",
+     "type": "Selection"
+    },
+    "mobile_phone": {
+     "readonly": false,
+     "related": "employee_id.mobile_phone",
+     "type": "Char"
+    },
+    "passport_id": {
+     "readonly": false,
+     "related": "employee_id.passport_id",
+     "type": "Char"
+    },
+    "permit_no": {
+     "readonly": false,
+     "related": "employee_id.permit_no",
+     "type": "Char"
+    },
+    "pin": {
+     "readonly": false,
+     "related": "employee_id.pin",
+     "type": "Char"
+    },
+    "place_of_birth": {
+     "readonly": false,
+     "related": "employee_id.place_of_birth",
+     "type": "Char"
+    },
+    "private_city": {
+     "readonly": false,
+     "related": "employee_id.private_city",
+     "string": "Private City",
+     "type": "Char"
+    },
+    "private_country_id": {
+     "readonly": false,
+     "related": "employee_id.private_country_id",
+     "string": "Private Country",
+     "type": "Many2one"
+    },
+    "private_email": {
+     "readonly": false,
+     "related": "employee_id.private_email",
+     "string": "Private Email",
+     "type": "Char"
+    },
+    "private_lang": {
+     "readonly": false,
+     "related": "employee_id.lang",
+     "string": "Employee Lang",
+     "type": "Selection"
+    },
+    "private_phone": {
+     "readonly": false,
+     "related": "employee_id.private_phone",
+     "type": "Char"
+    },
+    "private_state_id": {
+     "domain": "[('country_id', '=?', private_country_id)]",
+     "readonly": false,
+     "related": "employee_id.private_state_id",
+     "string": "Private State",
+     "type": "Many2one"
+    },
+    "private_street": {
+     "readonly": false,
+     "related": "employee_id.private_street",
+     "string": "Private Street",
+     "type": "Char"
+    },
+    "private_street2": {
+     "readonly": false,
+     "related": "employee_id.private_street2",
+     "string": "Private Street2",
+     "type": "Char"
+    },
+    "private_zip": {
+     "readonly": false,
+     "related": "employee_id.private_zip",
+     "string": "Private Zip",
+     "type": "Char"
+    },
+    "spouse_birthdate": {
+     "readonly": false,
+     "related": "employee_id.spouse_birthdate",
+     "type": "Date"
+    },
+    "spouse_complete_name": {
+     "readonly": false,
+     "related": "employee_id.spouse_complete_name",
+     "type": "Char"
+    },
+    "ssnid": {
+     "readonly": false,
+     "related": "employee_id.ssnid",
+     "type": "Char"
+    },
+    "study_field": {
+     "readonly": false,
+     "related": "employee_id.study_field",
+     "type": "Char"
+    },
+    "study_school": {
+     "readonly": false,
+     "related": "employee_id.study_school",
+     "type": "Char"
+    },
+    "visa_expire": {
+     "readonly": false,
+     "related": "employee_id.visa_expire",
+     "type": "Date"
+    },
+    "visa_no": {
+     "readonly": false,
+     "related": "employee_id.visa_no",
+     "type": "Char"
+    },
+    "work_contact_id": {
+     "readonly": false,
+     "related": "employee_id.work_contact_id",
+     "type": "Many2one"
+    },
+    "work_email": {
+     "readonly": false,
+     "related": "employee_id.work_email",
+     "type": "Char"
+    },
+    "work_location_id": {
+     "readonly": false,
+     "related": "employee_id.work_location_id",
+     "type": "Many2one"
+    },
+    "work_location_name": {
+     "related": "employee_id.work_location_name",
+     "type": "Char"
+    },
+    "work_location_type": {
+     "related": "employee_id.work_location_type",
+     "type": "Selection"
+    },
+    "work_phone": {
+     "readonly": false,
+     "related": "employee_id.work_phone",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_employee_ids_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 2,
+     "name": "_compute_is_system"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_can_edit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_employee_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_WRITEABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "get_views"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "get_view"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 17,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_employee_fields_to_sync"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_personal_info_partner_ids_to_notify"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "action_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_ids')",
+      "api.depends_context('company')"
+     ],
+     "lines": 7,
+     "name": "_compute_company_employee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_company_employee"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_create_employee"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_open_employees"
+    }
+   ],
+   "name": "res.users",
+   "sel_methods": {
+    "_employee_ids_domain": [
+     [
+      "company_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "resource.calendar": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_calculate_hours_per_week"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_calculate_is_fulltime"
+    }
+   ],
+   "name": "resource.calendar",
+   "transient": false
+  },
+  "resource.resource": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "department_id": {
+     "related": "employee_id.department_id",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "inverse_name": "resource_id",
+     "type": "One2many"
+    },
+    "hr_icon_display": {
+     "related": "employee_id.hr_icon_display",
+     "type": "Selection"
+    },
+    "job_title": {
+     "related": "employee_id.job_title",
+     "type": "Char"
+    },
+    "show_hr_icon_display": {
+     "related": "employee_id.show_hr_icon_display",
+     "type": "Boolean"
+    },
+    "user_id": {
+     "copy": false,
+     "type": "Many2one"
+    },
+    "work_email": {
+     "related": "employee_id.work_email",
+     "type": "Char"
+    },
+    "work_phone": {
+     "related": "employee_id.work_phone",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 17,
+     "name": "_compute_avatar_128"
+    }
+   ],
+   "name": "resource.resource",
+   "transient": false
+  }
+ },
+ "module": "hr",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr",
+ "stats": {
+  "fields": 301,
+  "methods": 156,
+  "models": 25,
+  "py_lines": 2456
+ },
+ "summary": "Centralize employee information",
+ "title": "Employees",
+ "version": "1.1"
+}

@@ -1,0 +1,227 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden/Tools",
+ "data_files": [
+  "views/ldap_installer_views.xml",
+  "security/ir.model.access.csv",
+  "views/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "base",
+  "base_setup"
+ ],
+ "models": {
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "ldaps": {
+     "comodel": "res.company.ldap",
+     "copy": true,
+     "groups": "base.group_system",
+     "inverse_name": "company",
+     "string": "LDAP Parameters",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.company.ldap": {
+   "abstract": false,
+   "description": "Company LDAP configuration",
+   "extension": false,
+   "fields": {
+    "company": {
+     "comodel": "res.company",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "create_user": {
+     "default": true,
+     "help": "Automatically create local user accounts for new users authenticating via LDAP",
+     "type": "Boolean"
+    },
+    "ldap_base": {
+     "help": "DN of the user search scope: all descendants of this base will be searched for users.",
+     "required": true,
+     "string": "LDAP base",
+     "type": "Char"
+    },
+    "ldap_binddn": {
+     "help": "The user account on the LDAP server that is used to query the directory. Leave empty to connect anonymously.",
+     "string": "LDAP binddn",
+     "type": "Char"
+    },
+    "ldap_filter": {
+     "help": "    Filter used to look up user accounts in the LDAP database. It is an    arbitrary LDAP filter in string representation. Any `%s` placeholder    will be replaced by the login (identifier) provided by the user, the filter    should contain at least one such placeholder.\n\n    The filter must result in exactly one (1) result, otherwise the login will    be considered invalid.\n\n    Example (actual attributes depend on LDAP server and setup):\n\n        (&(objectCategory=person)(objectClass=user)(sAMAccountName=%s))\n\n    or\n\n        (|(mail=%s)(uid=%s))\n    ",
+     "required": true,
+     "string": "LDAP filter",
+     "type": "Char"
+    },
+    "ldap_password": {
+     "help": "The password of the user account on the LDAP server that is used to query the directory.",
+     "string": "LDAP password",
+     "type": "Char"
+    },
+    "ldap_server": {
+     "default": "127.0.0.1",
+     "required": true,
+     "string": "LDAP Server address",
+     "type": "Char"
+    },
+    "ldap_server_port": {
+     "default": 389,
+     "required": true,
+     "string": "LDAP Server port",
+     "type": "Integer"
+    },
+    "ldap_tls": {
+     "help": "Request secure TLS/SSL encryption when connecting to the LDAP server. This option requires a server with STARTTLS enabled, otherwise all authentication attempts will fail.",
+     "string": "Use TLS",
+     "type": "Boolean"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "user": {
+     "comodel": "res.users",
+     "help": "User to copy when creating new users",
+     "string": "Template User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_ldap_dicts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_connect"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_entry"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_authenticate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_map_ldap_attributes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_or_create_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_change_password"
+    }
+   ],
+   "name": "res.company.ldap",
+   "order": "sequence",
+   "rec_name": "ldap_server",
+   "sel_methods": {
+    "_query": []
+   },
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "ldaps": {
+     "readonly": false,
+     "related": "company_id.ldaps",
+     "string": "LDAP Parameters",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_login"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_check_credentials"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "change_password"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_set_empty_password"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "auth_ldap",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/auth_ldap",
+ "stats": {
+  "fields": 13,
+  "methods": 12,
+  "models": 4,
+  "py_lines": 365
+ },
+ "summary": "",
+ "title": "Authentication via LDAP",
+ "version": null
+}

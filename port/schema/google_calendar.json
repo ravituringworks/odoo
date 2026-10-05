@@ -1,0 +1,903 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Productivity",
+ "data_files": [
+  "data/google_calendar_data.xml",
+  "security/ir.model.access.csv",
+  "wizard/reset_account_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_users_views.xml",
+  "views/google_calendar_views.xml"
+ ],
+ "depends": [
+  "google_account",
+  "calendar"
+ ],
+ "models": {
+  "calendar.alarm_manager": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_notify_alert_extra_conditions"
+    }
+   ],
+   "name": "calendar.alarm_manager",
+   "transient": false
+  },
+  "calendar.attendee": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "do_tentative"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "do_accept"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "do_decline"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_sync_event"
+    }
+   ],
+   "name": "calendar.attendee",
+   "transient": false
+  },
+  "calendar.event": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "google_id": {
+     "compute": "_compute_google_id",
+     "readonly": false,
+     "store": true,
+     "string": "Google Calendar Event Id",
+     "type": "Char"
+    },
+    "guests_readonly": {
+     "default": false,
+     "string": "Guests Event Modification Permission",
+     "type": "Boolean"
+    },
+    "videocall_source": {
+     "ondelete": {
+      "google_meet": "set discuss"
+     },
+     "selection_add": [
+      [
+       "google_meet",
+       "Google Meet"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "google.calendar.sync"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurrence_id.google_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_google_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('videocall_location')"
+     ],
+     "lines": 4,
+     "name": "_compute_videocall_source"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_google_synced_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_restart_google_sync"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_check_values_to_sync"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_update_future_events_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_remove_sync_id_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_archive_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_check_alarm_ids_sync_limit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_check_modify_event_permission"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_skip_send_mail_status_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_sync_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 57,
+     "name": "_odoo_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 45,
+     "name": "_odoo_attendee_commands"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 40,
+     "name": "_odoo_reminders_commands"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_mass_archive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 75,
+     "name": "_google_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_event_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_google_insertion_blocked"
+    }
+   ],
+   "name": "calendar.event",
+   "sel_methods": {
+    "_skip_send_mail_status_update": []
+   },
+   "transient": false
+  },
+  "calendar.recurrence": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "google.calendar.sync"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_apply_recurrence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_event_google_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_write_events"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_google_synced_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_restart_google_sync"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 87,
+     "name": "_write_from_google"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_create_from_google"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_sync_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_odoo_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_google_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_event_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_is_google_insertion_blocked"
+    }
+   ],
+   "name": "calendar.recurrence",
+   "sel_methods": {
+    "_get_sync_domain": [
+     [
+      "calendar_event_ids.user_id",
+      "="
+     ],
+     [
+      "rrule",
+      "!="
+     ]
+    ],
+    "_write_events": []
+   },
+   "transient": false
+  },
+  "google.calendar.account.reset": {
+   "abstract": false,
+   "description": "Google Calendar Account Reset",
+   "extension": false,
+   "fields": {
+    "delete_policy": {
+     "default": "dont_delete",
+     "help": "This will only affect events for which the user is the owner",
+     "required": true,
+     "selection": [
+      [
+       "dont_delete",
+       "Leave them untouched"
+      ],
+      [
+       "delete_google",
+       "Delete from the current Google Calendar account"
+      ],
+      [
+       "delete_odoo",
+       "Delete from Odoo"
+      ],
+      [
+       "delete_both",
+       "Delete from both"
+      ]
+     ],
+     "string": "User's Existing Events",
+     "type": "Selection"
+    },
+    "sync_policy": {
+     "default": "new",
+     "required": true,
+     "selection": [
+      [
+       "new",
+       "Synchronize only new events"
+      ],
+      [
+       "all",
+       "Synchronize all existing events"
+      ]
+     ],
+     "string": "Next Synchronization",
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "reset_account"
+    }
+   ],
+   "name": "google.calendar.account.reset",
+   "transient": true
+  },
+  "google.calendar.sync": {
+   "abstract": true,
+   "description": "Synchronize a record with Google Calendar",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "google_id": {
+     "copy": false,
+     "string": "Google Calendar Id",
+     "type": "Char"
+    },
+    "need_sync": {
+     "copy": false,
+     "default": true,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 15,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_handle_allday_recurrences_edge_case"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_from_google_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_event_ids_from_google_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_sync_odoo2google"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 52,
+     "name": "_sync_google2odoo"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_google_error_handling"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_google_delete"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_google_patch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_post_sync_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_need_video_call"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_google_insert"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_records_to_sync"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_check_any_records_to_sync"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_write_from_google"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_create_from_google"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_get_sync_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_odoo_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_google_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_sync_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_google_synced_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_restart_google_sync"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_event_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_is_google_insertion_blocked"
+    }
+   ],
+   "name": "google.calendar.sync",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "cal_client_id": {
+     "default": "",
+     "string": "Client_id",
+     "type": "Char"
+    },
+    "cal_client_secret": {
+     "default": "",
+     "string": "Client_key",
+     "type": "Char"
+    },
+    "cal_sync_paused": {
+     "help": "Indicates if synchronization with Google Calendar is paused or not.",
+     "string": "Google Synchronization Paused",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "google_calendar_cal_id": {
+     "groups": "base.group_system",
+     "related": "res_users_settings_id.google_calendar_cal_id",
+     "type": "Char"
+    },
+    "google_calendar_rtoken": {
+     "groups": "base.group_system",
+     "related": "res_users_settings_id.google_calendar_rtoken",
+     "type": "Char"
+    },
+    "google_calendar_sync_token": {
+     "groups": "base.group_system",
+     "related": "res_users_settings_id.google_calendar_sync_token",
+     "type": "Char"
+    },
+    "google_calendar_token": {
+     "groups": "base.group_system",
+     "related": "res_users_settings_id.google_calendar_token",
+     "type": "Char"
+    },
+    "google_calendar_token_validity": {
+     "groups": "base.group_system",
+     "related": "res_users_settings_id.google_calendar_token_validity",
+     "type": "Datetime"
+    },
+    "google_synchronization_stopped": {
+     "groups": "base.group_system",
+     "readonly": false,
+     "related": "res_users_settings_id.google_synchronization_stopped",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_google_calendar_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_google_sync_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_pending_odoo_records"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_sync_google_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_sync_single_event"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_sync_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_sync_all_google_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "is_google_calendar_synced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "stop_google_synchronization"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "restart_google_synchronization"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "unpause_google_synchronization"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "pause_google_synchronization"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_has_setup_credentials"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "check_calendar_credentials"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "check_synchronization_status"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "res.users.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "google_calendar_cal_id": {
+     "copy": false,
+     "groups": "base.group_system",
+     "help": "Last Calendar ID who has been synchronized. If it is changed, we remove all links between GoogleID and Odoo Google Internal ID",
+     "string": "Calendar ID",
+     "type": "Char"
+    },
+    "google_calendar_rtoken": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Refresh Token",
+     "type": "Char"
+    },
+    "google_calendar_sync_token": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Next Sync Token",
+     "type": "Char"
+    },
+    "google_calendar_token": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "User token",
+     "type": "Char"
+    },
+    "google_calendar_token_validity": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Token Validity",
+     "type": "Datetime"
+    },
+    "google_synchronization_stopped": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Google Synchronization stopped",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_fields_blacklist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_set_google_auth_tokens"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_google_calendar_authenticated"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_google_calendar_valid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_refresh_google_calendar_token"
+    }
+   ],
+   "name": "res.users.settings",
+   "transient": false
+  }
+ },
+ "module": "google_calendar",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/google_calendar",
+ "stats": {
+  "fields": 24,
+  "methods": 88,
+  "models": 9,
+  "py_lines": 1980
+ },
+ "summary": "",
+ "title": "Google Calendar",
+ "version": "1.0"
+}

@@ -1,0 +1,327 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources",
+ "data_files": [
+  "views/hr_leave_allocation_views.xml",
+  "views/hr_leave_type_views.xml",
+  "views/hr_leave_views.xml",
+  "views/hr_employee_views.xml",
+  "views/res_users_views.xml",
+  "views/hr_leave_accrual_level_views.xml",
+  "data/hr_holidays_attendance_data.xml"
+ ],
+ "depends": [
+  "hr_attendance",
+  "hr_holidays"
+ ],
+ "models": {
+  "hr.attendance": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_overtime_leave_domain"
+    }
+   ],
+   "name": "hr.attendance",
+   "transient": false
+  },
+  "hr.leave": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_overtime": {
+     "groups": "base.group_user",
+     "related": "employee_id.total_overtime",
+     "type": "Float"
+    },
+    "overtime_deductible": {
+     "compute": "_compute_overtime_deductible",
+     "type": "Boolean"
+    },
+    "overtime_id": {
+     "comodel": "hr.attendance.overtime",
+     "string": "Extra Hours",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('holiday_status_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_overtime_deductible"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_check_overtime_deductible"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_reset_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_approve"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_refuse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_update_leaves_overtime"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_force_cancel"
+    }
+   ],
+   "name": "hr.leave",
+   "transient": false
+  },
+  "hr.leave.accrual.level": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "frequency_hourly_source": {
+     "compute": "_compute_frequency_hourly_source",
+     "default": "calendar",
+     "help": "If the source is set to \"Calendar\", the amount of worked hours will be computed based on the Employee's working schedule. Otherwise, the amount of worked hours will be based on Attendance records.",
+     "readonly": false,
+     "selection": [
+      [
+       "calendar",
+       "Calendar"
+      ],
+      [
+       "attendance",
+       "Attendances"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('accrued_gain_time')"
+     ],
+     "lines": 4,
+     "name": "_compute_frequency_hourly_source"
+    }
+   ],
+   "name": "hr.leave.accrual.level",
+   "transient": false
+  },
+  "hr.leave.allocation": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_overtime": {
+     "groups": "base.group_user",
+     "related": "employee_id.total_overtime",
+     "type": "Float"
+    },
+    "overtime_deductible": {
+     "compute": "_compute_overtime_deductible",
+     "type": "Boolean"
+    },
+    "overtime_id": {
+     "comodel": "hr.attendance.overtime",
+     "groups": "hr_holidays.group_hr_holidays_user",
+     "string": "Extra Hours",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('holiday_status_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_overtime_deductible"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 2,
+     "name": "_unlink_overtime_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_set_to_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_refuse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_validate_overtime_and_create_adjustment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_accrual_plan_level_work_entry_prorata"
+    }
+   ],
+   "name": "hr.leave.allocation",
+   "transient": false
+  },
+  "hr.leave.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "overtime_deductible": {
+     "default": false,
+     "help": "Once a time off of this type is approved, extra hours in attendances will be deducted.",
+     "string": "Deduct Extra Hours",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('overtime_deductible', 'requires_allocation')",
+      "api.depends_context('request_type', 'leave', 'holiday_status_display_name', 'employee_id')"
+     ],
+     "lines": 17,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "get_allocation_data"
+    }
+   ],
+   "name": "hr.leave.type",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "request_overtime": {
+     "compute": "_compute_request_overtime",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('total_overtime')"
+     ],
+     "lines": 15,
+     "name": "_compute_request_overtime"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "hr_holidays_attendance",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_holidays_attendance",
+ "stats": {
+  "fields": 9,
+  "methods": 25,
+  "models": 6,
+  "py_lines": 369
+ },
+ "summary": "Attendance Holidays",
+ "title": "HR Attendance Holidays",
+ "version": "1.0"
+}

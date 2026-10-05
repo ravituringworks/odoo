@@ -1,0 +1,1094 @@
+{
+ "module": "maintenance",
+ "records": [
+  {
+   "model": "res.groups",
+   "id": "group_equipment_manager",
+   "values": {
+    "name": "Equipment Manager",
+    "category_id": {
+     "$ref": "base.module_category_manufacturing_maintenance"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "comment": "The user will be able to manage equipment."
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "equipment_request_rule_user",
+   "values": {
+    "name": "Users are allowed to access their own maintenance requests",
+    "model_id": {
+     "$ref": "model_maintenance_request"
+    },
+    "domain_force": "['|', '|', ('owner_user_id', '=', user.id), ('message_partner_ids', 'in', [user.partner_id.id]), ('user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "equipment_rule_user",
+   "values": {
+    "name": "Users are allowed to access equipment they follow",
+    "model_id": {
+     "$ref": "model_maintenance_equipment"
+    },
+    "domain_force": "[('message_partner_ids', 'in', [user.partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "equipment_request_rule_admin_user",
+   "values": {
+    "name": "Administrator of maintenance requests",
+    "model_id": {
+     "$ref": "model_maintenance_request"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_equipment_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "equipment_rule_admin_user",
+   "values": {
+    "name": "Equipment administrator",
+    "model_id": {
+     "$ref": "model_maintenance_equipment"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_equipment_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "maintenance_request_comp_rule",
+   "values": {
+    "name": "Maintenance Request Multi-company rule",
+    "model_id": {
+     "$ref": "model_maintenance_request"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "maintenance_equipment_comp_rule",
+   "values": {
+    "name": "Maintenance Equipment Multi-company rule",
+    "model_id": {
+     "$ref": "model_maintenance_equipment"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "maintenance_team_comp_rule",
+   "values": {
+    "name": "Maintenance Team Multi-company rule",
+    "model_id": {
+     "$ref": "model_maintenance_team"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "maintenance_equipment_category_comp_rule",
+   "values": {
+    "name": "Maintenance Equipment Category Multi-company rule",
+    "model_id": {
+     "$ref": "model_maintenance_equipment_category"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "maintenance.stage",
+   "id": "stage_0",
+   "values": {
+    "name": "New Request",
+    "sequence": 1,
+    "fold": false
+   }
+  },
+  {
+   "model": "maintenance.stage",
+   "id": "stage_1",
+   "values": {
+    "name": "In Progress",
+    "sequence": 2,
+    "fold": false
+   }
+  },
+  {
+   "model": "maintenance.stage",
+   "id": "stage_3",
+   "values": {
+    "name": "Repaired",
+    "sequence": 3,
+    "fold": true,
+    "done": true
+   }
+  },
+  {
+   "model": "maintenance.stage",
+   "id": "stage_4",
+   "values": {
+    "name": "Scrap",
+    "sequence": 4,
+    "fold": true,
+    "done": true
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_maintenance_request",
+   "values": {
+    "name": "Maintenance Request",
+    "icon": "fa-wrench",
+    "res_model": "maintenance.request"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_req_created",
+   "values": {
+    "name": "Request Created",
+    "res_model": "maintenance.request",
+    "default": false,
+    "hidden": true,
+    "description": "Maintenance Request created"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_req_status",
+   "values": {
+    "name": "Status Changed",
+    "res_model": "maintenance.request",
+    "default": true,
+    "description": "Status changed"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_mat_assign",
+   "values": {
+    "name": "Equipment Assigned",
+    "res_model": "maintenance.equipment",
+    "description": "Equipment Assigned"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_cat_req_created",
+   "values": {
+    "name": "Maintenance Request Created",
+    "res_model": "maintenance.equipment.category",
+    "default": true,
+    "parent_id": {
+     "$ref": "mt_req_created"
+    },
+    "relation_field": "category_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_cat_mat_assign",
+   "values": {
+    "name": "Equipment Assigned",
+    "res_model": "maintenance.equipment.category",
+    "default": true,
+    "parent_id": {
+     "$ref": "mt_mat_assign"
+    },
+    "relation_field": "category_id"
+   }
+  },
+  {
+   "model": "maintenance.team",
+   "id": "equipment_team_maintenance",
+   "values": {
+    "name": "Internal Maintenance"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_request_action",
+   "values": {
+    "name": "Maintenance Requests",
+    "res_model": "maintenance.request",
+    "view_mode": "kanban,list,form,pivot,graph,calendar,activity",
+    "view_id": {
+     "$ref": "hr_equipment_request_view_kanban"
+    },
+    "context": {
+     "$unevaluated": "{\n            'search_default_active': True,\n            'default_user_id': uid\n        }"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_request_action_link",
+   "values": {
+    "name": "Maintenance Requests",
+    "res_model": "maintenance.request",
+    "view_mode": "kanban,list,form,pivot,graph,calendar,activity",
+    "search_view_id": {
+     "$ref": "hr_equipment_request_view_search"
+    },
+    "view_id": {
+     "$ref": "hr_equipment_request_view_kanban"
+    },
+    "context": {
+     "$unevaluated": "{\n            'search_default_category_id': [active_id],\n            'search_default_active': True,\n            'default_category_id': active_id,\n        }"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_request_action_from_equipment",
+   "values": {
+    "name": "Maintenance Requests",
+    "res_model": "maintenance.request",
+    "binding_model_id": {
+     "$ref": "maintenance.model_maintenance_equipment"
+    },
+    "view_mode": "kanban,list,form,pivot,graph,calendar,activity",
+    "context": {
+     "$unevaluated": "{\n            'search_default_active': True,\n            'default_equipment_id': active_id,\n        }"
+    },
+    "domain": {
+     "$unevaluated": "[('equipment_id', '=', active_id)]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_todo_request_action_from_dashboard",
+   "values": {
+    "name": "Maintenance Requests",
+    "res_model": "maintenance.request",
+    "view_mode": "kanban,list,form,pivot,graph,calendar,activity",
+    "context": {
+     "$unevaluated": "{\n            'search_default_active': True,\n            'search_default_maintenance_team_id': active_id,\n            'default_maintenance_team_id': active_id,\n"
+    },
+    "domain": {
+     "$unevaluated": "[('maintenance_team_id', '=', active_id), ('maintenance_type', 'in', context.get('maintenance_type', ['preventive', 'corrective']))]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_request_action_cal",
+   "values": {
+    "name": "Maintenance Requests",
+    "res_model": "maintenance.request",
+    "view_mode": "calendar,kanban,list,form,pivot,graph,activity",
+    "view_id": {
+     "$ref": "hr_equipment_view_calendar"
+    },
+    "context": {
+     "search_default_active": true,
+     "search_default_todo": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "maintenance_request_action_reports",
+   "values": {
+    "name": "Maintenance Requests",
+    "res_model": "maintenance.request",
+    "view_mode": "graph,pivot,kanban,list,form,calendar,activity",
+    "context": {
+     "search_default_active": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_action",
+   "values": {
+    "name": "Equipment",
+    "res_model": "maintenance.equipment",
+    "view_mode": "kanban,list,form",
+    "view_id": {
+     "$ref": "hr_equipment_view_kanban"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_action_from_category_form",
+   "values": {
+    "name": "Equipment",
+    "res_model": "maintenance.equipment",
+    "view_mode": "kanban,list,form",
+    "search_view_id": {
+     "$ref": "hr_equipment_view_search"
+    },
+    "view_id": {
+     "$ref": "hr_equipment_view_kanban"
+    },
+    "context": {
+     "$unevaluated": "{\n            'search_default_category_id': [active_id],\n            'default_category_id': active_id,\n        }"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_category_action",
+   "values": {
+    "name": "Equipment Categories",
+    "res_model": "maintenance.equipment.category",
+    "view_mode": "list,kanban,form",
+    "view_id": {
+     "$ref": "hr_equipment_category_view_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_equipment_stage_action",
+   "values": {
+    "name": "Stages",
+    "res_model": "maintenance.stage",
+    "view_mode": "list,kanban,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "maintenance_team_action_settings",
+   "values": {
+    "name": "Teams",
+    "res_model": "maintenance.team",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "maintenance_team_view_search"
+    },
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "maintenance_team_view_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "maintenance_team_view_kanban"
+       }
+      }
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "maintenance_dashboard_action",
+   "values": {
+    "name": "Maintenance Teams",
+    "path": "maintenance",
+    "res_model": "maintenance.team",
+    "view_mode": "kanban,form",
+    "view_id": {
+     "$ref": "maintenance_team_kanban"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_type_action_config_maintenance",
+   "values": {
+    "name": "Activity Types",
+    "res_model": "mail.activity.type",
+    "view_mode": "list,kanban,form",
+    "domain": [
+     "|",
+     [
+      "res_model",
+      "=",
+      false
+     ],
+     [
+      "res_model",
+      "=",
+      "maintenance.request"
+     ]
+    ],
+    "context": {
+     "default_res_model": "maintenance.request"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_maintenance_configuration",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "maintenance",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "maintenance.team",
+   "id": "equipment_team_metrology",
+   "values": {
+    "name": "Metrology"
+   }
+  },
+  {
+   "model": "maintenance.team",
+   "id": "equipment_team_subcontractor",
+   "values": {
+    "name": "Subcontractor"
+   }
+  },
+  {
+   "model": "maintenance.equipment.category",
+   "id": "equipment_computer",
+   "values": {
+    "name": "Computers"
+   }
+  },
+  {
+   "model": "maintenance.equipment.category",
+   "id": "equipment_software",
+   "values": {
+    "name": "Software"
+   }
+  },
+  {
+   "model": "maintenance.equipment.category",
+   "id": "equipment_printer",
+   "values": {
+    "name": "Printers"
+   }
+  },
+  {
+   "model": "maintenance.equipment.category",
+   "id": "equipment_monitor",
+   "values": {
+    "name": "Monitors",
+    "technician_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "color": "3"
+   }
+  },
+  {
+   "model": "maintenance.equipment.category",
+   "id": "equipment_phone",
+   "values": {
+    "name": "Phones",
+    "technician_user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "maintenance.equipment",
+   "id": "equipment_monitor1",
+   "values": {
+    "name": "Samsung Monitor 15\"",
+    "category_id": {
+     "$ref": "equipment_monitor"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "technician_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "assign_date": {
+     "$unevaluated": "time.strftime('%Y-%m-10')"
+    },
+    "serial_no": "MT/122/11112222",
+    "model": "NP300E5X"
+   }
+  },
+  {
+   "model": "maintenance.equipment",
+   "id": "equipment_monitor4",
+   "values": {
+    "name": "Samsung Monitor 15\"",
+    "category_id": {
+     "$ref": "equipment_monitor"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "technician_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "assign_date": {
+     "$unevaluated": "time.strftime('%Y-01-01')"
+    },
+    "serial_no": "MT/125/22778837",
+    "model": "NP355E5X"
+   }
+  },
+  {
+   "model": "maintenance.equipment",
+   "id": "equipment_monitor6",
+   "values": {
+    "name": "Samsung Monitor 15\"",
+    "category_id": {
+     "$ref": "equipment_monitor"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "technician_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "assign_date": {
+     "$unevaluated": "time.strftime('%Y-02-01')"
+    },
+    "serial_no": "MT/127/18291018",
+    "model": "NP355E5X",
+    "color": "3"
+   }
+  },
+  {
+   "model": "maintenance.equipment",
+   "id": "equipment_computer3",
+   "values": {
+    "name": "Acer Laptop",
+    "category_id": {
+     "$ref": "equipment_computer"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "technician_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "assign_date": {
+     "$unevaluated": "time.strftime('%Y-03-08')"
+    },
+    "serial_no": "LP/203/19281928",
+    "model": "NE56R"
+   }
+  },
+  {
+   "model": "maintenance.equipment",
+   "id": "equipment_computer5",
+   "values": {
+    "name": "Acer Laptop",
+    "category_id": {
+     "$ref": "equipment_computer"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "technician_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "assign_date": {
+     "$unevaluated": "time.strftime('%Y-04-08')"
+    },
+    "serial_no": "LP/205/12928291",
+    "model": "V5131"
+   }
+  },
+  {
+   "model": "maintenance.equipment",
+   "id": "equipment_computer9",
+   "values": {
+    "name": "HP Laptop",
+    "category_id": {
+     "$ref": "equipment_computer"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "technician_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "assign_date": {
+     "$unevaluated": "time.strftime('%Y-%m-11')"
+    },
+    "serial_no": "LP/303/28292090",
+    "model": "17-j059nr"
+   }
+  },
+  {
+   "model": "maintenance.equipment",
+   "id": "equipment_computer11",
+   "values": {
+    "name": "HP Laptop",
+    "category_id": {
+     "$ref": "equipment_computer"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "technician_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "assign_date": {
+     "$unevaluated": "time.strftime('%Y-05-01')"
+    },
+    "serial_no": "LP/305/17281718"
+   }
+  },
+  {
+   "model": "maintenance.equipment",
+   "id": "equipment_printer1",
+   "values": {
+    "name": "HP Inkjet printer",
+    "category_id": {
+     "$ref": "equipment_printer"
+    },
+    "technician_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "serial_no": "PR/011/2928191889"
+   }
+  },
+  {
+   "model": "maintenance.request",
+   "id": "m_request_3",
+   "values": {
+    "name": "Resolution is bad",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "equipment_id": {
+     "$ref": "equipment_monitor6"
+    },
+    "color": "7",
+    "stage_id": {
+     "$ref": "stage_3"
+    },
+    "maintenance_team_id": {
+     "$ref": "equipment_team_maintenance"
+    }
+   }
+  },
+  {
+   "model": "maintenance.request",
+   "id": "m_request_4",
+   "values": {
+    "name": "Some keys are not working",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "equipment_id": {
+     "$ref": "equipment_computer3"
+    },
+    "stage_id": {
+     "$ref": "stage_0"
+    },
+    "maintenance_team_id": {
+     "$ref": "equipment_team_maintenance"
+    }
+   }
+  },
+  {
+   "model": "maintenance.request",
+   "id": "m_request_6",
+   "values": {
+    "name": "Motherboard failed",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_admin"
+    },
+    "equipment_id": {
+     "$ref": "equipment_computer5"
+    },
+    "stage_id": {
+     "$ref": "stage_4"
+    },
+    "maintenance_team_id": {
+     "$ref": "equipment_team_maintenance"
+    }
+   }
+  },
+  {
+   "model": "maintenance.request",
+   "id": "m_request_7",
+   "values": {
+    "name": "Battery drains fast",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "equipment_id": {
+     "$ref": "equipment_computer9"
+    },
+    "stage_id": {
+     "$ref": "stage_1"
+    },
+    "maintenance_team_id": {
+     "$ref": "equipment_team_maintenance"
+    }
+   }
+  },
+  {
+   "model": "maintenance.request",
+   "id": "m_request_8",
+   "values": {
+    "name": "Touchpad not working",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "owner_user_id": {
+     "$ref": "base.user_demo"
+    },
+    "equipment_id": {
+     "$ref": "equipment_computer11"
+    },
+    "stage_id": {
+     "$ref": "stage_1"
+    },
+    "maintenance_team_id": {
+     "$ref": "equipment_team_maintenance"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_maintenance_title",
+   "name": "Maintenance",
+   "sequence": "160",
+   "web_icon": "maintenance,static/description/icon.png"
+  },
+  {
+   "id": "menu_m_dashboard",
+   "name": "Dashboard",
+   "parent": "menu_maintenance_title",
+   "action": "maintenance_dashboard_action",
+   "sequence": "0",
+   "groups": "group_equipment_manager,base.group_user"
+  },
+  {
+   "id": "menu_m_request",
+   "name": "Maintenance",
+   "parent": "menu_maintenance_title",
+   "sequence": "1",
+   "groups": "group_equipment_manager,base.group_user"
+  },
+  {
+   "id": "menu_m_request_form",
+   "name": "Maintenance Requests",
+   "parent": "menu_m_request",
+   "action": "hr_equipment_request_action",
+   "sequence": "1",
+   "groups": "group_equipment_manager,base.group_user"
+  },
+  {
+   "id": "menu_m_request_calendar",
+   "name": "Maintenance Calendar",
+   "parent": "menu_m_request",
+   "action": "hr_equipment_request_action_cal",
+   "sequence": "2",
+   "groups": "group_equipment_manager,base.group_user"
+  },
+  {
+   "id": "menu_equipment_form",
+   "name": "Equipment",
+   "parent": "menu_maintenance_title",
+   "action": "hr_equipment_action",
+   "sequence": "2",
+   "groups": "group_equipment_manager,base.group_user"
+  },
+  {
+   "id": "menu_m_reports",
+   "name": "Reporting",
+   "parent": "menu_maintenance_title",
+   "sequence": "3",
+   "groups": "group_equipment_manager,base.group_user"
+  },
+  {
+   "id": "menu_m_reports_oee",
+   "name": "Overall Equipment Effectiveness (OEE)",
+   "parent": "menu_m_reports",
+   "sequence": "1",
+   "groups": "group_equipment_manager,base.group_user"
+  },
+  {
+   "id": "menu_m_reports_losses",
+   "name": "Losses Analysis",
+   "parent": "menu_m_reports",
+   "sequence": "2",
+   "groups": "group_equipment_manager,base.group_user"
+  },
+  {
+   "id": "maintenance_reporting",
+   "name": "Reporting",
+   "parent": "menu_maintenance_title",
+   "sequence": "20"
+  },
+  {
+   "id": "maintenance_request_reporting",
+   "parent": "maintenance_reporting",
+   "action": "maintenance_request_action_reports"
+  },
+  {
+   "id": "menu_maintenance_configuration",
+   "name": "Configuration",
+   "parent": "menu_maintenance_title",
+   "sequence": "100",
+   "groups": "group_equipment_manager"
+  },
+  {
+   "id": "menu_maintenance_teams",
+   "name": "Maintenance Teams",
+   "parent": "menu_maintenance_configuration",
+   "action": "maintenance_team_action_settings",
+   "sequence": "1",
+   "groups": "group_equipment_manager"
+  },
+  {
+   "id": "menu_maintenance_cat",
+   "name": "Equipment Categories",
+   "parent": "menu_maintenance_configuration",
+   "action": "hr_equipment_category_action",
+   "sequence": "2"
+  },
+  {
+   "id": "menu_maintenance_stage_configuration",
+   "name": "Maintenance Stages",
+   "parent": "menu_maintenance_configuration",
+   "action": "hr_equipment_stage_action",
+   "sequence": "3",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "maintenance_menu_config_activity_type",
+   "parent": "menu_maintenance_configuration",
+   "action": "mail_activity_type_action_config_maintenance",
+   "sequence": "20",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_maintenance_config",
+   "name": "Settings",
+   "parent": "menu_maintenance_configuration",
+   "action": "action_maintenance_configuration",
+   "sequence": "0",
+   "groups": "base.group_system"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_equipment_user",
+   "model": "maintenance.equipment",
+   "model_xmlid": "model_maintenance_equipment",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_equipment_admin_user",
+   "model": "maintenance.equipment",
+   "model_xmlid": "model_maintenance_equipment",
+   "group": "group_equipment_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_maintenance_system_user",
+   "model": "maintenance.request",
+   "model_xmlid": "model_maintenance_request",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_equipment_category_user",
+   "model": "maintenance.equipment.category",
+   "model_xmlid": "model_maintenance_equipment_category",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_equipment_category_admin_user",
+   "model": "maintenance.equipment.category",
+   "model_xmlid": "model_maintenance_equipment_category",
+   "group": "group_equipment_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_maintenance_stage_user",
+   "model": "maintenance.stage",
+   "model_xmlid": "model_maintenance_stage",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_maintenance_stage_admin_user",
+   "model": "maintenance.stage",
+   "model_xmlid": "model_maintenance_stage",
+   "group": "group_equipment_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_maintenance_team_user",
+   "model": "maintenance.team",
+   "model_xmlid": "model_maintenance_team",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_maintenance_team_admin_user",
+   "model": "maintenance.team",
+   "model_xmlid": "model_maintenance_team",
+   "group": "group_equipment_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_type_equipment_manager",
+   "model": "mail.mail.activity.type",
+   "model_xmlid": "mail.model_mail_activity_type",
+   "group": "maintenance.group_equipment_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

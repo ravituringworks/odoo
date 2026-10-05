@@ -1,0 +1,2852 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Marketing/Surveys",
+ "data_files": [
+  "report/survey_templates.xml",
+  "report/survey_reports.xml",
+  "data/ir_actions_server_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/mail_template_data.xml",
+  "data/survey_tour.xml",
+  "security/survey_security.xml",
+  "security/ir.model.access.csv",
+  "views/survey_menus.xml",
+  "views/survey_survey_views.xml",
+  "views/survey_user_views.xml",
+  "views/survey_question_views.xml",
+  "views/survey_templates.xml",
+  "views/survey_templates_management.xml",
+  "views/survey_templates_print.xml",
+  "views/survey_templates_statistics.xml",
+  "views/survey_templates_user_input_session.xml",
+  "views/gamification_badge_views.xml",
+  "wizard/survey_invite_views.xml",
+  "views/res_partner_views.xml",
+  "data/gamification_badge_demo.xml",
+  "data/res_users_demo.xml",
+  "data/survey_demo_feedback.xml",
+  "data/survey_demo_feedback_user_input.xml",
+  "data/survey_demo_feedback_user_input_line.xml",
+  "data/survey_demo_certification.xml",
+  "data/survey_demo_certification_user_input.xml",
+  "data/survey_demo_certification_user_input_line.xml",
+  "data/survey_demo_quiz.xml",
+  "data/survey_demo_quiz_user_input.xml",
+  "data/survey_demo_quiz_user_input_line.xml",
+  "data/survey_demo_conditional.xml"
+ ],
+ "depends": [
+  "auth_signup",
+  "http_routing",
+  "mail",
+  "web_tour",
+  "gamification"
+ ],
+ "models": {
+  "gamification.badge": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "survey_id": {
+     "comodel": "survey.survey",
+     "compute": "_compute_survey_id",
+     "store": true,
+     "string": "Survey",
+     "type": "Many2one"
+    },
+    "survey_ids": {
+     "comodel": "survey.survey",
+     "inverse_name": "certification_badge_id",
+     "string": "Survey Ids",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_ids.certification_badge_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_survey_id"
+    }
+   ],
+   "name": "gamification.badge",
+   "transient": false
+  },
+  "gamification.challenge": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "challenge_category": {
+     "ondelete": {
+      "certification": "set default"
+     },
+     "selection_add": [
+      [
+       "certification",
+       "Certifications"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "gamification.challenge",
+   "transient": false
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_translation_frontend_modules_name"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "certifications_company_count": {
+     "compute": "_compute_certifications_company_count",
+     "string": "Company Certifications Count",
+     "type": "Integer"
+    },
+    "certifications_count": {
+     "compute": "_compute_certifications_count",
+     "string": "Certifications Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_company')"
+     ],
+     "lines": 8,
+     "name": "_compute_certifications_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_company', 'child_ids.certifications_count')"
+     ],
+     "lines": 2,
+     "name": "_compute_certifications_company_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_view_certifications"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "survey.invite": {
+   "abstract": false,
+   "description": "Survey Invitation Wizard",
+   "extension": false,
+   "fields": {
+    "attachment_ids": {
+     "column1": "wizard_id",
+     "column2": "attachment_id",
+     "comodel": "ir.attachment",
+     "compute": "_compute_attachment_ids",
+     "readonly": false,
+     "relation_table": "survey_mail_compose_message_ir_attachments_rel",
+     "store": true,
+     "string": "Attachments",
+     "type": "Many2many"
+    },
+    "author_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$ref": "_get_default_author"
+     },
+     "index": true,
+     "ondelete": "set null",
+     "string": "Author",
+     "type": "Many2one"
+    },
+    "deadline": {
+     "string": "Answer deadline",
+     "type": "Datetime"
+    },
+    "emails": {
+     "string": "Additional emails",
+     "type": "Text"
+    },
+    "existing_emails": {
+     "compute": "_compute_existing_emails",
+     "readonly": true,
+     "store": false,
+     "string": "Existing emails",
+     "type": "Text"
+    },
+    "existing_mode": {
+     "default": "resend",
+     "required": true,
+     "selection": [
+      [
+       "new",
+       "New invite"
+      ],
+      [
+       "resend",
+       "Resend invite"
+      ]
+     ],
+     "string": "Handle existing",
+     "type": "Selection"
+    },
+    "existing_partner_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_existing_partner_ids",
+     "readonly": true,
+     "store": false,
+     "type": "Many2many"
+    },
+    "existing_text": {
+     "compute": "_compute_existing_text",
+     "string": "Resend Comment",
+     "type": "Text"
+    },
+    "mail_server_id": {
+     "comodel": "ir.mail_server",
+     "string": "Outgoing mail server",
+     "type": "Many2one"
+    },
+    "partner_ids": {
+     "column1": "invite_id",
+     "column2": "partner_id",
+     "comodel": "res.partner",
+     "domain": "[             '|', (survey_users_can_signup, '=', 1),             '|', (not survey_users_login_required, '=', 1),                  ('user_ids', '!=', False),         ]",
+     "relation_table": "survey_invite_partner_ids",
+     "string": "Recipients",
+     "type": "Many2many"
+    },
+    "send_email": {
+     "compute": "_compute_send_email",
+     "type": "Boolean"
+    },
+    "survey_access_mode": {
+     "readonly": true,
+     "related": "survey_id.access_mode",
+     "type": "Selection"
+    },
+    "survey_id": {
+     "comodel": "survey.survey",
+     "required": true,
+     "string": "Survey",
+     "type": "Many2one"
+    },
+    "survey_start_url": {
+     "compute": "_compute_survey_start_url",
+     "string": "Survey URL",
+     "type": "Char"
+    },
+    "survey_users_can_signup": {
+     "related": "survey_id.users_can_signup",
+     "type": "Boolean"
+    },
+    "survey_users_login_required": {
+     "readonly": true,
+     "related": "survey_id.users_login_required",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "mail.composer.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_default_author"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_access_mode')"
+     ],
+     "lines": 3,
+     "name": "_compute_send_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_inverse_send_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_ids', 'survey_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_existing_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('emails', 'survey_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_existing_emails"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('existing_partner_ids', 'existing_emails')"
+     ],
+     "lines": 16,
+     "name": "_compute_existing_text"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_id.access_token')"
+     ],
+     "lines": 3,
+     "name": "_compute_survey_start_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_render_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('emails')"
+     ],
+     "lines": 16,
+     "name": "_onchange_emails"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_ids')"
+     ],
+     "lines": 12,
+     "name": "_onchange_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('template_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_subject"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('template_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_attachment_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_prepare_answers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_get_done_partners_emails"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_answers_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_send_mail"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 30,
+     "name": "action_invite"
+    }
+   ],
+   "name": "survey.invite",
+   "transient": true
+  },
+  "survey.question": {
+   "abstract": false,
+   "description": "Survey Question",
+   "extension": false,
+   "fields": {
+    "allowed_triggering_question_ids": {
+     "comodel": "survey.question",
+     "compute": "_compute_allowed_triggering_question_ids",
+     "copy": false,
+     "string": "Allowed Triggering Questions",
+     "type": "Many2many"
+    },
+    "answer_date": {
+     "help": "Correct date answer for this question.",
+     "string": "Correct date answer",
+     "type": "Date"
+    },
+    "answer_datetime": {
+     "help": "Correct date and time answer for this question.",
+     "string": "Correct datetime answer",
+     "type": "Datetime"
+    },
+    "answer_numerical_box": {
+     "help": "Correct number answer for this question.",
+     "string": "Correct numerical answer",
+     "type": "Float"
+    },
+    "answer_score": {
+     "help": "Score value for a correct answer to this question.",
+     "string": "Score",
+     "type": "Float"
+    },
+    "background_image": {
+     "compute": "_compute_background_image",
+     "readonly": false,
+     "store": true,
+     "string": "Background Image",
+     "type": "Image"
+    },
+    "background_image_url": {
+     "compute": "_compute_background_image_url",
+     "string": "Background Url",
+     "type": "Char"
+    },
+    "comment_count_as_answer": {
+     "string": "Comment is an answer",
+     "type": "Boolean"
+    },
+    "comments_allowed": {
+     "string": "Show Comments Field",
+     "type": "Boolean"
+    },
+    "comments_message": {
+     "string": "Comment Message",
+     "translate": true,
+     "type": "Char"
+    },
+    "constr_error_msg": {
+     "string": "Error message",
+     "translate": true,
+     "type": "Char"
+    },
+    "constr_mandatory": {
+     "string": "Mandatory Answer",
+     "type": "Boolean"
+    },
+    "description": {
+     "help": "Use this field to add additional explanations about your question or to illustrate it with pictures or a video",
+     "string": "Description",
+     "translate": true,
+     "type": "Html"
+    },
+    "has_image_only_suggested_answer": {
+     "compute": "_compute_has_image_only_suggested_answer",
+     "string": "Has image only suggested answer",
+     "type": "Boolean"
+    },
+    "is_page": {
+     "string": "Is a page?",
+     "type": "Boolean"
+    },
+    "is_placed_before_trigger": {
+     "compute": "_compute_allowed_triggering_question_ids",
+     "help": "Is this question placed before any of its trigger questions?",
+     "string": "Is misplaced?",
+     "type": "Boolean"
+    },
+    "is_scored_question": {
+     "compute": "_compute_is_scored_question",
+     "copy": true,
+     "help": "Include this question as part of quiz scoring. Requires an answer and answer score to be taken into account.",
+     "readonly": false,
+     "store": true,
+     "string": "Scored",
+     "type": "Boolean"
+    },
+    "is_time_customized": {
+     "string": "Customized speed rewards",
+     "type": "Boolean"
+    },
+    "is_time_limited": {
+     "help": "Currently only supported for live sessions.",
+     "string": "The question is limited in time",
+     "type": "Boolean"
+    },
+    "matrix_row_ids": {
+     "comodel": "survey.question.answer",
+     "copy": true,
+     "help": "Labels used for proposed choices: rows of matrix",
+     "inverse_name": "matrix_question_id",
+     "string": "Matrix Rows",
+     "type": "One2many"
+    },
+    "matrix_subtype": {
+     "default": "simple",
+     "selection": [
+      [
+       "simple",
+       "One choice per row"
+      ],
+      [
+       "multiple",
+       "Multiple choices per row"
+      ]
+     ],
+     "string": "Matrix Type",
+     "type": "Selection"
+    },
+    "page_id": {
+     "comodel": "survey.question",
+     "compute": "_compute_page_id",
+     "store": true,
+     "string": "Page",
+     "type": "Many2one"
+    },
+    "question_ids": {
+     "comodel": "survey.question",
+     "compute": "_compute_question_ids",
+     "string": "Questions",
+     "type": "One2many"
+    },
+    "question_placeholder": {
+     "compute": "_compute_question_placeholder",
+     "readonly": false,
+     "store": true,
+     "string": "Placeholder",
+     "translate": true,
+     "type": "Char"
+    },
+    "question_type": {
+     "compute": "_compute_question_type",
+     "readonly": false,
+     "selection": [
+      [
+       "simple_choice",
+       "Multiple choice: only one answer"
+      ],
+      [
+       "multiple_choice",
+       "Multiple choice: multiple answers allowed"
+      ],
+      [
+       "text_box",
+       "Multiple Lines Text Box"
+      ],
+      [
+       "char_box",
+       "Single Line Text Box"
+      ],
+      [
+       "numerical_box",
+       "Numerical Value"
+      ],
+      [
+       "scale",
+       "Scale"
+      ],
+      [
+       "date",
+       "Date"
+      ],
+      [
+       "datetime",
+       "Datetime"
+      ],
+      [
+       "matrix",
+       "Matrix"
+      ]
+     ],
+     "store": true,
+     "string": "Question Type",
+     "type": "Selection"
+    },
+    "questions_selection": {
+     "help": "If randomized is selected, add the number of random questions next to the section.",
+     "readonly": true,
+     "related": "survey_id.questions_selection",
+     "type": "Selection"
+    },
+    "random_questions_count": {
+     "default": 1,
+     "help": "Used on randomized sections to take X random questions from all the questions of that section.",
+     "string": "# Questions Randomly Picked",
+     "type": "Integer"
+    },
+    "save_as_email": {
+     "compute": "_compute_save_as_email",
+     "copy": true,
+     "help": "If checked, this option will save the user's answer as its email address.",
+     "readonly": false,
+     "store": true,
+     "string": "Save as user email",
+     "type": "Boolean"
+    },
+    "save_as_nickname": {
+     "compute": "_compute_save_as_nickname",
+     "copy": true,
+     "help": "If checked, this option will save the user's answer as its nickname.",
+     "readonly": false,
+     "store": true,
+     "string": "Save as user nickname",
+     "type": "Boolean"
+    },
+    "scale_max": {
+     "default": 10,
+     "string": "Scale Maximum Value",
+     "type": "Integer"
+    },
+    "scale_max_label": {
+     "string": "Scale Maximum Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "scale_mid_label": {
+     "string": "Scale Middle Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "scale_min": {
+     "default": 0,
+     "string": "Scale Minimum Value",
+     "type": "Integer"
+    },
+    "scale_min_label": {
+     "string": "Scale Minimum Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "scoring_type": {
+     "readonly": true,
+     "related": "survey_id.scoring_type",
+     "string": "Scoring Type",
+     "type": "Selection"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "session_available": {
+     "readonly": true,
+     "related": "survey_id.session_available",
+     "string": "Live Session available",
+     "type": "Boolean"
+    },
+    "suggested_answer_ids": {
+     "comodel": "survey.question.answer",
+     "copy": true,
+     "help": "Labels used for proposed choices: simple choice, multiple choice and columns of matrix",
+     "inverse_name": "question_id",
+     "string": "Types of answers",
+     "type": "One2many"
+    },
+    "survey_id": {
+     "comodel": "survey.survey",
+     "ondelete": "cascade",
+     "string": "Survey",
+     "type": "Many2one"
+    },
+    "survey_session_speed_rating": {
+     "related": "survey_id.session_speed_rating",
+     "type": "Boolean"
+    },
+    "survey_session_speed_rating_time_limit": {
+     "related": "survey_id.session_speed_rating_time_limit",
+     "string": "General Time limit (seconds)",
+     "type": "Integer"
+    },
+    "time_limit": {
+     "string": "Time limit (seconds)",
+     "type": "Integer"
+    },
+    "title": {
+     "required": true,
+     "string": "Title",
+     "translate": true,
+     "type": "Char"
+    },
+    "triggering_answer_ids": {
+     "comodel": "survey.question.answer",
+     "copy": false,
+     "domain": "[\n            ('question_id.survey_id', '=', survey_id),\n            '&', ('question_id.question_type', 'in', ['simple_choice', 'multiple_choice']),\n                 '|',\n                     ('question_id.sequence', '<', sequence),\n                     '&', ('question_id.sequence', '=', sequence), ('question_id.id', '<', id)\n        ]",
+     "help": "Picking any of these answers will trigger this question.\nLeave the field empty if the question should always be displayed.",
+     "readonly": false,
+     "store": true,
+     "string": "Triggering Answers",
+     "type": "Many2many"
+    },
+    "triggering_question_ids": {
+     "comodel": "survey.question",
+     "compute": "_compute_triggering_question_ids",
+     "help": "Questions containing the triggering answer(s) to display the current question.",
+     "store": false,
+     "string": "Triggering Questions",
+     "type": "Many2many"
+    },
+    "user_input_line_ids": {
+     "comodel": "survey.user_input.line",
+     "domain": [
+      [
+       "skipped",
+       "=",
+       false
+      ]
+     ],
+     "groups": "survey.group_survey_user",
+     "inverse_name": "question_id",
+     "string": "Answers",
+     "type": "One2many"
+    },
+    "validation_email": {
+     "string": "Input must be an email",
+     "type": "Boolean"
+    },
+    "validation_error_msg": {
+     "string": "Validation Error",
+     "translate": true,
+     "type": "Char"
+    },
+    "validation_length_max": {
+     "default": 0,
+     "string": "Maximum Text Length",
+     "type": "Integer"
+    },
+    "validation_length_min": {
+     "default": 0,
+     "string": "Minimum Text Length",
+     "type": "Integer"
+    },
+    "validation_max_date": {
+     "string": "Maximum Date",
+     "type": "Date"
+    },
+    "validation_max_datetime": {
+     "string": "Maximum Datetime",
+     "type": "Datetime"
+    },
+    "validation_max_float_value": {
+     "default": 0.0,
+     "string": "Maximum value",
+     "type": "Float"
+    },
+    "validation_min_date": {
+     "string": "Minimum Date",
+     "type": "Date"
+    },
+    "validation_min_datetime": {
+     "string": "Minimum Datetime",
+     "type": "Datetime"
+    },
+    "validation_min_float_value": {
+     "default": 0.0,
+     "string": "Minimum value",
+     "type": "Float"
+    },
+    "validation_required": {
+     "compute": "_compute_validation_required",
+     "readonly": false,
+     "store": true,
+     "string": "Validate entry",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('is_page')"
+     ],
+     "lines": 4,
+     "name": "_check_question_type_for_pages"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('suggested_answer_ids', 'suggested_answer_ids.value')"
+     ],
+     "lines": 5,
+     "name": "_compute_has_image_only_suggested_answer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_type')"
+     ],
+     "lines": 5,
+     "name": "_compute_question_placeholder"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_page')"
+     ],
+     "lines": 4,
+     "name": "_compute_background_image"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_id.access_token', 'background_image', 'page_id', 'survey_id.background_image_url')"
+     ],
+     "lines": 20,
+     "name": "_compute_background_image_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_page')"
+     ],
+     "lines": 4,
+     "name": "_compute_question_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_id.question_and_page_ids.is_page', 'survey_id.question_and_page_ids.sequence')"
+     ],
+     "lines": 7,
+     "name": "_compute_question_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_id.question_and_page_ids.is_page', 'survey_id.question_and_page_ids.sequence')"
+     ],
+     "lines": 13,
+     "name": "_compute_page_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_type', 'validation_email')"
+     ],
+     "lines": 4,
+     "name": "_compute_save_as_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_save_as_nickname"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_validation_required"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_id', 'survey_id.question_ids', 'triggering_answer_ids')"
+     ],
+     "lines": 38,
+     "name": "_compute_allowed_triggering_question_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('triggering_answer_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_triggering_question_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_type', 'scoring_type', 'answer_date', 'answer_datetime', 'answer_numerical_box', 'suggested_answer_ids.is_correct')"
+     ],
+     "lines": 22,
+     "name": "_compute_is_scored_question"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('question_type', 'validation_required')"
+     ],
+     "lines": 12,
+     "name": "_onchange_validation_parameters"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 7,
+     "name": "_unlink_except_live_sessions_in_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "validate_question"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_validate_char_box"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_validate_numerical_box"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_validate_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_validate_choice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_validate_matrix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_validate_scale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_index"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_update_time_limit_from_survey"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_prepare_statistics"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_stats_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_get_stats_data_answers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_get_stats_graph_data_matrix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_stats_data_scale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_stats_summary_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_stats_summary_data_choice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_stats_summary_data_numerical"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_stats_summary_data_scored"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_get_correct_answers"
+    }
+   ],
+   "name": "survey.question",
+   "order": "sequence,id",
+   "rec_name": "title",
+   "sql_constraints": [
+    [
+     "positive_len_min",
+     "CHECK (validation_length_min >= 0)",
+     "A length must be positive!"
+    ],
+    [
+     "positive_len_max",
+     "CHECK (validation_length_max >= 0)",
+     "A length must be positive!"
+    ],
+    [
+     "validation_length",
+     "CHECK (validation_length_min <= validation_length_max)",
+     "Max length cannot be smaller than min length!"
+    ],
+    [
+     "validation_float",
+     "CHECK (validation_min_float_value <= validation_max_float_value)",
+     "Max value cannot be smaller than min value!"
+    ],
+    [
+     "validation_date",
+     "CHECK (validation_min_date <= validation_max_date)",
+     "Max date cannot be smaller than min date!"
+    ],
+    [
+     "validation_datetime",
+     "CHECK (validation_min_datetime <= validation_max_datetime)",
+     "Max datetime cannot be smaller than min datetime!"
+    ],
+    [
+     "positive_answer_score",
+     "CHECK (answer_score >= 0)",
+     "An answer score for a non-multiple choice question cannot be negative!"
+    ],
+    [
+     "scored_datetime_have_answers",
+     "CHECK (is_scored_question != True OR question_type != 'datetime' OR answer_datetime is not null)",
+     "All \"Is a scored question = True\" and \"Question Type: Datetime\" questions need an answer"
+    ],
+    [
+     "scored_date_have_answers",
+     "CHECK (is_scored_question != True OR question_type != 'date' OR answer_date is not null)",
+     "All \"Is a scored question = True\" and \"Question Type: Date\" questions need an answer"
+    ],
+    [
+     "scale",
+     "CHECK (question_type != 'scale' OR (scale_min >= 0 AND scale_max <= 10 AND scale_min < scale_max))",
+     "The scale must be a growing non-empty range between 0 and 10 (inclusive)"
+    ],
+    [
+     "is_time_limited_have_time_limit",
+     "CHECK (is_time_limited != TRUE OR time_limit IS NOT NULL AND time_limit > 0)",
+     "All time-limited questions need a positive time limit"
+    ]
+   ],
+   "transient": false
+  },
+  "survey.question.answer": {
+   "abstract": false,
+   "description": "Survey Label",
+   "extension": false,
+   "fields": {
+    "answer_score": {
+     "help": "A positive score indicates a correct choice; a negative or null score indicates a wrong answer",
+     "string": "Score",
+     "type": "Float"
+    },
+    "is_correct": {
+     "string": "Correct",
+     "type": "Boolean"
+    },
+    "matrix_question_id": {
+     "comodel": "survey.question",
+     "index": "btree_not_null",
+     "ondelete": "cascade",
+     "string": "Question (as matrix row)",
+     "type": "Many2one"
+    },
+    "question_id": {
+     "comodel": "survey.question",
+     "index": "btree_not_null",
+     "ondelete": "cascade",
+     "string": "Question",
+     "type": "Many2one"
+    },
+    "question_type": {
+     "related": "question_id.question_type",
+     "type": "Selection"
+    },
+    "scoring_type": {
+     "related": "question_id.scoring_type",
+     "type": "Selection"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Label Sequence order",
+     "type": "Integer"
+    },
+    "value": {
+     "string": "Suggested value",
+     "translate": true,
+     "type": "Char"
+    },
+    "value_image": {
+     "string": "Image",
+     "type": "Image"
+    },
+    "value_image_filename": {
+     "string": "Image Filename",
+     "type": "Char"
+    },
+    "value_label": {
+     "compute": "_compute_value_label",
+     "help": "Answer label as either the value itself if not empty or a letter representing the index of the answer otherwise.",
+     "string": "Value Label",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('value_label', 'question_id.question_type', 'question_id.title', 'matrix_question_id')"
+     ],
+     "lines": 22,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_id.suggested_answer_ids', 'sequence', 'value')"
+     ],
+     "lines": 9,
+     "name": "_compute_value_label"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('question_id', 'matrix_question_id')"
+     ],
+     "lines": 5,
+     "name": "_check_question_not_empty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_answer_matching_domain"
+    }
+   ],
+   "name": "survey.question.answer",
+   "order": "question_id, sequence, id",
+   "rec_name": "value",
+   "sel_methods": {
+    "_get_answer_matching_domain": []
+   },
+   "sql_constraints": [
+    [
+     "value_not_empty",
+     "CHECK (value IS NOT NULL OR value_image_filename IS NOT NULL)",
+     "Suggested answer value must not be empty (a text and/or an image must be provided)."
+    ]
+   ],
+   "transient": false
+  },
+  "survey.survey": {
+   "abstract": false,
+   "description": "Survey",
+   "extension": true,
+   "fields": {
+    "access_mode": {
+     "default": "public",
+     "required": true,
+     "selection": [
+      [
+       "public",
+       "Anyone with the link"
+      ],
+      [
+       "token",
+       "Invited people only"
+      ]
+     ],
+     "string": "Access Mode",
+     "type": "Selection"
+    },
+    "access_token": {
+     "copy": false,
+     "default": {
+      "$lambda": "self._get_default_access_token()"
+     },
+     "string": "Access Token",
+     "type": "Char"
+    },
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "allowed_survey_types": {
+     "compute": "_compute_allowed_survey_types",
+     "string": "Allowed survey types",
+     "type": "Json"
+    },
+    "answer_count": {
+     "compute": "_compute_survey_statistic",
+     "string": "Registered",
+     "type": "Integer"
+    },
+    "answer_done_count": {
+     "compute": "_compute_survey_statistic",
+     "string": "Attempts",
+     "type": "Integer"
+    },
+    "answer_duration_avg": {
+     "compute": "_compute_answer_duration_avg",
+     "help": "Average duration of the survey (in hours)",
+     "string": "Average Duration",
+     "type": "Float"
+    },
+    "answer_score_avg": {
+     "compute": "_compute_survey_statistic",
+     "string": "Avg Score (%)",
+     "type": "Float"
+    },
+    "attempts_limit": {
+     "default": 1,
+     "string": "Number of attempts",
+     "type": "Integer"
+    },
+    "background_image": {
+     "string": "Background Image",
+     "type": "Image"
+    },
+    "background_image_url": {
+     "compute": "_compute_background_image_url",
+     "string": "Background Url",
+     "type": "Char"
+    },
+    "certification": {
+     "compute": "_compute_certification",
+     "readonly": false,
+     "store": true,
+     "string": "Is a Certification",
+     "type": "Boolean"
+    },
+    "certification_badge_id": {
+     "comodel": "gamification.badge",
+     "copy": false,
+     "string": "Certification Badge",
+     "type": "Many2one"
+    },
+    "certification_badge_id_dummy": {
+     "related": "certification_badge_id",
+     "string": "Certification Badge ",
+     "type": "Many2one"
+    },
+    "certification_give_badge": {
+     "compute": "_compute_certification_give_badge",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Give Badge",
+     "type": "Boolean"
+    },
+    "certification_mail_template_id": {
+     "comodel": "mail.template",
+     "domain": "[('model', '=', 'survey.user_input')]",
+     "help": "Automated email sent to the user when they succeed the certification, containing their certification document.",
+     "string": "Certified Email Template",
+     "type": "Many2one"
+    },
+    "certification_report_layout": {
+     "default": "modern_purple",
+     "selection": [
+      [
+       "modern_purple",
+       "Modern Purple"
+      ],
+      [
+       "modern_blue",
+       "Modern Blue"
+      ],
+      [
+       "modern_gold",
+       "Modern Gold"
+      ],
+      [
+       "classic_purple",
+       "Classic Purple"
+      ],
+      [
+       "classic_blue",
+       "Classic Blue"
+      ],
+      [
+       "classic_gold",
+       "Classic Gold"
+      ]
+     ],
+     "string": "Certification template",
+     "type": "Selection"
+    },
+    "color": {
+     "default": 0,
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "description": {
+     "help": "The description will be displayed on the home page of the survey. You can use this to give the purpose and guidelines to your candidates before they start it.",
+     "string": "Description",
+     "translate": true,
+     "type": "Html"
+    },
+    "description_done": {
+     "help": "This message will be displayed when survey is completed",
+     "string": "End Message",
+     "translate": true,
+     "type": "Html"
+    },
+    "has_conditional_questions": {
+     "compute": "_compute_has_conditional_questions",
+     "string": "Contains conditional questions",
+     "type": "Boolean"
+    },
+    "is_attempts_limited": {
+     "compute": "_compute_is_attempts_limited",
+     "help": "Check this option if you want to limit the number of attempts per user",
+     "readonly": false,
+     "store": true,
+     "string": "Limited number of attempts",
+     "type": "Boolean"
+    },
+    "is_time_limited": {
+     "string": "The survey is limited in time",
+     "type": "Boolean"
+    },
+    "page_ids": {
+     "comodel": "survey.question",
+     "compute": "_compute_page_and_question_ids",
+     "string": "Pages",
+     "type": "One2many"
+    },
+    "progression_mode": {
+     "default": "percent",
+     "help": "If Number is selected, it will display the number of questions answered on the total number of question to answer.",
+     "selection": [
+      [
+       "percent",
+       "Percentage left"
+      ],
+      [
+       "number",
+       "Number"
+      ]
+     ],
+     "string": "Display Progress as",
+     "type": "Selection"
+    },
+    "question_and_page_ids": {
+     "comodel": "survey.question",
+     "copy": true,
+     "inverse_name": "survey_id",
+     "string": "Sections and Questions",
+     "type": "One2many"
+    },
+    "question_count": {
+     "compute": "_compute_page_and_question_ids",
+     "string": "# Questions",
+     "type": "Integer"
+    },
+    "question_ids": {
+     "comodel": "survey.question",
+     "compute": "_compute_page_and_question_ids",
+     "string": "Questions",
+     "type": "One2many"
+    },
+    "questions_layout": {
+     "default": "page_per_question",
+     "required": true,
+     "selection": [
+      [
+       "page_per_question",
+       "One page per question"
+      ],
+      [
+       "page_per_section",
+       "One page per section"
+      ],
+      [
+       "one_page",
+       "One page with all the questions"
+      ]
+     ],
+     "string": "Pagination",
+     "type": "Selection"
+    },
+    "questions_selection": {
+     "default": "all",
+     "help": "If randomized is selected, you can configure the number of random questions by section. This mode is ignored in live session.",
+     "required": true,
+     "selection": [
+      [
+       "all",
+       "All questions"
+      ],
+      [
+       "random",
+       "Randomized per Section"
+      ]
+     ],
+     "string": "Question Selection",
+     "type": "Selection"
+    },
+    "restrict_user_ids": {
+     "comodel": "res.users",
+     "domain": [
+      [
+       "share",
+       "=",
+       false
+      ]
+     ],
+     "string": "Restricted to",
+     "tracking": 2,
+     "type": "Many2many"
+    },
+    "scoring_max_obtainable": {
+     "compute": "_compute_scoring_max_obtainable",
+     "string": "Maximum obtainable score",
+     "type": "Float"
+    },
+    "scoring_success_min": {
+     "default": 80.0,
+     "string": "Required Score (%)",
+     "type": "Float"
+    },
+    "scoring_type": {
+     "compute": "_compute_scoring_type",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "no_scoring",
+       "No scoring"
+      ],
+      [
+       "scoring_with_answers_after_page",
+       "Scoring with answers after each page"
+      ],
+      [
+       "scoring_with_answers",
+       "Scoring with answers at the end"
+      ],
+      [
+       "scoring_without_answers",
+       "Scoring without answers"
+      ]
+     ],
+     "store": true,
+     "string": "Scoring",
+     "type": "Selection"
+    },
+    "session_answer_count": {
+     "compute": "_compute_session_answer_count",
+     "string": "Answers Count",
+     "type": "Integer"
+    },
+    "session_available": {
+     "compute": "_compute_session_available",
+     "string": "Live session available",
+     "type": "Boolean"
+    },
+    "session_code": {
+     "compute": "_compute_session_code",
+     "copy": false,
+     "help": "This code will be used by your attendees to reach your session. Feel free to customize it however you like!",
+     "readonly": false,
+     "store": true,
+     "string": "Session Code",
+     "type": "Char"
+    },
+    "session_link": {
+     "compute": "_compute_session_link",
+     "string": "Session Link",
+     "type": "Char"
+    },
+    "session_question_answer_count": {
+     "compute": "_compute_session_question_answer_count",
+     "string": "Question Answers Count",
+     "type": "Integer"
+    },
+    "session_question_id": {
+     "comodel": "survey.question",
+     "copy": false,
+     "help": "The current question of the survey session.",
+     "string": "Current Question",
+     "type": "Many2one"
+    },
+    "session_question_start_time": {
+     "copy": false,
+     "help": "The time at which the current question has started, used to handle the timer for attendees.",
+     "string": "Current Question Start Time",
+     "type": "Datetime"
+    },
+    "session_show_leaderboard": {
+     "compute": "_compute_session_show_leaderboard",
+     "help": "Whether or not we want to show the attendees leaderboard for this survey.",
+     "string": "Show Session Leaderboard",
+     "type": "Boolean"
+    },
+    "session_speed_rating": {
+     "help": "Attendees get more points if they answer quickly",
+     "string": "Reward quick answers",
+     "type": "Boolean"
+    },
+    "session_speed_rating_time_limit": {
+     "help": "Default time given to receive additional points for right answers",
+     "string": "Time limit (seconds)",
+     "type": "Integer"
+    },
+    "session_start_time": {
+     "copy": false,
+     "string": "Current Session Start Time",
+     "type": "Datetime"
+    },
+    "session_state": {
+     "copy": false,
+     "selection": [
+      [
+       "ready",
+       "Ready"
+      ],
+      [
+       "in_progress",
+       "In Progress"
+      ]
+     ],
+     "string": "Session State",
+     "type": "Selection"
+    },
+    "success_count": {
+     "compute": "_compute_survey_statistic",
+     "string": "Success",
+     "type": "Integer"
+    },
+    "success_ratio": {
+     "compute": "_compute_survey_statistic",
+     "string": "Success Ratio (%)",
+     "type": "Integer"
+    },
+    "survey_type": {
+     "default": "custom",
+     "required": true,
+     "selection": [
+      [
+       "survey",
+       "Survey"
+      ],
+      [
+       "live_session",
+       "Live session"
+      ],
+      [
+       "assessment",
+       "Assessment"
+      ],
+      [
+       "custom",
+       "Custom"
+      ]
+     ],
+     "string": "Survey Type",
+     "type": "Selection"
+    },
+    "time_limit": {
+     "default": 10,
+     "string": "Time limit (minutes)",
+     "type": "Float"
+    },
+    "title": {
+     "required": true,
+     "string": "Survey Title",
+     "translate": true,
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "domain": [
+      [
+       "share",
+       "=",
+       false
+      ]
+     ],
+     "string": "Responsible",
+     "tracking": 1,
+     "type": "Many2one"
+    },
+    "user_input_ids": {
+     "comodel": "survey.user_input",
+     "inverse_name": "survey_id",
+     "readonly": true,
+     "string": "User responses",
+     "type": "One2many"
+    },
+    "users_can_go_back": {
+     "help": "If checked, users can go back to previous pages.",
+     "string": "Users can go back",
+     "type": "Boolean"
+    },
+    "users_can_signup": {
+     "compute": "_compute_users_can_signup",
+     "string": "Users can signup",
+     "type": "Boolean"
+    },
+    "users_login_required": {
+     "help": "If checked, users have to login before answering even with a valid token.",
+     "string": "Require Login",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_default_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('background_image', 'access_token')"
+     ],
+     "lines": 4,
+     "name": "_compute_background_image_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_and_page_ids', 'question_and_page_ids.suggested_answer_ids', 'question_and_page_ids.suggested_answer_ids.answer_score')"
+     ],
+     "lines": 7,
+     "name": "_compute_scoring_max_obtainable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_users_can_signup"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_input_ids.state', 'user_input_ids.test_entry', 'user_input_ids.scoring_percentage', 'user_input_ids.scoring_success')"
+     ],
+     "lines": 25,
+     "name": "_compute_survey_statistic"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_input_ids.survey_id', 'user_input_ids.start_datetime', 'user_input_ids.end_datetime')"
+     ],
+     "lines": 18,
+     "name": "_compute_answer_duration_avg"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_and_page_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_page_and_question_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_and_page_ids.triggering_answer_ids', 'users_login_required', 'access_mode')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_attempts_limited"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('session_start_time', 'user_input_ids')"
+     ],
+     "lines": 14,
+     "name": "_compute_session_answer_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('session_question_id', 'session_start_time', 'user_input_ids.user_input_line_ids')"
+     ],
+     "lines": 13,
+     "name": "_compute_session_question_answer_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('access_token')"
+     ],
+     "lines": 8,
+     "name": "_compute_session_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('session_code')"
+     ],
+     "lines": 10,
+     "name": "_compute_session_link"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('scoring_type', 'question_and_page_ids.save_as_nickname')"
+     ],
+     "lines": 4,
+     "name": "_compute_session_show_leaderboard"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('question_and_page_ids.triggering_answer_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_has_conditional_questions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('scoring_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_certification"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('users_login_required', 'certification')"
+     ],
+     "lines": 6,
+     "name": "_compute_certification_give_badge"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('certification')"
+     ],
+     "lines": 6,
+     "name": "_compute_scoring_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_type', 'certification')"
+     ],
+     "lines": 3,
+     "name": "_compute_session_available"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 7,
+     "name": "_compute_allowed_survey_types"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('survey_type')"
+     ],
+     "lines": 23,
+     "name": "_onchange_survey_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('session_speed_rating', 'session_speed_rating_time_limit')"
+     ],
+     "lines": 5,
+     "name": "_onchange_session_speed_rating"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('restrict_user_ids', 'user_id')"
+     ],
+     "lines": 11,
+     "name": "_onchange_restrict_user_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('scoring_type', 'users_can_go_back')"
+     ],
+     "lines": 7,
+     "name": "_check_scoring_after_page_availability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('user_id', 'restrict_user_ids')"
+     ],
+     "lines": 14,
+     "name": "_check_survey_responsible_access"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "_create_answer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_check_answer_creation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_prepare_user_input_predefined_questions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_can_go_back"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_has_attempts_left"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_number_of_attempts_lefts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_get_pages_or_questions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_pages_and_questions_to_show"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 66,
+     "name": "_get_next_page_or_question"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_is_first_page_or_question"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_is_last_page_or_question"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_get_survey_questions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_conditional_maps"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_session_open"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_session_next_question"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_get_session_most_voted_answers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_prepare_leaderboard_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "check_validity"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_send_survey"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_start_survey"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_print_survey"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_result_survey"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_test_survey"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_survey_user_input_completed"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_survey_user_input_certified"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_survey_user_input"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_survey_preview_certification_template"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_start_session"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_session_manager"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_end_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_start_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "get_start_short_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_print_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_prepare_statistics"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_prepare_challenge_category"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_create_certification_badge_trigger"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_handle_certification_badges"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_generate_session_codes"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 61,
+     "name": "action_load_sample_survey"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 92,
+     "name": "action_load_sample_assessment"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 73,
+     "name": "action_load_sample_live_session"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "action_load_sample_custom"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_show_sample"
+    }
+   ],
+   "name": "survey.survey",
+   "order": "create_date DESC",
+   "rec_name": "title",
+   "sql_constraints": [
+    [
+     "access_token_unique",
+     "unique(access_token)",
+     "Access token should be unique"
+    ],
+    [
+     "session_code_unique",
+     "unique(session_code)",
+     "Session code should be unique"
+    ],
+    [
+     "certification_check",
+     "CHECK( scoring_type!='no_scoring' OR certification=False )",
+     "You can only create certifications for surveys that have a scoring mechanism."
+    ],
+    [
+     "scoring_success_min_check",
+     "CHECK( scoring_success_min IS NULL OR (scoring_success_min>=0 AND scoring_success_min<=100) )",
+     "The percentage of success has to be defined between 0 and 100."
+    ],
+    [
+     "time_limit_check",
+     "CHECK( (is_time_limited=False) OR (time_limit is not null AND time_limit > 0) )",
+     "The time limit needs to be a positive number if the survey is time limited."
+    ],
+    [
+     "attempts_limit_check",
+     "CHECK( (is_attempts_limited=False) OR (attempts_limit is not null AND attempts_limit > 0) )",
+     "The attempts limit needs to be a positive number if the survey has a limited number of attempts."
+    ],
+    [
+     "badge_uniq",
+     "unique (certification_badge_id)",
+     "The badge for each survey should be unique!"
+    ],
+    [
+     "session_speed_rating_has_time_limit",
+     "CHECK (session_speed_rating != TRUE OR session_speed_rating_time_limit IS NOT NULL AND session_speed_rating_time_limit > 0)",
+     "A positive default time limit is required when the session rewards quick answers."
+    ]
+   ],
+   "transient": false
+  },
+  "survey.user_input": {
+   "abstract": false,
+   "description": "Survey User Input",
+   "extension": false,
+   "fields": {
+    "access_token": {
+     "copy": false,
+     "default": {
+      "$lambda": "str(uuid.uuid4())"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Identification token",
+     "type": "Char"
+    },
+    "attempts_count": {
+     "compute": "_compute_attempts_info",
+     "string": "Attempts Count",
+     "type": "Integer"
+    },
+    "attempts_limit": {
+     "related": "survey_id.attempts_limit",
+     "string": "Number of attempts",
+     "type": "Integer"
+    },
+    "attempts_number": {
+     "compute": "_compute_attempts_info",
+     "string": "Attempt n\u00b0",
+     "type": "Integer"
+    },
+    "deadline": {
+     "help": "Datetime until customer can open the survey and submit answers",
+     "string": "Deadline",
+     "type": "Datetime"
+    },
+    "email": {
+     "readonly": true,
+     "string": "Email",
+     "type": "Char"
+    },
+    "end_datetime": {
+     "readonly": true,
+     "string": "End date and time",
+     "type": "Datetime"
+    },
+    "invite_token": {
+     "copy": false,
+     "readonly": true,
+     "string": "Invite token",
+     "type": "Char"
+    },
+    "is_attempts_limited": {
+     "related": "survey_id.is_attempts_limited",
+     "string": "Limited number of attempts",
+     "type": "Boolean"
+    },
+    "is_session_answer": {
+     "help": "Is that user input part of a survey session or not.",
+     "string": "Is in a Session",
+     "type": "Boolean"
+    },
+    "last_displayed_page_id": {
+     "comodel": "survey.question",
+     "string": "Last displayed question/page",
+     "type": "Many2one"
+    },
+    "nickname": {
+     "help": "Attendee nickname, mainly used to identify them in the survey session leaderboard.",
+     "string": "Nickname",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Contact",
+     "type": "Many2one"
+    },
+    "predefined_question_ids": {
+     "comodel": "survey.question",
+     "readonly": true,
+     "string": "Predefined Questions",
+     "type": "Many2many"
+    },
+    "question_time_limit_reached": {
+     "compute": "_compute_question_time_limit_reached",
+     "string": "Question Time Limit Reached",
+     "type": "Boolean"
+    },
+    "scoring_percentage": {
+     "compute": "_compute_scoring_values",
+     "store": true,
+     "string": "Score (%)",
+     "type": "Float"
+    },
+    "scoring_success": {
+     "compute": "_compute_scoring_success",
+     "store": true,
+     "string": "Quizz Passed",
+     "type": "Boolean"
+    },
+    "scoring_total": {
+     "compute": "_compute_scoring_values",
+     "digits": [
+      10,
+      2
+     ],
+     "store": true,
+     "string": "Total Score",
+     "type": "Float"
+    },
+    "scoring_type": {
+     "related": "survey_id.scoring_type",
+     "string": "Scoring",
+     "type": "Selection"
+    },
+    "start_datetime": {
+     "readonly": true,
+     "string": "Start date and time",
+     "type": "Datetime"
+    },
+    "state": {
+     "default": "new",
+     "readonly": true,
+     "selection": [
+      [
+       "new",
+       "New"
+      ],
+      [
+       "in_progress",
+       "In Progress"
+      ],
+      [
+       "done",
+       "Completed"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "survey_first_submitted": {
+     "string": "Survey First Submitted",
+     "type": "Boolean"
+    },
+    "survey_id": {
+     "comodel": "survey.survey",
+     "index": true,
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "string": "Survey",
+     "type": "Many2one"
+    },
+    "survey_time_limit_reached": {
+     "compute": "_compute_survey_time_limit_reached",
+     "string": "Survey Time Limit Reached",
+     "type": "Boolean"
+    },
+    "test_entry": {
+     "readonly": true,
+     "type": "Boolean"
+    },
+    "user_input_line_ids": {
+     "comodel": "survey.user_input.line",
+     "copy": true,
+     "inverse_name": "user_input_id",
+     "string": "Answers",
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_input_line_ids.answer_score', 'user_input_line_ids.question_id', 'predefined_question_ids.answer_score')"
+     ],
+     "lines": 20,
+     "name": "_compute_scoring_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('scoring_percentage', 'survey_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_scoring_success"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('start_datetime', 'survey_id.is_time_limited', 'survey_id.time_limit')"
+     ],
+     "lines": 10,
+     "name": "_compute_survey_time_limit_reached"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_id.session_question_id.time_limit', 'survey_id.session_question_id.is_time_limited', 'survey_id.session_question_start_time')"
+     ],
+     "lines": 11,
+     "name": "_compute_question_time_limit_reached"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'test_entry', 'survey_id.is_attempts_limited', 'partner_id', 'email', 'invite_token')"
+     ],
+     "lines": 41,
+     "name": "_compute_attempts_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_resend"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_print_answers"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_redirect_to_attempts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_generate_invite_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_mark_in_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_mark_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "get_start_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "get_print_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_save_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_save_line_simple_answer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_save_line_choice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_save_line_matrix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_line_answer_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_line_comment_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 101,
+     "name": "_prepare_statistics"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_multiple_choice_question_answer_result"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_simple_choice_question_answer_result"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_simple_question_answer_result"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_get_conditional_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_selected_suggested_answers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_clear_inactive_conditional_answers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_inactive_conditional_questions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_print_questions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_next_skipped_page_or_question"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_skipped_questions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_is_last_skipped_page_or_question"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_message_get_suggested_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_notify_new_participation_subscribers"
+    }
+   ],
+   "name": "survey.user_input",
+   "order": "create_date desc",
+   "rec_name": "survey_id",
+   "sql_constraints": [
+    [
+     "unique_token",
+     "UNIQUE (access_token)",
+     "An access token must be unique!"
+    ]
+   ],
+   "transient": false
+  },
+  "survey.user_input.line": {
+   "abstract": false,
+   "description": "Survey User Input Line",
+   "extension": false,
+   "fields": {
+    "answer_is_correct": {
+     "string": "Correct",
+     "type": "Boolean"
+    },
+    "answer_score": {
+     "string": "Score",
+     "type": "Float"
+    },
+    "answer_type": {
+     "selection": [
+      [
+       "text_box",
+       "Free Text"
+      ],
+      [
+       "char_box",
+       "Text"
+      ],
+      [
+       "numerical_box",
+       "Number"
+      ],
+      [
+       "scale",
+       "Number"
+      ],
+      [
+       "date",
+       "Date"
+      ],
+      [
+       "datetime",
+       "Datetime"
+      ],
+      [
+       "suggestion",
+       "Suggestion"
+      ]
+     ],
+     "string": "Answer Type",
+     "type": "Selection"
+    },
+    "matrix_row_id": {
+     "comodel": "survey.question.answer",
+     "string": "Row answer",
+     "type": "Many2one"
+    },
+    "page_id": {
+     "readonly": false,
+     "related": "question_id.page_id",
+     "string": "Section",
+     "type": "Many2one"
+    },
+    "question_id": {
+     "comodel": "survey.question",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Question",
+     "type": "Many2one"
+    },
+    "question_sequence": {
+     "related": "question_id.sequence",
+     "store": true,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "skipped": {
+     "string": "Skipped",
+     "type": "Boolean"
+    },
+    "suggested_answer_id": {
+     "comodel": "survey.question.answer",
+     "string": "Suggested answer",
+     "type": "Many2one"
+    },
+    "survey_id": {
+     "readonly": false,
+     "related": "user_input_id.survey_id",
+     "store": true,
+     "string": "Survey",
+     "type": "Many2one"
+    },
+    "user_input_id": {
+     "comodel": "survey.user_input",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "User Input",
+     "type": "Many2one"
+    },
+    "value_char_box": {
+     "string": "Text answer",
+     "type": "Char"
+    },
+    "value_date": {
+     "string": "Date answer",
+     "type": "Date"
+    },
+    "value_datetime": {
+     "string": "Datetime answer",
+     "type": "Datetime"
+    },
+    "value_numerical_box": {
+     "string": "Numerical answer",
+     "type": "Float"
+    },
+    "value_scale": {
+     "string": "Scale value",
+     "type": "Integer"
+    },
+    "value_text_box": {
+     "string": "Free Text answer",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('answer_type', 'value_text_box', 'value_numerical_box', 'value_char_box', 'value_date', 'value_datetime', 'suggested_answer_id.value', 'matrix_row_id.value')"
+     ],
+     "lines": 22,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('skipped', 'answer_type')"
+     ],
+     "lines": 20,
+     "name": "_check_answer_type_skipped"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_answer_matching_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 74,
+     "name": "_get_answer_score_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_answer_value"
+    }
+   ],
+   "name": "survey.user_input.line",
+   "order": "question_sequence, id",
+   "rec_name": "user_input_id",
+   "transient": false
+  }
+ },
+ "module": "survey",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/survey",
+ "stats": {
+  "fields": 188,
+  "methods": 179,
+  "models": 10,
+  "py_lines": 4888
+ },
+ "summary": "Send your surveys or share them live.",
+ "title": "Surveys",
+ "version": "3.7"
+}

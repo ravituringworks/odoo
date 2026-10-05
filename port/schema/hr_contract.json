@@ -1,0 +1,1155 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Contracts",
+ "data_files": [
+  "security/security.xml",
+  "security/ir.model.access.csv",
+  "data/hr_contract_data.xml",
+  "report/hr_contract_history_report_views.xml",
+  "views/hr_contract_views.xml",
+  "views/hr_employee_views.xml",
+  "views/resource_calendar_views.xml",
+  "views/res_config_settings_views.xml",
+  "wizard/hr_departure_wizard_views.xml",
+  "data/hr_contract_demo.xml"
+ ],
+ "depends": [
+  "hr"
+ ],
+ "models": {
+  "hr.contract": {
+   "abstract": false,
+   "description": "Contract",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "active_employee": {
+     "related": "employee_id.active",
+     "string": "Active Employee",
+     "type": "Boolean"
+    },
+    "calendar_mismatch": {
+     "compute": "_compute_calendar_mismatch",
+     "type": "Boolean"
+    },
+    "company_country_id": {
+     "comodel": "res.country",
+     "readonly": true,
+     "related": "company_id.country_id",
+     "string": "Company country",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_employee_contract",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "contract_type_id": {
+     "comodel": "hr.contract.type",
+     "string": "Contract Type",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "contract_wage": {
+     "compute": "_compute_contract_wage",
+     "string": "Contract Wage",
+     "type": "Monetary"
+    },
+    "contracts_count": {
+     "groups": "hr_contract.group_hr_contract_employee_manager",
+     "related": "employee_id.contracts_count",
+     "type": "Integer"
+    },
+    "country_code": {
+     "readonly": true,
+     "related": "company_country_id.code",
+     "type": "Char"
+    },
+    "currency_id": {
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date_end": {
+     "help": "End date of the contract (if it's a fixed-term contract).",
+     "string": "End Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "date_start": {
+     "default": {
+      "$ref": "fields.Date.today"
+     },
+     "index": true,
+     "required": true,
+     "string": "Start Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_employee_contract",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "index": true,
+     "string": "Employee",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "first_contract_date": {
+     "related": "employee_id.first_contract_date",
+     "type": "Date"
+    },
+    "hr_responsible_id": {
+     "comodel": "res.users",
+     "domain": {
+      "$ref": "_get_hr_responsible_domain"
+     },
+     "help": "Person responsible for validating the employee's contracts.",
+     "string": "HR Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "job_id": {
+     "comodel": "hr.job",
+     "compute": "_compute_employee_contract",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Job Position",
+     "type": "Many2one"
+    },
+    "kanban_state": {
+     "copy": false,
+     "default": "normal",
+     "selection": [
+      [
+       "normal",
+       "Ongoing"
+      ],
+      [
+       "done",
+       "Ready"
+      ],
+      [
+       "blocked",
+       "Warning"
+      ]
+     ],
+     "string": "Kanban State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Contract Reference",
+     "type": "Char"
+    },
+    "notes": {
+     "string": "Notes",
+     "type": "Html"
+    },
+    "permit_no": {
+     "readonly": false,
+     "related": "employee_id.permit_no",
+     "string": "Work Permit No",
+     "type": "Char"
+    },
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "compute": "_compute_employee_contract",
+     "copy": false,
+     "default": {
+      "$lambda": "self.env.company.resource_calendar_id.id"
+     },
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "index": true,
+     "readonly": false,
+     "store": true,
+     "string": "Working Schedule",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "state": {
+     "copy": false,
+     "default": "draft",
+     "help": "Status of the contract",
+     "selection": [
+      [
+       "draft",
+       "New"
+      ],
+      [
+       "open",
+       "Running"
+      ],
+      [
+       "close",
+       "Expired"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "structure_type_id": {
+     "comodel": "hr.payroll.structure.type",
+     "compute": "_compute_structure_type_id",
+     "readonly": false,
+     "store": true,
+     "string": "Salary Structure Type",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "trial_date_end": {
+     "help": "End date of the trial period (if there is one).",
+     "string": "End of Trial Period",
+     "type": "Date"
+    },
+    "visa_no": {
+     "readonly": false,
+     "related": "employee_id.visa_no",
+     "string": "Visa No",
+     "type": "Char"
+    },
+    "wage": {
+     "help": "Employee's monthly gross wage.",
+     "required": true,
+     "string": "Wage",
+     "tracking": true,
+     "type": "Monetary"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_hr_responsible_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id.resource_calendar_id', 'resource_calendar_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_calendar_mismatch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_salary_costs_factor"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_employee_contract"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 16,
+     "name": "_compute_structure_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('structure_type_id')"
+     ],
+     "lines": 8,
+     "name": "_onchange_structure_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('employee_id', 'state', 'kanban_state', 'date_start', 'date_end')"
+     ],
+     "lines": 29,
+     "name": "_check_current_contract"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_start', 'date_end')"
+     ],
+     "lines": 7,
+     "name": "_check_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 84,
+     "name": "update_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_safe_write_for_cron"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_employee_vals_to_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_assign_open_contract"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('wage')"
+     ],
+     "lines": 3,
+     "name": "_compute_contract_wage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_contract_wage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_contract_wage_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_fully_flexible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_struct_from_country"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_open_contract_form"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_open_contract_history"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_open_contract_list"
+    }
+   ],
+   "name": "hr.contract",
+   "sel_methods": {
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "hr.contract.history": {
+   "abstract": false,
+   "description": "Contract history",
+   "extension": false,
+   "fields": {
+    "active_employee": {
+     "readonly": true,
+     "string": "Active Employee",
+     "type": "Boolean"
+    },
+    "activity_state": {
+     "related": "contract_id.activity_state",
+     "type": "Selection"
+    },
+    "company_country_id": {
+     "comodel": "res.country",
+     "readonly": true,
+     "related": "company_id.country_id",
+     "string": "Company country",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "contract_count": {
+     "compute": "_compute_contract_count",
+     "string": "# Contracts",
+     "type": "Integer"
+    },
+    "contract_id": {
+     "comodel": "hr.contract",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "contract_ids": {
+     "comodel": "hr.contract",
+     "compute": "_compute_contract_ids",
+     "readonly": true,
+     "string": "Contracts",
+     "type": "One2many"
+    },
+    "contract_type_id": {
+     "comodel": "hr.contract.type",
+     "readonly": true,
+     "string": "Contract Type",
+     "type": "Many2one"
+    },
+    "country_code": {
+     "readonly": true,
+     "related": "company_country_id.code",
+     "type": "Char"
+    },
+    "currency_id": {
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date_end": {
+     "readonly": true,
+     "string": "End Date",
+     "type": "Date"
+    },
+    "date_hired": {
+     "readonly": true,
+     "string": "Hire Date",
+     "type": "Date"
+    },
+    "date_start": {
+     "readonly": true,
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "readonly": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "readonly": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "hr_responsible_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "HR Responsible",
+     "type": "Many2one"
+    },
+    "is_under_contract": {
+     "readonly": true,
+     "string": "Is Currently Under Contract",
+     "type": "Boolean"
+    },
+    "job_id": {
+     "comodel": "hr.job",
+     "readonly": true,
+     "string": "Job Position",
+     "type": "Many2one"
+    },
+    "name": {
+     "readonly": true,
+     "string": "Contract Name",
+     "type": "Char"
+    },
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "readonly": true,
+     "string": "Working Schedule",
+     "type": "Many2one"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "New"
+      ],
+      [
+       "open",
+       "Running"
+      ],
+      [
+       "close",
+       "Expired"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "structure_type_id": {
+     "comodel": "hr.payroll.structure.type",
+     "readonly": true,
+     "string": "Salary Structure Type",
+     "type": "Many2one"
+    },
+    "under_contract_state": {
+     "compute": "_compute_under_contract_state",
+     "selection": [
+      [
+       "done",
+       "Under Contract"
+      ],
+      [
+       "blocked",
+       "Not Under Contract"
+      ]
+     ],
+     "string": "Contractual Status",
+     "type": "Selection"
+    },
+    "wage": {
+     "help": "Employee's monthly gross wage.",
+     "readonly": true,
+     "string": "Wage",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('contract_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_contract_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_under_contract')"
+     ],
+     "lines": 3,
+     "name": "_compute_under_contract_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id.name')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_read_group_groupby"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id.contract_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_contract_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "hr_contract_view_form_new_action"
+    }
+   ],
+   "name": "hr.contract.history",
+   "order": "is_under_contract",
+   "transient": false
+  },
+  "hr.departure.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "set_date_end": {
+     "default": {
+      "$lambda": "self.env.user.has_group('hr_contract.group_hr_contract_manager')"
+     },
+     "help": "Set the end date on the current contract.",
+     "string": "Set Contract End Date",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_employee_departure_date"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_register_departure"
+    }
+   ],
+   "name": "hr.departure.wizard",
+   "sel_methods": {
+    "_get_employee_departure_date": []
+   },
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "calendar_mismatch": {
+     "groups": "base.group_system,hr.group_hr_user",
+     "related": "contract_id.calendar_mismatch",
+     "type": "Boolean"
+    },
+    "contract_id": {
+     "comodel": "hr.contract",
+     "copy": false,
+     "domain": "[('company_id', '=', company_id), ('employee_id', '=', id)]",
+     "groups": "hr.group_hr_user",
+     "help": "Current contract of the employee",
+     "string": "Current Contract",
+     "type": "Many2one"
+    },
+    "contract_ids": {
+     "comodel": "hr.contract",
+     "groups": "hr.group_hr_user",
+     "inverse_name": "employee_id",
+     "string": "Employee Contracts",
+     "type": "One2many"
+    },
+    "contract_warning": {
+     "compute": "_compute_contract_warning",
+     "groups": "hr.group_hr_user",
+     "store": true,
+     "string": "Contract Warning",
+     "type": "Boolean"
+    },
+    "contracts_count": {
+     "compute": "_compute_contracts_count",
+     "groups": "hr.group_hr_user",
+     "string": "Contract Count",
+     "type": "Integer"
+    },
+    "first_contract_date": {
+     "compute": "_compute_first_contract_date",
+     "groups": "hr.group_hr_user",
+     "store": true,
+     "type": "Date"
+    },
+    "legal_name": {
+     "compute": "_compute_legal_name",
+     "groups": "hr.group_hr_user",
+     "readonly": false,
+     "store": true,
+     "type": "Char"
+    },
+    "vehicle": {
+     "groups": "hr.group_hr_user",
+     "string": "Company Vehicle",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 4,
+     "name": "_compute_legal_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_first_contracts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_first_contract_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('contract_ids.state', 'contract_ids.date_start', 'contract_ids.active')"
+     ],
+     "lines": 3,
+     "name": "_compute_first_contract_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('contract_id', 'contract_id.state', 'contract_id.kanban_state')"
+     ],
+     "lines": 3,
+     "name": "_compute_contract_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_contracts_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_contracts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_incoming_contracts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_calendars"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_get_calendar_periods"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_all_contracts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_get_unusual_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_employee_attendance_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_expected_attendances"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_calendar_attendances"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "filter_valid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_open_contract"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 28,
+     "name": "action_open_contract"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.employee.base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_new_hire_field"
+    }
+   ],
+   "name": "hr.employee.base",
+   "transient": false
+  },
+  "hr.employee.public": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "first_contract_date": {
+     "compute": "_compute_manager_only_fields",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_manager_only_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_search_first_contract_date"
+    }
+   ],
+   "name": "hr.employee.public",
+   "sel_methods": {
+    "_search_first_contract_date": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "hr.payroll.structure.type": {
+   "abstract": false,
+   "description": "Salary Structure Type",
+   "extension": false,
+   "fields": {
+    "country_code": {
+     "related": "country_id.code",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "default": {
+      "$lambda": "self.env.company.country_id"
+     },
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "default_resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "default": {
+      "$lambda": "self.env.company.resource_calendar_id"
+     },
+     "string": "Default Working Hours",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Salary Structure Type",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.payroll.structure.type",
+   "transient": false
+  },
+  "ir.ui.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_load_menus_blacklist"
+    }
+   ],
+   "name": "ir.ui.menu",
+   "transient": false
+  },
+  "mail.activity.schedule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_compute_plan_date"
+    }
+   ],
+   "name": "mail.activity.schedule",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "contract_expiration_notice_period": {
+     "default": 7,
+     "string": "Contract Expiry Notice Period",
+     "type": "Integer"
+    },
+    "work_permit_expiration_notice_period": {
+     "default": 60,
+     "string": "Work Permit Expiry Notice Period",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "contract_expiration_notice_period": {
+     "readonly": false,
+     "related": "company_id.contract_expiration_notice_period",
+     "string": "Contract Expiry Notice Period",
+     "type": "Integer"
+    },
+    "work_permit_expiration_notice_period": {
+     "readonly": false,
+     "related": "company_id.work_permit_expiration_notice_period",
+     "string": "Work Permit Expiry Notice Period",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bank_account_id": {
+     "related": "employee_id.bank_account_id",
+     "type": "Many2one"
+    },
+    "vehicle": {
+     "related": "employee_id.vehicle",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "resource.calendar": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "contracts_count": {
+     "compute": "_compute_contracts_count",
+     "groups": "hr_contract.group_hr_contract_manager",
+     "string": "# Contracts using it",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "transfer_leaves_to"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_contracts_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_open_contracts"
+    }
+   ],
+   "name": "resource.calendar",
+   "transient": false
+  },
+  "resource.calendar.leaves": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_from')"
+     ],
+     "lines": 21,
+     "name": "_compute_calendar_id"
+    }
+   ],
+   "name": "resource.calendar.leaves",
+   "transient": false
+  },
+  "resource.resource": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_get_calendars_validity_within_period"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_calendar_at"
+    }
+   ],
+   "name": "resource.resource",
+   "transient": false
+  }
+ },
+ "module": "hr_contract",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_contract",
+ "stats": {
+  "fields": 72,
+  "methods": 64,
+  "models": 15,
+  "py_lines": 1181
+ },
+ "summary": "Add all information on the employee form to manage contracts.",
+ "title": "Employee Contracts",
+ "version": "1.0"
+}

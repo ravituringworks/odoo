@@ -1,0 +1,237 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "report/l10n_it_ddt_report.xml",
+  "views/stock_picking_views.xml",
+  "views/account_invoice_views.xml",
+  "data/l10n_it_ddt_template.xml"
+ ],
+ "depends": [
+  "l10n_it_edi",
+  "stock_delivery",
+  "stock_account"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_it_ddt_count": {
+     "compute": "_compute_ddt_ids",
+     "type": "Integer"
+    },
+    "l10n_it_ddt_ids": {
+     "comodel": "stock.picking",
+     "compute": "_compute_ddt_ids",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_l10n_it_edi_document_type_mapping"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_it_edi_invoice_is_direct"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_it_edi_features_for_document_type_selection"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_get_ddt_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_line_ids', 'invoice_line_ids.sale_line_ids')"
+     ],
+     "lines": 12,
+     "name": "_compute_ddt_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "get_linked_ddts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_it_edi_get_values"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_it_ddt_number": {
+     "readonly": true,
+     "string": "DDT Number",
+     "type": "Char"
+    },
+    "l10n_it_parcels": {
+     "default": 1,
+     "string": "Parcels",
+     "type": "Integer"
+    },
+    "l10n_it_show_print_ddt_button": {
+     "compute": "_compute_l10n_it_show_print_ddt_button",
+     "type": "Boolean"
+    },
+    "l10n_it_transport_method": {
+     "default": "sender",
+     "selection": [
+      [
+       "sender",
+       "Sender"
+      ],
+      [
+       "recipient",
+       "Recipient"
+      ],
+      [
+       "courier",
+       "Courier service"
+      ]
+     ],
+     "string": "Transport Method",
+     "type": "Selection"
+    },
+    "l10n_it_transport_method_details": {
+     "string": "Transport Note",
+     "type": "Char"
+    },
+    "l10n_it_transport_reason": {
+     "default": "sale",
+     "selection": [
+      [
+       "sale",
+       "Sale"
+      ],
+      [
+       "outsourcing",
+       "Outsourcing"
+      ],
+      [
+       "evaluation",
+       "Evaluation"
+      ],
+      [
+       "gift",
+       "Gift"
+      ],
+      [
+       "transfer",
+       "Transfer"
+      ],
+      [
+       "substitution",
+       "Returned goods"
+      ],
+      [
+       "attemped_sale",
+       "Attempted Sale"
+      ],
+      [
+       "loaned_use",
+       "Loaned for Use"
+      ],
+      [
+       "repair",
+       "Repair"
+      ]
+     ],
+     "string": "Transport Reason",
+     "tracking": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code', 'picking_type_code', 'state', 'is_locked', 'move_ids', 'location_id', 'location_dest_id')"
+     ],
+     "lines": 17,
+     "name": "_compute_l10n_it_show_print_ddt_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_done"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.picking.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_it_ddt_sequence_id": {
+     "comodel": "ir.sequence",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_dtt_ir_seq_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 13,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    }
+   ],
+   "name": "stock.picking.type",
+   "transient": false
+  }
+ },
+ "module": "l10n_it_stock_ddt",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_it_stock_ddt",
+ "stats": {
+  "fields": 9,
+  "methods": 12,
+  "models": 3,
+  "py_lines": 226
+ },
+ "summary": "Documento di Trasporto (DDT)",
+ "title": "Italy - Stock DDT",
+ "version": "0.1"
+}

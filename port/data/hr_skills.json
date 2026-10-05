@@ -1,0 +1,1864 @@
+{
+ "module": "hr_skills",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "hr_resume_rule_employee",
+   "values": {
+    "name": "Resume: employee: read all",
+    "model_id": {
+     "$ref": "model_hr_resume_line"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "perm_create": false,
+    "perm_write": false,
+    "perm_unlink": false,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_resume_rule_employee_hr_user",
+   "values": {
+    "name": "Resume: HR user: all",
+    "model_id": {
+     "$ref": "model_hr_resume_line"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr.group_hr_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_skills_rule_employee_update",
+   "values": {
+    "name": "Resume: employee: create/write/unlink own",
+    "model_id": {
+     "$ref": "model_hr_resume_line"
+    },
+    "domain_force": "[('employee_id.user_id','=',user.id)]",
+    "perm_read": false,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_skill_rule_employee",
+   "values": {
+    "name": "Employee skill: employee: read all",
+    "model_id": {
+     "$ref": "model_hr_employee_skill"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "perm_create": false,
+    "perm_write": false,
+    "perm_unlink": false,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_skill_rule_hr_user",
+   "values": {
+    "name": "Employee skill: HR user: read all",
+    "model_id": {
+     "$ref": "model_hr_employee_skill"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr.group_hr_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_skill_rule_employee_update",
+   "values": {
+    "name": "Employee skill: employee: create/write/unlink own",
+    "model_id": {
+     "$ref": "model_hr_employee_skill"
+    },
+    "domain_force": "[('employee_id.user_id','=',user.id)]",
+    "perm_read": false,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_employee_skill_report_hr_user",
+   "values": {
+    "name": "Employee Skill Report: HR user",
+    "model_id": {
+     "$ref": "model_hr_employee_skill_report"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr.group_hr_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_employee_skill_report_manager",
+   "values": {
+    "name": "Employee Skill Report: employee's manager",
+    "model_id": {
+     "$ref": "model_hr_employee_skill_report"
+    },
+    "domain_force": "[('has_department_manager_access', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_employee_skill_report_multicompany",
+   "values": {
+    "name": "Employee Skill Report: Multi-Company Rule",
+    "model_id": {
+     "$ref": "model_hr_employee_skill_report"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_resume_type_action",
+   "values": {
+    "name": "Resume Line Types",
+    "res_model": "hr.resume.line.type",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_skill_type_action",
+   "values": {
+    "name": "Skill Types",
+    "res_model": "hr.skill.type",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_employee_skill_log_employee",
+   "values": {
+    "name": "Skill History Report",
+    "res_model": "hr.employee.skill.log",
+    "view_mode": "graph,list",
+    "view_id": {
+     "$ref": "hr_employee_skill_log_view_graph_employee"
+    },
+    "context": {
+     "fill_temporal": 0
+    },
+    "target": "current"
+   }
+  },
+  {
+   "model": "hr.resume.line.type",
+   "id": "resume_type_experience",
+   "values": {
+    "name": "Experience",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "hr.resume.line.type",
+   "id": "resume_type_education",
+   "values": {
+    "name": "Education",
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "hr.resume.line.type",
+   "id": "resume_type_social_media",
+   "values": {
+    "name": "Social Media",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "hr.skill.type",
+   "id": "hr_skill_type_lang",
+   "values": {
+    "name": "Languages"
+   }
+  },
+  {
+   "model": "hr.skill.type",
+   "id": "hr_skill_type_softskill",
+   "values": {
+    "name": "Soft Skills"
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_french",
+   "values": {
+    "name": "French",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_spanish",
+   "values": {
+    "name": "Spanish",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_english",
+   "values": {
+    "name": "English",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_german",
+   "values": {
+    "name": "German",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_filipino",
+   "values": {
+    "name": "Filipino",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_arabic",
+   "values": {
+    "name": "Arabic",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_bengali",
+   "values": {
+    "name": "Bengali",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_mandarin_chinese",
+   "values": {
+    "name": "Mandarin Chinese",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_wu_chinese",
+   "values": {
+    "name": "Wu Chinese",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_hindi",
+   "values": {
+    "name": "Hindi",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_russian",
+   "values": {
+    "name": "Russian",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_portuguese",
+   "values": {
+    "name": "Portuguese",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_indonesian",
+   "values": {
+    "name": "Indonesian",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_urdu",
+   "values": {
+    "name": "Urdu",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_japanese",
+   "values": {
+    "name": "Japanese",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_punjabi",
+   "values": {
+    "name": "Punjabi",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_javanese",
+   "values": {
+    "name": "Javanese",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_telugu",
+   "values": {
+    "name": "Telugu",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_turkish",
+   "values": {
+    "name": "Turkish",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_korean",
+   "values": {
+    "name": "Korean",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_marathi",
+   "values": {
+    "name": "Marathi",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_communication",
+   "values": {
+    "name": "Communication",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_teamwork",
+   "values": {
+    "name": "Teamwork",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_problem_solving",
+   "values": {
+    "name": "Problem-Solving",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_time_management",
+   "values": {
+    "name": "Time Management",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_critical_thinking",
+   "values": {
+    "name": "Critical Thinking",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_decision_making",
+   "values": {
+    "name": "Decision-Making",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_organizational",
+   "values": {
+    "name": "Organizational",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_stress_management",
+   "values": {
+    "name": "Stress management",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_adaptability",
+   "values": {
+    "name": "Adaptability",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_conflict_management",
+   "values": {
+    "name": "Conflict Management",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_leadership",
+   "values": {
+    "name": "Leadership",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_creativity",
+   "values": {
+    "name": "Creativity",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_resourcefulness",
+   "values": {
+    "name": "Resourcefulness",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_persuasion",
+   "values": {
+    "name": "Persuasion",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_openness_to_criticism",
+   "values": {
+    "name": "Openness to criticism",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_a1",
+   "values": {
+    "name": "A1",
+    "level_progress": "10",
+    "default_level": "1",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_a2",
+   "values": {
+    "name": "A2",
+    "level_progress": "40",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_b1",
+   "values": {
+    "name": "B1",
+    "level_progress": "60",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_b2",
+   "values": {
+    "name": "B2",
+    "level_progress": "75",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_c1",
+   "values": {
+    "name": "C1",
+    "level_progress": "85",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_c2",
+   "values": {
+    "name": "C2",
+    "level_progress": "100",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_lang"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_beginner_softskill",
+   "values": {
+    "name": "Beginner",
+    "default_level": "1",
+    "level_progress": "15",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_elementary_softskill",
+   "values": {
+    "name": "Elementary",
+    "level_progress": "25",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_intermediate_softskill",
+   "values": {
+    "name": "Intermediate",
+    "level_progress": "50",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_advanced_softskill",
+   "values": {
+    "name": "Advanced",
+    "level_progress": "80",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_expert_softskill",
+   "values": {
+    "name": "Expert",
+    "level_progress": "100",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_softskill"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_open_skills_log_department",
+   "values": {
+    "name": "Skill History Report",
+    "model_id": {
+     "$ref": "hr.model_hr_department"
+    },
+    "binding_model_id": {
+     "$ref": "hr.model_hr_department"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "action = env['ir.actions.act_window']._for_xml_id('hr_skills.action_hr_employee_skill_log_department')\naction['domain'] = [('department_id', '=', record.id)]"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_print_employees_cv",
+   "values": {
+    "name": "Print Resume",
+    "model_id": {
+     "$ref": "hr.model_hr_employee"
+    },
+    "binding_model_id": {
+     "$ref": "hr.model_hr_employee"
+    },
+    "binding_view_types": "list,form",
+    "binding_type": "report",
+    "state": "code",
+    "code": "action = env['ir.actions.act_window']._for_xml_id('hr_skills.action_hr_employee_cv_wizard')"
+   }
+  },
+  {
+   "model": "report.paperformat",
+   "id": "paperformat_resume",
+   "values": {
+    "name": "Resume",
+    "default": true,
+    "format": "A4",
+    "orientation": "Portrait",
+    "margin_top": "12",
+    "margin_bottom": "12",
+    "margin_left": "5",
+    "margin_right": "5",
+    "header_line": false,
+    "header_spacing": "20",
+    "dpi": "90"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_employee_skill_report_action",
+   "values": {
+    "name": "Employee Skills",
+    "res_model": "hr.employee.skill.report",
+    "search_view_id": {
+     "$ref": "hr_employee_skill_report_view_search"
+    },
+    "view_mode": "list,pivot",
+    "context": {
+     "search_default_employee": 1,
+     "search_default_employees_with_skills": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_employee_skill_log_department",
+   "values": {
+    "name": "Skill History Report",
+    "res_model": "hr.employee.skill.report",
+    "view_mode": "graph,pivot,list",
+    "context": {
+     "fill_temporal": 0,
+     "search_default_group_by_skill_type_id": 1,
+     "search_default_group_by_skill_id": 2
+    },
+    "target": "current"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_employee_cv_wizard",
+   "values": {
+    "name": "Print Resume",
+    "res_model": "hr.employee.cv.wizard",
+    "view_mode": "form",
+    "context": {
+     "$unevaluated": "{'default_employee_ids': active_ids}"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "hr.skill.type",
+   "id": "hr_skill_type_dev",
+   "values": {
+    "name": "Programming Languages"
+   }
+  },
+  {
+   "model": "hr.skill.type",
+   "id": "hr_skill_type_it",
+   "values": {
+    "name": "IT"
+   }
+  },
+  {
+   "model": "hr.skill.type",
+   "id": "hr_skill_type_marketing",
+   "values": {
+    "name": "Marketing"
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_beginner",
+   "values": {
+    "name": "Beginner",
+    "default_level": "1",
+    "level_progress": "15",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_elementary",
+   "values": {
+    "name": "Elementary",
+    "level_progress": "25",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_intermediate",
+   "values": {
+    "name": "Intermediate",
+    "level_progress": "50",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_advanced",
+   "values": {
+    "name": "Advanced",
+    "level_progress": "80",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_expert",
+   "values": {
+    "name": "Expert",
+    "level_progress": "100",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_ml1",
+   "values": {
+    "name": "L1",
+    "default_level": "1",
+    "level_progress": "25",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_ml2",
+   "values": {
+    "name": "L2",
+    "level_progress": "50",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_ml3",
+   "values": {
+    "name": "L3",
+    "level_progress": "75",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_ml4",
+   "values": {
+    "name": "L4",
+    "level_progress": "100",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_beginner_it",
+   "values": {
+    "name": "Beginner",
+    "default_level": "1",
+    "level_progress": "15",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_elementary_it",
+   "values": {
+    "name": "Elementary",
+    "level_progress": "25",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_intermediate_it",
+   "values": {
+    "name": "Intermediate",
+    "level_progress": "50",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_advanced_it",
+   "values": {
+    "name": "Advanced",
+    "level_progress": "80",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill.level",
+   "id": "hr_skill_level_expert_it",
+   "values": {
+    "name": "Expert",
+    "level_progress": "100",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_js",
+   "values": {
+    "name": "Javascript",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_python",
+   "values": {
+    "name": "Python",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_c",
+   "values": {
+    "name": "C/C++",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_android",
+   "values": {
+    "name": "Android",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_hadoop",
+   "values": {
+    "name": "Hadoop",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_spark",
+   "values": {
+    "name": "Spark",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_react",
+   "values": {
+    "name": "React",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_django",
+   "values": {
+    "name": "Django",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_sql",
+   "values": {
+    "name": "RDMS",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_nosql",
+   "values": {
+    "name": "NoSQL",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_go",
+   "values": {
+    "name": "Go",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_java",
+   "values": {
+    "name": "Java",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_kotlin",
+   "values": {
+    "name": "Kotlin",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_php",
+   "values": {
+    "name": "PHP",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_csharp",
+   "values": {
+    "name": "C#",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_swift",
+   "values": {
+    "name": "Swift",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_r",
+   "values": {
+    "name": "R",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_ruby",
+   "values": {
+    "name": "Ruby",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_matlab",
+   "values": {
+    "name": "Matlab",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_typescript",
+   "values": {
+    "name": "TypeScript",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_scala",
+   "values": {
+    "name": "Scala",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_html",
+   "values": {
+    "name": "HTML",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_css",
+   "values": {
+    "name": "CSS",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_nosql",
+   "values": {
+    "name": "NoSQL",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_rust",
+   "values": {
+    "name": "Rust",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_perl",
+   "values": {
+    "name": "Perl",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_dev"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_com",
+   "values": {
+    "name": "Communication",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_analytics",
+   "values": {
+    "name": "Analytics",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_digital_ad",
+   "values": {
+    "name": "Digital advertising",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_public",
+   "values": {
+    "name": "Public Speaking",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_cms",
+   "values": {
+    "name": "CMS",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_email",
+   "values": {
+    "name": "Email Marketing",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_marketing"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_web_development",
+   "values": {
+    "name": "Web Development",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_database_management",
+   "values": {
+    "name": "Database Management",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_cloud_computing",
+   "values": {
+    "name": "Cloud computing",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_network_administration",
+   "values": {
+    "name": "Network administration",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_cybersecurity",
+   "values": {
+    "name": "Cybersecurity",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_devops",
+   "values": {
+    "name": "DevOps",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_machine_learning",
+   "values": {
+    "name": "Machine Learning (AI)",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_data_analysis",
+   "values": {
+    "name": "Data analysis/visualization",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_agile_scrum",
+   "values": {
+    "name": "Agile and Scrum methodologies",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_mobile_app_development",
+   "values": {
+    "name": "Mobile app development",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_project_management",
+   "values": {
+    "name": "Project Management",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_system_administration",
+   "values": {
+    "name": "System Administration (Linux, Windows)",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_virtualization_containerization",
+   "values": {
+    "name": "Virtualization and Containerization",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_it_support",
+   "values": {
+    "name": "IT support",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_it_infrastructure_architecture",
+   "values": {
+    "name": "IT infrastructure and architecture",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_it_service_management",
+   "values": {
+    "name": "IT service management (ITSM)",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_big_data_technologies",
+   "values": {
+    "name": "Big data technologies (Hadoop,Spark)",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_iot_embedded_systems",
+   "values": {
+    "name": "IoT and embedded systems",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.skill",
+   "id": "hr_skill_it_governance_compliance",
+   "values": {
+    "name": "IT governance and compliance (GDPR,HIPAA,...)",
+    "skill_type_id": {
+     "$ref": "hr_skill_type_it"
+    }
+   }
+  },
+  {
+   "model": "hr.resume.line",
+   "id": "employee_resume_line_admin_1",
+   "values": {
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "name": "Universit\u00e9 Libre de Bruxelles - Polytechnique",
+    "date_start": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-12)).strftime('%Y-09-17')"
+    },
+    "date_end": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-7)).strftime('%Y-09-10')"
+    },
+    "line_type_id": {
+     "$ref": "resume_type_education"
+    },
+    "description": "Master in Electrical engineering\n            Master thesis: Better grid management and control through machine learning"
+   }
+  },
+  {
+   "model": "hr.resume.line",
+   "id": "employee_resume_line_admin_2",
+   "values": {
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "name": "Saint-Joseph School",
+    "date_start": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-18)).strftime('%Y-09-01')"
+    },
+    "date_end": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-12)).strftime('%Y-06-30')"
+    },
+    "line_type_id": {
+     "$ref": "resume_type_education"
+    },
+    "description": "Science & math"
+   }
+  },
+  {
+   "model": "hr.resume.line",
+   "id": "employee_resume_line_admin_4",
+   "values": {
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "name": "Odoo SA",
+    "date_start": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-3)).strftime('%Y-11-01')"
+    },
+    "line_type_id": {
+     "$ref": "resume_type_experience"
+    },
+    "description": "Job position: Development team leader\n- Supported technical operations with investigating and correcting varied production support issues (Java, Perl, Shell scripts, SQL).\n- Led quality assurance planning for multiple concurrent projects relative to overall system architecture or trading system changes/new developments.\n- Configured and released business critical alpha and risk models using MATLAB and SQL with inputs from Portfolio Managers."
+   }
+  },
+  {
+   "model": "hr.resume.line",
+   "id": "employee_resume_line_admin_3",
+   "values": {
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "name": "Burtho Inc.",
+    "date_start": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-7)).strftime('%Y-09-10')"
+    },
+    "date_end": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-3)).strftime('%Y-09-10')"
+    },
+    "line_type_id": {
+     "$ref": "resume_type_experience"
+    },
+    "description": "Job position: Product manager\n- Coordinated and managed software deployment across five system environments from development to production.\n- Developed stored procedures to assist Java level programming efforts.\n- Developed multiple renewable energy plant architectures, both commercial installations and defense-related."
+   }
+  },
+  {
+   "model": "hr.resume.line.type",
+   "id": "resume_type_side_projects",
+   "values": {
+    "name": "Side Projects",
+    "sequence": "10"
+   }
+  },
+  {
+   "model": "hr.resume.line",
+   "id": "employee_resume_line_admin_5",
+   "values": {
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "name": "Encryption/decryption",
+    "date_start": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-3)).strftime('%Y-11-01')"
+    },
+    "line_type_id": {
+     "$ref": "resume_type_side_projects"
+    },
+    "description": "Allows to encrypt/decrypt plain text or files. Available as a web app or as an API."
+   }
+  },
+  {
+   "model": "hr.resume.line",
+   "id": "employee_resume_line_admin_6",
+   "values": {
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "name": "Finance forecaster",
+    "date_start": {
+     "$unevaluated": "(datetime.now()+relativedelta(years=-1)).strftime('%Y-11-01')"
+    },
+    "line_type_id": {
+     "$ref": "resume_type_side_projects"
+    },
+    "description": "Enter your finance data and the app tries to forecast what will be your future incomes/expenses. The application uses machine learning to train itself."
+   }
+  },
+  {
+   "model": "hr.resume.line",
+   "id": "employee_resume_line_admin_7",
+   "values": {
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "name": "Map Generator",
+    "date_start": {
+     "$unevaluated": "datetime.now().strftime('%Y-11-01')"
+    },
+    "line_type_id": {
+     "$ref": "resume_type_side_projects"
+    },
+    "description": "A 2D/3D map generator for incremental games."
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "hr.employee_admin",
+   "values": {
+    "study_field": "Civil Engineering: Applied Mathematics",
+    "study_school": "Universit\u00e9 Catholique de Louvain (UCL)"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_human_resources_configuration_resume",
+   "name": "Resume",
+   "parent": "hr.menu_human_resources_configuration",
+   "sequence": "15",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "hr_resume_line_type_menu",
+   "name": "Line Types",
+   "parent": "hr_skills.menu_human_resources_configuration_resume",
+   "action": "hr_resume_type_action",
+   "sequence": "3",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "hr_skill_type_menu",
+   "name": "Skill Types",
+   "parent": "hr.menu_config_employee",
+   "action": "hr_skill_type_action",
+   "sequence": "7",
+   "groups": "hr.group_hr_user"
+  },
+  {
+   "id": "hr_employee_skill_report_menu",
+   "name": "Skills",
+   "parent": "hr.hr_menu_hr_reports",
+   "action": "hr_employee_skill_report_action",
+   "sequence": "15"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_hr_resume_line",
+   "model": "hr.resume.line",
+   "model_xmlid": "model_hr_resume_line",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_resume_line_employee",
+   "model": "hr.resume.line",
+   "model_xmlid": "model_hr_resume_line",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_resume_line_type",
+   "model": "hr.resume.line.type",
+   "model_xmlid": "model_hr_resume_line_type",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_resume_line_type_employee",
+   "model": "hr.resume.line.type",
+   "model_xmlid": "model_hr_resume_line_type",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_skill_type",
+   "model": "hr.skill.type",
+   "model_xmlid": "model_hr_skill_type",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_skill_type_employee",
+   "model": "hr.skill.type",
+   "model_xmlid": "model_hr_skill_type",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_skill_level",
+   "model": "hr.skill.level",
+   "model_xmlid": "model_hr_skill_level",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_skill_level_employee",
+   "model": "hr.skill.level",
+   "model_xmlid": "model_hr_skill_level",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_skill",
+   "model": "hr.skill",
+   "model_xmlid": "model_hr_skill",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_skill_employee",
+   "model": "hr.skill",
+   "model_xmlid": "model_hr_skill",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_employee_skill",
+   "model": "hr.employee.skill",
+   "model_xmlid": "model_hr_employee_skill",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_employee_skill_employee",
+   "model": "hr.employee.skill",
+   "model_xmlid": "model_hr_employee_skill",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_employee_skill_report_user",
+   "model": "hr.employee.skill.report",
+   "model_xmlid": "model_hr_employee_skill_report",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_employee_skill_report_manager",
+   "model": "hr.employee.skill.report",
+   "model_xmlid": "model_hr_employee_skill_report",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_employee_skill_log",
+   "model": "hr.employee.skill.log",
+   "model_xmlid": "model_hr_employee_skill_log",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_employee_skill_log_manager",
+   "model": "hr.employee.skill.log",
+   "model_xmlid": "model_hr_employee_skill_log",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_employee_cv_wizard",
+   "model": "hr.skills.hr.employee.cv.wizard",
+   "model_xmlid": "hr_skills.model_hr_employee_cv_wizard",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

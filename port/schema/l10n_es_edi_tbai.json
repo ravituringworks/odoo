@@ -1,0 +1,882 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "data/template_invoice.xml",
+  "data/template_LROE_bizkaia.xml",
+  "data/ir_config_parameter.xml",
+  "security/ir.model.access.csv",
+  "security/l10n_es_edi_tbai_security.xml",
+  "views/account_move_view.xml",
+  "views/l10n_es_edi_tbai_certificate_views.xml",
+  "views/report_invoice.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_company_views.xml",
+  "wizards/account_move_reversal_views.xml",
+  "demo/demo_certificate.xml",
+  "demo/demo_res_partner.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "l10n_es",
+  "certificate"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_tbai_cancel_document_id": {
+     "comodel": "l10n_es_edi_tbai.document",
+     "copy": false,
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "l10n_es_tbai_cancel_file": {
+     "related": "l10n_es_tbai_cancel_document_id.xml_attachment_id.datas",
+     "string": "TicketBAI Cancel File",
+     "type": "Binary"
+    },
+    "l10n_es_tbai_cancel_file_name": {
+     "related": "l10n_es_tbai_cancel_document_id.xml_attachment_id.name",
+     "string": "TicketBAI Cancel File Name",
+     "type": "Char"
+    },
+    "l10n_es_tbai_chain_index": {
+     "help": "Invoice index in chain, set if and only if an in-chain XML was submitted and did not error",
+     "related": "l10n_es_tbai_post_document_id.chain_index",
+     "string": "TicketBAI chain index",
+     "type": "Integer"
+    },
+    "l10n_es_tbai_is_required": {
+     "compute": "_compute_l10n_es_tbai_is_required",
+     "help": "Is the Basque EDI (TicketBAI) needed ?",
+     "string": "TicketBAI required",
+     "type": "Boolean"
+    },
+    "l10n_es_tbai_post_document_id": {
+     "comodel": "l10n_es_edi_tbai.document",
+     "copy": false,
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "l10n_es_tbai_post_file": {
+     "related": "l10n_es_tbai_post_document_id.xml_attachment_id.datas",
+     "string": "TicketBAI Post File",
+     "type": "Binary"
+    },
+    "l10n_es_tbai_post_file_name": {
+     "related": "l10n_es_tbai_post_document_id.xml_attachment_id.name",
+     "string": "TicketBAI Post Attachment Name",
+     "type": "Char"
+    },
+    "l10n_es_tbai_refund_reason": {
+     "copy": false,
+     "help": "BOE-A-1992-28740. Ley 37/1992, de 28 de diciembre, del Impuesto sobre el Valor A\u00f1adido. Art\u00edculo 80. Modificaci\u00f3n de la base imponible.",
+     "selection": [
+      [
+       "R1",
+       "R1: Art. 80.1, 80.2, 80.6 and rights founded error"
+      ],
+      [
+       "R2",
+       "R2: Art. 80.3"
+      ],
+      [
+       "R3",
+       "R3: Art. 80.4"
+      ],
+      [
+       "R4",
+       "R4: Art. 80 - other"
+      ],
+      [
+       "R5",
+       "R5: Factura rectificativa en facturas simplificadas"
+      ]
+     ],
+     "string": "Invoice Refund Reason Code (TicketBai)",
+     "type": "Selection"
+    },
+    "l10n_es_tbai_reversed_ids": {
+     "column1": "refund_id",
+     "column2": "reversed_move_id",
+     "comodel": "account.move",
+     "domain": "[('move_type', '=', 'in_invoice'), ('commercial_partner_id', '=', commercial_partner_id)]",
+     "help": "In the case where a vendor refund has multiple original invoices, you can set them here. ",
+     "relation_table": "account_move_tbai_reversed_moves",
+     "string": "Refunded Vendor Bills",
+     "type": "Many2many"
+    },
+    "l10n_es_tbai_state": {
+     "compute": "_compute_l10n_es_tbai_state",
+     "selection": [
+      [
+       "to_send",
+       "To Send"
+      ],
+      [
+       "sent",
+       "Sent"
+      ],
+      [
+       "cancelled",
+       "Cancelled"
+      ]
+     ],
+     "string": "TicketBAI status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_tbai_post_document_id.state', 'l10n_es_tbai_cancel_document_id.state')"
+     ],
+     "lines": 9,
+     "name": "_compute_l10n_es_tbai_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_type', 'company_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_l10n_es_tbai_is_required"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_tbai_post_document_id.chain_index')"
+     ],
+     "lines": 7,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_l10n_es_tbai_unlink_except_in_chain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_es_tbai_check_can_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_l10n_es_tbai_get_attachment_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_l10n_es_tbai_create_edi_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_l10n_es_tbai_post_document_in_chatter"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_l10n_es_tbai_lock_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "l10n_es_tbai_resend_bill"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "l10n_es_tbai_send_bill"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "l10n_es_tbai_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_l10n_es_tbai_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_l10n_es_tbai_get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_es_tbai_get_attachment_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_l10n_es_tbai_get_invoice_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_es_tbai_get_credit_note_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_l10n_es_tbai_get_vendor_bill_values_batuz"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_l10n_es_tbai_get_vendor_bill_tax_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_refunds_origin_required"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_refunds_origin_required": []
+   },
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_es_tbai_is_ignored"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_tbai_is_required": {
+     "compute": "_compute_l10n_es_tbai_is_required",
+     "readonly": true,
+     "string": "Is TicketBai required for this reversal",
+     "type": "Boolean"
+    },
+    "l10n_es_tbai_refund_reason": {
+     "help": "BOE-A-1992-28740. Ley 37/1992, de 28 de diciembre, del Impuesto sobre el Valor A\u00f1adido. Art\u00edculo 80. Modificaci\u00f3n de la base imponible.",
+     "selection": [
+      [
+       "R1",
+       "R1: Art. 80.1, 80.2, 80.6 and rights founded error"
+      ],
+      [
+       "R2",
+       "R2: Art. 80.3"
+      ],
+      [
+       "R3",
+       "R3: Art. 80.4"
+      ],
+      [
+       "R4",
+       "R4: Art. 80 - other"
+      ],
+      [
+       "R5",
+       "R5: Factura rectificativa en facturas simplificadas"
+      ]
+     ],
+     "string": "Invoice Refund Reason Code (TicketBai)",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_es_tbai_is_required"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_default_reversal"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_tbai_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_extra_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_placeholder_mail_attachments_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_call_web_service_before_invoice_pdf_render"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "certificate.certificate": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "scope": {
+     "selection_add": [
+      [
+       "tbai",
+       "TBAI"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_l10n_es_edi_tbai_get_issuer"
+    }
+   ],
+   "name": "certificate.certificate",
+   "transient": false
+  },
+  "ir.attachment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 5,
+     "name": "_unlink_except_tbai_document_xml"
+    }
+   ],
+   "name": "ir.attachment",
+   "transient": false
+  },
+  "l10n_es_edi_tbai.document": {
+   "abstract": false,
+   "description": "TicketBAI Document",
+   "extension": false,
+   "fields": {
+    "chain_index": {
+     "copy": false,
+     "readonly": true,
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "required": true,
+     "type": "Many2one"
+    },
+    "date": {
+     "readonly": true,
+     "required": true,
+     "type": "Date"
+    },
+    "is_cancel": {
+     "default": false,
+     "readonly": true,
+     "type": "Boolean"
+    },
+    "name": {
+     "readonly": true,
+     "required": true,
+     "type": "Char"
+    },
+    "response_message": {
+     "copy": false,
+     "readonly": true,
+     "type": "Text"
+    },
+    "state": {
+     "copy": false,
+     "default": "to_send",
+     "readonly": true,
+     "selection": [
+      [
+       "to_send",
+       "To Send"
+      ],
+      [
+       "accepted",
+       "Accepted"
+      ],
+      [
+       "rejected",
+       "Rejected"
+      ]
+     ],
+     "string": "status",
+     "type": "Selection"
+    },
+    "xml_attachment_id": {
+     "comodel": "ir.attachment",
+     "copy": false,
+     "readonly": true,
+     "string": "XML Attachment",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_in_chain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_check_can_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_post_to_web_service"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_post_to_agency"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_prepare_post_params_ar_gi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_process_post_response_xml_ar_gi"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_prepare_post_params_bi"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_generate_final_xml_bi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_process_post_response_xml_bi"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_generate_xml"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_header_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_sender_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_recipient_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_refunded_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_sale_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_regime_code_value"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 28,
+     "name": "_add_base_lines_tax_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 66,
+     "name": "_build_tax_details_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 57,
+     "name": "_get_importe_desglose_es_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 63,
+     "name": "_get_importe_desglose_foreign_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_generate_sale_document_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 51,
+     "name": "_sign_sale_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_generate_purchase_document_xml_bi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_get_tbai_sequence_and_number_purchase"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_get_tbai_seq_from_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_tbai_sequence_and_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_tbai_signature_and_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_tbai_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_tbai_qr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_crc8"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_values_from_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_xml"
+    }
+   ],
+   "name": "l10n_es_edi_tbai.document",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_tbai_certificate_id": {
+     "comodel": "certificate.certificate",
+     "compute": "_compute_l10n_es_tbai_certificate",
+     "readonly": false,
+     "store": true,
+     "string": "Certificate (TicketBAI)",
+     "type": "Many2one"
+    },
+    "l10n_es_tbai_certificate_ids": {
+     "comodel": "certificate.certificate",
+     "domain": [
+      [
+       "scope",
+       "=",
+       "tbai"
+      ]
+     ],
+     "inverse_name": "company_id",
+     "type": "One2many"
+    },
+    "l10n_es_tbai_chain_sequence_id": {
+     "comodel": "ir.sequence",
+     "copy": false,
+     "readonly": true,
+     "string": "TicketBai account.move chain sequence",
+     "type": "Many2one"
+    },
+    "l10n_es_tbai_is_enabled": {
+     "compute": "_compute_l10n_es_tbai_is_enabled",
+     "type": "Boolean"
+    },
+    "l10n_es_tbai_license_html": {
+     "compute": "_compute_l10n_es_tbai_license_html",
+     "string": "TicketBAI license",
+     "type": "Html"
+    },
+    "l10n_es_tbai_tax_agency": {
+     "selection": [
+      [
+       "araba",
+       "Hacienda Foral de Araba"
+      ],
+      [
+       "bizkaia",
+       "Hacienda Foral de Bizkaia"
+      ],
+      [
+       "gipuzkoa",
+       "Hacienda Foral de Gipuzkoa"
+      ]
+     ],
+     "string": "Tax Agency for TBAI",
+     "type": "Selection"
+    },
+    "l10n_es_tbai_test_env": {
+     "default": true,
+     "help": "Use the test environment for TicketBAI",
+     "string": "TBAI Test Mode",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_id', 'l10n_es_tbai_tax_agency')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_es_tbai_is_enabled"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_id', 'l10n_es_tbai_certificate_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_l10n_es_tbai_certificate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_id', 'l10n_es_tbai_test_env', 'l10n_es_tbai_tax_agency')"
+     ],
+     "lines": 21,
+     "name": "_compute_l10n_es_tbai_license_html"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_l10n_es_tbai_license_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_l10n_es_tbai_next_chain_index"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_l10n_es_tbai_last_chained_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_l10n_es_freelancer"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_tbai_certificate_ids": {
+     "readonly": false,
+     "related": "company_id.l10n_es_tbai_certificate_ids",
+     "type": "One2many"
+    },
+    "l10n_es_tbai_tax_agency": {
+     "readonly": false,
+     "related": "company_id.l10n_es_tbai_tax_agency",
+     "type": "Selection"
+    },
+    "l10n_es_tbai_test_env": {
+     "readonly": false,
+     "related": "company_id.l10n_es_tbai_test_env",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "l10n_es_edi_tbai",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_es_edi_tbai",
+ "stats": {
+  "fields": 32,
+  "methods": 70,
+  "models": 9,
+  "py_lines": 1788
+ },
+ "summary": "This module sends invoices and vendor bills to the \"Diputaciones",
+ "title": "Spain - TicketBAI",
+ "version": "1.1"
+}

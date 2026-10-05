@@ -1,0 +1,281 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/account_move_views.xml",
+  "views/nemhandel_response_views.xml",
+  "views/res_partner_views.xml",
+  "wizard/nemhandel_rejection_wizard_view.xml"
+ ],
+ "depends": [
+  "l10n_dk_nemhandel"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "nemhandel_can_send_response": {
+     "compute": "_compute_nemhandel_can_send_response",
+     "type": "Boolean"
+    },
+    "nemhandel_move_state": {
+     "selection_add": [
+      [
+       "BusinessAccept",
+       "Approved"
+      ],
+      [
+       "BusinessReject",
+       "Rejected"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "nemhandel_response_ids": {
+     "comodel": "nemhandel.response",
+     "inverse_name": "move_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'nemhandel_response_ids.nemhandel_state')"
+     ],
+     "lines": 7,
+     "name": "_compute_nemhandel_move_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('nemhandel_response_ids.nemhandel_state')"
+     ],
+     "lines": 10,
+     "name": "_compute_nemhandel_can_send_response"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "button_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_nemhandel_send_approval_response"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_nemhandel_open_rejection_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_nemhandel_reponses"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account_edi_proxy_client.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 53,
+     "name": "_nemhandel_send_response"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_nemhandel_extract_response_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 62,
+     "name": "_nemhandel_process_new_messages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_nemhandel_get_documents_for_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_nemhandel_process_messages_status"
+    }
+   ],
+   "name": "account_edi_proxy_client.user",
+   "transient": false
+  },
+  "nemhandel.rejection.wizard": {
+   "abstract": false,
+   "description": "Nemhandel Rejection wizard",
+   "extension": false,
+   "fields": {
+    "move_ids": {
+     "comodel": "account.move",
+     "required": true,
+     "type": "Many2many"
+    },
+    "note": {
+     "string": "Additional note",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "button_send"
+    }
+   ],
+   "name": "nemhandel.rejection.wizard",
+   "transient": true
+  },
+  "nemhandel.response": {
+   "abstract": false,
+   "description": "Business Level Responses for Nemhandel",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "related": "move_id.company_id",
+     "type": "Many2one"
+    },
+    "move_id": {
+     "comodel": "account.move",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "nemhandel_message_uuid": {
+     "string": "Nemhandel UUID",
+     "type": "Char"
+    },
+    "nemhandel_state": {
+     "selection": [
+      [
+       "processing",
+       "Pending Reception"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "error",
+       "Error"
+      ],
+      [
+       "not_serviced",
+       "Not Serviced"
+      ]
+     ],
+     "string": "Nemhandel status",
+     "type": "Selection"
+    },
+    "response_code": {
+     "required": true,
+     "selection": [
+      [
+       "BusinessAccept",
+       "Approval"
+      ],
+      [
+       "BusinessReject",
+       "Rejection"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "nemhandel.response",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "nemhandel_response_support": {
+     "compute": "_compute_nemhandel_response_support",
+     "string": "Nemhandel Response Service",
+     "type": "Boolean"
+    },
+    "nemhandel_supported_documents": {
+     "string": "Supported Nemhandel Documents",
+     "type": "Json"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('nemhandel_supported_documents', 'nemhandel_verification_state')"
+     ],
+     "lines": 7,
+     "name": "_compute_nemhandel_response_support"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_nemhandel_fill_participant_supported_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "button_nemhandel_check_partner_endpoint"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_dk_nemhandel_response",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_dk_nemhandel_response",
+ "stats": {
+  "fields": 12,
+  "methods": 16,
+  "models": 5,
+  "py_lines": 344
+ },
+ "summary": "This module is used to send/receive responses to documents received/sent with Nemhandel",
+ "title": "Nemhandel Business Response",
+ "version": "1.0"
+}

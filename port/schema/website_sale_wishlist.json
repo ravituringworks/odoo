@@ -1,0 +1,194 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/Website",
+ "data_files": [
+  "security/website_sale_wishlist_security.xml",
+  "security/ir.model.access.csv",
+  "views/website_sale_wishlist_template.xml",
+  "views/snippets.xml"
+ ],
+ "depends": [
+  "website_sale"
+ ],
+ "models": {
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_in_wishlist"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_in_wishlist"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "product.wishlist": {
+   "abstract": false,
+   "description": "Product Wishlist",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "required": true,
+     "type": "Boolean"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "related": "website_id.currency_id",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Owner",
+     "type": "Many2one"
+    },
+    "price": {
+     "currency_field": "currency_id",
+     "help": "Price of the product when it has been added in the wishlist",
+     "string": "Price",
+     "type": "Monetary"
+    },
+    "pricelist_id": {
+     "comodel": "product.pricelist",
+     "help": "Pricelist when added",
+     "string": "Pricelist",
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "website_id": {
+     "comodel": "website",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "current"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_add_to_wishlist"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_check_wishlist_from_session"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 6,
+     "name": "_gc_sessions"
+    }
+   ],
+   "name": "product.wishlist",
+   "sql_constraints": [
+    [
+     "product_unique_partner_id",
+     "UNIQUE(product_id, partner_id)",
+     "Duplicated wishlisted product for this partner."
+    ]
+   ],
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "wishlist_ids": {
+     "comodel": "product.wishlist",
+     "domain": [
+      [
+       "active",
+       "=",
+       true
+      ]
+     ],
+     "inverse_name": "partner_id",
+     "string": "Wishlist",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_check_credentials"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "website_sale_wishlist",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_sale_wishlist",
+ "stats": {
+  "fields": 8,
+  "methods": 7,
+  "models": 5,
+  "py_lines": 201
+ },
+ "summary": "Allow shoppers to enlist products",
+ "title": "Shopper's Wishlist",
+ "version": "1.0"
+}

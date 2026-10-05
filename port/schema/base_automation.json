@@ -1,0 +1,704 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/base_automation_data.xml",
+  "data/digest_data.xml",
+  "views/ir_actions_server_views.xml",
+  "views/base_automation_views.xml"
+ ],
+ "depends": [
+  "base",
+  "digest",
+  "resource",
+  "mail",
+  "sms"
+ ],
+ "models": {
+  "base.automation": {
+   "abstract": false,
+   "description": "Automation Rule",
+   "extension": false,
+   "fields": {
+    "action_server_ids": {
+     "comodel": "ir.actions.server",
+     "compute": "_compute_action_server_ids",
+     "inverse_name": "base_automation_id",
+     "readonly": false,
+     "store": true,
+     "string": "Actions",
+     "type": "One2many"
+    },
+    "active": {
+     "default": true,
+     "help": "When unchecked, the rule is hidden and will not be executed.",
+     "type": "Boolean"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Html"
+    },
+    "filter_domain": {
+     "compute": "_compute_filter_domain",
+     "help": "If present, this condition must be satisfied before executing the automation rule.",
+     "readonly": false,
+     "store": true,
+     "string": "Apply on",
+     "type": "Char"
+    },
+    "filter_pre_domain": {
+     "compute": "_compute_filter_pre_domain",
+     "help": "If present, this condition must be satisfied before the update of the record. Not checked on record creation.",
+     "readonly": false,
+     "store": true,
+     "string": "Before Update Domain",
+     "type": "Char"
+    },
+    "last_run": {
+     "copy": false,
+     "readonly": true,
+     "type": "Datetime"
+    },
+    "least_delay_msg": {
+     "compute": "_compute_least_delay_msg",
+     "type": "Char"
+    },
+    "log_webhook_calls": {
+     "default": false,
+     "string": "Log Calls",
+     "type": "Boolean"
+    },
+    "model_id": {
+     "comodel": "ir.model",
+     "domain": [
+      [
+       "field_id",
+       "!=",
+       false
+      ]
+     ],
+     "help": "Model on which the automation rule runs.",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Model",
+     "type": "Many2one"
+    },
+    "model_is_mail_thread": {
+     "related": "model_id.is_mail_thread",
+     "type": "Boolean"
+    },
+    "model_name": {
+     "readonly": true,
+     "related": "model_id.model",
+     "string": "Model Name",
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Automation Rule Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "on_change_field_ids": {
+     "comodel": "ir.model.fields",
+     "compute": "_compute_on_change_field_ids",
+     "help": "Fields that trigger the onchange.",
+     "readonly": false,
+     "relation_table": "base_automation_onchange_fields_rel",
+     "store": true,
+     "string": "On Change Fields Trigger",
+     "type": "Many2many"
+    },
+    "record_getter": {
+     "default": "model.env[payload.get('_model')].browse(int(payload.get('_id')))",
+     "help": "This code will be run to find on which record the automation rule should be run.",
+     "type": "Char"
+    },
+    "trg_date_calendar_id": {
+     "comodel": "resource.calendar",
+     "compute": "_compute_trg_date_calendar_id",
+     "help": "When calculating a day-based timed condition, it is possibleto use a calendar to compute the date based on working days.",
+     "readonly": false,
+     "store": true,
+     "string": "Use Calendar",
+     "type": "Many2one"
+    },
+    "trg_date_id": {
+     "comodel": "ir.model.fields",
+     "compute": "_compute_trg_date_id",
+     "domain": "[('model_id', '=', model_id), ('ttype', 'in', ('date', 'datetime'))]",
+     "help": "When should the condition be triggered.\n                If present, will be checked by the scheduler. If empty, will be checked at creation and update.",
+     "readonly": false,
+     "store": true,
+     "string": "Trigger Date",
+     "type": "Many2one"
+    },
+    "trg_date_range": {
+     "compute": "_compute_trg_date_range_data",
+     "help": "Delay after the trigger date. You can put a negative number if you need a delay before the trigger date, like sending a reminder 15 minutes before a meeting.",
+     "readonly": false,
+     "store": true,
+     "string": "Delay after trigger date",
+     "type": "Integer"
+    },
+    "trg_date_range_type": {
+     "compute": "_compute_trg_date_range_data",
+     "readonly": false,
+     "selection": [
+      [
+       "minutes",
+       "Minutes"
+      ],
+      [
+       "hour",
+       "Hours"
+      ],
+      [
+       "day",
+       "Days"
+      ],
+      [
+       "month",
+       "Months"
+      ]
+     ],
+     "store": true,
+     "string": "Delay type",
+     "type": "Selection"
+    },
+    "trg_field_ref": {
+     "compute": "_compute_trg_field_ref",
+     "help": "Some triggers need a reference to another field. This field is used to store it.",
+     "readonly": false,
+     "store": true,
+     "string": "Trigger Reference",
+     "type": "Many2oneReference"
+    },
+    "trg_field_ref_model_name": {
+     "compute": "_compute_trg_field_ref_model_name",
+     "string": "Trigger Field Model",
+     "type": "Char"
+    },
+    "trg_selection_field_id": {
+     "comodel": "ir.model.fields.selection",
+     "compute": "_compute_trg_selection_field_id",
+     "domain": "[('field_id', 'in', trigger_field_ids)]",
+     "help": "Some triggers need a reference to a selection field. This field is used to store it.",
+     "readonly": false,
+     "store": true,
+     "string": "Trigger Field",
+     "type": "Many2one"
+    },
+    "trigger": {
+     "compute": "_compute_trigger",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "on_stage_set",
+       "Stage is set to"
+      ],
+      [
+       "on_user_set",
+       "User is set"
+      ],
+      [
+       "on_tag_set",
+       "Tag is added"
+      ],
+      [
+       "on_state_set",
+       "State is set to"
+      ],
+      [
+       "on_priority_set",
+       "Priority is set to"
+      ],
+      [
+       "on_archive",
+       "On archived"
+      ],
+      [
+       "on_unarchive",
+       "On unarchived"
+      ],
+      [
+       "on_create_or_write",
+       "On save"
+      ],
+      [
+       "on_create",
+       "On creation"
+      ],
+      [
+       "on_write",
+       "On update"
+      ],
+      [
+       "on_unlink",
+       "On deletion"
+      ],
+      [
+       "on_change",
+       "On UI change"
+      ],
+      [
+       "on_time",
+       "Based on date field"
+      ],
+      [
+       "on_time_created",
+       "After creation"
+      ],
+      [
+       "on_time_updated",
+       "After last update"
+      ],
+      [
+       "on_message_received",
+       "On incoming message"
+      ],
+      [
+       "on_message_sent",
+       "On outgoing message"
+      ],
+      [
+       "on_webhook",
+       "On webhook"
+      ]
+     ],
+     "store": true,
+     "string": "Trigger",
+     "type": "Selection"
+    },
+    "trigger_field_ids": {
+     "comodel": "ir.model.fields",
+     "compute": "_compute_trigger_field_ids",
+     "help": "The automation rule will be triggered if and only if one of these fields is updated.If empty, all fields are watched.",
+     "readonly": false,
+     "store": true,
+     "string": "Trigger Fields",
+     "type": "Many2many"
+    },
+    "url": {
+     "compute": "_compute_url",
+     "type": "Char"
+    },
+    "webhook_uuid": {
+     "copy": false,
+     "default": {
+      "$lambda": "str(uuid4())"
+     },
+     "readonly": true,
+     "string": "Webhook UUID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('trigger', 'model_id')"
+     ],
+     "lines": 4,
+     "name": "_check_trigger"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('model_id', 'action_server_ids')"
+     ],
+     "lines": 11,
+     "name": "_check_action_server_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger', 'webhook_uuid')"
+     ],
+     "lines": 6,
+     "name": "_compute_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_model_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('trigger', 'action_server_ids')"
+     ],
+     "lines": 15,
+     "name": "_check_trigger_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_action_server_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger')"
+     ],
+     "lines": 5,
+     "name": "_compute_trg_date_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger')"
+     ],
+     "lines": 5,
+     "name": "_compute_trg_date_range_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger', 'trg_date_id', 'trg_date_range_type')"
+     ],
+     "lines": 5,
+     "name": "_compute_trg_date_calendar_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger')"
+     ],
+     "lines": 2,
+     "name": "_compute_trg_selection_field_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger')"
+     ],
+     "lines": 2,
+     "name": "_compute_trg_field_ref"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger', 'trg_field_ref')"
+     ],
+     "lines": 12,
+     "name": "_compute_trg_field_ref_model_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger', 'trg_field_ref')"
+     ],
+     "lines": 7,
+     "name": "_compute_filter_pre_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('trigger', 'trg_selection_field_id', 'trg_field_ref')"
+     ],
+     "lines": 28,
+     "name": "_compute_filter_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_id', 'trigger', 'filter_domain')"
+     ],
+     "lines": 5,
+     "name": "_compute_on_change_field_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_id', 'trigger', 'filter_domain')"
+     ],
+     "lines": 6,
+     "name": "_compute_trigger_field_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_trigger"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('trigger')"
+     ],
+     "lines": 7,
+     "name": "_onchange_trigger"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('trigger', 'action_server_ids')"
+     ],
+     "lines": 25,
+     "name": "_onchange_trigger_or_actions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_has_trigger_onchange"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "copy"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_rotate_webhook_uuid"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_view_webhook_logs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_filter_domain_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_get_trigger_specific_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_prepare_loggin_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_execute_webhook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_update_cron"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_registry"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_actions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_eval_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_cron_interval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_least_delay_msg"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_filter_pre"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_filter_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_filter_post_export_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_add_postmortem"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_check_trigger_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 219,
+     "name": "_register_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_unregister_hook"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 65,
+     "name": "_check"
+    }
+   ],
+   "name": "base.automation",
+   "transient": false
+  },
+  "ir.actions.server": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "base_automation_id": {
+     "comodel": "base.automation",
+     "ondelete": "cascade",
+     "string": "Automation Rule",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "store": true,
+     "type": "Char"
+    },
+    "usage": {
+     "ondelete": {
+      "base_automation": "cascade"
+     },
+     "selection_add": [
+      [
+       "base_automation",
+       "Automation Rule"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('model_id', 'base_automation_id')"
+     ],
+     "lines": 9,
+     "name": "_check_model_coherency_with_automation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('usage')"
+     ],
+     "lines": 7,
+     "name": "_compute_available_model_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'update_field_id', 'crud_model_id', 'value', 'evaluation_type', 'template_id', 'partner_ids', 'activity_summary', 'sms_template_id', 'webhook_url')"
+     ],
+     "lines": 46,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_eval_context"
+    }
+   ],
+   "name": "ir.actions.server",
+   "transient": false
+  }
+ },
+ "module": "base_automation",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/base_automation",
+ "stats": {
+  "fields": 28,
+  "methods": 50,
+  "models": 2,
+  "py_lines": 1185
+ },
+ "summary": "This module allows to implement automation rules for any object.",
+ "title": "Automation Rules",
+ "version": "1.0"
+}

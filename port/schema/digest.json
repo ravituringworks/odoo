@@ -1,0 +1,431 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/digest_data.xml",
+  "data/digest_tips_data.xml",
+  "data/ir_cron_data.xml",
+  "data/res_config_settings_data.xml",
+  "views/digest_views.xml",
+  "views/digest_templates.xml",
+  "views/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "mail",
+  "portal",
+  "resource"
+ ],
+ "models": {
+  "digest.digest": {
+   "abstract": false,
+   "description": "Digest",
+   "extension": false,
+   "fields": {
+    "available_fields": {
+     "compute": "_compute_available_fields",
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company.id"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "readonly": false,
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "is_subscribed": {
+     "compute": "_compute_is_subscribed",
+     "string": "Is user subscribed",
+     "type": "Boolean"
+    },
+    "kpi_mail_message_total": {
+     "string": "Messages Sent",
+     "type": "Boolean"
+    },
+    "kpi_mail_message_total_value": {
+     "compute": "_compute_kpi_mail_message_total_value",
+     "type": "Integer"
+    },
+    "kpi_res_users_connected": {
+     "string": "Connected Users",
+     "type": "Boolean"
+    },
+    "kpi_res_users_connected_value": {
+     "compute": "_compute_kpi_res_users_connected_value",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "next_run_date": {
+     "string": "Next Mailing Date",
+     "type": "Date"
+    },
+    "periodicity": {
+     "default": "daily",
+     "required": true,
+     "selection": [
+      [
+       "daily",
+       "Daily"
+      ],
+      [
+       "weekly",
+       "Weekly"
+      ],
+      [
+       "monthly",
+       "Monthly"
+      ],
+      [
+       "quarterly",
+       "Quarterly"
+      ]
+     ],
+     "string": "Periodicity",
+     "type": "Selection"
+    },
+    "state": {
+     "default": "activated",
+     "readonly": true,
+     "selection": [
+      [
+       "activated",
+       "Activated"
+      ],
+      [
+       "deactivated",
+       "Deactivated"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "user_ids": {
+     "comodel": "res.users",
+     "domain": "[('share', '=', False)]",
+     "string": "Recipients",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_subscribed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_available_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_kpi_compute_parameters"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_kpi_res_users_connected_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_kpi_mail_message_total_value"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('periodicity')"
+     ],
+     "lines": 2,
+     "name": "_onchange_periodicity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_subscribe"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_subscribe_users"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_unsubscribe"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_unsubscribe_users"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_activate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_deactivate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_set_periodicity"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_send"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_send_manual"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_action_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_action_send_to_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_cron_send_digest_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_unsubscribe_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 62,
+     "name": "_compute_kpis"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_compute_tips"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_kpis_actions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_compute_preferences"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_next_run_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_compute_timeframes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_calculate_company_based_kpi"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_company_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_kpi_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_margin_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_check_daily_logs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_next_periodicity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_format_currency_amount"
+    }
+   ],
+   "name": "digest.digest",
+   "transient": false
+  },
+  "digest.tip": {
+   "abstract": false,
+   "description": "Digest Tips",
+   "extension": false,
+   "fields": {
+    "group_id": {
+     "comodel": "res.groups",
+     "default": {
+      "$lambda": "self.env.ref('base.group_user')"
+     },
+     "string": "Authorized Group",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 1,
+     "help": "Used to display digest tip in email template base on order",
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "tip_description": {
+     "string": "Tip description",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "user_ids": {
+     "comodel": "res.users",
+     "help": "Users having already received this tip",
+     "string": "Recipients",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "digest.tip",
+   "order": "sequence",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "digest_emails": {
+     "string": "Digest Emails",
+     "type": "Boolean"
+    },
+    "digest_id": {
+     "comodel": "digest.digest",
+     "string": "Digest Email",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "digest",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/digest",
+ "stats": {
+  "fields": 20,
+  "methods": 34,
+  "models": 4,
+  "py_lines": 621
+ },
+ "summary": "Send KPI Digests periodically",
+ "title": "KPI Digests",
+ "version": "1.1"
+}

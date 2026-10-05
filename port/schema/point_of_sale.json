@@ -1,0 +1,7500 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Sales/Point of Sale",
+ "data_files": [
+  "security/point_of_sale_security.xml",
+  "security/ir.model.access.csv",
+  "data/default_barcode_patterns.xml",
+  "data/digest_data.xml",
+  "data/pos_note_data.xml",
+  "data/mail_template_data.xml",
+  "data/point_of_sale_tour.xml",
+  "data/ir_config_parameter_data.xml",
+  "wizard/pos_details.xml",
+  "wizard/pos_payment.xml",
+  "wizard/pos_close_session_wizard.xml",
+  "wizard/pos_daily_sales_reports.xml",
+  "views/pos_assets_index.xml",
+  "views/point_of_sale_report.xml",
+  "views/point_of_sale_view.xml",
+  "views/pos_note_view.xml",
+  "views/pos_order_view.xml",
+  "views/pos_category_view.xml",
+  "views/product_combo_views.xml",
+  "views/product_view.xml",
+  "views/account_journal_view.xml",
+  "views/pos_payment_method_views.xml",
+  "views/pos_payment_views.xml",
+  "views/pos_config_view.xml",
+  "views/pos_bill_view.xml",
+  "views/pos_session_view.xml",
+  "views/point_of_sale_sequence.xml",
+  "data/point_of_sale_data.xml",
+  "views/pos_order_report_view.xml",
+  "views/account_statement_view.xml",
+  "views/digest_views.xml",
+  "views/res_partner_view.xml",
+  "views/report_userlabel.xml",
+  "views/report_saledetails.xml",
+  "views/point_of_sale_dashboard.xml",
+  "views/report_invoice.xml",
+  "views/pos_printer_view.xml",
+  "views/pos_ticket_view.xml",
+  "views/res_config_settings_views.xml",
+  "views/customer_display_index.xml",
+  "views/account_move_views.xml",
+  "views/pos_session_sales_details.xml",
+  "data/demo_data.xml"
+ ],
+ "depends": [
+  "stock_account",
+  "barcodes",
+  "web_editor",
+  "digest",
+  "phone_validation"
+ ],
+ "models": {
+  "account.bank.statement.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_session_id": {
+     "comodel": "pos.session",
+     "copy": false,
+     "string": "Session",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.bank.statement.line",
+   "transient": false
+  },
+  "account.cash.rounding": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_pos_config"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('rounding', 'rounding_method', 'strategy')"
+     ],
+     "lines": 5,
+     "name": "_check_session_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "account.cash.rounding",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "account.fiscal.position": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_archive"
+    }
+   ],
+   "name": "account.fiscal.position",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "account.fiscal.position.tax": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_check_pos_order_usage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 2,
+     "name": "_unlink_except_used_in_pos_order"
+    }
+   ],
+   "name": "account.fiscal.position.tax",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "position_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_payment_method_ids": {
+     "comodel": "pos.payment.method",
+     "inverse_name": "journal_id",
+     "string": "Point of Sale Payment Methods",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('type')"
+     ],
+     "lines": 4,
+     "name": "_check_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_check_no_active_payments"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_journal_except_with_active_payments"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=True)"
+     ],
+     "lines": 4,
+     "name": "_unlink_journal_cascade_pos_payment_methods"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_archive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_journal_inbound_outstanding_payment_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_ensure_company_account_journal"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_order_ids": {
+     "comodel": "pos.order",
+     "inverse_name": "account_move",
+     "type": "One2many"
+    },
+    "pos_payment_ids": {
+     "comodel": "pos.payment",
+     "inverse_name": "account_move_id",
+     "type": "One2many"
+    },
+    "pos_refunded_invoice_ids": {
+     "column1": "refund_account_move",
+     "column2": "original_account_move",
+     "comodel": "account.move",
+     "relation_table": "refunded_invoices",
+     "type": "Many2many"
+    },
+    "pos_session_ids": {
+     "comodel": "pos.session",
+     "inverse_name": "move_id",
+     "string": "POS Sessions",
+     "type": "One2many"
+    },
+    "reversed_pos_order_id": {
+     "comodel": "pos.order",
+     "help": "The pos order that was reverted after closing the session to create an invoice for it.",
+     "string": "Reversed POS Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tax_cash_basis_created_move_ids', 'pos_session_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_always_tax_exigible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_stock_account_get_last_step_stock_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_invoiced_lot_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_compute_payments_widget_reconciled_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_tax_totals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_recompute_cash_rounding_lines"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_compute_tax_totals": []
+   },
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_stock_account_get_anglo_saxon_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_name"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "force_outstanding_account_id": {
+     "comodel": "account.account",
+     "string": "Forced Outstanding Account",
+     "type": "Many2one"
+    },
+    "pos_payment_method_id": {
+     "comodel": "pos.payment.method",
+     "string": "POS Payment Method",
+     "type": "Many2one"
+    },
+    "pos_session_id": {
+     "comodel": "pos.session",
+     "index": "btree_not_null",
+     "string": "POS Session",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('force_outstanding_account_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_outstanding_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_payment_method_codes_to_exclude"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "pos_order_line_ids": {
+     "column1": "account_tax_id",
+     "column2": "pos_order_line_id",
+     "comodel": "pos.order.line",
+     "copy": false,
+     "readonly": true,
+     "relation_table": "account_tax_pos_order_line_rel",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_order_line_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_used"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "account.tax.group": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "account.tax.group",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "barcode.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "type": {
+     "ondelete": {
+      "cashier": "set default",
+      "client": "set default",
+      "discount": "set default",
+      "price": "set default",
+      "weight": "set default"
+     },
+     "selection_add": [
+      [
+       "weight",
+       "Weighted Product"
+      ],
+      [
+       "price",
+       "Priced Product"
+      ],
+      [
+       "discount",
+       "Discounted Product"
+      ],
+      [
+       "client",
+       "Client"
+      ],
+      [
+       "cashier",
+       "Cashier"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "barcode.rule",
+   "transient": false
+  },
+  "decimal.precision": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "decimal.precision",
+   "transient": false
+  },
+  "digest.digest": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "kpi_pos_total": {
+     "string": "POS Sales",
+     "type": "Boolean"
+    },
+    "kpi_pos_total_value": {
+     "compute": "_compute_kpi_pos_total_value",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_kpi_pos_total_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_kpis_actions"
+    }
+   ],
+   "name": "digest.digest",
+   "transient": false
+  },
+  "ir.binary": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_find_record_check_access"
+    }
+   ],
+   "name": "ir.binary",
+   "sel_methods": {
+    "_find_record_check_access": []
+   },
+   "transient": false
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_translation_frontend_modules_name"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "ir.module.module": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "ir.module.module",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "name",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "ir.ui.view": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "ir.ui.view",
+   "transient": false
+  },
+  "mail.compose.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_send_mail"
+    }
+   ],
+   "name": "mail.compose.message",
+   "transient": false
+  },
+  "pos.bill": {
+   "abstract": false,
+   "description": "Coins/Bills",
+   "extension": false,
+   "fields": {
+    "for_all_config": {
+     "default": true,
+     "help": "If checked, this coin/bill will be available in all PoS.",
+     "string": "For All PoS",
+     "type": "Boolean"
+    },
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    },
+    "pos_config_ids": {
+     "comodel": "pos.config",
+     "string": "Point of Sales",
+     "type": "Many2many"
+    },
+    "value": {
+     "digits": [
+      16,
+      4
+     ],
+     "required": true,
+     "string": "Coin/Bill Value",
+     "type": "Float"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "name_create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "pos.bill",
+   "order": "value",
+   "transient": false
+  },
+  "pos.bus.mixin": {
+   "abstract": true,
+   "description": "Bus Mixin",
+   "extension": false,
+   "fields": {
+    "access_token": {
+     "copy": false,
+     "string": "Security Token",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_ensure_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_notify"
+    }
+   ],
+   "name": "pos.bus.mixin",
+   "transient": false
+  },
+  "pos.category": {
+   "abstract": false,
+   "description": "Point of Sale Category",
+   "extension": false,
+   "fields": {
+    "child_ids": {
+     "comodel": "pos.category",
+     "inverse_name": "parent_id",
+     "string": "Children Categories",
+     "type": "One2many"
+    },
+    "color": {
+     "default": {
+      "$ref": "get_default_color"
+     },
+     "required": false,
+     "string": "Color",
+     "type": "Integer"
+    },
+    "has_image": {
+     "compute": "_compute_has_image",
+     "type": "Boolean"
+    },
+    "image_128": {
+     "string": "Image",
+     "type": "Image"
+    },
+    "name": {
+     "required": true,
+     "string": "Category Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "parent_id": {
+     "comodel": "pos.category",
+     "index": true,
+     "string": "Parent Category",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "help": "Gives the sequence order when displaying a list of product categories.",
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('parent_id')"
+     ],
+     "lines": 3,
+     "name": "_check_category_recursion"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_default_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_hierarchy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_session_open"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('has_image')"
+     ],
+     "lines": 3,
+     "name": "_compute_has_image"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_descendants"
+    }
+   ],
+   "name": "pos.category",
+   "order": "sequence, name",
+   "transient": false
+  },
+  "pos.close.session.wizard": {
+   "abstract": false,
+   "description": "Close Session Wizard",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "account.account",
+     "string": "Destination account",
+     "type": "Many2one"
+    },
+    "account_readonly": {
+     "string": "Destination account is readonly",
+     "type": "Boolean"
+    },
+    "amount_to_balance": {
+     "string": "Amount to balance",
+     "type": "Float"
+    },
+    "message": {
+     "string": "Information message",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "close_session"
+    }
+   ],
+   "name": "pos.close.session.wizard",
+   "transient": true
+  },
+  "pos.config": {
+   "abstract": false,
+   "description": "Point of Sale Configuration",
+   "extension": false,
+   "fields": {
+    "access_token": {
+     "default": {
+      "$lambda": "uuid4().hex[:16]"
+     },
+     "string": "Access Token",
+     "type": "Char"
+    },
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "amount_authorized_diff": {
+     "help": "This field depicts the maximum difference allowed between the ending balance and the theoretical cash when closing a session, for non-POS managers. If this maximum is reached, the user will have an error message at the closing of his session saying that he needs to contact his manager.",
+     "string": "Amount Authorized Difference",
+     "type": "Float"
+    },
+    "auto_validate_terminal_payment": {
+     "default": true,
+     "help": "Automatically validates orders paid with a payment terminal.",
+     "type": "Boolean"
+    },
+    "available_pricelist_ids": {
+     "comodel": "product.pricelist",
+     "help": "Make several pricelists available in the Point of Sale. You can also apply a pricelist to specific customers from their contact form (in Sales tab). To be valid, this pricelist must be listed here as an available pricelist. Otherwise the default pricelist will apply.",
+     "string": "Available Pricelists",
+     "type": "Many2many"
+    },
+    "basic_receipt": {
+     "help": "Print basic ticket without prices. Can be used for gifts.",
+     "string": "Basic Receipt",
+     "type": "Boolean"
+    },
+    "cash_control": {
+     "compute": "_compute_cash_control",
+     "help": "Check the amount of the cashbox at opening and closing.",
+     "string": "Advanced Cash Control",
+     "type": "Boolean"
+    },
+    "cash_rounding": {
+     "string": "Cash Rounding",
+     "type": "Boolean"
+    },
+    "company_has_template": {
+     "compute": "_compute_company_has_template",
+     "string": "Company has chart of accounts",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "current_session_id": {
+     "comodel": "pos.session",
+     "compute": "_compute_current_session",
+     "string": "Current Session",
+     "type": "Many2one"
+    },
+    "current_session_state": {
+     "compute": "_compute_current_session",
+     "type": "Char"
+    },
+    "current_user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_current_session_user",
+     "string": "Current Session Responsible",
+     "type": "Many2one"
+    },
+    "customer_display_bg_img": {
+     "string": "Background Image",
+     "type": "Image"
+    },
+    "customer_display_bg_img_name": {
+     "string": "Background Image Name",
+     "type": "Char"
+    },
+    "customer_display_type": {
+     "default": "local",
+     "help": "Show checkout to customers.",
+     "selection_method": "_get_customer_display_types",
+     "string": "Customer Facing Display",
+     "type": "Selection"
+    },
+    "default_bill_ids": {
+     "comodel": "pos.bill",
+     "string": "Coins/Bills",
+     "type": "Many2many"
+    },
+    "default_fiscal_position_id": {
+     "comodel": "account.fiscal.position",
+     "string": "Default Fiscal Position",
+     "type": "Many2one"
+    },
+    "fiscal_position_ids": {
+     "comodel": "account.fiscal.position",
+     "help": "This is useful for restaurants with onsite and take-away services that imply specific tax rates.",
+     "string": "Fiscal Positions",
+     "type": "Many2many"
+    },
+    "group_pos_manager_id": {
+     "comodel": "res.groups",
+     "default": {
+      "$ref": "_get_group_pos_manager"
+     },
+     "help": "This field is there to pass the id of the pos manager group to the point of sale client.",
+     "string": "Point of Sale Manager Group",
+     "type": "Many2one"
+    },
+    "group_pos_user_id": {
+     "comodel": "res.groups",
+     "default": {
+      "$ref": "_get_group_pos_user"
+     },
+     "help": "This field is there to pass the id of the pos user group to the point of sale client.",
+     "string": "Point of Sale User Group",
+     "type": "Many2one"
+    },
+    "has_active_session": {
+     "compute": "_compute_current_session",
+     "type": "Boolean"
+    },
+    "iface_available_categ_ids": {
+     "comodel": "pos.category",
+     "help": "The point of sale will only display products which are within one of the selected category trees. If no category is specified, all available products will be shown",
+     "string": "Available PoS Product Categories",
+     "type": "Many2many"
+    },
+    "iface_big_scrollbars": {
+     "help": "For imprecise industrial touchscreens.",
+     "string": "Large Scrollbars",
+     "type": "Boolean"
+    },
+    "iface_cashdrawer": {
+     "help": "Automatically open the cashdrawer.",
+     "string": "Cashdrawer",
+     "type": "Boolean"
+    },
+    "iface_electronic_scale": {
+     "help": "Enables Electronic Scale integration.",
+     "string": "Electronic Scale",
+     "type": "Boolean"
+    },
+    "iface_print_auto": {
+     "default": false,
+     "help": "The receipt will automatically be printed at the end of each order.",
+     "string": "Automatic Receipt Printing",
+     "type": "Boolean"
+    },
+    "iface_print_skip_screen": {
+     "default": true,
+     "help": "The receipt screen will be skipped if the receipt can be printed automatically.",
+     "string": "Skip Preview Screen",
+     "type": "Boolean"
+    },
+    "iface_print_via_proxy": {
+     "help": "Bypass browser printing and prints via the hardware proxy.",
+     "string": "Print via Proxy",
+     "type": "Boolean"
+    },
+    "iface_scan_via_proxy": {
+     "help": "Enable barcode scanning with a remotely connected barcode scanner and card swiping with a Vantiv card reader.",
+     "string": "Scan via Proxy",
+     "type": "Boolean"
+    },
+    "iface_tax_included": {
+     "default": "total",
+     "required": true,
+     "selection": [
+      [
+       "subtotal",
+       "Tax-Excluded Price"
+      ],
+      [
+       "total",
+       "Tax-Included Price"
+      ]
+     ],
+     "string": "Tax Display",
+     "type": "Selection"
+    },
+    "iface_tipproduct": {
+     "string": "Product tips",
+     "type": "Boolean"
+    },
+    "invoice_journal_id": {
+     "comodel": "account.journal",
+     "default": {
+      "$ref": "_default_invoice_journal"
+     },
+     "domain": [
+      [
+       "type",
+       "=",
+       "sale"
+      ]
+     ],
+     "help": "Accounting journal used to create invoices.",
+     "string": "Invoice Journal",
+     "type": "Many2one"
+    },
+    "is_closing_entry_by_product": {
+     "help": "Display the breakdown of sales lines by product in the automatically generated closing entry.",
+     "string": "Closing Entry by product",
+     "type": "Boolean"
+    },
+    "is_header_or_footer": {
+     "string": "Custom Header & Footer",
+     "type": "Boolean"
+    },
+    "is_installed_account_accountant": {
+     "compute": "_compute_is_installed_account_accountant",
+     "string": "Is the Full Accounting Installed",
+     "type": "Boolean"
+    },
+    "is_margins_costs_accessible_to_every_user": {
+     "default": false,
+     "help": "When disabled, only PoS manager can view the margin and cost of product among the Product info.",
+     "string": "Margins & Costs",
+     "type": "Boolean"
+    },
+    "is_order_printer": {
+     "string": "Order Printer",
+     "type": "Boolean"
+    },
+    "is_posbox": {
+     "string": "PosBox",
+     "type": "Boolean"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "default": {
+      "$ref": "_default_sale_journal"
+     },
+     "domain": [
+      [
+       "type",
+       "in",
+       [
+        "general",
+        "sale"
+       ]
+      ]
+     ],
+     "help": "Accounting journal used to post POS session journal entries and POS invoice payments.",
+     "ondelete": "restrict",
+     "string": "Point of Sale Journal",
+     "type": "Many2one"
+    },
+    "last_session_closing_cash": {
+     "compute": "_compute_last_session",
+     "type": "Float"
+    },
+    "last_session_closing_date": {
+     "compute": "_compute_last_session",
+     "type": "Date"
+    },
+    "limit_categories": {
+     "string": "Restrict Categories",
+     "type": "Boolean"
+    },
+    "manual_discount": {
+     "default": true,
+     "string": "Line Discounts",
+     "type": "Boolean"
+    },
+    "module_pos_avatax": {
+     "help": "Use automatic taxes mapping with Avatax in PoS",
+     "string": "AvaTax PoS Integration",
+     "type": "Boolean"
+    },
+    "module_pos_discount": {
+     "string": "Global Discounts",
+     "type": "Boolean"
+    },
+    "module_pos_hr": {
+     "help": "Show employee login screen",
+     "type": "Boolean"
+    },
+    "module_pos_restaurant": {
+     "string": "Is a Bar/Restaurant",
+     "type": "Boolean"
+    },
+    "module_pos_sms": {
+     "help": "Activate SMS feature for point_of_sale",
+     "string": "SMS Enabled",
+     "type": "Boolean"
+    },
+    "name": {
+     "help": "An internal identification of the point of sale.",
+     "required": true,
+     "string": "Point of Sale",
+     "type": "Char"
+    },
+    "note_ids": {
+     "comodel": "pos.note",
+     "help": "The predefined notes of this point of sale.",
+     "string": "Note Models",
+     "type": "Many2many"
+    },
+    "number_of_rescue_session": {
+     "compute": "_compute_current_session",
+     "string": "Number of Rescue Session",
+     "type": "Integer"
+    },
+    "only_round_cash_method": {
+     "string": "Only apply rounding on cash",
+     "type": "Boolean"
+    },
+    "order_edit_tracking": {
+     "default": false,
+     "help": "Store edited orders in the backend",
+     "string": "Track orders edits",
+     "type": "Boolean"
+    },
+    "orderlines_sequence_in_cart_by_category": {
+     "default": false,
+     "help": "When active, orderlines will be sorted based on product category and sequence in the product screen's order cart.",
+     "string": "Order cart by category's sequence",
+     "type": "Boolean"
+    },
+    "other_devices": {
+     "help": "Connect devices to your PoS without an IoT Box.",
+     "string": "Other Devices",
+     "type": "Boolean"
+    },
+    "payment_method_ids": {
+     "comodel": "pos.payment.method",
+     "copy": false,
+     "default": {
+      "$lambda": "self._default_payment_methods()"
+     },
+     "string": "Payment Methods",
+     "type": "Many2many"
+    },
+    "picking_policy": {
+     "default": "direct",
+     "help": "If you deliver all products at once, the delivery order will be scheduled based on the greatest product lead time. Otherwise, it will be based on the shortest.",
+     "required": true,
+     "selection": [
+      [
+       "direct",
+       "As soon as possible"
+      ],
+      [
+       "one",
+       "When all products are ready"
+      ]
+     ],
+     "string": "Shipping Policy",
+     "type": "Selection"
+    },
+    "picking_type_id": {
+     "comodel": "stock.picking.type",
+     "default": {
+      "$ref": "_default_picking_type_id"
+     },
+     "domain": {
+      "$lambda": "[('code', '=', 'outgoing'), ('warehouse_id.company_id', '=', self.env.company.id)]"
+     },
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Operation Type",
+     "type": "Many2one"
+    },
+    "pos_session_duration": {
+     "compute": "_compute_current_session_user",
+     "type": "Char"
+    },
+    "pos_session_state": {
+     "compute": "_compute_current_session_user",
+     "type": "Char"
+    },
+    "pos_session_username": {
+     "compute": "_compute_current_session_user",
+     "type": "Char"
+    },
+    "pricelist_id": {
+     "comodel": "product.pricelist",
+     "help": "The pricelist used if no customer is selected or if the customer has no Sale Pricelist configured if any.",
+     "string": "Default Pricelist",
+     "type": "Many2one"
+    },
+    "printer_ids": {
+     "column1": "config_id",
+     "column2": "printer_id",
+     "comodel": "pos.printer",
+     "relation_table": "pos_config_printer_rel",
+     "string": "Order Printers",
+     "type": "Many2many"
+    },
+    "proxy_ip": {
+     "help": "The hostname or ip address of the hardware proxy, Will be autodetected if left empty.",
+     "size": 45,
+     "string": "IP Address",
+     "type": "Char"
+    },
+    "receipt_footer": {
+     "help": "A short text that will be inserted as a footer in the printed receipt.",
+     "string": "Receipt Footer",
+     "type": "Text"
+    },
+    "receipt_header": {
+     "help": "A short text that will be inserted as a header in the printed receipt.",
+     "string": "Receipt Header",
+     "type": "Text"
+    },
+    "restrict_price_control": {
+     "help": "Only users with Manager access rights for PoS app can modify the product prices on orders.",
+     "string": "Restrict Price Modifications to Managers",
+     "type": "Boolean"
+    },
+    "rounding_method": {
+     "comodel": "account.cash.rounding",
+     "string": "Cash rounding",
+     "type": "Many2one"
+    },
+    "route_id": {
+     "comodel": "stock.route",
+     "string": "Spefic route for products delivered later.",
+     "type": "Many2one"
+    },
+    "sequence_id": {
+     "comodel": "ir.sequence",
+     "copy": false,
+     "help": "This sequence is automatically created by Odoo but you can change it to customize the reference numbers of your orders.",
+     "ondelete": "restrict",
+     "readonly": true,
+     "string": "Order IDs Sequence",
+     "type": "Many2one"
+    },
+    "sequence_line_id": {
+     "comodel": "ir.sequence",
+     "copy": false,
+     "help": "This sequence is automatically created by Odoo but you can change it to customize the reference numbers of your orders lines.",
+     "readonly": true,
+     "string": "Order Line IDs Sequence",
+     "type": "Many2one"
+    },
+    "session_ids": {
+     "comodel": "pos.session",
+     "inverse_name": "config_id",
+     "string": "Sessions",
+     "type": "One2many"
+    },
+    "set_maximum_difference": {
+     "help": "Set a maximum difference allowed between the expected and counted money during the closing of the session.",
+     "string": "Set Maximum Difference",
+     "type": "Boolean"
+    },
+    "ship_later": {
+     "string": "Ship Later",
+     "type": "Boolean"
+    },
+    "show_category_images": {
+     "default": true,
+     "help": "Show category images in the Point of Sale interface.",
+     "string": "Show Category Images",
+     "type": "Boolean"
+    },
+    "show_product_images": {
+     "default": true,
+     "help": "Show product images in the Point of Sale interface.",
+     "string": "Show Product Images",
+     "type": "Boolean"
+    },
+    "tax_regime_selection": {
+     "string": "Tax Regime Selection value",
+     "type": "Boolean"
+    },
+    "tip_product_id": {
+     "comodel": "product.product",
+     "default": {
+      "$ref": "_get_default_tip_product"
+     },
+     "help": "This product is used as reference on customer receipts.",
+     "string": "Tip Product",
+     "type": "Many2one"
+    },
+    "trusted_config_ids": {
+     "column1": "is_trusting",
+     "column2": "is_trusted",
+     "comodel": "pos.config",
+     "domain": "[('company_id', '=', company_id)]",
+     "relation_table": "pos_config_trust_relation",
+     "string": "Trusted Point of Sale Configurations",
+     "type": "Many2many"
+    },
+    "use_pricelist": {
+     "string": "Use a pricelist.",
+     "type": "Boolean"
+    },
+    "uuid": {
+     "copy": false,
+     "default": {
+      "$lambda": "str(uuid4())"
+     },
+     "help": "A globally unique identifier for this pos configuration, used to prevent conflicts in client-generated data.",
+     "readonly": true,
+     "type": "Char"
+    },
+    "warehouse_id": {
+     "comodel": "stock.warehouse",
+     "compute": "_compute_warehouse_id",
+     "ondelete": "restrict",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "pos.bus.mixin",
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_dynamic_models"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_warehouse_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_default_sale_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_invoice_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_default_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_group_pos_manager"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_group_pos_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_default_tip_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_customer_display_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "notify_synchronisation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "read_config_open_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_records"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_load_pos_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_warehouse_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_cash_control"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_company_has_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_is_installed_account_accountant"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('journal_id.currency_id', 'journal_id.company_id.currency_id', 'company_id', 'company_id.currency_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('session_ids', 'session_ids.state')"
+     ],
+     "lines": 13,
+     "name": "_compute_current_session"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('session_ids')"
+     ],
+     "lines": 14,
+     "name": "_compute_last_session"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('session_ids')"
+     ],
+     "lines": 15,
+     "name": "_compute_current_session_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('rounding_method')"
+     ],
+     "lines": 13,
+     "name": "_check_rounding_method_strategy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_check_profit_loss_cash_journal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id', 'payment_method_ids')"
+     ],
+     "lines": 4,
+     "name": "_check_company_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('pricelist_id', 'use_pricelist', 'available_pricelist_ids', 'journal_id', 'invoice_journal_id', 'payment_method_ids')"
+     ],
+     "lines": 16,
+     "name": "_check_currencies"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_check_payment_method_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('pricelist_id', 'available_pricelist_ids')"
+     ],
+     "lines": 6,
+     "name": "_check_pricelists"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id', 'available_pricelist_ids')"
+     ],
+     "lines": 4,
+     "name": "_check_companies"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_check_company_has_template"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('payment_method_ids')"
+     ],
+     "lines": 8,
+     "name": "_check_payment_method_ids_journal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('trusted_config_ids')"
+     ],
+     "lines": 5,
+     "name": "_check_trusted_config_ids_currency"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_header_footer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('customer_display_type', 'proxy_ip', 'is_posbox')"
+     ],
+     "lines": 4,
+     "name": "_check_customer_display_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_config_sequence_implementation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 23,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_reset_default_on_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_update_preparation_printers_menuitem_visibility"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 64,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_preprocess_x2many_vals_from_settings_view"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_keep_new_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_forbidden_change_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_pos_manager_access"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_set_fiscal_position"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_check_modules_to_install"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_check_groups_implied"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "execute"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_force_http"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_action_to_open_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_before_creating_new_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "open_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "open_existing_session_cb"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_open_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "open_opened_rescue_session_form"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_available_categories"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_available_product_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_link_same_non_cash_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_is_journal_exist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_is_pos_pm_exist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "get_limited_products_loading"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_limited_product_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_limited_partner_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "get_limited_partners_loading"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_pos_config_modal_edit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_add_trusted_config_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_remove_trusted_config_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_special_products"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "update_customer_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_display_device_ip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_customer_display_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 25,
+     "name": "_create_cash_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 53,
+     "name": "_create_journal_and_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_load_furniture_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "get_categories"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "load_onboarding_clothes_scenario"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "load_onboarding_bakery_scenario"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "load_onboarding_furniture_scenario"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_suffixed_ref_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "get_pos_kanban_view_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "install_pos_restaurant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_available_pricelists"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_set_default_pos_load_limit"
+    }
+   ],
+   "name": "pos.config",
+   "sel_methods": {
+    "_get_customer_display_types": [
+     [
+      "none",
+      "None"
+     ],
+     [
+      "local",
+      "The same device"
+     ],
+     [
+      "remote",
+      "Another device"
+     ],
+     [
+      "proxy",
+      "An IOT-connected screen"
+     ]
+    ],
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "pos.daily.sales.reports.wizard": {
+   "abstract": false,
+   "description": "Point of Sale Daily Report",
+   "extension": false,
+   "fields": {
+    "pos_session_id": {
+     "comodel": "pos.session",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "generate_report"
+    }
+   ],
+   "name": "pos.daily.sales.reports.wizard",
+   "transient": true
+  },
+  "pos.details.wizard": {
+   "abstract": false,
+   "description": "Point of Sale Details Report",
+   "extension": false,
+   "fields": {
+    "end_date": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "required": true,
+     "type": "Datetime"
+    },
+    "pos_config_ids": {
+     "comodel": "pos.config",
+     "default": {
+      "$lambda": "s.env['pos.config'].search([])"
+     },
+     "relation_table": "pos_detail_configs",
+     "type": "Many2many"
+    },
+    "start_date": {
+     "default": {
+      "$ref": "_default_start_date"
+     },
+     "required": true,
+     "type": "Datetime"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_default_start_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('start_date')"
+     ],
+     "lines": 3,
+     "name": "_onchange_start_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('end_date')"
+     ],
+     "lines": 3,
+     "name": "_onchange_end_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "generate_report"
+    }
+   ],
+   "name": "pos.details.wizard",
+   "transient": true
+  },
+  "pos.load.mixin": {
+   "abstract": true,
+   "description": "PoS data loading mixin",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "pos.load.mixin",
+   "sel_methods": {
+    "_load_pos_data_domain": [],
+    "_load_pos_data_fields": []
+   },
+   "transient": false
+  },
+  "pos.make.payment": {
+   "abstract": false,
+   "description": "Point of Sale Make Payment Wizard",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "default": {
+      "$ref": "_default_amount"
+     },
+     "digits": 0,
+     "required": true,
+     "type": "Float"
+    },
+    "config_id": {
+     "comodel": "pos.config",
+     "default": {
+      "$ref": "_default_config"
+     },
+     "required": true,
+     "string": "Point of Sale Configuration",
+     "type": "Many2one"
+    },
+    "payment_date": {
+     "default": {
+      "$lambda": "fields.Datetime.now()"
+     },
+     "required": true,
+     "string": "Payment Date",
+     "type": "Datetime"
+    },
+    "payment_method_id": {
+     "comodel": "pos.payment.method",
+     "default": {
+      "$ref": "_default_payment_method"
+     },
+     "required": true,
+     "string": "Payment Method",
+     "type": "Many2one"
+    },
+    "payment_name": {
+     "string": "Payment Reference",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_config"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_default_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_default_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "launch_payment"
+    }
+   ],
+   "name": "pos.make.payment",
+   "transient": true
+  },
+  "pos.note": {
+   "abstract": false,
+   "description": "PoS Note",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "pos.note",
+   "order": "sequence",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "name_unique",
+     "unique (name)",
+     "A note with this name already exists"
+    ]
+   ],
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "description": "Point of Sale Orders",
+   "extension": false,
+   "fields": {
+    "account_move": {
+     "comodel": "account.move",
+     "copy": false,
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Invoice",
+     "type": "Many2one"
+    },
+    "amount_difference": {
+     "readonly": true,
+     "string": "Difference",
+     "type": "Monetary"
+    },
+    "amount_paid": {
+     "required": true,
+     "string": "Paid",
+     "type": "Monetary"
+    },
+    "amount_return": {
+     "readonly": true,
+     "required": true,
+     "string": "Returned",
+     "type": "Monetary"
+    },
+    "amount_tax": {
+     "readonly": true,
+     "required": true,
+     "string": "Taxes",
+     "type": "Monetary"
+    },
+    "amount_total": {
+     "readonly": true,
+     "required": true,
+     "string": "Total",
+     "type": "Monetary"
+    },
+    "available_payment_method_ids": {
+     "comodel": "pos.payment.method",
+     "readonly": true,
+     "related": "config_id.payment_method_ids",
+     "store": false,
+     "string": "Available Payment Methods",
+     "type": "Many2many"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "index": true,
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "config_id": {
+     "comodel": "pos.config",
+     "readonly": false,
+     "related": "session_id.config_id",
+     "store": true,
+     "string": "Point of Sale",
+     "type": "Many2one"
+    },
+    "country_code": {
+     "related": "company_id.account_fiscal_country_id.code",
+     "type": "Char"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "config_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "currency_rate": {
+     "compute": "_compute_currency_rate",
+     "digits": 0,
+     "help": "The rate of the currency to the currency of rate applicable at the date of the order",
+     "readonly": true,
+     "store": true,
+     "string": "Currency Rate",
+     "type": "Float"
+    },
+    "date_order": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "index": true,
+     "readonly": true,
+     "string": "Date",
+     "type": "Datetime"
+    },
+    "email": {
+     "compute": "_compute_contact_details",
+     "readonly": false,
+     "store": true,
+     "string": "Email",
+     "type": "Char"
+    },
+    "failed_pickings": {
+     "compute": "_compute_picking_count",
+     "type": "Boolean"
+    },
+    "fiscal_position_id": {
+     "comodel": "account.fiscal.position",
+     "readonly": false,
+     "string": "Fiscal Position",
+     "type": "Many2one"
+    },
+    "floating_order_name": {
+     "string": "Order Name",
+     "type": "Char"
+    },
+    "general_note": {
+     "string": "General Note",
+     "type": "Text"
+    },
+    "has_deleted_line": {
+     "string": "Has Deleted Line",
+     "type": "Boolean"
+    },
+    "has_refundable_lines": {
+     "compute": "_compute_has_refundable_lines",
+     "string": "Has Refundable Lines",
+     "type": "Boolean"
+    },
+    "is_edited": {
+     "compute": "_compute_is_edited",
+     "string": "Edited",
+     "type": "Boolean"
+    },
+    "is_invoiced": {
+     "compute": "_compute_is_invoiced",
+     "string": "Is Invoiced",
+     "type": "Boolean"
+    },
+    "is_tipped": {
+     "readonly": true,
+     "string": "Is this already tipped?",
+     "type": "Boolean"
+    },
+    "is_total_cost_computed": {
+     "compute": "_compute_is_total_cost_computed",
+     "help": "Allows to know if all the total cost of the order lines have already been computed",
+     "type": "Boolean"
+    },
+    "last_order_preparation_change": {
+     "help": "Last printed state of the order",
+     "string": "Last preparation change",
+     "type": "Char"
+    },
+    "lines": {
+     "comodel": "pos.order.line",
+     "copy": true,
+     "inverse_name": "order_id",
+     "string": "Order Lines",
+     "type": "One2many"
+    },
+    "margin": {
+     "compute": "_compute_margin",
+     "string": "Margin",
+     "type": "Monetary"
+    },
+    "margin_percent": {
+     "compute": "_compute_margin",
+     "digits": [
+      12,
+      4
+     ],
+     "string": "Margin (%)",
+     "type": "Float"
+    },
+    "mobile": {
+     "compute": "_compute_contact_details",
+     "readonly": false,
+     "store": true,
+     "string": "Mobile",
+     "type": "Char"
+    },
+    "name": {
+     "copy": false,
+     "default": "/",
+     "readonly": true,
+     "required": true,
+     "string": "Order Ref",
+     "type": "Char"
+    },
+    "nb_print": {
+     "copy": false,
+     "default": 0,
+     "readonly": true,
+     "string": "Number of Print",
+     "type": "Integer"
+    },
+    "order_edit_tracking": {
+     "readonly": true,
+     "related": "config_id.order_edit_tracking",
+     "type": "Boolean"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "index": "btree_not_null",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "payment_ids": {
+     "comodel": "pos.payment",
+     "inverse_name": "pos_order_id",
+     "string": "Payments",
+     "type": "One2many"
+    },
+    "picking_count": {
+     "compute": "_compute_picking_count",
+     "type": "Integer"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "inverse_name": "pos_order_id",
+     "type": "One2many"
+    },
+    "picking_type_id": {
+     "comodel": "stock.picking.type",
+     "readonly": false,
+     "related": "session_id.config_id.picking_type_id",
+     "string": "Operation Type",
+     "type": "Many2one"
+    },
+    "pos_reference": {
+     "copy": false,
+     "index": true,
+     "readonly": true,
+     "string": "Receipt Number",
+     "type": "Char"
+    },
+    "pricelist_id": {
+     "comodel": "product.pricelist",
+     "string": "Pricelist",
+     "type": "Many2one"
+    },
+    "procurement_group_id": {
+     "comodel": "procurement.group",
+     "copy": false,
+     "string": "Procurement Group",
+     "type": "Many2one"
+    },
+    "refund_orders_count": {
+     "compute": "_compute_refund_related_fields",
+     "help": "Number of orders where items from this order were refunded",
+     "string": "Number of Refund Orders",
+     "type": "Integer"
+    },
+    "refunded_order_id": {
+     "comodel": "pos.order",
+     "compute": "_compute_refund_related_fields",
+     "help": "Order from which items were refunded in this order",
+     "type": "Many2one"
+    },
+    "sale_journal": {
+     "comodel": "account.journal",
+     "ondelete": "restrict",
+     "readonly": true,
+     "related": "session_id.config_id.journal_id",
+     "store": true,
+     "string": "Sales Journal",
+     "type": "Many2one"
+    },
+    "sequence_number": {
+     "default": 1,
+     "help": "A session-unique sequence number for the order",
+     "string": "Sequence Number",
+     "type": "Integer"
+    },
+    "session_id": {
+     "comodel": "pos.session",
+     "domain": "[('state', '=', 'opened')]",
+     "index": true,
+     "required": true,
+     "string": "Session",
+     "type": "Many2one"
+    },
+    "session_move_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "readonly": true,
+     "related": "session_id.move_id",
+     "string": "Session Journal Entry",
+     "type": "Many2one"
+    },
+    "shipping_date": {
+     "string": "Shipping Date",
+     "type": "Date"
+    },
+    "state": {
+     "copy": false,
+     "default": "draft",
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "New"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ],
+      [
+       "paid",
+       "Paid"
+      ],
+      [
+       "done",
+       "Posted"
+      ],
+      [
+       "invoiced",
+       "Invoiced"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "ticket_code": {
+     "help": "5 digits alphanumeric code to be used by portal user to request an invoice",
+     "type": "Char"
+    },
+    "tip_amount": {
+     "readonly": true,
+     "string": "Tip Amount",
+     "type": "Monetary"
+    },
+    "to_invoice": {
+     "copy": false,
+     "string": "To invoice",
+     "type": "Boolean"
+    },
+    "tracking_number": {
+     "compute": "_compute_tracking_number",
+     "string": "Order Number",
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.uid"
+     },
+     "help": "Employee who uses the cash register.",
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "uuid": {
+     "copy": false,
+     "readonly": true,
+     "string": "Uuid",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "portal.mixin",
+    "pos.bus.mixin",
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_valid_session"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sequence_number', 'session_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_tracking_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 65,
+     "name": "_process_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_combo_line_uuids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_link_combo_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_check_combo_item_available"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_process_saved_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_clean_payment_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_process_payment_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_tax_base_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_invoice_lines_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_prepare_invoice_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_pos_anglo_saxon_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_preparation_change"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_search_tracking_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lines.refund_orderline_ids', 'lines.refunded_orderline_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_refund_related_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lines.refunded_qty', 'lines.qty')"
+     ],
+     "lines": 4,
+     "name": "_compute_has_refundable_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_move')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_picking_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_order', 'company_id', 'currency_id', 'company_id.currency_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_currency_rate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lines.is_total_cost_computed')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_total_cost_computed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_contact_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_compute_total_cost_in_real_time"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_total_cost_at_session_closing"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lines.margin', 'is_total_cost_computed')"
+     ],
+     "lines": 9,
+     "name": "_compute_margin"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('payment_ids', 'lines')"
+     ],
+     "lines": 2,
+     "name": "_onchange_amount_all"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_compute_prices"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lines.is_edited', 'has_deleted_line')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_edited"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_draft_or_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_complete_values_from_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 51,
+     "name": "_create_pm_change_log"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_markup_list_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_order_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_stock_picking"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_invoice"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_view_refunded_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_view_refund_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_stock_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_is_pos_order_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_rounded_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_partner_bank_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_create_invoice"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 29,
+     "name": "action_pos_order_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_prepare_invoice_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_product_aml_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 125,
+     "name": "_prepare_aml_values_list_per_nature"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_create_misc_reversal_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_open_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_pos_order_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_invoice_post_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_generate_pos_order_invoice"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_pos_order_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_apply_invoice_payments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_ensure_to_keep_last_preparation_change"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_order_log_representation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_log_order_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 50,
+     "name": "sync_from_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "read_pos_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_refunded_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_create_picking_real_time"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_force_create_picking_real_time"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_create_order_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "add_payment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_prepare_refund_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_prepare_mail_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_refund"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "refund"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_send_mail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_add_mail_attachment"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_send_receipt"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "remove_from_ui"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 28,
+     "name": "search_paid_order_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "get_ticket_screen_order_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_send_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_post_chatter_message"
+    }
+   ],
+   "name": "pos.order",
+   "order": "date_order desc, name desc, id desc",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "state",
+      "="
+     ],
+     [
+      "session_id",
+      "="
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "uuid_unique",
+     "unique (uuid)",
+     "An order with this uuid already exists"
+    ]
+   ],
+   "transient": false
+  },
+  "pos.order.line": {
+   "abstract": false,
+   "description": "Point of Sale Order Lines",
+   "extension": false,
+   "fields": {
+    "attribute_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "string": "Selected Attributes",
+     "type": "Many2many"
+    },
+    "combo_item_id": {
+     "comodel": "product.combo.item",
+     "string": "Combo Item",
+     "type": "Many2one"
+    },
+    "combo_line_ids": {
+     "comodel": "pos.order.line",
+     "inverse_name": "combo_parent_id",
+     "string": "Combo Lines",
+     "type": "One2many"
+    },
+    "combo_parent_id": {
+     "comodel": "pos.order.line",
+     "string": "Combo Parent",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "related": "order_id.company_id",
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "order_id.currency_id",
+     "type": "Many2one"
+    },
+    "custom_attribute_value_ids": {
+     "comodel": "product.attribute.custom.value",
+     "inverse_name": "pos_order_line_id",
+     "readonly": false,
+     "store": true,
+     "string": "Custom Values",
+     "type": "One2many"
+    },
+    "customer_note": {
+     "string": "Customer Note",
+     "type": "Char"
+    },
+    "discount": {
+     "default": 0.0,
+     "digits": 0,
+     "string": "Discount (%)",
+     "type": "Float"
+    },
+    "full_product_name": {
+     "string": "Full Product Name",
+     "type": "Char"
+    },
+    "is_edited": {
+     "default": false,
+     "string": "Edited",
+     "type": "Boolean"
+    },
+    "is_total_cost_computed": {
+     "help": "Allows to know if the total cost has already been computed or not",
+     "type": "Boolean"
+    },
+    "margin": {
+     "compute": "_compute_margin",
+     "string": "Margin",
+     "type": "Monetary"
+    },
+    "margin_percent": {
+     "compute": "_compute_margin",
+     "digits": [
+      12,
+      4
+     ],
+     "string": "Margin (%)",
+     "type": "Float"
+    },
+    "name": {
+     "copy": false,
+     "required": true,
+     "string": "Line No",
+     "type": "Char"
+    },
+    "note": {
+     "string": "Product Note",
+     "type": "Char"
+    },
+    "notice": {
+     "string": "Discount Notice",
+     "type": "Char"
+    },
+    "order_id": {
+     "comodel": "pos.order",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Order Ref",
+     "type": "Many2one"
+    },
+    "pack_lot_ids": {
+     "comodel": "pos.pack.operation.lot",
+     "inverse_name": "pos_order_line_id",
+     "string": "Lot/serial Number",
+     "type": "One2many"
+    },
+    "price_extra": {
+     "string": "Price extra",
+     "type": "Float"
+    },
+    "price_subtotal": {
+     "readonly": true,
+     "required": true,
+     "string": "Tax Excl.",
+     "type": "Monetary"
+    },
+    "price_subtotal_incl": {
+     "readonly": true,
+     "required": true,
+     "string": "Tax Incl.",
+     "type": "Monetary"
+    },
+    "price_type": {
+     "default": "original",
+     "selection": [
+      [
+       "original",
+       "Original"
+      ],
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "automatic",
+       "Automatic"
+      ]
+     ],
+     "string": "Price Type",
+     "type": "Selection"
+    },
+    "price_unit": {
+     "digits": 0,
+     "string": "Unit Price",
+     "type": "Float"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": [
+      [
+       "sale_ok",
+       "=",
+       true
+      ]
+     ],
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "related": "product_id.uom_id",
+     "string": "Product UoM",
+     "type": "Many2one"
+    },
+    "qty": {
+     "default": 1,
+     "digits": "Product Unit of Measure",
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "refund_orderline_ids": {
+     "comodel": "pos.order.line",
+     "help": "Orderlines in this field are the lines that refunded this orderline.",
+     "inverse_name": "refunded_orderline_id",
+     "string": "Refund Order Lines",
+     "type": "One2many"
+    },
+    "refunded_orderline_id": {
+     "comodel": "pos.order.line",
+     "help": "If this orderline is a refund, then the refunded orderline is specified in this field.",
+     "string": "Refunded Order Line",
+     "type": "Many2one"
+    },
+    "refunded_qty": {
+     "compute": "_compute_refund_qty",
+     "help": "Number of items refunded in this orderline.",
+     "string": "Refunded Quantity",
+     "type": "Float"
+    },
+    "skip_change": {
+     "string": "Skip line when sending ticket to kitchen printers.",
+     "type": "Boolean"
+    },
+    "tax_ids": {
+     "column1": "pos_order_line_id",
+     "column2": "account_tax_id",
+     "comodel": "account.tax",
+     "readonly": true,
+     "relation_table": "account_tax_pos_order_line_rel",
+     "string": "Taxes",
+     "type": "Many2many"
+    },
+    "tax_ids_after_fiscal_position": {
+     "comodel": "account.tax",
+     "compute": "_get_tax_ids_after_fiscal_position",
+     "string": "Taxes to Apply",
+     "type": "Many2many"
+    },
+    "total_cost": {
+     "readonly": true,
+     "string": "Total cost",
+     "type": "Float"
+    },
+    "uuid": {
+     "copy": false,
+     "readonly": true,
+     "string": "Uuid",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_field_accepted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('refund_orderline_ids', 'refund_orderline_ids.order_id.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_refund_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_prepare_refund_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 12,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 38,
+     "name": "get_existing_lots"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_order_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('price_unit', 'tax_ids', 'qty', 'discount', 'product_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_amount_line_all"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_amount_line_all"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 9,
+     "name": "_onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('qty', 'discount', 'price_unit', 'tax_ids')"
+     ],
+     "lines": 8,
+     "name": "_onchange_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id', 'order_id.fiscal_position_id', 'tax_ids')"
+     ],
+     "lines": 3,
+     "name": "_get_tax_ids_after_fiscal_position"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_procurement_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_procurement_group_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_launch_stock_rule_from_pos_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_product_storable_fifo_avco"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_compute_total_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_stock_moves_to_consider"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('price_subtotal', 'total_cost')"
+     ],
+     "lines": 8,
+     "name": "_compute_margin"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_prepare_base_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_tax_base_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_discount_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "isRefund"
+    }
+   ],
+   "name": "pos.order.line",
+   "rec_name": "product_id",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "order_id",
+      "in"
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "uuid_unique",
+     "unique (uuid)",
+     "An order line with this uuid already exists"
+    ]
+   ],
+   "transient": false
+  },
+  "pos.pack.operation.lot": {
+   "abstract": false,
+   "description": "Specify product lot/serial number in pos order line",
+   "extension": false,
+   "fields": {
+    "lot_name": {
+     "string": "Lot Name",
+     "type": "Char"
+    },
+    "order_id": {
+     "comodel": "pos.order",
+     "readonly": false,
+     "related": "pos_order_line_id.order_id",
+     "type": "Many2one"
+    },
+    "pos_order_line_id": {
+     "comodel": "pos.order.line",
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "readonly": false,
+     "related": "pos_order_line_id.product_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "pos.pack.operation.lot",
+   "rec_name": "lot_name",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "pos_order_line_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "pos.payment": {
+   "abstract": false,
+   "description": "Point of Sale Payments",
+   "extension": false,
+   "fields": {
+    "account_move_id": {
+     "comodel": "account.move",
+     "index": "btree_not_null",
+     "type": "Many2one"
+    },
+    "amount": {
+     "currency_field": "currency_id",
+     "help": "Total amount of the payment.",
+     "required": true,
+     "string": "Amount",
+     "type": "Monetary"
+    },
+    "card_brand": {
+     "help": "The brand of the payment card (e.g. Visa, AMEX, ...)",
+     "string": "Brand of card",
+     "type": "Char"
+    },
+    "card_no": {
+     "string": "Card Number(Last 4 Digit)",
+     "type": "Char"
+    },
+    "card_type": {
+     "help": "The type of the payment card (e.g. CREDIT CARD OR DEBIT CARD)",
+     "string": "Type of card used",
+     "type": "Char"
+    },
+    "cardholder_name": {
+     "string": "Card Owner name",
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "related": "pos_order_id.company_id",
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "pos_order_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "currency_rate": {
+     "help": "Conversion rate from company currency to order currency.",
+     "related": "pos_order_id.currency_rate",
+     "string": "Conversion Rate",
+     "type": "Float"
+    },
+    "is_change": {
+     "default": false,
+     "string": "Is this payment change?",
+     "type": "Boolean"
+    },
+    "name": {
+     "readonly": true,
+     "string": "Label",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "related": "pos_order_id.partner_id",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "payment_date": {
+     "default": {
+      "$lambda": "fields.Datetime.now()"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Date",
+     "type": "Datetime"
+    },
+    "payment_method_authcode": {
+     "string": "Payment APPR Code",
+     "type": "Char"
+    },
+    "payment_method_id": {
+     "comodel": "pos.payment.method",
+     "required": true,
+     "string": "Payment Method",
+     "type": "Many2one"
+    },
+    "payment_method_issuer_bank": {
+     "string": "Payment Issuer Bank",
+     "type": "Char"
+    },
+    "payment_method_payment_mode": {
+     "string": "Payment Mode",
+     "type": "Char"
+    },
+    "payment_ref_no": {
+     "help": "Payment reference number from payment provider terminal",
+     "string": "Payment reference number",
+     "type": "Char"
+    },
+    "payment_status": {
+     "string": "Payment Status",
+     "type": "Char"
+    },
+    "pos_order_id": {
+     "comodel": "pos.order",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Order",
+     "type": "Many2one"
+    },
+    "session_id": {
+     "comodel": "pos.session",
+     "index": true,
+     "related": "pos_order_id.session_id",
+     "store": true,
+     "string": "Session",
+     "type": "Many2one"
+    },
+    "ticket": {
+     "string": "Payment Receipt Info",
+     "type": "Char"
+    },
+    "transaction_id": {
+     "string": "Payment Transaction ID",
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "related": "session_id.user_id",
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "uuid": {
+     "copy": false,
+     "readonly": true,
+     "string": "Uuid",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount', 'currency_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('amount')"
+     ],
+     "lines": 4,
+     "name": "_check_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('payment_method_id')"
+     ],
+     "lines": 4,
+     "name": "_check_payment_method_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_create_payment_moves"
+    }
+   ],
+   "name": "pos.payment",
+   "order": "id desc",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "pos_order_id",
+      "in"
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "uuid_unique",
+     "unique (uuid)",
+     "A payment with this uuid already exists"
+    ]
+   ],
+   "transient": false
+  },
+  "pos.payment.method": {
+   "abstract": false,
+   "description": "Point of Sale Payment Methods",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "config_ids": {
+     "comodel": "pos.config",
+     "string": "Point of Sale",
+     "type": "Many2many"
+    },
+    "default_qr": {
+     "compute": "_compute_qr",
+     "type": "Char"
+    },
+    "hide_qr_code_method": {
+     "compute": "_compute_hide_qr_code_method",
+     "type": "Boolean"
+    },
+    "hide_use_payment_terminal": {
+     "compute": "_compute_hide_use_payment_terminal",
+     "type": "Boolean"
+    },
+    "image": {
+     "string": "Image",
+     "type": "Image"
+    },
+    "is_cash_count": {
+     "compute": "_compute_is_cash_count",
+     "store": true,
+     "string": "Cash",
+     "type": "Boolean"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "domain": [
+      "|",
+      "&",
+      [
+       "type",
+       "=",
+       "cash"
+      ],
+      [
+       "pos_payment_method_ids",
+       "=",
+       false
+      ],
+      [
+       "type",
+       "=",
+       "bank"
+      ]
+     ],
+     "help": "Leave empty to use the receivable account of customer.\nDefines the journal where to book the accumulated payments (or individual payment if Identify Customer is true) after closing the session.\nFor cash journal, we directly write to the default account in the journal via statement lines.\nFor bank journal, we write to the outstanding account specified in this payment method.\nOnly cash and bank journals are allowed.",
+     "ondelete": "restrict",
+     "string": "Journal",
+     "type": "Many2one"
+    },
+    "name": {
+     "help": "Defines the name of the payment method that will be displayed in the Point of Sale when the payments are selected.",
+     "required": true,
+     "string": "Method",
+     "translate": true,
+     "type": "Char"
+    },
+    "open_session_ids": {
+     "comodel": "pos.session",
+     "compute": "_compute_open_session_ids",
+     "help": "Open PoS sessions that are using this payment method.",
+     "string": "Pos Sessions",
+     "type": "Many2many"
+    },
+    "outstanding_account_id": {
+     "comodel": "account.account",
+     "help": "Account used as outstanding account when creating accounting payment records for bank payments.",
+     "ondelete": "restrict",
+     "string": "Outstanding Account",
+     "type": "Many2one"
+    },
+    "payment_method_type": {
+     "default": "none",
+     "required": true,
+     "selection_method": "_get_payment_method_type",
+     "string": "Integration",
+     "type": "Selection"
+    },
+    "qr_code_method": {
+     "copy": false,
+     "help": "Type of QR-code to be generated for this payment method.",
+     "selection": {
+      "$lambda": "self.env['res.partner.bank'].get_available_qr_methods_in_sequence()"
+     },
+     "string": "QR Code Format",
+     "type": "Selection"
+    },
+    "receivable_account_id": {
+     "comodel": "account.account",
+     "domain": [
+      [
+       "reconcile",
+       "=",
+       true
+      ],
+      [
+       "account_type",
+       "=",
+       "asset_receivable"
+      ]
+     ],
+     "help": "Leave empty to use the default account from the company setting.\nOverrides the company's receivable account (for Point of Sale) used in the journal entries.",
+     "ondelete": "restrict",
+     "string": "Intermediary Account",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "copy": false,
+     "type": "Integer"
+    },
+    "split_transactions": {
+     "default": false,
+     "help": "Forces to set a customer when using this payment method and splits the journal entries for each customer. It could slow down the closing process.",
+     "string": "Identify Customer",
+     "type": "Boolean"
+    },
+    "type": {
+     "compute": "_compute_type",
+     "selection": [
+      [
+       "cash",
+       "Cash"
+      ],
+      [
+       "bank",
+       "Bank"
+      ],
+      [
+       "pay_later",
+       "Customer Account"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "use_payment_terminal": {
+     "help": "Record payments with a terminal on this journal.",
+     "selection_method": "_get_payment_terminal_selection",
+     "string": "Use a Payment Terminal",
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_payment_terminal_selection"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_payment_method_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_online_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type', 'payment_method_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_hide_use_payment_terminal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_hide_qr_code_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('payment_method_type')"
+     ],
+     "lines": 8,
+     "name": "_onchange_payment_method_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('use_payment_terminal')"
+     ],
+     "lines": 3,
+     "name": "_onchange_use_payment_terminal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('config_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_open_session_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('journal_id', 'split_transactions')"
+     ],
+     "lines": 6,
+     "name": "_compute_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('journal_id')"
+     ],
+     "lines": 9,
+     "name": "_onchange_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_cash_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_write_forbidden"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_force_payment_method_type_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('payment_method_type', 'journal_id', 'qr_code_method')"
+     ],
+     "lines": 10,
+     "name": "_check_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_type', 'journal_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_qr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "get_qr_code"
+    }
+   ],
+   "name": "pos.payment.method",
+   "order": "sequence, id",
+   "sel_methods": {
+    "_get_payment_method_type": [
+     [
+      "none",
+      "None required"
+     ],
+     [
+      "terminal",
+      "Terminal"
+     ],
+     [
+      "qr_code",
+      "Bank App (QR Code)"
+     ]
+    ],
+    "_get_payment_terminal_selection": []
+   },
+   "transient": false
+  },
+  "pos.printer": {
+   "abstract": false,
+   "description": "Point of Sale Printer",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "name": {
+     "default": "Printer",
+     "help": "An internal identification of the printer",
+     "required": true,
+     "string": "Printer Name",
+     "type": "Char"
+    },
+    "printer_type": {
+     "default": "iot",
+     "selection": [
+      [
+       "iot",
+       " Use a printer connected to the IoT Box"
+      ]
+     ],
+     "string": "Printer Type",
+     "type": "Selection"
+    },
+    "product_categories_ids": {
+     "column1": "printer_id",
+     "column2": "category_id",
+     "comodel": "pos.category",
+     "relation_table": "printer_category_rel",
+     "string": "Printed Product Categories",
+     "type": "Many2many"
+    },
+    "proxy_ip": {
+     "help": "The IP Address or hostname of the Printer's hardware proxy",
+     "string": "Proxy IP Address",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "pos.printer",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "description": "Point of Sale Session",
+   "extension": false,
+   "fields": {
+    "bank_payment_ids": {
+     "comodel": "account.payment",
+     "help": "Account payments representing aggregated and bank split payments.",
+     "inverse_name": "pos_session_id",
+     "string": "Bank Payments",
+     "type": "One2many"
+    },
+    "cash_control": {
+     "compute": "_compute_cash_control",
+     "string": "Has Cash Control",
+     "type": "Boolean"
+    },
+    "cash_journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_cash_journal",
+     "store": true,
+     "string": "Cash Journal",
+     "type": "Many2one"
+    },
+    "cash_real_transaction": {
+     "readonly": true,
+     "string": "Transaction",
+     "type": "Monetary"
+    },
+    "cash_register_balance_end": {
+     "compute": "_compute_cash_balance",
+     "help": "Opening balance summed to all cash transactions.",
+     "readonly": true,
+     "string": "Theoretical Closing Balance",
+     "type": "Monetary"
+    },
+    "cash_register_balance_end_real": {
+     "readonly": true,
+     "string": "Ending Balance",
+     "type": "Monetary"
+    },
+    "cash_register_balance_start": {
+     "readonly": true,
+     "string": "Starting Balance",
+     "type": "Monetary"
+    },
+    "cash_register_difference": {
+     "compute": "_compute_cash_balance",
+     "help": "Difference between the theoretical closing balance and the real closing balance.",
+     "readonly": true,
+     "string": "Before Closing Difference",
+     "type": "Monetary"
+    },
+    "closing_notes": {
+     "string": "Closing Notes",
+     "type": "Text"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "related": "config_id.company_id",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "config_id": {
+     "comodel": "pos.config",
+     "index": true,
+     "required": true,
+     "string": "Point of Sale",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "readonly": false,
+     "related": "config_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "failed_pickings": {
+     "compute": "_compute_picking_count",
+     "type": "Boolean"
+    },
+    "is_in_company_currency": {
+     "compute": "_compute_is_in_company_currency",
+     "string": "Is Using Company Currency",
+     "type": "Boolean"
+    },
+    "login_number": {
+     "default": 0,
+     "help": "A sequence number that is incremented each time a user resumes the pos session",
+     "string": "Login Sequence Number",
+     "type": "Integer"
+    },
+    "move_id": {
+     "comodel": "account.move",
+     "index": true,
+     "string": "Journal Entry",
+     "type": "Many2one"
+    },
+    "name": {
+     "default": "/",
+     "readonly": true,
+     "required": true,
+     "string": "Session ID",
+     "type": "Char"
+    },
+    "opening_notes": {
+     "string": "Opening Notes",
+     "type": "Text"
+    },
+    "order_count": {
+     "compute": "_compute_order_count",
+     "type": "Integer"
+    },
+    "order_ids": {
+     "comodel": "pos.order",
+     "inverse_name": "session_id",
+     "string": "Orders",
+     "type": "One2many"
+    },
+    "payment_method_ids": {
+     "comodel": "pos.payment.method",
+     "related": "config_id.payment_method_ids",
+     "string": "Payment Methods",
+     "type": "Many2many"
+    },
+    "picking_count": {
+     "compute": "_compute_picking_count",
+     "type": "Integer"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "inverse_name": "pos_session_id",
+     "type": "One2many"
+    },
+    "rescue": {
+     "copy": false,
+     "help": "Auto-generated session for orphan orders, ignored in constraints",
+     "readonly": true,
+     "string": "Recovery Session",
+     "type": "Boolean"
+    },
+    "sequence_number": {
+     "default": 1,
+     "help": "A sequence number that is incremented with each order",
+     "string": "Order Sequence Number",
+     "type": "Integer"
+    },
+    "start_at": {
+     "readonly": true,
+     "string": "Opening Date",
+     "type": "Datetime"
+    },
+    "state": {
+     "copy": false,
+     "default": "opening_control",
+     "index": true,
+     "readonly": true,
+     "required": true,
+     "selection": {
+      "$ref": "POS_SESSION_STATE"
+     },
+     "string": "Status",
+     "type": "Selection"
+    },
+    "statement_line_ids": {
+     "comodel": "account.bank.statement.line",
+     "inverse_name": "pos_session_id",
+     "readonly": true,
+     "string": "Cash Lines",
+     "type": "One2many"
+    },
+    "stop_at": {
+     "copy": false,
+     "readonly": true,
+     "string": "Closing Date",
+     "type": "Datetime"
+    },
+    "total_payments_amount": {
+     "compute": "_compute_total_payments_amount",
+     "string": "Total Payments Amount",
+     "type": "Float"
+    },
+    "update_stock_at_closing": {
+     "string": "Stock should be updated at closing",
+     "type": "Boolean"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.uid"
+     },
+     "index": true,
+     "ondelete": "restrict",
+     "readonly": false,
+     "required": true,
+     "string": "Opened By",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread",
+    "pos.bus.mixin",
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_load_pos_data_relations"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_load_pos_data_models"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_load_pos_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "load_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "delete_opening_control_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_delete_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "get_pos_ui_product_pricelist_item_by_product"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('currency_id', 'company_id.currency_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_in_company_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_ids', 'order_ids', 'cash_register_balance_start')"
+     ],
+     "lines": 18,
+     "name": "_compute_cash_balance"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_ids.payment_ids.amount')"
+     ],
+     "lines": 5,
+     "name": "_compute_total_payments_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_picking_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_stock_picking"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('cash_journal_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_cash_control"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('config_id', 'payment_method_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_cash_journal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('config_id')"
+     ],
+     "lines": 8,
+     "name": "_check_pos_config"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('start_at')"
+     ],
+     "lines": 9,
+     "name": "_check_start_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_invoices_are_posted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 35,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "login"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_pos_session_open"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_session_orders"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 23,
+     "name": "action_pos_session_closing_control"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_pos_session_validate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_pos_session_close"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 63,
+     "name": "_validate_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_post_statement_difference"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_prepare_cash_diff_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_close_session_action"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "close_session_from_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "post_close_register_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "update_closing_control_state_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "post_closing_cash_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_create_diff_account_move_for_split_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_diff_account_move_ref"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_diff_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_cannot_close_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "get_closing_control_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_create_picking_at_end_of_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_create_balancing_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_prepare_balancing_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_balancing_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_create_account_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 186,
+     "name": "_accumulate_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_create_non_reconciliable_move_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_create_bank_payment_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_create_pay_later_receivable_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_ensure_payment_outstanding_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_create_combine_account_payment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_apply_diff_on_account_payment_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_create_split_account_payment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_split_account_payment_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_create_split_account_payments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_create_cash_statement_lines_and_cash_move_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_create_invoice_receivable_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_create_stock_output_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_reconcile_account_move_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_rounding_difference_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_split_receivable_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_combine_receivable_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_invoice_receivable_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_sale_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_tax_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_stock_expense_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_stock_output_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_combine_statement_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_split_statement_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_update_quantities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_update_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_round_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_credit_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_debit_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_amount_converter"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "show_cash_register"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "show_journal_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_other_related_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_related_account_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_receivable_account"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_show_payments_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_captured_payments_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "open_frontend_cb"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_set_opening_control_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "set_opening_control"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_post_cash_details_message"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_view_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_alert_old_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_check_if_no_draft_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_account_bank_statement_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "try_cash_in_out"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_get_attributes_by_ptal_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_get_pos_fallback_nomenclature_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_partners_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "find_product_by_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "get_total_discount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_invoice_total_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_total_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "log_partner_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_pos_has_valid_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_closed_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_update_session_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_gc_sequence_prefix"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 11,
+     "name": "_gc_session_sequences"
+    }
+   ],
+   "name": "pos.session",
+   "order": "id desc",
+   "sel_methods": {
+    "_get_captured_payments_domain": [
+     [
+      "session_id",
+      "in"
+     ],
+     [
+      "pos_order_id.state",
+      "in"
+     ]
+    ],
+    "_get_partners_domain": [],
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "="
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "uniq_name",
+     "unique(name)",
+     "The name of this POS Session must be unique!"
+    ]
+   ],
+   "transient": false
+  },
+  "procurement.group": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_order_id": {
+     "comodel": "pos.order",
+     "string": "POS Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_run_scheduler_tasks"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_scheduler_tasks_to_do"
+    }
+   ],
+   "name": "procurement.group",
+   "transient": false
+  },
+  "product.attribute": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_domain"
+    }
+   ],
+   "name": "product.attribute",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.attribute.custom.value": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "pos_order_line_id": {
+     "comodel": "pos.order.line",
+     "ondelete": "cascade",
+     "string": "PoS Order Line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.attribute.custom.value",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "pos_order_line_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.category": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.category",
+   "transient": false
+  },
+  "product.combo": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.combo",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.combo.item": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.combo.item",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.packaging": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.packaging",
+   "transient": false
+  },
+  "product.pricelist": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.pricelist",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.pricelist.item": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.pricelist.item",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_load_pos_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_add_missing_products"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_load_product_with_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_process_pos_ui_product_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_archived_combinations_per_product_tmpl_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 8,
+     "name": "_unlink_except_active_pos_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 78,
+     "name": "get_product_info_pos"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.tag": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.tag",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "available_in_pos": {
+     "default": false,
+     "help": "Check if you want this product to appear in the Point of Sale.",
+     "string": "Available in POS",
+     "type": "Boolean"
+    },
+    "color": {
+     "compute": "_compute_color",
+     "readonly": false,
+     "store": true,
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "pos_categ_ids": {
+     "comodel": "pos.category",
+     "help": "Category used in the Point of Sale.",
+     "string": "Point of Sale Category",
+     "type": "Many2many"
+    },
+    "public_description": {
+     "string": "Product Description",
+     "translate": true,
+     "type": "Html"
+    },
+    "to_weight": {
+     "help": "Check if the product should be weighted using the hardware scale integration.",
+     "string": "To Weigh With Scale",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_categ_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 8,
+     "name": "_unlink_except_open_session"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('sale_ok')"
+     ],
+     "lines": 3,
+     "name": "_onchange_sale_ok"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('available_in_pos')"
+     ],
+     "lines": 3,
+     "name": "_onchange_available_in_pos"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('available_in_pos')"
+     ],
+     "lines": 6,
+     "name": "_check_combo_inclusions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    }
+   ],
+   "name": "product.template",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.template.attribute.exclusion": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.template.attribute.exclusion",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "product_tmpl_id",
+      "in"
+     ],
+     [
+      "product_template_attribute_value_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.template.attribute.line": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_domain"
+    }
+   ],
+   "name": "product.template.attribute.line",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "product_tmpl_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.template.attribute.value": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "product.template.attribute.value",
+   "transient": false
+  },
+  "report.point_of_sale.report_invoice": {
+   "abstract": true,
+   "description": "Point of Sale Invoice Report",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.point_of_sale.report_invoice",
+   "transient": false
+  },
+  "report.point_of_sale.report_saledetails": {
+   "abstract": true,
+   "description": "Point of Sale Details",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_date_start_and_date_stop"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 324,
+     "name": "get_sale_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_product_total_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_products_and_taxes_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_total_and_qty_per_category"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_get_sale_details_args_kwargs"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_get_report_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_taxes_info"
+    }
+   ],
+   "name": "report.point_of_sale.report_saledetails",
+   "sel_methods": {
+    "_get_domain": [
+     [
+      "state",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "report.pos.order": {
+   "abstract": false,
+   "description": "Point of Sale Orders Report",
+   "extension": false,
+   "fields": {
+    "average_price": {
+     "readonly": true,
+     "string": "Average Price",
+     "type": "Float"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "config_id": {
+     "comodel": "pos.config",
+     "readonly": true,
+     "string": "Point of Sale",
+     "type": "Many2one"
+    },
+    "date": {
+     "readonly": true,
+     "string": "Order Date",
+     "type": "Datetime"
+    },
+    "delay_validation": {
+     "readonly": true,
+     "string": "Delay Validation",
+     "type": "Integer"
+    },
+    "invoiced": {
+     "readonly": true,
+     "type": "Boolean"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "readonly": true,
+     "string": "Journal",
+     "type": "Many2one"
+    },
+    "margin": {
+     "readonly": true,
+     "string": "Margin",
+     "type": "Float"
+    },
+    "nbr_lines": {
+     "readonly": true,
+     "string": "Sale Line Count",
+     "type": "Integer"
+    },
+    "order_id": {
+     "comodel": "pos.order",
+     "readonly": true,
+     "string": "Order",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "payment_method_id": {
+     "comodel": "pos.payment.method",
+     "readonly": true,
+     "string": "Payment Method",
+     "type": "Many2one"
+    },
+    "pos_categ_id": {
+     "comodel": "pos.category",
+     "readonly": true,
+     "string": "Point of Sale Category",
+     "type": "Many2one"
+    },
+    "price_sub_total": {
+     "readonly": true,
+     "string": "Subtotal w/o discount",
+     "type": "Float"
+    },
+    "price_subtotal_excl": {
+     "readonly": true,
+     "string": "Subtotal w/o Tax",
+     "type": "Float"
+    },
+    "price_total": {
+     "readonly": true,
+     "string": "Total Price",
+     "type": "Float"
+    },
+    "pricelist_id": {
+     "comodel": "product.pricelist",
+     "readonly": true,
+     "string": "Pricelist",
+     "type": "Many2one"
+    },
+    "product_categ_id": {
+     "comodel": "product.category",
+     "readonly": true,
+     "string": "Product Category",
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "readonly": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "readonly": true,
+     "string": "Product Quantity",
+     "type": "Integer"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "readonly": true,
+     "string": "Product Template",
+     "type": "Many2one"
+    },
+    "session_id": {
+     "comodel": "pos.session",
+     "readonly": true,
+     "string": "Session",
+     "type": "Many2one"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "New"
+      ],
+      [
+       "paid",
+       "Paid"
+      ],
+      [
+       "done",
+       "Posted"
+      ],
+      [
+       "invoiced",
+       "Invoiced"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "total_discount": {
+     "readonly": true,
+     "string": "Total Discount",
+     "type": "Float"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_group_by"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "init"
+    }
+   ],
+   "name": "report.pos.order",
+   "order": "date desc",
+   "rec_name": "order_id",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "point_of_sale_ticket_portal_url_display_mode": {
+     "default": "qr_code",
+     "help": "Choose how the URL to the portal will be print on the receipt.",
+     "required": true,
+     "selection": [
+      [
+       "qr_code",
+       "QR code"
+      ],
+      [
+       "url",
+       "URL"
+      ],
+      [
+       "qr_code_and_url",
+       "QR code + URL"
+      ]
+     ],
+     "string": "Print",
+     "type": "Selection"
+    },
+    "point_of_sale_ticket_unique_code": {
+     "help": "Add a 5-digit code on the receipt to allow the user to request the invoice for an order on the portal.",
+     "string": "Generate a code on ticket",
+     "type": "Boolean"
+    },
+    "point_of_sale_update_stock_quantities": {
+     "default": "real",
+     "help": "At the session closing: A picking is created for the entire session when it's closed\n In real time: Each order sent to the server create its own picking",
+     "selection": [
+      [
+       "closing",
+       "At the session closing"
+      ],
+      [
+       "real",
+       "In real time"
+      ]
+     ],
+     "string": "Update quantities in stock",
+     "type": "Selection"
+    },
+    "point_of_sale_use_ticket_qr_code": {
+     "help": "Print information on the receipt to allow the customer to easily access the invoice anytime, from Odoo's portal.",
+     "string": "Self-service invoicing",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('fiscalyear_lock_date', 'tax_lock_date', 'sale_lock_date', 'hard_lock_date')"
+     ],
+     "lines": 25,
+     "name": "validate_lock_dates"
+    }
+   ],
+   "name": "res.company",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_default_pos_receivable_account_id": {
+     "readonly": false,
+     "related": "company_id.account_default_pos_receivable_account_id",
+     "string": "Default Account Receivable (PoS)",
+     "type": "Many2one"
+    },
+    "barcode_nomenclature_id": {
+     "comodel": "barcode.nomenclature",
+     "readonly": false,
+     "related": "company_id.nomenclature_id",
+     "type": "Many2one"
+    },
+    "is_kiosk_mode": {
+     "default": false,
+     "string": "Is Kiosk Mode",
+     "type": "Boolean"
+    },
+    "module_pos_adyen": {
+     "help": "The transactions are processed by Adyen. Set your Adyen credentials on the related payment method.",
+     "string": "Adyen Payment Terminal",
+     "type": "Boolean"
+    },
+    "module_pos_mercado_pago": {
+     "help": "The transactions are processed by Mercado Pago. Set your Mercado Pago credentials on the related payment method.",
+     "string": "Mercado Pago Payment Terminal",
+     "type": "Boolean"
+    },
+    "module_pos_paytm": {
+     "help": "The transactions are processed by PayTM. Set your PayTM credentials on the related payment method.",
+     "string": "PayTM Payment Terminal",
+     "type": "Boolean"
+    },
+    "module_pos_preparation_display": {
+     "help": "Show orders on the preparation display screen.",
+     "string": "Preparation Display",
+     "type": "Boolean"
+    },
+    "module_pos_pricer": {
+     "help": "Display the price of your products through electronic price tags",
+     "string": "Pricer electronic price tags",
+     "type": "Boolean"
+    },
+    "module_pos_razorpay": {
+     "help": "The transactions are processed by Razorpay. Set your Razorpay credentials on the related payment method.",
+     "string": "Razorpay Payment Terminal",
+     "type": "Boolean"
+    },
+    "module_pos_six": {
+     "help": "The transactions are processed by Six. Set the IP address of the terminal on the related payment method.",
+     "string": "Six Payment Terminal",
+     "type": "Boolean"
+    },
+    "module_pos_stripe": {
+     "help": "The transactions are processed by Stripe. Set your Stripe credentials on the related payment method.",
+     "string": "Stripe Payment Terminal",
+     "type": "Boolean"
+    },
+    "module_pos_viva_wallet": {
+     "help": "The transactions are processed by Viva Wallet on terminal or tap on phone.",
+     "string": "Viva Wallet Payment Terminal",
+     "type": "Boolean"
+    },
+    "point_of_sale_ticket_portal_url_display_mode": {
+     "readonly": false,
+     "related": "company_id.point_of_sale_ticket_portal_url_display_mode",
+     "required": true,
+     "type": "Selection"
+    },
+    "point_of_sale_ticket_unique_code": {
+     "readonly": false,
+     "related": "company_id.point_of_sale_ticket_unique_code",
+     "type": "Boolean"
+    },
+    "point_of_sale_use_ticket_qr_code": {
+     "readonly": false,
+     "related": "company_id.point_of_sale_use_ticket_qr_code",
+     "type": "Boolean"
+    },
+    "pos_allowed_pricelist_ids": {
+     "comodel": "product.pricelist",
+     "compute": "_compute_pos_allowed_pricelist_ids",
+     "type": "Many2many"
+    },
+    "pos_amount_authorized_diff": {
+     "readonly": false,
+     "related": "pos_config_id.amount_authorized_diff",
+     "type": "Float"
+    },
+    "pos_auto_validate_terminal_payment": {
+     "readonly": false,
+     "related": "pos_config_id.auto_validate_terminal_payment",
+     "string": "Automatically validates orders paid with a payment terminal.",
+     "type": "Boolean"
+    },
+    "pos_available_pricelist_ids": {
+     "comodel": "product.pricelist",
+     "compute": "_compute_pos_pricelist_id",
+     "readonly": false,
+     "store": true,
+     "string": "Available Pricelists",
+     "type": "Many2many"
+    },
+    "pos_basic_receipt": {
+     "readonly": false,
+     "related": "pos_config_id.basic_receipt",
+     "type": "Boolean"
+    },
+    "pos_cash_control": {
+     "related": "pos_config_id.cash_control",
+     "type": "Boolean"
+    },
+    "pos_cash_rounding": {
+     "readonly": false,
+     "related": "pos_config_id.cash_rounding",
+     "string": "Cash Rounding (PoS)",
+     "type": "Boolean"
+    },
+    "pos_company_has_template": {
+     "related": "pos_config_id.company_has_template",
+     "type": "Boolean"
+    },
+    "pos_config_id": {
+     "comodel": "pos.config",
+     "default": {
+      "$lambda": "self._default_pos_config()"
+     },
+     "string": "Point of Sale",
+     "type": "Many2one"
+    },
+    "pos_customer_display_bg_img": {
+     "readonly": false,
+     "related": "pos_config_id.customer_display_bg_img",
+     "type": "Image"
+    },
+    "pos_customer_display_bg_img_name": {
+     "readonly": false,
+     "related": "pos_config_id.customer_display_bg_img_name",
+     "type": "Char"
+    },
+    "pos_customer_display_type": {
+     "readonly": false,
+     "related": "pos_config_id.customer_display_type",
+     "type": "Selection"
+    },
+    "pos_default_bill_ids": {
+     "readonly": false,
+     "related": "pos_config_id.default_bill_ids",
+     "type": "Many2many"
+    },
+    "pos_default_fiscal_position_id": {
+     "comodel": "account.fiscal.position",
+     "compute": "_compute_pos_fiscal_positions",
+     "readonly": false,
+     "store": true,
+     "string": "Default Fiscal Position",
+     "type": "Many2one"
+    },
+    "pos_fiscal_position_ids": {
+     "comodel": "account.fiscal.position",
+     "compute": "_compute_pos_fiscal_positions",
+     "readonly": false,
+     "store": true,
+     "string": "Fiscal Positions",
+     "type": "Many2many"
+    },
+    "pos_has_active_session": {
+     "related": "pos_config_id.has_active_session",
+     "type": "Boolean"
+    },
+    "pos_iface_available_categ_ids": {
+     "comodel": "pos.category",
+     "compute": "_compute_pos_iface_available_categ_ids",
+     "readonly": false,
+     "store": true,
+     "string": "Available PoS Product Categories",
+     "type": "Many2many"
+    },
+    "pos_iface_big_scrollbars": {
+     "readonly": false,
+     "related": "pos_config_id.iface_big_scrollbars",
+     "type": "Boolean"
+    },
+    "pos_iface_cashdrawer": {
+     "compute": "_compute_pos_iface_cashdrawer",
+     "readonly": false,
+     "store": true,
+     "string": "Cashdrawer",
+     "type": "Boolean"
+    },
+    "pos_iface_electronic_scale": {
+     "compute": "_compute_pos_iface_electronic_scale",
+     "readonly": false,
+     "store": true,
+     "string": "Electronic Scale",
+     "type": "Boolean"
+    },
+    "pos_iface_print_auto": {
+     "readonly": false,
+     "related": "pos_config_id.iface_print_auto",
+     "type": "Boolean"
+    },
+    "pos_iface_print_skip_screen": {
+     "readonly": false,
+     "related": "pos_config_id.iface_print_skip_screen",
+     "type": "Boolean"
+    },
+    "pos_iface_print_via_proxy": {
+     "compute": "_compute_pos_iface_print_via_proxy",
+     "readonly": false,
+     "store": true,
+     "string": "Print via Proxy",
+     "type": "Boolean"
+    },
+    "pos_iface_scan_via_proxy": {
+     "compute": "_compute_pos_iface_scan_via_proxy",
+     "readonly": false,
+     "store": true,
+     "string": "Scan via Proxy",
+     "type": "Boolean"
+    },
+    "pos_iface_tax_included": {
+     "readonly": false,
+     "related": "pos_config_id.iface_tax_included",
+     "type": "Selection"
+    },
+    "pos_iface_tipproduct": {
+     "readonly": false,
+     "related": "pos_config_id.iface_tipproduct",
+     "type": "Boolean"
+    },
+    "pos_invoice_journal_id": {
+     "readonly": false,
+     "related": "pos_config_id.invoice_journal_id",
+     "type": "Many2one"
+    },
+    "pos_is_closing_entry_by_product": {
+     "readonly": false,
+     "related": "pos_config_id.is_closing_entry_by_product",
+     "type": "Boolean"
+    },
+    "pos_is_header_or_footer": {
+     "readonly": false,
+     "related": "pos_config_id.is_header_or_footer",
+     "type": "Boolean"
+    },
+    "pos_is_margins_costs_accessible_to_every_user": {
+     "readonly": false,
+     "related": "pos_config_id.is_margins_costs_accessible_to_every_user",
+     "type": "Boolean"
+    },
+    "pos_is_order_printer": {
+     "compute": "_compute_pos_printer",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    },
+    "pos_is_posbox": {
+     "readonly": false,
+     "related": "pos_config_id.is_posbox",
+     "type": "Boolean"
+    },
+    "pos_journal_id": {
+     "readonly": false,
+     "related": "pos_config_id.journal_id",
+     "type": "Many2one"
+    },
+    "pos_limit_categories": {
+     "readonly": false,
+     "related": "pos_config_id.limit_categories",
+     "type": "Boolean"
+    },
+    "pos_manual_discount": {
+     "readonly": false,
+     "related": "pos_config_id.manual_discount",
+     "type": "Boolean"
+    },
+    "pos_module_pos_avatax": {
+     "readonly": false,
+     "related": "pos_config_id.module_pos_avatax",
+     "type": "Boolean"
+    },
+    "pos_module_pos_discount": {
+     "readonly": false,
+     "related": "pos_config_id.module_pos_discount",
+     "type": "Boolean"
+    },
+    "pos_module_pos_hr": {
+     "readonly": false,
+     "related": "pos_config_id.module_pos_hr",
+     "type": "Boolean"
+    },
+    "pos_module_pos_restaurant": {
+     "readonly": false,
+     "related": "pos_config_id.module_pos_restaurant",
+     "type": "Boolean"
+    },
+    "pos_module_pos_sms": {
+     "readonly": false,
+     "related": "pos_config_id.module_pos_sms",
+     "type": "Boolean"
+    },
+    "pos_note_ids": {
+     "readonly": false,
+     "related": "pos_config_id.note_ids",
+     "type": "Many2many"
+    },
+    "pos_only_round_cash_method": {
+     "readonly": false,
+     "related": "pos_config_id.only_round_cash_method",
+     "type": "Boolean"
+    },
+    "pos_order_edit_tracking": {
+     "readonly": false,
+     "related": "pos_config_id.order_edit_tracking",
+     "type": "Boolean"
+    },
+    "pos_orderlines_sequence_in_cart_by_category": {
+     "readonly": false,
+     "related": "pos_config_id.orderlines_sequence_in_cart_by_category",
+     "type": "Boolean"
+    },
+    "pos_other_devices": {
+     "readonly": false,
+     "related": "pos_config_id.other_devices",
+     "type": "Boolean"
+    },
+    "pos_payment_method_ids": {
+     "readonly": false,
+     "related": "pos_config_id.payment_method_ids",
+     "type": "Many2many"
+    },
+    "pos_picking_policy": {
+     "readonly": false,
+     "related": "pos_config_id.picking_policy",
+     "type": "Selection"
+    },
+    "pos_picking_type_id": {
+     "readonly": false,
+     "related": "pos_config_id.picking_type_id",
+     "type": "Many2one"
+    },
+    "pos_pricelist_id": {
+     "comodel": "product.pricelist",
+     "compute": "_compute_pos_pricelist_id",
+     "readonly": false,
+     "store": true,
+     "string": "Default Pricelist",
+     "type": "Many2one"
+    },
+    "pos_printer_ids": {
+     "readonly": false,
+     "related": "pos_config_id.printer_ids",
+     "type": "Many2many"
+    },
+    "pos_proxy_ip": {
+     "readonly": false,
+     "related": "pos_config_id.proxy_ip",
+     "string": "IP Address",
+     "type": "Char"
+    },
+    "pos_receipt_footer": {
+     "compute": "_compute_pos_receipt_header_footer",
+     "readonly": false,
+     "store": true,
+     "string": "Receipt Footer",
+     "type": "Text"
+    },
+    "pos_receipt_header": {
+     "compute": "_compute_pos_receipt_header_footer",
+     "readonly": false,
+     "store": true,
+     "string": "Receipt Header",
+     "type": "Text"
+    },
+    "pos_restrict_price_control": {
+     "readonly": false,
+     "related": "pos_config_id.restrict_price_control",
+     "type": "Boolean"
+    },
+    "pos_rounding_method": {
+     "readonly": false,
+     "related": "pos_config_id.rounding_method",
+     "type": "Many2one"
+    },
+    "pos_route_id": {
+     "readonly": false,
+     "related": "pos_config_id.route_id",
+     "type": "Many2one"
+    },
+    "pos_selectable_categ_ids": {
+     "comodel": "pos.category",
+     "compute": "_compute_pos_selectable_categ_ids",
+     "type": "Many2many"
+    },
+    "pos_sequence_id": {
+     "related": "pos_config_id.sequence_id",
+     "type": "Many2one"
+    },
+    "pos_set_maximum_difference": {
+     "readonly": false,
+     "related": "pos_config_id.set_maximum_difference",
+     "type": "Boolean"
+    },
+    "pos_ship_later": {
+     "readonly": false,
+     "related": "pos_config_id.ship_later",
+     "type": "Boolean"
+    },
+    "pos_show_category_images": {
+     "readonly": false,
+     "related": "pos_config_id.show_category_images",
+     "type": "Boolean"
+    },
+    "pos_show_product_images": {
+     "readonly": false,
+     "related": "pos_config_id.show_product_images",
+     "type": "Boolean"
+    },
+    "pos_tax_regime_selection": {
+     "readonly": false,
+     "related": "pos_config_id.tax_regime_selection",
+     "type": "Boolean"
+    },
+    "pos_tip_product_id": {
+     "comodel": "product.product",
+     "compute": "_compute_pos_tip_product_id",
+     "readonly": false,
+     "store": true,
+     "string": "Tip Product",
+     "type": "Many2one"
+    },
+    "pos_trusted_config_ids": {
+     "domain": "[('id', '!=', pos_config_id), ('module_pos_restaurant', '=', False)]",
+     "readonly": false,
+     "related": "pos_config_id.trusted_config_ids",
+     "type": "Many2many"
+    },
+    "pos_use_pricelist": {
+     "readonly": false,
+     "related": "pos_config_id.use_pricelist",
+     "type": "Boolean"
+    },
+    "pos_warehouse_id": {
+     "readonly": false,
+     "related": "pos_config_id.warehouse_id",
+     "string": "Warehouse (PoS)",
+     "type": "Many2one"
+    },
+    "sale_tax_id": {
+     "comodel": "account.tax",
+     "readonly": false,
+     "related": "company_id.account_sale_tax_id",
+     "string": "Default Sale Tax",
+     "type": "Many2one"
+    },
+    "update_stock_quantities": {
+     "readonly": false,
+     "related": "company_id.point_of_sale_update_stock_quantities",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_default_pos_config"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 46,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "set_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_pos_config_create_new"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "pos_open_ui"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_cashdrawer_displayed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_module_pos_restaurant', 'pos_config_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_pos_printer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_limit_categories', 'pos_config_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_iface_available_categ_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_iface_available_categ_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_selectable_categ_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_iface_print_via_proxy', 'pos_config_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_iface_cashdrawer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_is_header_or_footer', 'pos_config_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_pos_receipt_header_footer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_tax_regime_selection', 'pos_config_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_pos_fiscal_positions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_iface_tipproduct', 'pos_config_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_tip_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_use_pricelist', 'pos_config_id', 'pos_journal_id')"
+     ],
+     "lines": 17,
+     "name": "_compute_pos_pricelist_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_available_pricelist_ids', 'pos_use_pricelist')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_allowed_pricelist_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_is_posbox', 'pos_config_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_iface_print_via_proxy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_is_posbox', 'pos_config_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_iface_scan_via_proxy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_is_posbox', 'pos_config_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_iface_electronic_scale"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_trusted_config_ids')"
+     ],
+     "lines": 8,
+     "name": "_onchange_trusted_config_ids"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.country": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "res.country",
+   "transient": false
+  },
+  "res.country.state": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "res.country.state",
+   "transient": false
+  },
+  "res.currency": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "res.currency",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "res.lang": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "res.lang",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "pos_order_count": {
+     "compute": "_compute_pos_order",
+     "groups": "point_of_sale.group_pos_user",
+     "help": "The number of point of sales orders related to this customer",
+     "type": "Integer"
+    },
+    "pos_order_ids": {
+     "comodel": "pos.order",
+     "inverse_name": "partner_id",
+     "readonly": true,
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_compute_pos_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_pos_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "open_commercial_entity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_if_pos_no_orders"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "res.users",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_new_picking_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_key_assign_picking"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_prepare_lines_data_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_create_production_lots_for_pos_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 87,
+     "name": "_add_mls_related_to_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_lot_line_qty"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_order_id": {
+     "comodel": "pos.order",
+     "index": true,
+     "type": "Many2one"
+    },
+    "pos_session_id": {
+     "comodel": "pos.session",
+     "index": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_prepare_picking_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 43,
+     "name": "_create_picking_from_pos_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_prepare_stock_move_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_create_move_from_pos_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_link_owner_on_return_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_send_confirmation_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_action_done"
+    }
+   ],
+   "name": "stock.picking",
+   "sel_methods": {
+    "_send_confirmation_email": []
+   },
+   "transient": false
+  },
+  "stock.picking.type": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('warehouse_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_hide_reservation_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('active')"
+     ],
+     "lines": 7,
+     "name": "_check_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "stock.picking.type",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_stock_move_values"
+    }
+   ],
+   "name": "stock.rule",
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_type_id": {
+     "comodel": "stock.picking.type",
+     "copy": false,
+     "string": "Point of Sale Operation Type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_sequence_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_picking_type_update_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_picking_type_create_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_create_missing_pos_picking_types"
+    }
+   ],
+   "name": "stock.warehouse",
+   "transient": false
+  },
+  "uom.category": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "is_pos_groupable": {
+     "help": "Check if you want to group products of this category in point of sale orders",
+     "string": "Group Products in POS",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "uom.category",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "uom.uom": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "is_pos_groupable": {
+     "readonly": false,
+     "related": "category_id.is_pos_groupable",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "uom.uom",
+   "transient": false
+  }
+ },
+ "module": "point_of_sale",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/point_of_sale",
+ "stats": {
+  "fields": 426,
+  "methods": 523,
+  "models": 68,
+  "py_lines": 8872
+ },
+ "summary": "User-friendly PoS interface for shops and restaurants",
+ "title": "Point of Sale",
+ "version": "1.0.2"
+}

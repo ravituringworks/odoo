@@ -1,0 +1,867 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "security/l10n_in_security.xml",
+  "security/ir.model.access.csv",
+  "data/iap_service_data.xml",
+  "data/account.account.tag.csv",
+  "data/l10n_in_chart_data.xml",
+  "data/l10n_in.port.code.csv",
+  "data/res_country_state_data.xml",
+  "data/uom_data.xml",
+  "data/res_partner_industry.xml",
+  "data/account_cash_rounding.xml",
+  "views/account_invoice_views.xml",
+  "views/account_move_line_views.xml",
+  "views/account_journal_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/product_template_view.xml",
+  "views/port_code_views.xml",
+  "views/res_company_views.xml",
+  "views/report_invoice.xml",
+  "views/res_country_state_view.xml",
+  "views/res_partner_views.xml",
+  "views/account_tax_views.xml",
+  "views/uom_uom_views.xml",
+  "demo/product_demo.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "account_tax_python",
+  "base_vat",
+  "account_debit_note",
+  "account",
+  "iap"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_get_demo_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_demo_data_config_settings"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_demo_data_res_partner_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 87,
+     "name": "_get_demo_data_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 384,
+     "name": "_get_demo_data_move"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "_get_demo_data_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_get_demo_data_mail_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_post_load_demo_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_in_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_in_res_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_in_account_cash_rounding"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 69,
+     "name": "_get_in_account_fiscal_position"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_l10n_in_fiscal_tax_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_l10n_in_zero_rated_with_igst_zero_tax_vals"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_gst_treatment": {
+     "compute": "_compute_l10n_in_gst_treatment",
+     "copy": true,
+     "readonly": false,
+     "selection": [
+      [
+       "regular",
+       "Registered Business - Regular"
+      ],
+      [
+       "composition",
+       "Registered Business - Composition"
+      ],
+      [
+       "unregistered",
+       "Unregistered Business"
+      ],
+      [
+       "consumer",
+       "Consumer"
+      ],
+      [
+       "overseas",
+       "Overseas"
+      ],
+      [
+       "special_economic_zone",
+       "Special Economic Zone"
+      ],
+      [
+       "deemed_export",
+       "Deemed Export"
+      ],
+      [
+       "uin_holders",
+       "UIN Holders"
+      ]
+     ],
+     "store": true,
+     "string": "GST Treatment",
+     "type": "Selection"
+    },
+    "l10n_in_gstin": {
+     "string": "GSTIN",
+     "type": "Char"
+    },
+    "l10n_in_journal_type": {
+     "related": "journal_id.type",
+     "string": "Journal Type",
+     "type": "Selection"
+    },
+    "l10n_in_reseller_partner_id": {
+     "comodel": "res.partner",
+     "domain": [
+      [
+       "vat",
+       "!=",
+       false
+      ]
+     ],
+     "help": "Only Registered Reseller",
+     "string": "Reseller",
+     "type": "Many2one"
+    },
+    "l10n_in_shipping_bill_date": {
+     "string": "Shipping bill date",
+     "type": "Date"
+    },
+    "l10n_in_shipping_bill_number": {
+     "string": "Shipping bill number",
+     "type": "Char"
+    },
+    "l10n_in_shipping_port_code_id": {
+     "comodel": "l10n_in.port.code",
+     "string": "Port code",
+     "type": "Many2one"
+    },
+    "l10n_in_state_id": {
+     "comodel": "res.country.state",
+     "compute": "_compute_l10n_in_state_id",
+     "readonly": false,
+     "store": true,
+     "string": "Place of supply",
+     "type": "Many2one"
+    },
+    "l10n_in_warning": {
+     "compute": "_compute_l10n_in_warning",
+     "type": "Json"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'partner_id.l10n_in_gst_treatment')"
+     ],
+     "lines": 13,
+     "name": "_compute_l10n_in_gst_treatment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'partner_shipping_id', 'company_id')"
+     ],
+     "lines": 19,
+     "name": "_compute_l10n_in_state_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_in_state_id', 'l10n_in_gst_treatment')"
+     ],
+     "lines": 62,
+     "name": "_compute_fiscal_position_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('name')"
+     ],
+     "lines": 10,
+     "name": "_onchange_name_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_line_ids.l10n_in_hsn_code', 'company_id.l10n_in_hsn_code_digit')"
+     ],
+     "lines": 38,
+     "name": "_compute_l10n_in_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_name_invoice_report"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_l10n_in_get_warehouse_address"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_can_be_unlinked"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_generate_qr_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_l10n_in_get_hsn_summary_table"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_generate_qr_code": [],
+    "_get_name_invoice_report": [],
+    "_onchange_name_warning": []
+   },
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_hsn_code": {
+     "compute": "_compute_l10n_in_hsn_code",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "HSN/SAC Code",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_id.l10n_in_hsn_code')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_in_hsn_code"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_reverse_charge": {
+     "help": "Tick this if this tax is reverse charge. Only for Indian accounting",
+     "string": "Reverse charge",
+     "type": "Boolean"
+    },
+    "l10n_in_tax_type": {
+     "compute": "_compute_l10n_in_tax_type",
+     "selection": [
+      [
+       "igst",
+       "igst"
+      ],
+      [
+       "cgst",
+       "cgst"
+      ],
+      [
+       "sgst",
+       "sgst"
+      ],
+      [
+       "cess",
+       "cess"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code', 'invoice_repartition_line_ids.tag_ids')"
+     ],
+     "lines": 16,
+     "name": "_compute_l10n_in_tax_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_base_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 76,
+     "name": "_l10n_in_get_hsn_summary_table"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "iap.account": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_l10n_in_connect_to_server"
+    }
+   ],
+   "name": "iap.account",
+   "transient": false
+  },
+  "l10n_in.port.code": {
+   "abstract": false,
+   "description": "Indian port code",
+   "extension": false,
+   "fields": {
+    "code": {
+     "required": true,
+     "string": "Port Code",
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Port",
+     "type": "Char"
+    },
+    "state_id": {
+     "comodel": "res.country.state",
+     "string": "State",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "l10n_in.port.code",
+   "rec_name": "code",
+   "sql_constraints": [
+    [
+     "code_uniq",
+     "unique (code)",
+     "The Port Code must be unique!"
+    ]
+   ],
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_hsn_code": {
+     "help": "Harmonized System Nomenclature/Services Accounting Code",
+     "string": "HSN/SAC Code",
+     "type": "Char"
+    },
+    "l10n_in_hsn_warning": {
+     "compute": "_compute_l10n_in_hsn_warning",
+     "string": "HSC/SAC warning",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_ok', 'l10n_in_hsn_code')"
+     ],
+     "lines": 19,
+     "name": "_compute_l10n_in_hsn_warning"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_edi_production_env": {
+     "groups": "base.group_system",
+     "help": "Enable the use of production credentials",
+     "string": "Indian Production Environment",
+     "type": "Boolean"
+    },
+    "l10n_in_gst_state_warning": {
+     "related": "partner_id.l10n_in_gst_state_warning",
+     "type": "Char"
+    },
+    "l10n_in_hsn_code_digit": {
+     "compute": "_compute_l10n_in_hsn_code_digit_and_l10n_in_pan",
+     "readonly": false,
+     "selection": [
+      [
+       "4",
+       "4 Digits (turnover < 5 CR.)"
+      ],
+      [
+       "6",
+       "6 Digits (turnover > 5 CR.)"
+      ],
+      [
+       "8",
+       "8 Digits"
+      ]
+     ],
+     "store": true,
+     "string": "HSN Code Digit",
+     "type": "Selection"
+    },
+    "l10n_in_pan": {
+     "compute": "_compute_l10n_in_hsn_code_digit_and_l10n_in_pan",
+     "help": "PAN enables the department to link all transactions of the person with the department.\nThese transactions include taxpayments, TDS/TCS credits, returns of income/wealth/gift/FBT,specified transactions, correspondence, and so on.\nThus, PAN acts as an identifier for the person with the tax department.",
+     "readonly": false,
+     "store": true,
+     "string": "PAN",
+     "type": "Char"
+    },
+    "l10n_in_pan_type": {
+     "compute": "_compute_l10n_in_pan_type",
+     "string": "PAN Type",
+     "type": "Char"
+    },
+    "l10n_in_upi_id": {
+     "string": "UPI Id",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vat')"
+     ],
+     "lines": 8,
+     "name": "_compute_l10n_in_hsn_code_digit_and_l10n_in_pan"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_in_pan')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_in_pan_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_update_l10n_in_fiscal_position"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_in_pan')"
+     ],
+     "lines": 4,
+     "name": "_check_l10n_in_pan"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_update_state_as_per_gstin"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "group_l10n_in_reseller": {
+     "string": "Manage Reseller(E-Commerce)",
+     "type": "Boolean"
+    },
+    "l10n_in_edi_production_env": {
+     "readonly": false,
+     "related": "company_id.l10n_in_edi_production_env",
+     "string": "Indian Production Environment",
+     "type": "Boolean"
+    },
+    "l10n_in_gsp": {
+     "help": "Select the GST Suvidha Provider (GSP) you want to use for GST services.",
+     "selection": [
+      [
+       "bvm",
+       "BVM IT Consulting"
+      ],
+      [
+       "tera",
+       "Tera Software (Deprecated)"
+      ]
+     ],
+     "store": false,
+     "string": "GSP",
+     "type": "Selection"
+    },
+    "l10n_in_hsn_code_digit": {
+     "readonly": false,
+     "related": "company_id.l10n_in_hsn_code_digit",
+     "type": "Selection"
+    },
+    "module_l10n_in_edi": {
+     "string": "Indian Electronic Invoicing",
+     "type": "Boolean"
+    },
+    "module_l10n_in_edi_ewaybill": {
+     "string": "Indian Electronic Waybill",
+     "type": "Boolean"
+    },
+    "module_l10n_in_enet_batch_payment": {
+     "string": "Vendor Payment",
+     "type": "Boolean"
+    },
+    "module_l10n_in_gstin_status": {
+     "string": "Check GST Number Status",
+     "type": "Boolean"
+    },
+    "module_l10n_in_withholding": {
+     "string": "Indian TDS and TCS",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "l10n_in_edi_buy_iap"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_l10n_in_is_first_time_setup"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_in_gsp_provider_changed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_set_l10n_in_gsp"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.country.state": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_tin": {
+     "help": "TIN number-first two digits",
+     "size": 2,
+     "string": "TIN Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.country.state",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "display_pan_warning": {
+     "compute": "_compute_display_pan_warning",
+     "string": "Display pan warning",
+     "type": "Boolean"
+    },
+    "l10n_in_gst_state_warning": {
+     "compute": "_compute_l10n_in_gst_state_warning",
+     "type": "Char"
+    },
+    "l10n_in_gst_treatment": {
+     "selection": [
+      [
+       "regular",
+       "Registered Business - Regular"
+      ],
+      [
+       "composition",
+       "Registered Business - Composition"
+      ],
+      [
+       "unregistered",
+       "Unregistered Business"
+      ],
+      [
+       "consumer",
+       "Consumer"
+      ],
+      [
+       "overseas",
+       "Overseas"
+      ],
+      [
+       "special_economic_zone",
+       "Special Economic Zone"
+      ],
+      [
+       "deemed_export",
+       "Deemed Export"
+      ],
+      [
+       "uin_holders",
+       "UIN Holders"
+      ]
+     ],
+     "string": "GST Treatment",
+     "type": "Selection"
+    },
+    "l10n_in_pan": {
+     "help": "PAN enables the department to link all transactions of the person with the department.\nThese transactions include taxpayments, TDS/TCS credits, returns of income/wealth/gift/FBT, specified transactions, correspondence, and so on.\nThus, PAN acts as an identifier for the person with the tax department.",
+     "string": "PAN",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vat', 'state_id', 'country_id', 'fiscal_country_codes')"
+     ],
+     "lines": 20,
+     "name": "_compute_l10n_in_gst_state_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_in_pan')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_pan_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('vat')"
+     ],
+     "lines": 7,
+     "name": "onchange_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_commercial_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "check_vat_in"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_l10n_in_get_partner_vals_by_vat"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_update_state_as_per_gstin"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "uom.uom": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_code": {
+     "help": "Unique Quantity Code (UQC) under GST",
+     "string": "Indian GST UQC",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "uom.uom",
+   "transient": false
+  }
+ },
+ "module": "l10n_in",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_in",
+ "stats": {
+  "fields": 38,
+  "methods": 50,
+  "models": 12,
+  "py_lines": 1545
+ },
+ "summary": "Indian Accounting: Chart of Account.",
+ "title": "Indian - Accounting",
+ "version": "2.0"
+}

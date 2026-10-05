@@ -1,0 +1,278 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "data/uom_data.xml",
+  "security/uom_security.xml",
+  "security/ir.model.access.csv",
+  "views/uom_uom_views.xml"
+ ],
+ "depends": [
+  "base"
+ ],
+ "models": {
+  "uom.category": {
+   "abstract": false,
+   "description": "Product UoM Categories",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Unit of Measure Category",
+     "translate": true,
+     "type": "Char"
+    },
+    "reference_uom_id": {
+     "comodel": "uom.uom",
+     "store": false,
+     "string": "Reference UoM",
+     "type": "Many2one"
+    },
+    "uom_ids": {
+     "comodel": "uom.uom",
+     "inverse_name": "category_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('uom_ids')"
+     ],
+     "lines": 21,
+     "name": "_onchange_uom_ids"
+    }
+   ],
+   "name": "uom.category",
+   "transient": false
+  },
+  "uom.uom": {
+   "abstract": false,
+   "description": "Product Unit of Measure",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "Uncheck the active field to disable a unit of measure without deleting it.",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "category_id": {
+     "comodel": "uom.category",
+     "help": "Conversion between Units of Measure can only occur if they belong to the same category. The conversion will be made based on the ratios.",
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Category",
+     "type": "Many2one"
+    },
+    "color": {
+     "compute": "_compute_color",
+     "string": "Color",
+     "type": "Integer"
+    },
+    "factor": {
+     "default": 1.0,
+     "digits": 0,
+     "help": "How much bigger or smaller this unit is compared to the reference Unit of Measure for this category: 1 * (reference unit) = ratio * (this unit)",
+     "required": true,
+     "string": "Ratio",
+     "type": "Float"
+    },
+    "factor_inv": {
+     "compute": "_compute_factor_inv",
+     "digits": 0,
+     "help": "How many times this Unit of Measure is bigger than the reference Unit of Measure in this category: 1 * (this unit) = ratio * (reference unit)",
+     "readonly": true,
+     "required": true,
+     "string": "Bigger Ratio",
+     "type": "Float"
+    },
+    "name": {
+     "required": true,
+     "string": "Unit of Measure",
+     "translate": true,
+     "type": "Char"
+    },
+    "ratio": {
+     "compute": "_compute_ratio",
+     "store": false,
+     "string": "Combined Ratio",
+     "type": "Float"
+    },
+    "rounding": {
+     "default": 0.01,
+     "digits": 0,
+     "help": "The computed quantity will be a multiple of this value. Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.",
+     "required": true,
+     "string": "Rounding Precision",
+     "type": "Float"
+    },
+    "uom_type": {
+     "default": "reference",
+     "required": true,
+     "selection": [
+      [
+       "bigger",
+       "Bigger than the reference Unit of Measure"
+      ],
+      [
+       "reference",
+       "Reference Unit of Measure for this category"
+      ],
+      [
+       "smaller",
+       "Smaller than the reference Unit of Measure"
+      ]
+     ],
+     "string": "Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_unprotected_uom_xml_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_check_category_reference_uniqueness"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('factor')"
+     ],
+     "lines": 3,
+     "name": "_compute_factor_inv"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('uom_type', 'factor')"
+     ],
+     "lines": 8,
+     "name": "_compute_ratio"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_set_ratio"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('uom_type')"
+     ],
+     "lines": 6,
+     "name": "_compute_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('uom_type')"
+     ],
+     "lines": 3,
+     "name": "_onchange_uom_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('factor', 'factor_inv', 'uom_type', 'rounding', 'category_id')"
+     ],
+     "lines": 15,
+     "name": "_onchange_critical_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 7,
+     "name": "_unlink_except_master_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "name_create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_compute_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_filter_protected_uoms"
+    }
+   ],
+   "name": "uom.uom",
+   "order": "factor DESC, id",
+   "sql_constraints": [
+    [
+     "factor_gt_zero",
+     "CHECK (factor!=0)",
+     "The conversion ratio for a unit of measure cannot be 0!"
+    ],
+    [
+     "rounding_gt_zero",
+     "CHECK (rounding>0)",
+     "The rounding precision must be strictly positive."
+    ],
+    [
+     "factor_reference_is_one",
+     "CHECK((uom_type = 'reference' AND factor = 1.0) OR (uom_type != 'reference'))",
+     "The reference unit must have a conversion factor equal to 1."
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "uom",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/uom",
+ "stats": {
+  "fields": 12,
+  "methods": 16,
+  "models": 2,
+  "py_lines": 273
+ },
+ "summary": "This is the base module for managing Units of measure.",
+ "title": "Units of measure",
+ "version": "1.0"
+}

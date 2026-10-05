@@ -1,0 +1,503 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/ir_rule.xml",
+  "views/account_move_views.xml",
+  "views/efaktur_document_views.xml",
+  "views/efaktur_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml"
+ ],
+ "depends": [
+  "l10n_id"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_id_available_range_count": {
+     "compute": "_compute_available_range_count",
+     "type": "Integer"
+    },
+    "l10n_id_efaktur_document": {
+     "comodel": "l10n_id_efaktur.document",
+     "copy": false,
+     "readonly": true,
+     "string": "e-Faktur Document",
+     "type": "Many2one"
+    },
+    "l10n_id_efaktur_range": {
+     "comodel": "l10n_id_efaktur.efaktur.range",
+     "copy": false,
+     "domain": "[('company_id', '=', company_id), ('available', '>', 0)]",
+     "string": "E-faktur Range",
+     "type": "Many2one"
+    },
+    "l10n_id_kode_transaksi": {
+     "compute": "_compute_kode_transaksi",
+     "copy": false,
+     "help": "Dua digit pertama nomor pajak",
+     "readonly": false,
+     "selection": [
+      [
+       "01",
+       "01 To the Parties that is not VAT Collector (Regular Customers)"
+      ],
+      [
+       "02",
+       "02 To the Treasurer"
+      ],
+      [
+       "03",
+       "03 To other VAT Collectors other than the Treasurer"
+      ],
+      [
+       "04",
+       "04 Other Value of VAT Imposition Base"
+      ],
+      [
+       "05",
+       "05 Specified Amount (Article 9A Paragraph (1) VAT Law)"
+      ],
+      [
+       "06",
+       "06 to individuals holding foreign passports"
+      ],
+      [
+       "07",
+       "07 Deliveries that the VAT is not Collected"
+      ],
+      [
+       "08",
+       "08 Deliveries that the VAT is Exempted"
+      ],
+      [
+       "09",
+       "09 Deliveries of Assets (Article 16D of VAT Law)"
+      ]
+     ],
+     "store": true,
+     "string": "Kode Transaksi",
+     "type": "Selection"
+    },
+    "l10n_id_need_kode_transaksi": {
+     "compute": "_compute_need_kode_transaksi",
+     "type": "Boolean"
+    },
+    "l10n_id_replace_invoice_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "domain": "['|', '&', '&', ('state', '=', 'posted'), ('partner_id', '=', partner_id), ('reversal_move_ids', '!=', False), ('state', '=', 'cancel')]",
+     "index": "btree_not_null",
+     "string": "Replace Invoice",
+     "type": "Many2one"
+    },
+    "l10n_id_show_kode_transaksi": {
+     "compute": "_compute_show_kode_transaksi",
+     "type": "Boolean"
+    },
+    "l10n_id_tax_number": {
+     "copy": false,
+     "string": "Tax Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 18,
+     "name": "_compute_available_range_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_id_tax_number')"
+     ],
+     "lines": 4,
+     "name": "_onchange_l10n_id_tax_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_kode_transaksi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('commercial_partner_id', 'invoice_line_ids.tax_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_need_kode_transaksi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('commercial_partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_show_kode_transaksi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_id_tax_number')"
+     ],
+     "lines": 10,
+     "name": "_constrains_l10n_id_tax_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "reset_efaktur"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "download_csv"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "download_efaktur"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_prepare_etax"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "button_draft"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_post": []
+   },
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_modify_default_reverse_values"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "l10n_id_efaktur.document": {
+   "abstract": false,
+   "description": "E-faktur Document",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "attachment_id": {
+     "comodel": "ir.attachment",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "invoice_ids": {
+     "comodel": "account.move",
+     "domain": "[('move_type', 'in', ['out_invoice', 'out_refund']), ('company_id', '=', company_id), ('l10n_id_efaktur_document', '=', False), ('l10n_id_tax_number', '!=', False), ('state', '=', 'posted')]",
+     "inverse_name": "l10n_id_efaktur_document",
+     "tracking": true,
+     "type": "One2many"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_download"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_regenerate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_generate_csv"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 195,
+     "name": "_generate_efaktur_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_ids')"
+     ],
+     "lines": 12,
+     "name": "_compute_name"
+    }
+   ],
+   "name": "l10n_id_efaktur.document",
+   "transient": false
+  },
+  "l10n_id_efaktur.efaktur.range": {
+   "abstract": false,
+   "description": "Available E-faktur range",
+   "extension": false,
+   "fields": {
+    "available": {
+     "readonly": true,
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "max": {
+     "required": true,
+     "type": "Char"
+    },
+    "min": {
+     "required": true,
+     "type": "Char"
+    },
+    "next_num": {
+     "compute": "_compute_next_num",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('max', 'available')"
+     ],
+     "lines": 3,
+     "name": "_compute_next_num"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "pop_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 45,
+     "name": "push_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('min', 'max')"
+     ],
+     "lines": 22,
+     "name": "_constrains_min_max"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('min')"
+     ],
+     "lines": 5,
+     "name": "_onchange_min"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('max')"
+     ],
+     "lines": 5,
+     "name": "_onchange_max"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('min', 'max')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_used_ranges"
+    }
+   ],
+   "name": "l10n_id_efaktur.efaktur.range",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_id_kode_transaksi": {
+     "default": "01",
+     "help": "Dua digit pertama nomor pajak",
+     "selection": [
+      [
+       "01",
+       "01 To the Parties that is not VAT Collector (Regular Customers)"
+      ],
+      [
+       "02",
+       "02 To the Treasurer"
+      ],
+      [
+       "03",
+       "03 To other VAT Collectors other than the Treasurer"
+      ],
+      [
+       "04",
+       "04 Other Value of VAT Imposition Base"
+      ],
+      [
+       "05",
+       "05 Specified Amount (Article 9A Paragraph (1) VAT Law)"
+      ],
+      [
+       "06",
+       "06 to individuals holding foreign passports"
+      ],
+      [
+       "07",
+       "07 Deliveries that the VAT is not Collected"
+      ],
+      [
+       "08",
+       "08 Deliveries that the VAT is Exempted"
+      ],
+      [
+       "09",
+       "09 Deliveries of Assets (Article 16D of VAT Law)"
+      ]
+     ],
+     "string": "Invoice Transaction Code",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "l10n_id_nik": {
+     "string": "NIK",
+     "type": "Char"
+    },
+    "l10n_id_pkp": {
+     "compute": "_compute_l10n_id_pkp",
+     "help": "Denoting whether the following partner is taxable",
+     "readonly": false,
+     "store": true,
+     "string": "Is PKP",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vat', 'country_code')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_id_pkp"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_id_efaktur",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_id_efaktur",
+ "stats": {
+  "fields": 21,
+  "methods": 29,
+  "models": 5,
+  "py_lines": 757
+ },
+ "summary": "E-Faktur Menu(Indonesia)",
+ "title": "Indonesia E-faktur",
+ "version": "1.0"
+}

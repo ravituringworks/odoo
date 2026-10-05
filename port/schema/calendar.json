@@ -1,0 +1,2564 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Productivity/Calendar",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/calendar_security.xml",
+  "data/calendar_cron.xml",
+  "data/mail_template_data.xml",
+  "data/calendar_data.xml",
+  "data/mail_activity_type_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "views/mail_activity_views.xml",
+  "views/calendar_templates.xml",
+  "views/calendar_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml",
+  "views/res_users_views.xml",
+  "wizard/calendar_provider_config.xml",
+  "wizard/calendar_popover_delete_wizard.xml",
+  "wizard/mail_activity_schedule_views.xml",
+  "data/calendar_demo.xml"
+ ],
+ "depends": [
+  "base",
+  "mail"
+ ],
+ "models": {
+  "calendar.alarm": {
+   "abstract": false,
+   "description": "Event Alarm",
+   "extension": false,
+   "fields": {
+    "alarm_type": {
+     "default": "email",
+     "required": true,
+     "selection": [
+      [
+       "notification",
+       "Notification"
+      ],
+      [
+       "email",
+       "Email"
+      ]
+     ],
+     "string": "Type",
+     "type": "Selection"
+    },
+    "body": {
+     "help": "Additional message that would be sent with the notification for the reminder",
+     "string": "Additional Message",
+     "type": "Text"
+    },
+    "duration": {
+     "default": 1,
+     "required": true,
+     "string": "Remind Before",
+     "type": "Integer"
+    },
+    "duration_minutes": {
+     "compute": "_compute_duration_minutes",
+     "store": true,
+     "string": "Duration in minutes",
+     "type": "Integer"
+    },
+    "interval": {
+     "default": "hours",
+     "required": true,
+     "selection": {
+      "$call": "list(_interval_selection.items())"
+     },
+     "string": "Unit",
+     "type": "Selection"
+    },
+    "mail_template_id": {
+     "comodel": "mail.template",
+     "compute": "_compute_mail_template_id",
+     "domain": [
+      [
+       "model",
+       "in",
+       [
+        "calendar.attendee"
+       ]
+      ]
+     ],
+     "help": "Template used to render mail reminder content.",
+     "readonly": false,
+     "store": true,
+     "string": "Email Template",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('interval', 'duration')"
+     ],
+     "lines": 10,
+     "name": "_compute_duration_minutes"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('alarm_type', 'mail_template_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_mail_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_duration_minutes"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('duration', 'interval', 'alarm_type')"
+     ],
+     "lines": 6,
+     "name": "_onchange_duration_interval"
+    }
+   ],
+   "name": "calendar.alarm",
+   "transient": false
+  },
+  "calendar.alarm_manager": {
+   "abstract": true,
+   "description": "Event Alarm Manager",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 88,
+     "name": "_get_next_potential_limit_alarm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "do_check_alarm_for_one_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_notify_alert_extra_conditions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_get_events_by_alarm_to_notify"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_send_reminder"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "get_next_notif"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "do_notif_reminder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_notify_next_alarm"
+    }
+   ],
+   "name": "calendar.alarm_manager",
+   "transient": false
+  },
+  "calendar.attendee": {
+   "abstract": false,
+   "description": "Calendar Attendee Information",
+   "extension": false,
+   "fields": {
+    "access_token": {
+     "default": {
+      "$ref": "_default_access_token"
+     },
+     "string": "Invitation Token",
+     "type": "Char"
+    },
+    "availability": {
+     "readonly": true,
+     "selection": [
+      [
+       "free",
+       "Available"
+      ],
+      [
+       "busy",
+       "Busy"
+      ]
+     ],
+     "string": "Available/Busy",
+     "type": "Selection"
+    },
+    "common_name": {
+     "compute": "_compute_common_name",
+     "store": true,
+     "string": "Common name",
+     "type": "Char"
+    },
+    "email": {
+     "related": "partner_id.email",
+     "string": "Email",
+     "type": "Char"
+    },
+    "event_id": {
+     "comodel": "calendar.event",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Meeting linked",
+     "type": "Many2one"
+    },
+    "mail_tz": {
+     "compute": "_compute_mail_tz",
+     "help": "Timezone used for displaying time in the mail template",
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "type": "Selection"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "string": "Attendee",
+     "type": "Many2one"
+    },
+    "phone": {
+     "related": "partner_id.phone",
+     "string": "Phone",
+     "type": "Char"
+    },
+    "recurrence_id": {
+     "comodel": "calendar.recurrence",
+     "related": "event_id.recurrence_id",
+     "type": "Many2one"
+    },
+    "state": {
+     "default": "needsAction",
+     "selection": {
+      "$ref": "STATE_SELECTION"
+     },
+     "string": "Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'partner_id.name', 'email')"
+     ],
+     "lines": 3,
+     "name": "_compute_common_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_mail_tz"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 15,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_subscribe_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_unsubscribe_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_send_invitation_emails"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 82,
+     "name": "_send_mail_to_attendees"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_should_notify_attendee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "do_tentative"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "do_accept"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "do_decline"
+    }
+   ],
+   "name": "calendar.attendee",
+   "order": "create_date ASC",
+   "rec_name": "common_name",
+   "transient": false
+  },
+  "calendar.event": {
+   "abstract": false,
+   "description": "Calendar Event",
+   "extension": false,
+   "fields": {
+    "accepted_count": {
+     "compute": "_compute_attendees_count",
+     "type": "Integer"
+    },
+    "access_token": {
+     "copy": false,
+     "index": true,
+     "store": true,
+     "string": "Invitation Token",
+     "type": "Char"
+    },
+    "active": {
+     "default": true,
+     "help": "If the active field is set to false, it will allow you to hide the event alarm information without removing it.",
+     "string": "Active",
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "activity_ids": {
+     "comodel": "mail.activity",
+     "inverse_name": "calendar_event_id",
+     "string": "Activities",
+     "type": "One2many"
+    },
+    "alarm_ids": {
+     "comodel": "calendar.alarm",
+     "help": "Notifications sent to all attendees to remind of the meeting.",
+     "ondelete": "restrict",
+     "relation_table": "calendar_alarm_calendar_event_rel",
+     "string": "Reminders",
+     "type": "Many2many"
+    },
+    "allday": {
+     "default": false,
+     "string": "All Day",
+     "type": "Boolean"
+    },
+    "attendee_ids": {
+     "comodel": "calendar.attendee",
+     "inverse_name": "event_id",
+     "string": "Participant",
+     "type": "One2many"
+    },
+    "attendees_count": {
+     "compute": "_compute_attendees_count",
+     "type": "Integer"
+    },
+    "awaiting_count": {
+     "compute": "_compute_attendees_count",
+     "type": "Integer"
+    },
+    "byday": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "selection": [
+      [
+       "1",
+       "First"
+      ],
+      [
+       "2",
+       "Second"
+      ],
+      [
+       "3",
+       "Third"
+      ],
+      [
+       "4",
+       "Fourth"
+      ],
+      [
+       "-1",
+       "Last"
+      ]
+     ],
+     "string": "By day",
+     "type": "Selection"
+    },
+    "categ_ids": {
+     "column1": "event_id",
+     "column2": "type_id",
+     "comodel": "calendar.event.type",
+     "relation_table": "meeting_category_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "count": {
+     "compute": "_compute_recurrence",
+     "help": "Repeat x times",
+     "readonly": false,
+     "string": "Number of Repetitions",
+     "type": "Integer"
+    },
+    "current_attendee": {
+     "comodel": "calendar.attendee",
+     "compute": "_compute_current_attendee",
+     "type": "Many2one"
+    },
+    "current_status": {
+     "readonly": false,
+     "related": "current_attendee.state",
+     "string": "Attending?",
+     "type": "Selection"
+    },
+    "day": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "string": "Date of month",
+     "type": "Integer"
+    },
+    "declined_count": {
+     "compute": "_compute_attendees_count",
+     "type": "Integer"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Html"
+    },
+    "display_description": {
+     "compute": "_compute_display_description",
+     "type": "Boolean"
+    },
+    "display_time": {
+     "compute": "_compute_display_time",
+     "string": "Event Time",
+     "type": "Char"
+    },
+    "duration": {
+     "compute": "_compute_duration",
+     "readonly": false,
+     "store": true,
+     "string": "Duration",
+     "type": "Float"
+    },
+    "end_type": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "selection": [
+      [
+       "count",
+       "Number of repetitions"
+      ],
+      [
+       "end_date",
+       "End date"
+      ],
+      [
+       "forever",
+       "Forever"
+      ]
+     ],
+     "string": "Recurrence Termination",
+     "type": "Selection"
+    },
+    "event_tz": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "follow_recurrence": {
+     "default": false,
+     "type": "Boolean"
+    },
+    "fri": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "type": "Boolean"
+    },
+    "interval": {
+     "compute": "_compute_recurrence",
+     "help": "Repeat every (Days/Week/Month/Year)",
+     "readonly": false,
+     "string": "Repeat On",
+     "type": "Integer"
+    },
+    "invalid_email_partner_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_invalid_email_partner_ids",
+     "type": "Many2many"
+    },
+    "is_highlighted": {
+     "compute": "_compute_is_highlighted",
+     "string": "Is the Event Highlighted",
+     "type": "Boolean"
+    },
+    "is_organizer_alone": {
+     "compute": "_compute_is_organizer_alone",
+     "help": "Check if the organizer is alone in the event, i.e. if the organizer is the only one that hasn't declined\n        the event (only if the organizer is not the only attendee)",
+     "string": "Is the Organizer Alone",
+     "type": "Boolean"
+    },
+    "location": {
+     "string": "Location",
+     "tracking": true,
+     "type": "Char"
+    },
+    "mon": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "type": "Boolean"
+    },
+    "month_by": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "selection": [
+      [
+       "date",
+       "Date of month"
+      ],
+      [
+       "day",
+       "Day of month"
+      ]
+     ],
+     "string": "Option",
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Meeting Subject",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "related": "user_id.partner_id",
+     "string": "Scheduled by",
+     "type": "Many2one"
+    },
+    "partner_ids": {
+     "comodel": "res.partner",
+     "default": {
+      "$ref": "_default_partners"
+     },
+     "relation_table": "calendar_event_res_partner_rel",
+     "string": "Attendees",
+     "type": "Many2many"
+    },
+    "privacy": {
+     "help": "People to whom this event will be visible.",
+     "selection": [
+      [
+       "public",
+       "Public"
+      ],
+      [
+       "private",
+       "Private"
+      ],
+      [
+       "confidential",
+       "Only internal users"
+      ]
+     ],
+     "string": "Privacy",
+     "type": "Selection"
+    },
+    "recurrence_id": {
+     "comodel": "calendar.recurrence",
+     "string": "Recurrence Rule",
+     "type": "Many2one"
+    },
+    "recurrence_update": {
+     "copy": false,
+     "default": "self_only",
+     "help": "Choose what to do with other events in the recurrence. Updating All Events is not allowed when dates or time is modified",
+     "selection": [
+      [
+       "self_only",
+       "This event"
+      ],
+      [
+       "future_events",
+       "This and following events"
+      ],
+      [
+       "all_events",
+       "All events"
+      ]
+     ],
+     "store": false,
+     "type": "Selection"
+    },
+    "recurrency": {
+     "string": "Recurrent",
+     "type": "Boolean"
+    },
+    "res_id": {
+     "string": "Document ID",
+     "type": "Many2oneReference"
+    },
+    "res_model": {
+     "readonly": true,
+     "related": "res_model_id.model",
+     "store": true,
+     "string": "Document Model Name",
+     "type": "Char"
+    },
+    "res_model_id": {
+     "comodel": "ir.model",
+     "ondelete": "cascade",
+     "string": "Document Model",
+     "type": "Many2one"
+    },
+    "res_model_name": {
+     "related": "res_model_id.name",
+     "type": "Char"
+    },
+    "rrule": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "string": "Recurrent Rule",
+     "type": "Char"
+    },
+    "rrule_type": {
+     "compute": "_compute_recurrence",
+     "help": "Let the event automatically repeat at that interval",
+     "readonly": false,
+     "selection": [
+      [
+       "daily",
+       "Days"
+      ],
+      [
+       "weekly",
+       "Weeks"
+      ],
+      [
+       "monthly",
+       "Months"
+      ],
+      [
+       "yearly",
+       "Years"
+      ]
+     ],
+     "string": "Recurrence",
+     "type": "Selection"
+    },
+    "rrule_type_ui": {
+     "compute": "_compute_rrule_type_ui",
+     "help": "Let the event automatically repeat at that interval",
+     "readonly": false,
+     "selection": [
+      [
+       "daily",
+       "Daily"
+      ],
+      [
+       "weekly",
+       "Weekly"
+      ],
+      [
+       "monthly",
+       "Monthly"
+      ],
+      [
+       "yearly",
+       "Yearly"
+      ],
+      [
+       "custom",
+       "Custom"
+      ]
+     ],
+     "string": "Repeat",
+     "type": "Selection"
+    },
+    "sat": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "type": "Boolean"
+    },
+    "should_show_status": {
+     "compute": "_compute_should_show_status",
+     "type": "Boolean"
+    },
+    "show_as": {
+     "default": "busy",
+     "help": "If the time is shown as 'busy', this event will be visible to other people with either the full         information or simply 'busy' written depending on its privacy. Use this option to let other people know         that you are unavailable during that period of time. \n If the event is shown as 'free', other users know         that you are available during that period of time.",
+     "required": true,
+     "selection": [
+      [
+       "free",
+       "Available"
+      ],
+      [
+       "busy",
+       "Busy"
+      ]
+     ],
+     "string": "Show as",
+     "type": "Selection"
+    },
+    "start": {
+     "default": {
+      "$ref": "_default_start"
+     },
+     "help": "Start date of an event, without time for full days events",
+     "required": true,
+     "string": "Start",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "start_date": {
+     "compute": "_compute_dates",
+     "store": true,
+     "string": "Start Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "stop": {
+     "compute": "_compute_stop",
+     "default": {
+      "$ref": "_default_stop"
+     },
+     "help": "Stop date of an event, without time for full days events",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Stop",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "stop_date": {
+     "compute": "_compute_dates",
+     "store": true,
+     "string": "End Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "sun": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "type": "Boolean"
+    },
+    "tentative_count": {
+     "compute": "_compute_attendees_count",
+     "type": "Integer"
+    },
+    "thu": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "type": "Boolean"
+    },
+    "tue": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "type": "Boolean"
+    },
+    "until": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "type": "Date"
+    },
+    "user_can_edit": {
+     "compute": "_compute_user_can_edit",
+     "type": "Boolean"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "string": "Organizer",
+     "type": "Many2one"
+    },
+    "videocall_channel_id": {
+     "comodel": "discuss.channel",
+     "string": "Discuss Channel",
+     "type": "Many2one"
+    },
+    "videocall_location": {
+     "compute": "_compute_videocall_location",
+     "copy": true,
+     "store": true,
+     "string": "Meeting URL",
+     "type": "Char"
+    },
+    "videocall_source": {
+     "compute": "_compute_videocall_source",
+     "selection": [
+      [
+       "discuss",
+       "Discuss"
+      ],
+      [
+       "custom",
+       "Custom"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "wed": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "type": "Boolean"
+    },
+    "weekday": {
+     "compute": "_compute_recurrence",
+     "readonly": false,
+     "selection": [
+      [
+       "MON",
+       "Monday"
+      ],
+      [
+       "TUE",
+       "Tuesday"
+      ],
+      [
+       "WED",
+       "Wednesday"
+      ],
+      [
+       "THU",
+       "Thursday"
+      ],
+      [
+       "FRI",
+       "Friday"
+      ],
+      [
+       "SAT",
+       "Saturday"
+      ],
+      [
+       "SUN",
+       "Sunday"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "get_state_selections"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_default_partners"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_default_start"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_default_stop"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attendee_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_should_show_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attendee_ids', 'attendee_ids.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_current_attendee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_current_attendee"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attendee_ids', 'attendee_ids.state', 'partner_ids')"
+     ],
+     "lines": 17,
+     "name": "_compute_attendees_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_ids')",
+      "api.depends_context('uid')"
+     ],
+     "lines": 11,
+     "name": "_compute_user_can_edit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_invalid_email_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_is_highlighted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'attendee_ids')"
+     ],
+     "lines": 12,
+     "name": "_compute_is_organizer_alone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_display_time"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allday', 'start', 'stop')"
+     ],
+     "lines": 13,
+     "name": "_compute_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('stop', 'start')"
+     ],
+     "lines": 3,
+     "name": "_compute_duration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('start', 'duration')"
+     ],
+     "lines": 16,
+     "name": "_compute_stop"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('start_date', 'stop_date')"
+     ],
+     "lines": 11,
+     "name": "_onchange_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_inverse_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('start', 'stop', 'start_date', 'stop_date')"
+     ],
+     "lines": 22,
+     "name": "_check_closing_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_check_organizer_validation_conditions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurrence_id', 'recurrency')"
+     ],
+     "lines": 8,
+     "name": "_compute_rrule_type_ui"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurrence_id', 'recurrency', 'rrule_type_ui')"
+     ],
+     "lines": 20,
+     "name": "_compute_recurrence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('description')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('videocall_source', 'access_token')"
+     ],
+     "lines": 4,
+     "name": "_compute_videocall_location"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_set_videocall_location"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('videocall_location')"
+     ],
+     "lines": 6,
+     "name": "_compute_videocall_source"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_set_discuss_videocall_location"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "get_discuss_videocall_location"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 123,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_field_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_fetch_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 112,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_check_calendar_privacy_write_permissions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_private_event_conditions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('privacy', 'user_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "read_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_mail_message_access"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_attendees_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_create_videocall_channel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_create_videocall_channel_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_default_privacy_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_is_event_over"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "set_discuss_videocall_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "clear_videocall_location"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_open_calendar_event"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_sendmail"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 24,
+     "name": "action_open_composer"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_join_video_call"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_join_meeting"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_mass_deletion"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_mass_archive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_skip_send_mail_status_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_attendee_emails"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_mail_tz"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_sync_activities"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_activity_deadline_from_start"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_trigger_alarm_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_setup_alarms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "get_next_alarm_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_apply_recurrence_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_recurrence_params"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_recurrence_params_by_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_split_recurrence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_break_recurrence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_time_update_dict"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_archive_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_check_values_to_sync"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_update_future_events_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_remove_sync_id_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_updated_recurrence_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_update_future_events"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_rewrite_recurrence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "change_attendee_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "find_partner_customer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_activity_excluded_models"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_reset_attendees_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_start_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_range"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "get_display_time_tz"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_get_ics_file"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_customer_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_customer_summary"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 43,
+     "name": "_get_display_time"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_duration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_date_formats"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_recurrent_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_time_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_custom_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_public_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "get_default_duration"
+    }
+   ],
+   "name": "calendar.event",
+   "order": "start desc",
+   "sel_methods": {
+    "_compute_field_value": [],
+    "_get_activity_excluded_models": [],
+    "_get_mail_message_access": [],
+    "_search_current_attendee": [
+     [
+      "attendee_ids",
+      "any"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "calendar.event.type": {
+   "abstract": false,
+   "description": "Event Meeting Type",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$ref": "_default_color"
+     },
+     "string": "Color",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_color"
+    }
+   ],
+   "name": "calendar.event.type",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "calendar.filters": {
+   "abstract": false,
+   "description": "Calendar Filters",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "partner_checked": {
+     "default": true,
+     "string": "Checked",
+     "type": "Boolean"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "index": true,
+     "required": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Me",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "unlink_from_partner_id"
+    }
+   ],
+   "name": "calendar.filters",
+   "sql_constraints": [
+    [
+     "user_id_partner_id_unique",
+     "UNIQUE(user_id, partner_id)",
+     "A user cannot have the same contact twice."
+    ]
+   ],
+   "transient": false
+  },
+  "calendar.popover.delete.wizard": {
+   "abstract": false,
+   "description": "Calendar Popover Delete Wizard",
+   "extension": false,
+   "fields": {
+    "delete": {
+     "default": "one",
+     "selection": [
+      [
+       "one",
+       "Delete this event"
+      ],
+      [
+       "next",
+       "Delete this and following events"
+      ],
+      [
+       "all",
+       "Delete all the events"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "record": {
+     "comodel": "calendar.event",
+     "string": "Calendar Event",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "close"
+    }
+   ],
+   "name": "calendar.popover.delete.wizard",
+   "transient": true
+  },
+  "calendar.provider.config": {
+   "abstract": false,
+   "description": "Calendar Provider Configuration Wizard",
+   "extension": false,
+   "fields": {
+    "cal_client_id": {
+     "default": {
+      "$lambda": "self.env['ir.config_parameter'].get_param('google_calendar_client_id')"
+     },
+     "string": "Google Client_id",
+     "type": "Char"
+    },
+    "cal_client_secret": {
+     "default": {
+      "$lambda": "self.env['ir.config_parameter'].get_param('google_calendar_client_secret')"
+     },
+     "string": "Google Client_key",
+     "type": "Char"
+    },
+    "cal_sync_paused": {
+     "default": {
+      "$lambda": "str2bool(self.env['ir.config_parameter'].get_param('google_calendar_sync_paused'), default=False)"
+     },
+     "string": "Google Synchronization Paused",
+     "type": "Boolean"
+    },
+    "external_calendar_provider": {
+     "default": "google",
+     "selection": [
+      [
+       "google",
+       "Google"
+      ],
+      [
+       "microsoft",
+       "Outlook"
+      ]
+     ],
+     "string": "Choose an external calendar to configure",
+     "type": "Selection"
+    },
+    "microsoft_outlook_client_identifier": {
+     "default": {
+      "$lambda": "self.env['ir.config_parameter'].get_param('microsoft_calendar_client_id')"
+     },
+     "string": "Outlook Client Id",
+     "type": "Char"
+    },
+    "microsoft_outlook_client_secret": {
+     "default": {
+      "$lambda": "self.env['ir.config_parameter'].get_param('microsoft_calendar_client_secret')"
+     },
+     "string": "Outlook Client Secret",
+     "type": "Char"
+    },
+    "microsoft_outlook_sync_paused": {
+     "default": {
+      "$lambda": "str2bool(self.env['ir.config_parameter'].get_param('microsoft_calendar_sync_paused'), default=False)"
+     },
+     "string": "Outlook Synchronization Paused",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_calendar_prepare_external_provider_sync"
+    }
+   ],
+   "name": "calendar.provider.config",
+   "transient": true
+  },
+  "calendar.recurrence": {
+   "abstract": false,
+   "description": "Event Recurrence Rule",
+   "extension": false,
+   "fields": {
+    "base_event_id": {
+     "comodel": "calendar.event",
+     "copy": false,
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "byday": {
+     "selection": [
+      [
+       "1",
+       "First"
+      ],
+      [
+       "2",
+       "Second"
+      ],
+      [
+       "3",
+       "Third"
+      ],
+      [
+       "4",
+       "Fourth"
+      ],
+      [
+       "-1",
+       "Last"
+      ]
+     ],
+     "string": "By day",
+     "type": "Selection"
+    },
+    "calendar_event_ids": {
+     "comodel": "calendar.event",
+     "inverse_name": "recurrence_id",
+     "type": "One2many"
+    },
+    "count": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "day": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "dtstart": {
+     "compute": "_compute_dtstart",
+     "type": "Datetime"
+    },
+    "end_type": {
+     "default": "count",
+     "selection": [
+      [
+       "count",
+       "Number of repetitions"
+      ],
+      [
+       "end_date",
+       "End date"
+      ],
+      [
+       "forever",
+       "Forever"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "event_tz": {
+     "default": {
+      "$lambda": "self.env.context.get('tz') or self.env.user.tz"
+     },
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "fri": {
+     "type": "Boolean"
+    },
+    "interval": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "mon": {
+     "type": "Boolean"
+    },
+    "month_by": {
+     "default": "date",
+     "selection": [
+      [
+       "date",
+       "Date of month"
+      ],
+      [
+       "day",
+       "Day of month"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "store": true,
+     "type": "Char"
+    },
+    "rrule": {
+     "compute": "_compute_rrule",
+     "store": true,
+     "type": "Char"
+    },
+    "rrule_type": {
+     "default": "weekly",
+     "selection": [
+      [
+       "daily",
+       "Days"
+      ],
+      [
+       "weekly",
+       "Weeks"
+      ],
+      [
+       "monthly",
+       "Months"
+      ],
+      [
+       "yearly",
+       "Years"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "sat": {
+     "type": "Boolean"
+    },
+    "sun": {
+     "type": "Boolean"
+    },
+    "thu": {
+     "type": "Boolean"
+    },
+    "trigger_id": {
+     "comodel": "ir.cron.trigger",
+     "type": "Many2one"
+    },
+    "tue": {
+     "type": "Boolean"
+    },
+    "until": {
+     "string": "Repeat Until",
+     "type": "Date"
+    },
+    "wed": {
+     "type": "Boolean"
+    },
+    "weekday": {
+     "selection": [
+      [
+       "MON",
+       "Monday"
+      ],
+      [
+       "TUE",
+       "Tuesday"
+      ],
+      [
+       "WED",
+       "Wednesday"
+      ],
+      [
+       "THU",
+       "Thursday"
+      ],
+      [
+       "FRI",
+       "Friday"
+      ],
+      [
+       "SAT",
+       "Saturday"
+      ],
+      [
+       "SUN",
+       "Sunday"
+      ]
+     ],
+     "string": "Weekday",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_daily_recurrence_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_weekly_recurrence_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_monthly_recurrence_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_yearly_recurrence_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "get_recurrence_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rrule')"
+     ],
+     "lines": 3,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('calendar_event_ids.start')"
+     ],
+     "lines": 5,
+     "name": "_compute_dtstart"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('byday', 'until', 'rrule_type', 'month_by', 'interval', 'count', 'end_type', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'day', 'weekday')"
+     ],
+     "lines": 5,
+     "name": "_compute_rrule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_inverse_rrule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_reconcile_events"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_select_new_base_event"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_apply_recurrence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_setup_alarms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_split_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_stop_at"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_detach_events"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_write_events"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_rrule_serialize"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 49,
+     "name": "_rrule_parse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_lang_week_start"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_start_of_period"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_first_event"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_outliers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_range_calculation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_ranges"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_timezone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_get_occurrences"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_events_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_week_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_is_allday"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_get_rrule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_is_event_over"
+    }
+   ],
+   "name": "calendar.recurrence",
+   "sql_constraints": {
+    "$expr": "[('month_day', \"CHECK (rrule_type != 'monthly' OR month_by != 'day' OR day >= 1 AND day <= 31 OR weekday in %s AND byday in %s)\" % (tuple((wd[0] for wd in WEEKDAY_SELECTION)), tuple((bd[0] for bd in B"
+   },
+   "transient": false
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_auth_method_calendar"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "mail.activity": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "calendar_event_id": {
+     "comodel": "calendar.event",
+     "ondelete": "cascade",
+     "string": "Calendar Meeting",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_create_calendar_event"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "unlink_w_meeting"
+    }
+   ],
+   "name": "mail.activity",
+   "transient": false
+  },
+  "mail.activity.mixin": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "activity_calendar_event_id": {
+     "comodel": "calendar.event",
+     "compute": "_compute_activity_calendar_event_id",
+     "groups": "base.group_user",
+     "string": "Next Activity Calendar Event",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('activity_ids.calendar_event_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_activity_calendar_event_id"
+    }
+   ],
+   "name": "mail.activity.mixin",
+   "transient": false
+  },
+  "mail.activity.schedule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_create_calendar_event"
+    }
+   ],
+   "name": "mail.activity.schedule",
+   "transient": false
+  },
+  "mail.activity.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "category": {
+     "selection_add": [
+      [
+       "meeting",
+       "Meeting"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.activity.type",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "calendar_last_notif_ack": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "string": "Last notification marked as read from base Calendar",
+     "type": "Datetime"
+    },
+    "meeting_count": {
+     "compute": "_compute_meeting_count",
+     "string": "# Meetings",
+     "type": "Integer"
+    },
+    "meeting_ids": {
+     "column1": "res_partner_id",
+     "column2": "calendar_event_id",
+     "comodel": "calendar.event",
+     "copy": false,
+     "relation_table": "calendar_event_res_partner_rel",
+     "string": "Meetings",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_meeting_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_compute_meeting"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "get_attendee_detail"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_set_calendar_last_notif_ack"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "schedule_meeting"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "calendar_default_privacy": {
+     "compute": "_compute_calendar_default_privacy",
+     "selection": [
+      [
+       "public",
+       "Public"
+      ],
+      [
+       "private",
+       "Private"
+      ],
+      [
+       "confidential",
+       "Only internal users"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_WRITEABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "get_selected_calendars_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_default_user_calendar_default_privacy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_users_settings_id.calendar_default_privacy')"
+     ],
+     "lines": 11,
+     "name": "_compute_calendar_default_privacy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_inverse_calendar_res_users_settings"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_user_calendar_configuration_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "_systray_get_calendar_event_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_get_activity_groups"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "check_calendar_credentials"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "check_synchronization_status"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "res.users.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "calendar_default_privacy": {
+     "default": "public",
+     "help": "Default privacy setting for whom the calendar events will be visible.",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "public",
+       "Public"
+      ],
+      [
+       "private",
+       "Private"
+      ],
+      [
+       "confidential",
+       "Only internal users"
+      ]
+     ],
+     "store": true,
+     "string": "Calendar Default Privacy",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_fields_blacklist"
+    }
+   ],
+   "name": "res.users.settings",
+   "transient": false
+  }
+ },
+ "module": "calendar",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/calendar",
+ "stats": {
+  "fields": 127,
+  "methods": 180,
+  "models": 17,
+  "py_lines": 3524
+ },
+ "summary": "Schedule employees' meetings",
+ "title": "Calendar",
+ "version": "1.1"
+}

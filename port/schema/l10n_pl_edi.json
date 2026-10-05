@@ -1,0 +1,485 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "views/account_move_views.xml",
+  "views/report_invoice.xml",
+  "views/res_config_settings_views.xml",
+  "data/ir_cron_data.xml",
+  "data/fa3_template.xml",
+  "demo/account_invoice_demo.xml"
+ ],
+ "depends": [
+  "l10n_pl",
+  "certificate"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_edi_attachment_file": {
+     "copy": false,
+     "type": "Binary"
+    },
+    "l10n_pl_edi_attachment_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('l10n_pl_edi_attachment_id', 'l10n_pl_edi_attachment_file')"
+     },
+     "string": "KSeF Attachment",
+     "type": "Many2one"
+    },
+    "l10n_pl_edi_header": {
+     "copy": false,
+     "help": "User description of the current state, with hints to make the flow progress",
+     "readonly": true,
+     "type": "Html"
+    },
+    "l10n_pl_edi_number": {
+     "copy": false,
+     "index": true,
+     "readonly": true,
+     "string": "KSeF Number",
+     "type": "Char"
+    },
+    "l10n_pl_edi_ref": {
+     "copy": false,
+     "readonly": true,
+     "string": "KSeF Reference Number",
+     "type": "Char"
+    },
+    "l10n_pl_edi_register": {
+     "related": "company_id.l10n_pl_edi_register",
+     "type": "Boolean"
+    },
+    "l10n_pl_edi_session_id": {
+     "copy": false,
+     "readonly": true,
+     "string": "KSeF Session Number used for sending",
+     "type": "Char"
+    },
+    "l10n_pl_edi_status": {
+     "copy": false,
+     "readonly": true,
+     "selection": [
+      [
+       "sent",
+       "Sent (In Progress)"
+      ],
+      [
+       "accepted",
+       "Accepted"
+      ],
+      [
+       "rejected",
+       "Rejected"
+      ],
+      [
+       "fetch_ready",
+       "Fetch Ready"
+      ],
+      [
+       "fetched",
+       "Fetched"
+      ],
+      [
+       "fetch_failed",
+       "Fetch Failed"
+      ]
+     ],
+     "string": "KSeF Status",
+     "type": "Selection"
+    },
+    "l10n_pl_edi_upo_file": {
+     "copy": false,
+     "type": "Binary"
+    },
+    "l10n_pl_edi_upo_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('l10n_pl_edi_upo_id', 'l10n_pl_edi_upo_file')"
+     },
+     "string": "UPO Attachment",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_l10n_pl_edi_check_mandatory_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_l10n_pl_edi_get_ksef_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_l10n_pl_edi_get_related_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 157,
+     "name": "_l10n_pl_edi_get_xml_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_l10n_pl_edi_render_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_l10n_pl_edi_generate_qr_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_l10n_pl_edi_generate_qr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_l10n_pl_edi_get_status_mapping"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 58,
+     "name": "action_l10n_pl_edi_update_invoice_status"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 50,
+     "name": "action_l10n_pl_edi_get_invoice_UPO"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_l10n_pl_edi_import_from_ksef"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_cron_l10n_pl_edi_check_invoice_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_pl_edi_status')"
+     ],
+     "lines": 11,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_fields_to_detach"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 171,
+     "name": "l10n_pl_edi_get_ksef_bill_vals_from_xml"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_cron_l10n_pl_edi_download_bills"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_l10n_pl_edi_download_bills_from_ksef"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_handle_download_bills_from_ksef_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 68,
+     "name": "_fetch_bills_metadata"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_fetch_bills_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_decode_fa3_ksef"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_edi_decoder"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_get_edi_decoder": []
+   },
+   "sql_constraints": [
+    [
+     "unique_l10n_pl_edi_number_company_id_move_type",
+     "UNIQUE(l10n_pl_edi_number, company_id, move_type)",
+     "The KSeF number must be unique per company per move_type"
+    ]
+   ],
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_call_web_service_before_invoice_pdf_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_l10n_pl_edi_try_status_fetch_from_ksef"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_edi_access_token": {
+     "copy": false,
+     "groups": "base.group_system",
+     "readonly": true,
+     "string": "KSeF Token",
+     "type": "Char"
+    },
+    "l10n_pl_edi_certificate": {
+     "comodel": "certificate.certificate",
+     "groups": "base.group_system",
+     "store": true,
+     "string": "KSeF Certificate",
+     "type": "Many2one"
+    },
+    "l10n_pl_edi_refresh_token": {
+     "copy": false,
+     "groups": "base.group_system",
+     "readonly": true,
+     "string": "KSeF Token Expiration",
+     "type": "Char"
+    },
+    "l10n_pl_edi_register": {
+     "compute": "_compute_l10n_pl_edi_register",
+     "string": "KSeF Integration Enabled",
+     "type": "Boolean"
+    },
+    "l10n_pl_edi_session_id": {
+     "groups": "base.group_system",
+     "readonly": true,
+     "string": "Reference number",
+     "type": "Char"
+    },
+    "l10n_pl_edi_session_iv": {
+     "groups": "base.group_system",
+     "readonly": true,
+     "string": "Session iv",
+     "type": "Binary"
+    },
+    "l10n_pl_edi_session_key": {
+     "groups": "base.group_system",
+     "readonly": true,
+     "string": "Session key",
+     "type": "Binary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_pl_edi_certificate')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_pl_edi_register"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_cron_l10n_pl_edi_refresh_tokens"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "l10n_pl_edi_has_access_to_ksef"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_edi_access_token": {
+     "readonly": true,
+     "related": "company_id.l10n_pl_edi_access_token",
+     "string": "KSeF Access Token",
+     "type": "Char"
+    },
+    "l10n_pl_edi_certificate": {
+     "comodel": "certificate.certificate",
+     "compute": "_compute_l10n_pl_edi_certificate",
+     "readonly": false,
+     "string": "KSeF Certificate",
+     "type": "Many2one"
+    },
+    "l10n_pl_edi_register": {
+     "readonly": false,
+     "related": "company_id.l10n_pl_edi_register",
+     "string": "Allow KSeF integration",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_pl_edi_certificate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_pl_edi_register')"
+     ],
+     "lines": 5,
+     "name": "_l10n_pl_edi_reset"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_set_l10n_pl_edi_certificate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_l10n_pl_edi_ksef_authenticate"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_edi_format": {
+     "selection_add": [
+      [
+       "fa3_pl",
+       "Polish FA3"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_suggested_invoice_edi_format"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_get_suggested_invoice_edi_format": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_pl_edi",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_pl_edi",
+ "stats": {
+  "fields": 21,
+  "methods": 35,
+  "models": 5,
+  "py_lines": 1639
+ },
+ "summary": "Support for FA(3) electronic invoices in Poland via KSeF",
+ "title": "Polish E-Invoicing FA(3)",
+ "version": null
+}

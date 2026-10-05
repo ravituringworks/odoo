@@ -1,0 +1,1305 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/invoice_it_template.xml",
+  "data/invoice_it_simplified_template.xml",
+  "data/ir_cron.xml",
+  "data/account.account.tag.csv",
+  "views/res_config_settings_views.xml",
+  "views/l10n_it_view.xml",
+  "views/report_invoice.xml",
+  "data/account_invoice_demo.xml"
+ ],
+ "depends": [
+  "l10n_it",
+  "account_edi_proxy_client"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_it_cig": {
+     "copy": false,
+     "help": "Tender Unique Identifier",
+     "string": "CIG",
+     "type": "Char"
+    },
+    "l10n_it_cup": {
+     "copy": false,
+     "help": "Public Investment Unique Identifier",
+     "string": "CUP",
+     "type": "Char"
+    },
+    "l10n_it_ddt_id": {
+     "comodel": "l10n_it.ddt",
+     "copy": false,
+     "string": "DDT",
+     "type": "Many2one"
+    },
+    "l10n_it_edi_attachment_file": {
+     "copy": false,
+     "type": "Binary"
+    },
+    "l10n_it_edi_attachment_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('l10n_it_edi_attachment_id', 'l10n_it_edi_attachment_file')"
+     },
+     "string": "FatturaPA Attachment",
+     "type": "Many2one"
+    },
+    "l10n_it_edi_header": {
+     "copy": false,
+     "help": "User description of the current state, with hints to make the flow progress",
+     "readonly": true,
+     "type": "Html"
+    },
+    "l10n_it_edi_is_self_invoice": {
+     "compute": "_compute_l10n_it_edi_is_self_invoice",
+     "type": "Boolean"
+    },
+    "l10n_it_edi_state": {
+     "copy": false,
+     "help": "This state is updated by default, but you can force the value. ",
+     "selection": [
+      [
+       "being_sent",
+       "Being Sent To SdI"
+      ],
+      [
+       "requires_user_signature",
+       "Requires user signature"
+      ],
+      [
+       "processing",
+       "SdI Processing"
+      ],
+      [
+       "rejected",
+       "SdI Rejected"
+      ],
+      [
+       "forwarded",
+       "SdI Accepted, Forwarded to Partner"
+      ],
+      [
+       "forward_failed",
+       "SdI Accepted, Forward to Partner Failed"
+      ],
+      [
+       "forward_attempt",
+       "SdI Accepted, Forwarding to Partner"
+      ],
+      [
+       "accepted_by_pa_partner",
+       "SdI Accepted, Accepted by the PA Partner"
+      ],
+      [
+       "rejected_by_pa_partner",
+       "SdI Accepted, Rejected by the PA Partner"
+      ],
+      [
+       "accepted_by_pa_partner_after_expiry",
+       "SdI Accepted, PA Partner Expired Terms"
+      ]
+     ],
+     "string": "SDI State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "l10n_it_edi_transaction": {
+     "copy": false,
+     "string": "FatturaPA Transaction",
+     "type": "Char"
+    },
+    "l10n_it_origin_document_date": {
+     "copy": false,
+     "string": "Origin Document Date",
+     "type": "Date"
+    },
+    "l10n_it_origin_document_name": {
+     "copy": false,
+     "string": "Origin Document Name",
+     "type": "Char"
+    },
+    "l10n_it_origin_document_type": {
+     "copy": false,
+     "selection": [
+      [
+       "purchase_order",
+       "Purchase Order"
+      ],
+      [
+       "contract",
+       "Contract"
+      ],
+      [
+       "agreement",
+       "Agreement"
+      ]
+     ],
+     "string": "Origin Document Type",
+     "type": "Selection"
+    },
+    "l10n_it_partner_is_public_administration": {
+     "compute": "_compute_l10n_it_partner_is_public_administration",
+     "help": "Only partners that have a 6-chars long l10n_it_pa_index actually belong to the Public Administration",
+     "type": "Boolean"
+    },
+    "l10n_it_partner_pa": {
+     "compute": "_compute_l10n_it_partner_pa",
+     "type": "Boolean"
+    },
+    "l10n_it_stamp_duty": {
+     "string": "Dati Bollo",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('commercial_partner_id.l10n_it_pa_index', 'company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_it_partner_pa"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('commercial_partner_id.l10n_it_pa_index', 'company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_it_partner_is_public_administration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_type', 'line_ids.tax_tag_ids')"
+     ],
+     "lines": 20,
+     "name": "_compute_l10n_it_edi_is_self_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_l10n_it_edi_exempt_reason_tag_mapping"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_transaction')"
+     ],
+     "lines": 5,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_edi_decoder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_l10n_it_edi_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_extend_with_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_fields_to_detach"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_should_detach_attachments"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 40,
+     "name": "action_l10n_it_edi_send"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_check_l10n_it_edi"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_invoice_legal_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_extra_print_items"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_invoice_download_fatturapa"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_it_edi_ready_for_xml_export"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 82,
+     "name": "_l10n_it_edi_add_base_lines_xml_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_l10n_it_edi_get_tax_lines_xml_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_l10n_it_edi_is_neg_split_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_l10n_it_edi_grouping_function_base_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_l10n_it_edi_grouping_function_tax_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_l10n_it_edi_grouping_function_total"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_prepare_product_base_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_l10n_it_edi_get_oss_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 167,
+     "name": "_l10n_it_edi_get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_l10n_it_edi_services_or_goods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_it_edi_goods_in_italy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_l10n_it_edi_is_simplified"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_l10n_it_edi_is_simplified_checks"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_l10n_it_edi_is_professional_fees"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_l10n_it_edi_features_for_document_type_selection"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 79,
+     "name": "_l10n_it_edi_document_type_mapping"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_l10n_it_edi_get_document_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_l10n_it_edi_is_simplified_document_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_l10n_it_buyer_seller_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "cron_l10n_it_edi_download_and_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_l10n_it_edi_download_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_l10n_it_edi_process_downloads"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_l10n_it_edi_create_move_with_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_it_edi_search_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_l10n_it_edi_import_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_l10n_it_edi_import_partner_bank"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_l10n_it_edi_search_tax_for_import"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_l10n_it_edi_get_extra_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_l10n_it_edi_get_payment_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 70,
+     "name": "_l10n_it_edi_get_partner_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 176,
+     "name": "_l10n_it_edi_import_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_prediction_enabled"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_prediction_cache_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 143,
+     "name": "_l10n_it_edi_import_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_l10n_it_edi_format_errors"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compose_info_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_l10n_it_edi_export_data_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_l10n_it_edi_build_move_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_l10n_it_edi_base_export_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_l10n_it_edi_export_taxes_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_l10n_it_edi_get_max_limit_per_tax"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_l10n_it_edi_check_lines_for_tax_kind"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 74,
+     "name": "_l10n_it_edi_get_formatters"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_it_edi_render_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_l10n_it_edi_get_attachment_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_l10n_it_edi_generate_filename"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 51,
+     "name": "_l10n_it_edi_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_it_edi_upload_error_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_it_edi_upload_single"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_it_edi_upload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "_l10n_it_edi_update_send_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_l10n_it_edi_parse_notification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_l10n_it_edi_transform_notification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_l10n_it_edi_write_send_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 81,
+     "name": "_l10n_it_edi_get_message"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_get_edi_decoder": [],
+    "_get_invoice_legal_documents": [],
+    "_post": []
+   },
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_is_it_edi_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_l10n_it_edi_needs_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_extra_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_hook_invoice_document_before_pdf_report_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_hook_invoice_document_after_pdf_report_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_call_web_service_after_invoice_pdf_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_link_invoice_documents"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "account_edi_proxy_client.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "proxy_type": {
+     "ondelete": {
+      "l10n_it_edi": "cascade"
+     },
+     "selection_add": [
+      [
+       "l10n_it_edi",
+       "Italian EDI"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_proxy_urls"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_proxy_identification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_iap_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_register_proxy_user"
+    }
+   ],
+   "name": "account_edi_proxy_client.user",
+   "sel_methods": {
+    "_get_proxy_identification": [],
+    "_register_proxy_user": []
+   },
+   "sql_constraints": [
+    [
+     "unique_identification_l10n_it_edi",
+     "",
+     "This edi identification is already assigned to an active user"
+    ]
+   ],
+   "transient": false
+  },
+  "ir.attachment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_parse_xml_with_recovery"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_decode_edi_l10n_it_edi"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_is_l10n_it_edi_import_file"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_edi_supported_formats"
+    }
+   ],
+   "name": "ir.attachment",
+   "transient": false
+  },
+  "l10n_it.ddt": {
+   "abstract": false,
+   "description": "Transport Document",
+   "extension": false,
+   "fields": {
+    "date": {
+     "help": "Transport document date",
+     "required": true,
+     "string": "Data DDT",
+     "type": "Date"
+    },
+    "invoice_id": {
+     "comodel": "account.move",
+     "inverse_name": "l10n_it_ddt_id",
+     "string": "Invoice Reference",
+     "type": "One2many"
+    },
+    "name": {
+     "help": "Transport document number",
+     "required": true,
+     "size": 20,
+     "string": "Numero DDT",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "l10n_it.ddt",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "l10n_it_codice_fiscale": {
+     "help": "Fiscal code of your company",
+     "readonly": false,
+     "related": "partner_id.l10n_it_codice_fiscale",
+     "size": 16,
+     "store": true,
+     "string": "Codice Fiscale",
+     "type": "Char"
+    },
+    "l10n_it_eco_index_liquidation_state": {
+     "selection": [
+      [
+       "LS",
+       "The company is in a state of liquidation"
+      ],
+      [
+       "LN",
+       "The company is not in a state of liquidation"
+      ]
+     ],
+     "string": "Liquidation state",
+     "type": "Selection"
+    },
+    "l10n_it_eco_index_number": {
+     "help": "This field must contain the number under which the        seller/provider is listed on the register of companies.",
+     "size": 20,
+     "string": "Number in register of companies",
+     "type": "Char"
+    },
+    "l10n_it_eco_index_office": {
+     "comodel": "res.country.state",
+     "domain": "[('country_id','=','IT')]",
+     "string": "Province of the register-of-companies office",
+     "type": "Many2one"
+    },
+    "l10n_it_eco_index_share_capital": {
+     "help": "Mandatory if the seller/provider is a company with share        capital (SpA, SApA, Srl), this field must contain the amount        of share capital actually paid up as resulting from the last        financial statement",
+     "string": "Share capital actually paid up",
+     "type": "Float"
+    },
+    "l10n_it_eco_index_sole_shareholder": {
+     "selection": [
+      [
+       "NO",
+       "Not a limited liability company"
+      ],
+      [
+       "SU",
+       "Socio unico"
+      ],
+      [
+       "SM",
+       "Pi\u00f9 soci"
+      ]
+     ],
+     "string": "Shareholder",
+     "type": "Selection"
+    },
+    "l10n_it_edi_proxy_user_id": {
+     "comodel": "account_edi_proxy_client.user",
+     "compute": "_compute_l10n_it_edi_proxy_user_id",
+     "type": "Many2one"
+    },
+    "l10n_it_has_eco_index": {
+     "help": "The seller/provider is a company listed on the register of companies and as        such must also indicate the registration data on all documents (art. 2250, Italian        Civil Code)",
+     "type": "Boolean"
+    },
+    "l10n_it_has_tax_representative": {
+     "help": "The seller/provider is a non-resident subject which        carries out transactions in Italy with relevance for VAT        purposes and which takes avail of a tax representative in        Italy",
+     "type": "Boolean"
+    },
+    "l10n_it_tax_representative_partner_id": {
+     "comodel": "res.partner",
+     "string": "Tax representative partner",
+     "type": "Many2one"
+    },
+    "l10n_it_tax_system": {
+     "help": "Please select the Tax system to which you are subjected.",
+     "selection": [
+      [
+       "RF01",
+       "[RF01] Ordinario"
+      ],
+      [
+       "RF02",
+       "[RF02] Contribuenti minimi (art.1, c.96-117, L. 244/07)"
+      ],
+      [
+       "RF04",
+       "[RF04] Agricoltura e attivit\u00e0 connesse e pesca (artt.34 e 34-bis, DPR 633/72)"
+      ],
+      [
+       "RF05",
+       "[RF05] Vendita sali e tabacchi (art.74, c.1, DPR. 633/72)"
+      ],
+      [
+       "RF06",
+       "[RF06] Commercio fiammiferi (art.74, c.1, DPR  633/72)"
+      ],
+      [
+       "RF07",
+       "[RF07] Editoria (art.74, c.1, DPR  633/72)"
+      ],
+      [
+       "RF08",
+       "[RF08] Gestione servizi telefonia pubblica (art.74, c.1, DPR 633/72)"
+      ],
+      [
+       "RF09",
+       "[RF09] Rivendita documenti di trasporto pubblico e di sosta (art.74, c.1, DPR  633/72)"
+      ],
+      [
+       "RF10",
+       "[RF10] Intrattenimenti, giochi e altre attivit\u00e0 di cui alla tariffa allegata al DPR 640/72 (art.74, c.6, DPR 633/72)"
+      ],
+      [
+       "RF11",
+       "[RF11] Agenzie viaggi e turismo (art.74-ter, DPR 633/72)"
+      ],
+      [
+       "RF12",
+       "[RF12] Agriturismo (art.5, c.2, L. 413/91)"
+      ],
+      [
+       "RF13",
+       "[RF13] Vendite a domicilio (art.25-bis, c.6, DPR  600/73)"
+      ],
+      [
+       "RF14",
+       "[RF14] Rivendita beni usati, oggetti d\u2019arte, d\u2019antiquariato o da collezione (art.36, DL 41/95)"
+      ],
+      [
+       "RF15",
+       "[RF15] Agenzie di vendite all\u2019asta di oggetti d\u2019arte, antiquariato o da collezione (art.40-bis, DL 41/95)"
+      ],
+      [
+       "RF16",
+       "[RF16] IVA per cassa P.A. (art.6, c.5, DPR 633/72)"
+      ],
+      [
+       "RF17",
+       "[RF17] IVA per cassa (art. 32-bis, DL 83/2012)"
+      ],
+      [
+       "RF18",
+       "[RF18] Altro"
+      ],
+      [
+       "RF19",
+       "[RF19] Regime forfettario (art.1, c.54-89, L. 190/2014)"
+      ]
+     ],
+     "string": "Tax System",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_it_has_eco_index', 'l10n_it_eco_index_office', 'l10n_it_eco_index_number', 'l10n_it_eco_index_liquidation_state')"
+     ],
+     "lines": 7,
+     "name": "_check_eco_admin_index"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_it_has_eco_index', 'l10n_it_eco_index_share_capital', 'l10n_it_eco_index_sole_shareholder')"
+     ],
+     "lines": 10,
+     "name": "_check_eco_incorporated"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_it_has_tax_representative', 'l10n_it_tax_representative_partner_id')"
+     ],
+     "lines": 10,
+     "name": "_check_tax_representative"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_edi_proxy_client_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_it_edi_proxy_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_l10n_it_edi_export_check"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_it_has_tax_representative')"
+     ],
+     "lines": 4,
+     "name": "_onchange_l10n_it_has_tax_represeentative"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_l10n_it_get_edi_company"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "company_parent_id": {
+     "readonly": true,
+     "related": "company_id.parent_id",
+     "type": "Many2one"
+    },
+    "is_edi_proxy_active": {
+     "compute": "_compute_is_edi_proxy_active",
+     "type": "Boolean"
+    },
+    "l10n_it_edi_demo_mode": {
+     "compute": "_compute_l10n_it_edi_demo_mode",
+     "readonly": false,
+     "selection": [
+      [
+       "demo",
+       "Demo"
+      ],
+      [
+       "test",
+       "Test (experimental)"
+      ],
+      [
+       "prod",
+       "Official"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "l10n_it_edi_proxy_current_state": {
+     "compute": "_compute_l10n_it_edi_proxy_current_state",
+     "type": "Char"
+    },
+    "l10n_it_edi_register": {
+     "compute": "_compute_l10n_it_edi_register",
+     "type": "Boolean"
+    },
+    "use_root_proxy_user": {
+     "compute": "_compute_use_root_proxy_user",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_create_proxy_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "button_create_proxy_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.account_edi_proxy_client_ids', 'company_id.account_edi_proxy_client_ids.active')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_it_edi_demo_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.account_edi_proxy_client_ids', 'company_id.account_edi_proxy_client_ids.active')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_edi_proxy_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.account_edi_proxy_client_ids', 'company_id.account_edi_proxy_client_ids.active')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_it_edi_proxy_current_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_it_edi_register"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_set_l10n_it_edi_register_demo_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.account_edi_proxy_client_ids', 'company_id.account_edi_proxy_client_ids.active')"
+     ],
+     "lines": 5,
+     "name": "_compute_use_root_proxy_user"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "invoice_edi_format": {
+     "selection_add": [
+      [
+       "it_edi_xml",
+       "Italy (Factura PA)"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "l10n_it_codice_fiscale": {
+     "size": 16,
+     "string": "Codice Fiscale",
+     "type": "Char"
+    },
+    "l10n_it_pa_index": {
+     "help": "Must contain the 6-character (or 7) code, present in the PA Index in the information relative to the electronic invoicing service, associated with the office which, within the addressee administration, deals with receiving (and processing) the invoice.",
+     "size": 7,
+     "string": "Destination Code",
+     "type": "Char"
+    },
+    "l10n_it_pec_email": {
+     "string": "PEC e-mail",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_it_edi_is_public_administration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 88,
+     "name": "_l10n_it_edi_get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_it_edi_normalized_codice_fiscale"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('vat', 'country_id')"
+     ],
+     "lines": 9,
+     "name": "_l10n_it_onchange_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_it_codice_fiscale')"
+     ],
+     "lines": 4,
+     "name": "validate_codice_fiscale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "_l10n_it_edi_export_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_deduce_country_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_peppol_eas_endpoint_depends"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_suggested_invoice_edi_format"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "create_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_it_edi_is_italian"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_deduce_country_code": []
+   },
+   "sql_constraints": [
+    [
+     "l10n_it_codice_fiscale",
+     "CHECK(l10n_it_codice_fiscale IS NULL OR l10n_it_codice_fiscale = '' OR LENGTH(l10n_it_codice_fiscale) >= 11)",
+     "Codice fiscale must have between 11 and 16 characters."
+    ],
+    [
+     "l10n_it_pa_index",
+     "CHECK(l10n_it_pa_index IS NULL OR l10n_it_pa_index = '' OR LENGTH(l10n_it_pa_index) >= 6)",
+     "Destination Code must have between 6 and 7 characters."
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "l10n_it_edi",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_it_edi",
+ "stats": {
+  "fields": 40,
+  "methods": 118,
+  "models": 8,
+  "py_lines": 3335
+ },
+ "summary": "E-invoice implementation",
+ "title": "Italy - E-invoicing",
+ "version": "0.4"
+}

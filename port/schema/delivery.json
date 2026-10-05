@@ -1,0 +1,1080 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Delivery",
+ "data_files": [
+  "data/delivery_data.xml",
+  "security/ir.model.access.csv",
+  "security/ir_rules.xml",
+  "report/ir_actions_report_templates.xml",
+  "views/delivery_carrier_views.xml",
+  "views/delivery_price_rule_views.xml",
+  "views/delivery_zip_prefix_views.xml",
+  "views/res_partner_views.xml",
+  "views/sale_order_views.xml",
+  "wizard/res_config_settings_views.xml",
+  "wizard/choose_delivery_carrier_views.xml",
+  "data/delivery_demo.xml"
+ ],
+ "depends": [
+  "sale"
+ ],
+ "models": {
+  "choose.delivery.carrier": {
+   "abstract": false,
+   "description": "Delivery Carrier Selection Wizard",
+   "extension": false,
+   "fields": {
+    "available_carrier_ids": {
+     "comodel": "delivery.carrier",
+     "compute": "_compute_available_carrier",
+     "string": "Available Carriers",
+     "type": "Many2many"
+    },
+    "carrier_id": {
+     "comodel": "delivery.carrier",
+     "required": true,
+     "string": "Shipping Method",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "related": "order_id.company_id",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "order_id.currency_id",
+     "type": "Many2one"
+    },
+    "delivery_message": {
+     "readonly": true,
+     "type": "Text"
+    },
+    "delivery_price": {
+     "type": "Float"
+    },
+    "delivery_type": {
+     "related": "carrier_id.delivery_type",
+     "type": "Selection"
+    },
+    "display_price": {
+     "readonly": true,
+     "string": "Cost",
+     "type": "Float"
+    },
+    "invoicing_message": {
+     "compute": "_compute_invoicing_message",
+     "type": "Text"
+    },
+    "order_id": {
+     "comodel": "sale.order",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "related": "order_id.partner_id",
+     "required": true,
+     "type": "Many2one"
+    },
+    "total_weight": {
+     "readonly": false,
+     "related": "order_id.shipping_weight",
+     "string": "Total Order Weight",
+     "type": "Float"
+    },
+    "weight_uom_name": {
+     "default": {
+      "$ref": "_get_default_weight_uom"
+     },
+     "readonly": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_weight_uom"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('carrier_id', 'total_weight')"
+     ],
+     "lines": 9,
+     "name": "_onchange_carrier_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('order_id')"
+     ],
+     "lines": 11,
+     "name": "_onchange_order_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('carrier_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_invoicing_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_available_carrier"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_delivery_rate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "update_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "button_confirm"
+    }
+   ],
+   "name": "choose.delivery.carrier",
+   "transient": true
+  },
+  "delivery.carrier": {
+   "abstract": false,
+   "description": "Shipping Methods",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "amount": {
+     "default": 1000,
+     "help": "Amount of the order to benefit from a free shipping, expressed in the company currency",
+     "string": "Amount",
+     "type": "Float"
+    },
+    "can_generate_return": {
+     "compute": "_compute_can_generate_return",
+     "type": "Boolean"
+    },
+    "carrier_description": {
+     "help": "A description of the delivery method that you want to communicate to your customers on the Sales Order and sales confirmation email.E.g. instructions for customers to follow.",
+     "string": "Carrier Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": false,
+     "related": "product_id.company_id",
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "country_ids": {
+     "column1": "carrier_id",
+     "column2": "country_id",
+     "comodel": "res.country",
+     "relation_table": "delivery_carrier_country_rel",
+     "string": "Countries",
+     "type": "Many2many"
+    },
+    "currency_id": {
+     "related": "product_id.currency_id",
+     "type": "Many2one"
+    },
+    "debug_logging": {
+     "help": "Log requests in order to ease debugging",
+     "string": "Debug logging",
+     "type": "Boolean"
+    },
+    "delivery_type": {
+     "default": "fixed",
+     "required": true,
+     "selection": [
+      [
+       "base_on_rule",
+       "Based on Rules"
+      ],
+      [
+       "fixed",
+       "Fixed Price"
+      ]
+     ],
+     "string": "Provider",
+     "type": "Selection"
+    },
+    "excluded_tag_ids": {
+     "comodel": "product.tag",
+     "help": "The method is NOT available if at least one product of the order has one of these tags.",
+     "relation_table": "product_tag_delivery_carrier_excluded_rel",
+     "string": "Excluded Tags",
+     "type": "Many2many"
+    },
+    "fixed_margin": {
+     "help": "This fixed amount will be added to the shipping price.",
+     "type": "Float"
+    },
+    "fixed_price": {
+     "compute": "_compute_fixed_price",
+     "store": true,
+     "string": "Fixed Price",
+     "type": "Float"
+    },
+    "free_over": {
+     "default": false,
+     "help": "If the order total amount (shipping excluded) is above or equal to this value, the customer benefits from a free shipping",
+     "string": "Free if order amount is above",
+     "type": "Boolean"
+    },
+    "get_return_label_from_portal": {
+     "help": "The return label can be downloaded by the customer from the customer portal.",
+     "string": "Return Label Accessible from Customer Portal",
+     "type": "Boolean"
+    },
+    "integration_level": {
+     "default": "rate_and_ship",
+     "help": "Action while validating Delivery Orders",
+     "selection": [
+      [
+       "rate",
+       "Get Rate"
+      ],
+      [
+       "rate_and_ship",
+       "Get Rate and Create Shipment"
+      ]
+     ],
+     "string": "Integration Level",
+     "type": "Selection"
+    },
+    "invoice_policy": {
+     "default": "estimated",
+     "help": "Estimated Cost: the customer will be invoiced the estimated cost of the shipping.",
+     "required": true,
+     "selection": [
+      [
+       "estimated",
+       "Estimated cost"
+      ]
+     ],
+     "string": "Invoicing Policy",
+     "type": "Selection"
+    },
+    "margin": {
+     "help": "This percentage will be added to the shipping price.",
+     "type": "Float"
+    },
+    "max_volume": {
+     "help": "If the total volume of the order is over this volume, the method won't be available.",
+     "string": "Max Volume",
+     "type": "Float"
+    },
+    "max_weight": {
+     "help": "If the total weight of the order is over this weight, the method won't be available.",
+     "string": "Max Weight",
+     "type": "Float"
+    },
+    "must_have_tag_ids": {
+     "comodel": "product.tag",
+     "help": "The method is available only if at least one product of the order has one of these tags.",
+     "relation_table": "product_tag_delivery_carrier_must_have_rel",
+     "string": "Must Have Tags",
+     "type": "Many2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Delivery Method",
+     "translate": true,
+     "type": "Char"
+    },
+    "price_rule_ids": {
+     "comodel": "delivery.price.rule",
+     "copy": true,
+     "inverse_name": "carrier_id",
+     "string": "Pricing Rules",
+     "type": "One2many"
+    },
+    "prod_environment": {
+     "help": "Set to True if your credentials are certified for production.",
+     "string": "Environment",
+     "type": "Boolean"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Delivery Product",
+     "type": "Many2one"
+    },
+    "return_label_on_delivery": {
+     "help": "The return label is automatically generated at the delivery.",
+     "string": "Generate Return Label",
+     "type": "Boolean"
+    },
+    "sequence": {
+     "default": 10,
+     "help": "Determine the display order",
+     "type": "Integer"
+    },
+    "shipping_insurance": {
+     "default": 0,
+     "help": "Shipping insurance is a service which may reimburse senders whose parcels are lost, stolen, and/or damaged in transit.",
+     "string": "Insurance Percentage",
+     "type": "Integer"
+    },
+    "state_ids": {
+     "column1": "carrier_id",
+     "column2": "state_id",
+     "comodel": "res.country.state",
+     "relation_table": "delivery_carrier_state_rel",
+     "string": "States",
+     "type": "Many2many"
+    },
+    "supports_shipping_insurance": {
+     "compute": "_compute_supports_shipping_insurance",
+     "type": "Boolean"
+    },
+    "tracking_url": {
+     "help": "This option adds a link for the customer in the portal to track their package easily. Use <shipmenttrackingnumber> as a placeholder in your URL.",
+     "string": "Tracking Link",
+     "type": "Char"
+    },
+    "volume_uom_name": {
+     "compute": "_compute_volume_uom_name",
+     "string": "Volume unit of measure label",
+     "type": "Char"
+    },
+    "weight_uom_name": {
+     "compute": "_compute_weight_uom_name",
+     "string": "Weight unit of measure label",
+     "type": "Char"
+    },
+    "zip_prefix_ids": {
+     "column1": "carrier_id",
+     "column2": "zip_prefix_id",
+     "comodel": "delivery.zip.prefix",
+     "help": "Prefixes of zip codes that this carrier applies to. Note that regular expressions can be used to support countries with varying zip code lengths, i.e. '$' can be added to end of prefix to match the exact zip (e.g. '100$' will only match '100' and not '1000')",
+     "relation_table": "delivery_zip_prefix_rel",
+     "string": "Zip Prefixes",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('must_have_tag_ids', 'excluded_tag_ids')"
+     ],
+     "lines": 4,
+     "name": "_check_tags"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_weight_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_volume_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('delivery_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_can_generate_return"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('delivery_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_supports_shipping_insurance"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "toggle_prod_environment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "toggle_debug"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "install_more_provider"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_is_available_for_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "available_carriers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_match"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_match_address"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_match_must_have_tags"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_match_excluded_tags"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_match_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_match_volume"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('integration_level')"
+     ],
+     "lines": 3,
+     "name": "_onchange_integration_level"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('can_generate_return')"
+     ],
+     "lines": 3,
+     "name": "_onchange_can_generate_return"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('return_label_on_delivery')"
+     ],
+     "lines": 3,
+     "name": "_onchange_return_label_on_delivery"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('country_ids')"
+     ],
+     "lines": 6,
+     "name": "_onchange_country_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_delivery_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_apply_margins"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "rate_shipment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "log_xml"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.list_price', 'product_id.product_tmpl_id.list_price')"
+     ],
+     "lines": 3,
+     "name": "_compute_fixed_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_product_fixed_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "fixed_rate_shipment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "base_on_rule_rate_shipment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_conversion_currencies"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_currency"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_get_price_available"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_price_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_price_from_picking"
+    }
+   ],
+   "name": "delivery.carrier",
+   "order": "sequence, id",
+   "sql_constraints": [
+    [
+     "margin_not_under_100_percent",
+     "CHECK (margin >= -1)",
+     "Margin cannot be lower than -100%"
+    ],
+    [
+     "shipping_insurance_is_percentage",
+     "CHECK(shipping_insurance >= 0 AND shipping_insurance <= 100)",
+     "The shipping insurance must be a percentage between 0 and 100."
+    ]
+   ],
+   "transient": false
+  },
+  "delivery.price.rule": {
+   "abstract": false,
+   "description": "Delivery Price Rules",
+   "extension": false,
+   "fields": {
+    "carrier_id": {
+     "comodel": "delivery.carrier",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Carrier",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "carrier_id.currency_id",
+     "type": "Many2one"
+    },
+    "list_base_price": {
+     "default": 0.0,
+     "required": true,
+     "string": "Sale Base Price",
+     "type": "Float"
+    },
+    "list_price": {
+     "default": 0.0,
+     "required": true,
+     "string": "Sale Price",
+     "type": "Float"
+    },
+    "max_value": {
+     "required": true,
+     "string": "Maximum Value",
+     "type": "Float"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "type": "Char"
+    },
+    "operator": {
+     "default": "<=",
+     "required": true,
+     "selection": [
+      [
+       "==",
+       "="
+      ],
+      [
+       "<=",
+       "<="
+      ],
+      [
+       "<",
+       "<"
+      ],
+      [
+       ">=",
+       ">="
+      ],
+      [
+       ">",
+       ">"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "sequence": {
+     "default": 10,
+     "required": true,
+     "type": "Integer"
+    },
+    "variable": {
+     "default": "quantity",
+     "required": true,
+     "selection": [
+      [
+       "weight",
+       "Weight"
+      ],
+      [
+       "volume",
+       "Volume"
+      ],
+      [
+       "wv",
+       "Weight * Volume"
+      ],
+      [
+       "price",
+       "Price"
+      ],
+      [
+       "quantity",
+       "Quantity"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "variable_factor": {
+     "default": "weight",
+     "required": true,
+     "selection": [
+      [
+       "weight",
+       "Weight"
+      ],
+      [
+       "volume",
+       "Volume"
+      ],
+      [
+       "wv",
+       "Weight * Volume"
+      ],
+      [
+       "price",
+       "Price"
+      ],
+      [
+       "quantity",
+       "Quantity"
+      ]
+     ],
+     "string": "Variable Factor",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('variable', 'operator', 'max_value', 'list_base_price', 'list_price', 'variable_factor', 'currency_id')"
+     ],
+     "lines": 18,
+     "name": "_compute_name"
+    }
+   ],
+   "name": "delivery.price.rule",
+   "order": "sequence, list_price, id",
+   "transient": false
+  },
+  "delivery.zip.prefix": {
+   "abstract": false,
+   "description": "Delivery Zip Prefix",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Prefix",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    }
+   ],
+   "name": "delivery.zip.prefix",
+   "order": "name, id",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Prefix already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "product.category": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_delivery_category"
+    }
+   ],
+   "name": "product.category",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "property_delivery_carrier_id": {
+     "comodel": "delivery.carrier",
+     "help": "Default delivery method used in sales orders.",
+     "string": "Delivery Method",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "carrier_id": {
+     "comodel": "delivery.carrier",
+     "help": "Fill this field if you plan to invoice the shipping based on picking.",
+     "string": "Delivery Method",
+     "type": "Many2one"
+    },
+    "delivery_message": {
+     "copy": false,
+     "readonly": true,
+     "type": "Char"
+    },
+    "delivery_set": {
+     "compute": "_compute_delivery_state",
+     "type": "Boolean"
+    },
+    "is_all_service": {
+     "compute": "_compute_is_service_products",
+     "string": "Service Product",
+     "type": "Boolean"
+    },
+    "pickup_location_data": {
+     "type": "Json"
+    },
+    "recompute_delivery_price": {
+     "string": "Delivery cost should be recomputed",
+     "type": "Boolean"
+    },
+    "shipping_weight": {
+     "compute": "_compute_shipping_weight",
+     "readonly": false,
+     "store": true,
+     "string": "Shipping Weight",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_service_products"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_amount_total_without_delivery"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line')"
+     ],
+     "lines": 3,
+     "name": "_compute_delivery_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('order_line', 'partner_id', 'partner_shipping_id')"
+     ],
+     "lines": 5,
+     "name": "onchange_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_update_prices_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_remove_delivery_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "set_delivery_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_set_pickup_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_get_pickup_locations"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 26,
+     "name": "action_open_delivery_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_prepare_delivery_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_delivery_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.product_uom_qty', 'order_line.product_uom')"
+     ],
+     "lines": 3,
+     "name": "_compute_shipping_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_estimated_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_update_order_line_info"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_action_confirm": []
+   },
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_delivery": {
+     "default": false,
+     "string": "Is a Delivery",
+     "type": "Boolean"
+    },
+    "product_qty": {
+     "compute": "_compute_product_qty",
+     "digits": "Product Unit of Measure",
+     "string": "Product Qty",
+     "type": "Float"
+    },
+    "recompute_delivery_price": {
+     "related": "order_id.recompute_delivery_price",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_not_sellable_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_can_be_invoiced_alone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_uom', 'product_uom_qty')"
+     ],
+     "lines": 8,
+     "name": "_compute_product_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_delivery"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_invalid_delivery_weight_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_check_line_unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_pricelist_item_id"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  }
+ },
+ "module": "delivery",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/delivery",
+ "stats": {
+  "fields": 68,
+  "methods": 70,
+  "models": 8,
+  "py_lines": 1030
+ },
+ "summary": "Allows you to add delivery methods in sale orders.",
+ "title": "Delivery Costs",
+ "version": "1.0"
+}

@@ -1,0 +1,205 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Purchase",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/purchase_requisition_stock_data.xml",
+  "views/purchase_views.xml",
+  "views/purchase_requisition_views.xml"
+ ],
+ "depends": [
+  "purchase_requisition",
+  "purchase_stock"
+ ],
+ "models": {
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "on_time_rate_perc": {
+     "compute": "_compute_on_time_rate_perc",
+     "string": "OTD",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('on_time_rate')"
+     ],
+     "lines": 6,
+     "name": "_compute_on_time_rate_perc"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('requisition_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_requisition_id"
+    }
+   ],
+   "name": "purchase.order",
+   "transient": false
+  },
+  "purchase.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "on_time_rate_perc": {
+     "related": "order_id.on_time_rate_perc",
+     "string": "OTD",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "purchase.order.line",
+   "transient": false
+  },
+  "purchase.requisition": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "picking_type_id": {
+     "comodel": "stock.picking.type",
+     "default": {
+      "$ref": "_default_picking_type_id"
+     },
+     "domain": "['|',('warehouse_id', '=', False), ('warehouse_id.company_id', '=', company_id)]",
+     "required": true,
+     "string": "Operation Type",
+     "type": "Many2one"
+    },
+    "warehouse_id": {
+     "comodel": "stock.warehouse",
+     "domain": "[('company_id', '=', company_id)]",
+     "string": "Warehouse",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_picking_type_id"
+    }
+   ],
+   "name": "purchase.requisition",
+   "transient": false
+  },
+  "purchase.requisition.create.alternative": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_alternative_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_alternative_line_value"
+    }
+   ],
+   "name": "purchase.requisition.create.alternative",
+   "transient": false
+  },
+  "purchase.requisition.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "move_dest_id": {
+     "comodel": "stock.move",
+     "string": "Downstream Move",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_purchase_order_line"
+    }
+   ],
+   "name": "purchase.requisition.line",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "requisition_line_ids": {
+     "comodel": "purchase.requisition.line",
+     "inverse_name": "move_dest_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_upstream_documents_and_responsibles"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_purchase_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_make_po_get_domain"
+    }
+   ],
+   "name": "stock.rule",
+   "transient": false
+  }
+ },
+ "module": "purchase_requisition_stock",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/purchase_requisition_stock",
+ "stats": {
+  "fields": 6,
+  "methods": 9,
+  "models": 7,
+  "py_lines": 133
+ },
+ "summary": "",
+ "title": "Purchase Requisition Stock",
+ "version": "1.2"
+}

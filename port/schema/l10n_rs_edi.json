@@ -1,0 +1,395 @@
+{
+ "application": false,
+ "author": "Odoo",
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "views/res_config_settings_views.xml",
+  "views/account_move.xml",
+  "views/res_partner_views.xml"
+ ],
+ "depends": [
+  "account_edi_ubl_cii",
+  "l10n_rs"
+ ],
+ "models": {
+  "account.edi.xml.ubl.rs": {
+   "abstract": true,
+   "description": "UBL 2.1 (RS eFaktura)",
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "account.edi.xml.ubl_21"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_customization_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_export_invoice_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_rs_get_billing_reference"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_invoice_period_vals_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_partner_party_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_partner_party_legal_entity_vals_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_partner_party_tax_scheme_vals_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_partner_party_identification_vals_list"
+    }
+   ],
+   "name": "account.edi.xml.ubl.rs",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_rs_edi_attachment_file": {
+     "copy": false,
+     "help": "Serbia: technical field holding the e-invoice XML data.",
+     "string": "Serbian E-Invoice XML File",
+     "type": "Binary"
+    },
+    "l10n_rs_edi_attachment_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('l10n_rs_edi_attachment_id', 'l10n_rs_edi_attachment_file')"
+     },
+     "string": "eFaktura XML Attachment",
+     "type": "Many2one"
+    },
+    "l10n_rs_edi_error": {
+     "copy": false,
+     "readonly": true,
+     "string": "Serbia E-Invoice error",
+     "type": "Text"
+    },
+    "l10n_rs_edi_invoice": {
+     "copy": false,
+     "string": "Invoice Id",
+     "type": "Char"
+    },
+    "l10n_rs_edi_is_eligible": {
+     "compute": "_compute_l10n_rs_edi_is_eligible",
+     "help": "Technical field to determine if this invoice is eligible to be e-invoiced.",
+     "store": true,
+     "type": "Boolean"
+    },
+    "l10n_rs_edi_purchase_invoice": {
+     "copy": false,
+     "string": "Purchase Invoice Id",
+     "type": "Char"
+    },
+    "l10n_rs_edi_sales_invoice": {
+     "copy": false,
+     "string": "Sales Invoice Id",
+     "type": "Char"
+    },
+    "l10n_rs_edi_state": {
+     "copy": false,
+     "readonly": true,
+     "selection": [
+      [
+       "sent",
+       "Sent"
+      ],
+      [
+       "sending_failed",
+       "Error"
+      ]
+     ],
+     "string": "Serbia E-Invoice state",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "l10n_rs_edi_uuid": {
+     "compute": "_compute_l10n_rs_edi_uuid",
+     "copy": false,
+     "help": "Unique Identifier for an invoice used as request id",
+     "store": true,
+     "string": "RS Invoice UUID",
+     "type": "Char"
+    },
+    "l10n_rs_tax_date_obligations_code": {
+     "compute": "_compute_l10n_rs_tax_date_obligations_code",
+     "readonly": false,
+     "selection": [
+      [
+       "35",
+       "By Delivery Date"
+      ],
+      [
+       "3",
+       "By Issuance Date"
+      ],
+      [
+       "432",
+       "By Billing System"
+      ]
+     ],
+     "store": true,
+     "string": "Tax Date Obligations",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code', 'move_type')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_delivery_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code', 'move_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_rs_edi_is_eligible"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_rs_tax_date_obligations_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_rs_edi_state')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_rs_edi_is_eligible')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_rs_edi_uuid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_l10n_rs_edi_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_l10n_rs_edi_get_attachment_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_l10n_rs_edi_get_xml_attachment_name"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_rs_edi_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_invoice_extra_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 27,
+     "name": "_call_web_service_after_invoice_pdf_render"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "account.move.send.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('extra_edi_checkboxes')"
+     ],
+     "lines": 9,
+     "name": "_onchange_extra_edi_checkboxes"
+    }
+   ],
+   "name": "account.move.send.wizard",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_rs_edi_api_key": {
+     "string": "eFaktura API Key",
+     "type": "Char"
+    },
+    "l10n_rs_edi_demo_env": {
+     "default": true,
+     "string": "Use Demo Environment",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_rs_edi_api_key": {
+     "readonly": false,
+     "related": "company_id.l10n_rs_edi_api_key",
+     "type": "Char"
+    },
+    "l10n_rs_edi_demo_env": {
+     "readonly": false,
+     "related": "company_id.l10n_rs_edi_demo_env",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_rs_edi_public_funds": {
+     "help": "Unique Identifier of Public Funds Users such as Government agencies, public institutions and state-owned enterprises.",
+     "size": 5,
+     "string": "JBKJS",
+     "type": "Char"
+    },
+    "l10n_rs_edi_registration_number": {
+     "help": "Company ID ( Mati\u010dni Broj ) assigned by the Serbian Business Registers Agency (APR) ",
+     "size": 13,
+     "string": "Registration Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_rs_edi_public_funds')"
+     ],
+     "lines": 5,
+     "name": "_check_l10n_rs_edi_public_funds"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_rs_edi_registration_number')"
+     ],
+     "lines": 5,
+     "name": "_check_l10n_rs_edi_registration_number"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_rs_edi",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_rs_edi",
+ "stats": {
+  "fields": 16,
+  "methods": 24,
+  "models": 7,
+  "py_lines": 382
+ },
+ "summary": "E-Invoice implementation for Serbia",
+ "title": "Serbia - eFaktura E-invoicing",
+ "version": "1.0"
+}

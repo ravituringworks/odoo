@@ -1,0 +1,352 @@
+{
+ "module": "pos_loyalty",
+ "records": [
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_coupon",
+   "values": {
+    "name": "Coupon & Gift Card Barcodes",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "50",
+    "type": "coupon",
+    "encoding": "any",
+    "pattern": "043|044"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "loyalty.gift_card_product_50",
+   "values": {
+    "available_in_pos": "True",
+    "taxes_id": false
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "loyalty.ewallet_product_50",
+   "values": {
+    "available_in_pos": "True",
+    "taxes_id": false
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "loyalty.gift_card_program",
+   "values": {
+    "pos_report_print_id": {
+     "$ref": "loyalty.report_gift_card"
+    }
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "15_pc_on_next_order",
+   "values": {
+    "name": "15% on next order",
+    "program_type": "next_order_coupons",
+    "trigger": "auto",
+    "applies_on": "future",
+    "pos_config_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "point_of_sale.pos_config_main"
+       }
+      ]
+     ]
+    ],
+    "portal_visible": "True",
+    "portal_point_name": "Coupon point(s)"
+   }
+  },
+  {
+   "model": "loyalty.rule",
+   "id": "15_pc_on_next_order_rule",
+   "values": {
+    "minimum_amount": "100",
+    "program_id": {
+     "$ref": "pos_loyalty.15_pc_on_next_order"
+    }
+   }
+  },
+  {
+   "model": "loyalty.reward",
+   "id": "15_pc_on_next_order_reward",
+   "values": {
+    "discount_mode": "percent",
+    "discount": "15",
+    "discount_applicability": "order",
+    "program_id": {
+     "$ref": "pos_loyalty.15_pc_on_next_order"
+    }
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "loyalty.3_cabinets_plus_1_free",
+   "values": {
+    "pos_config_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "point_of_sale.pos_config_main"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "loyalty.10_percent_with_code",
+   "values": {
+    "pos_config_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "point_of_sale.pos_config_main"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "loyalty.10_percent_coupon",
+   "values": {
+    "pos_config_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "point_of_sale.pos_config_main"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "simple_pen",
+   "values": {
+    "available_in_pos": "True",
+    "list_price": "1.20",
+    "name": "Simple Pen",
+    "weight": "0.01",
+    "default_code": "CONS_0002",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "loyalty_program",
+   "values": {
+    "name": "Loyalty Program",
+    "program_type": "loyalty",
+    "applies_on": "both",
+    "trigger": "auto",
+    "portal_visible": "True",
+    "portal_point_name": "Loyalty Points"
+   }
+  },
+  {
+   "model": "loyalty.rule",
+   "id": "loyalty_program_rule",
+   "values": {
+    "reward_point_mode": "money",
+    "reward_point_amount": "10",
+    "program_id": {
+     "$ref": "pos_loyalty.loyalty_program"
+    }
+   }
+  },
+  {
+   "model": "loyalty.reward",
+   "id": "loyalty_program_reward",
+   "values": {
+    "reward_type": "product",
+    "required_points": "5",
+    "reward_product_id": {
+     "$ref": "pos_loyalty.simple_pen"
+    },
+    "program_id": {
+     "$ref": "pos_loyalty.loyalty_program"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_6",
+   "values": {
+    "available_in_pos": "True"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_discount_loyalty_type_config",
+   "name": "Discount & Loyalty",
+   "parent": "point_of_sale.pos_config_menu_catalog",
+   "action": "loyalty.loyalty_program_discount_loyalty_action",
+   "sequence": "91",
+   "groups": "point_of_sale.group_pos_manager"
+  },
+  {
+   "id": "menu_gift_ewallet_type_config",
+   "name": "Gift cards & eWallet",
+   "parent": "point_of_sale.pos_config_menu_catalog",
+   "action": "loyalty.loyalty_program_gift_ewallet_action",
+   "sequence": "92",
+   "groups": "point_of_sale.group_pos_manager"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_program_pos_user",
+   "model": "loyalty.loyalty.program",
+   "model_xmlid": "loyalty.model_loyalty_program",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_program_pos_manager",
+   "model": "loyalty.loyalty.program",
+   "model_xmlid": "loyalty.model_loyalty_program",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_applicability_pos_user",
+   "model": "loyalty.loyalty.rule",
+   "model_xmlid": "loyalty.model_loyalty_rule",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_applicability_pos_manager",
+   "model": "loyalty.loyalty.rule",
+   "model_xmlid": "loyalty.model_loyalty_rule",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_coupon_pos_user",
+   "model": "loyalty.loyalty.card",
+   "model_xmlid": "loyalty.model_loyalty_card",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_coupon_pos_manager",
+   "model": "loyalty.loyalty.card",
+   "model_xmlid": "loyalty.model_loyalty_card",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_reward_pos_user",
+   "model": "loyalty.loyalty.reward",
+   "model_xmlid": "loyalty.model_loyalty_reward",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_reward_pos_manager",
+   "model": "loyalty.loyalty.reward",
+   "model_xmlid": "loyalty.model_loyalty_reward",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_communication_pos_user",
+   "model": "loyalty.loyalty.mail",
+   "model_xmlid": "loyalty.model_loyalty_mail",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_communication_pos_manager",
+   "model": "loyalty.loyalty.mail",
+   "model_xmlid": "loyalty.model_loyalty_mail",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sale_coupon_generate",
+   "model": "loyalty.loyalty.generate.wizard",
+   "model_xmlid": "loyalty.model_loyalty_generate_wizard",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_history_pos_user",
+   "model": "loyalty.loyalty.history",
+   "model_xmlid": "loyalty.model_loyalty_history",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_card_update_balance_pos_user",
+   "model": "loyalty.loyalty.card.update.balance",
+   "model_xmlid": "loyalty.model_loyalty_card_update_balance",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

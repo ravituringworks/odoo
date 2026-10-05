@@ -1,0 +1,487 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "data/ir_cron.xml",
+  "data/sale_pdf_form_field.xml",
+  "report/ir_actions_report.xml",
+  "security/ir.model.access.csv",
+  "security/ir_rules.xml",
+  "views/product_document_views.xml",
+  "views/quotation_document_views.xml",
+  "views/sale_order_template_views.xml",
+  "views/sale_order_views.xml",
+  "views/sale_pdf_form_field_views.xml",
+  "views/sale_pdf_quote_builder_menus.xml",
+  "wizards/res_config_settings_views.xml",
+  "data/sale_pdf_quote_builder_demo.xml"
+ ],
+ "depends": [
+  "sale_management"
+ ],
+ "models": {
+  "ir.actions.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 57,
+     "name": "_render_qweb_pdf_prepare_streams"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 38,
+     "name": "_update_mapping_and_add_pages_to_writer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 49,
+     "name": "_get_value_from_path"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_get_custom_value_from_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 53,
+     "name": "_add_pages_to_writer"
+    }
+   ],
+   "name": "ir.actions.report",
+   "transient": false
+  },
+  "product.document": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "attached_on_sale": {
+     "help": "Allows you to share the document with your customers within a sale.\nLeave it empty if you don't want to share this document with sales customer.\nOn quote: the document will be sent to and accessible by customers at any time.\ne.g. this option can be useful to share Product description files.\nOn order confirmation: the document will be sent to and accessible by customers.\ne.g. this option can be useful to share User Manual or digital content bought on ecommerce. \nInside quote: The document will be included in the pdf of the quotation and sale order between the header pages and the quote table. ",
+     "ondelete": {
+      "inside": "set default"
+     },
+     "selection_add": [
+      [
+       "inside",
+       "Inside quote pdf"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "form_field_ids": {
+     "comodel": "sale.pdf.form.field",
+     "compute": "_compute_form_field_ids",
+     "domain": [
+      [
+       "document_type",
+       "=",
+       "product_document"
+      ]
+     ],
+     "store": true,
+     "string": "Form Fields Included",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('attached_on_sale', 'datas', 'type')"
+     ],
+     "lines": 10,
+     "name": "_check_attached_on_and_datas_compatibility"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('datas', 'attached_on_sale')"
+     ],
+     "lines": 11,
+     "name": "_compute_form_field_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_open_pdf_form_fields"
+    }
+   ],
+   "name": "product.document",
+   "transient": false
+  },
+  "quotation.document": {
+   "abstract": false,
+   "description": "Quotation's Headers & Footers",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If unchecked, it will allow you to hide the header or footer without removing it.",
+     "type": "Boolean"
+    },
+    "document_type": {
+     "default": "header",
+     "required": true,
+     "selection": [
+      [
+       "header",
+       "Header"
+      ],
+      [
+       "footer",
+       "Footer"
+      ]
+     ],
+     "string": "Document Type",
+     "type": "Selection"
+    },
+    "form_field_ids": {
+     "comodel": "sale.pdf.form.field",
+     "compute": "_compute_form_field_ids",
+     "domain": [
+      [
+       "document_type",
+       "=",
+       "quotation_document"
+      ]
+     ],
+     "store": true,
+     "string": "Form Fields Included",
+     "type": "Many2many"
+    },
+    "ir_attachment_id": {
+     "comodel": "ir.attachment",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Related attachment",
+     "type": "Many2one"
+    },
+    "quotation_template_ids": {
+     "comodel": "sale.order.template",
+     "relation_table": "header_footer_quotation_template_rel",
+     "string": "Quotation Templates",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {
+    "ir.attachment": "ir_attachment_id"
+   },
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('datas')"
+     ],
+     "lines": 5,
+     "name": "_check_pdf_validity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('datas')"
+     ],
+     "lines": 9,
+     "name": "_compute_form_field_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_open_pdf_form_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    }
+   ],
+   "name": "quotation.document",
+   "order": "document_type desc, sequence, name",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "available_product_document_ids": {
+     "comodel": "quotation.document",
+     "compute": "_compute_available_product_document_ids",
+     "string": "Available Product Documents",
+     "type": "Many2many"
+    },
+    "customizable_pdf_form_fields": {
+     "readonly": false,
+     "string": "Customizable PDF Form Fields",
+     "type": "Json"
+    },
+    "is_pdf_quote_builder_available": {
+     "compute": "_compute_is_pdf_quote_builder_available",
+     "type": "Boolean"
+    },
+    "quotation_document_ids": {
+     "comodel": "quotation.document",
+     "readonly": false,
+     "string": "Headers/Footers",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_template_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_available_product_document_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('available_product_document_ids', 'order_line', 'order_line.available_product_document_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_pdf_quote_builder_available"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('sale_order_template_id')"
+     ],
+     "lines": 5,
+     "name": "_onchange_sale_order_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 69,
+     "name": "get_update_included_pdf_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "save_included_pdf"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "save_new_custom_content"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "available_product_document_ids": {
+     "comodel": "product.document",
+     "compute": "_compute_available_product_document_ids",
+     "relation_table": "available_sale_order_line_product_document_rel",
+     "string": "Available Product Documents",
+     "type": "Many2many"
+    },
+    "product_document_ids": {
+     "comodel": "product.document",
+     "domain": "[('id', 'in', available_product_document_ids)]",
+     "help": "The product documents for this order line that will be merged in the PDF quote.",
+     "readonly": false,
+     "relation_table": "sale_order_line_product_document_rel",
+     "string": "Product Documents",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id', 'product_template_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_product"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_template_id')"
+     ],
+     "lines": 24,
+     "name": "_compute_available_product_document_ids"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  },
+  "sale.order.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "quotation_document_ids": {
+     "comodel": "quotation.document",
+     "relation_table": "header_footer_quotation_template_rel",
+     "string": "Headers and footers",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "sale.order.template",
+   "transient": false
+  },
+  "sale.pdf.form.field": {
+   "abstract": false,
+   "description": "Form fields of inside quotation documents.",
+   "extension": false,
+   "fields": {
+    "document_type": {
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "quotation_document",
+       "Header/Footer"
+      ],
+      [
+       "product_document",
+       "Product Document"
+      ]
+     ],
+     "string": "Document Type",
+     "type": "Selection"
+    },
+    "name": {
+     "help": "The form field name as written in the PDF.",
+     "readonly": true,
+     "required": true,
+     "string": "Form Field Name",
+     "type": "Char"
+    },
+    "path": {
+     "help": "The path to follow to dynamically fill the form field. \nLeave empty to be able to customized it in the quotation form.",
+     "string": "Path",
+     "type": "Char"
+    },
+    "product_document_ids": {
+     "comodel": "product.document",
+     "string": "Product Documents",
+     "type": "Many2many"
+    },
+    "quotation_document_ids": {
+     "comodel": "quotation.document",
+     "string": "Quotation Documents",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('name')"
+     ],
+     "lines": 20,
+     "name": "_check_form_field_name_follows_pattern"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('path')"
+     ],
+     "lines": 32,
+     "name": "_check_valid_and_existing_paths"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('document_type', 'product_document_ids', 'quotation_document_ids')"
+     ],
+     "lines": 13,
+     "name": "_check_document_type_and_document_linked_compatibility"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 57,
+     "name": "_add_basic_mapped_form_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_cron_post_upgrade_assign_missing_form_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_create_or_update_form_fields_on_pdf_records"
+    }
+   ],
+   "name": "sale.pdf.form.field",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "unique_name_per_doc_type",
+     "UNIQUE(name, document_type)",
+     "Form field name must be unique for a given document type."
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "sale_pdf_quote_builder",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_pdf_quote_builder",
+ "stats": {
+  "fields": 20,
+  "methods": 26,
+  "models": 7,
+  "py_lines": 1002
+ },
+ "summary": "Build nice quotations",
+ "title": "Sales PDF Quotation Builder",
+ "version": null
+}

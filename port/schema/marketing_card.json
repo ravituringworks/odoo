@@ -1,0 +1,737 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Marketing/Social Marketing",
+ "data_files": [
+  "security/marketing_card_groups.xml",
+  "security/ir.model.access.csv",
+  "views/card_card_templates.xml",
+  "data/card_template_data.xml",
+  "views/card_card_views.xml",
+  "views/card_campaign_views.xml",
+  "views/card_frontend_templates.xml",
+  "views/card_template_views.xml",
+  "views/card_menus.xml",
+  "views/mailing_mailing_views.xml",
+  "views/website_templates.xml",
+  "demo/card_campaign_demo.xml"
+ ],
+ "depends": [
+  "link_tracker",
+  "mass_mailing",
+  "website"
+ ],
+ "models": {
+  "card.campaign": {
+   "abstract": false,
+   "description": "Marketing Card Campaign",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "body_html": {
+     "readonly": false,
+     "related": "card_template_id.body",
+     "type": "Html"
+    },
+    "card_click_count": {
+     "compute": "_compute_card_stats",
+     "type": "Integer"
+    },
+    "card_count": {
+     "compute": "_compute_card_stats",
+     "type": "Integer"
+    },
+    "card_ids": {
+     "comodel": "card.card",
+     "inverse_name": "campaign_id",
+     "type": "One2many"
+    },
+    "card_share_count": {
+     "compute": "_compute_card_stats",
+     "type": "Integer"
+    },
+    "card_template_id": {
+     "comodel": "card.template",
+     "default": {
+      "$ref": "_default_card_template_id"
+     },
+     "required": true,
+     "string": "Design",
+     "type": "Many2one"
+    },
+    "content_background": {
+     "string": "Background",
+     "type": "Image"
+    },
+    "content_button": {
+     "string": "Button",
+     "type": "Char"
+    },
+    "content_header": {
+     "string": "Header",
+     "type": "Char"
+    },
+    "content_header_color": {
+     "string": "Header Color",
+     "type": "Char"
+    },
+    "content_header_dyn": {
+     "string": "Is Dynamic Header",
+     "type": "Boolean"
+    },
+    "content_header_path": {
+     "string": "Header Path",
+     "type": "Char"
+    },
+    "content_image1_path": {
+     "string": "Dynamic Image 1",
+     "type": "Char"
+    },
+    "content_image2_path": {
+     "string": "Dynamic Image 2",
+     "type": "Char"
+    },
+    "content_section": {
+     "string": "Section",
+     "type": "Char"
+    },
+    "content_section_dyn": {
+     "string": "Is Dynamic Section",
+     "type": "Boolean"
+    },
+    "content_section_path": {
+     "string": "Section Path",
+     "type": "Char"
+    },
+    "content_sub_header": {
+     "string": "Sub-Header",
+     "type": "Char"
+    },
+    "content_sub_header_color": {
+     "string": "Sub Header Color",
+     "type": "Char"
+    },
+    "content_sub_header_dyn": {
+     "string": "Is Dynamic Sub-Header",
+     "type": "Boolean"
+    },
+    "content_sub_header_path": {
+     "string": "Sub-Header Path",
+     "type": "Char"
+    },
+    "content_sub_section1": {
+     "string": "Sub-Section 1",
+     "type": "Char"
+    },
+    "content_sub_section1_dyn": {
+     "string": "Is Dynamic Sub-Section 1",
+     "type": "Boolean"
+    },
+    "content_sub_section1_path": {
+     "string": "Sub-Section 1 Path",
+     "type": "Char"
+    },
+    "content_sub_section2": {
+     "string": "Sub-Section 2",
+     "type": "Char"
+    },
+    "content_sub_section2_dyn": {
+     "string": "Is Dynamic Sub-Section 2",
+     "type": "Boolean"
+    },
+    "content_sub_section2_path": {
+     "string": "Sub-Section 2 Path",
+     "type": "Char"
+    },
+    "image_preview": {
+     "compute": "_compute_image_preview",
+     "readonly": true,
+     "store": true,
+     "type": "Image"
+    },
+    "link_tracker_id": {
+     "comodel": "link.tracker",
+     "ondelete": "restrict",
+     "type": "Many2one"
+    },
+    "mailing_count": {
+     "compute": "_compute_mailing_count",
+     "type": "Integer"
+    },
+    "mailing_ids": {
+     "comodel": "mailing.mailing",
+     "inverse_name": "card_campaign_id",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "post_suggestion": {
+     "help": "Description below the card and default text when sharing on X",
+     "type": "Text"
+    },
+    "preview_record_ref": {
+     "required": true,
+     "selection_method": "_get_model_selection",
+     "string": "Preview On",
+     "type": "Reference"
+    },
+    "request_description": {
+     "string": "Request Description",
+     "type": "Text"
+    },
+    "request_title": {
+     "default": {
+      "$lambda": "_('Help us share the news')"
+     },
+     "string": "Request",
+     "type": "Char"
+    },
+    "res_model": {
+     "compute": "_compute_res_model",
+     "readonly": true,
+     "required": true,
+     "selection_method": "_get_model_selection",
+     "store": true,
+     "string": "Model Name",
+     "type": "Selection"
+    },
+    "reward_message": {
+     "string": "Thank You Message",
+     "type": "Html"
+    },
+    "reward_target_url": {
+     "string": "Reward Link",
+     "type": "Char"
+    },
+    "tag_ids": {
+     "comodel": "card.campaign.tag",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "target_url": {
+     "string": "Post Link",
+     "type": "Char"
+    },
+    "target_url_click_count": {
+     "related": "link_tracker_id.count",
+     "type": "Integer"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "domain": "[('share', '=', False)]",
+     "string": "Responsible",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.render.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_card_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_model_selection"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('card_ids')"
+     ],
+     "lines": 19,
+     "name": "_compute_card_stats"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_render_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_check_access_right_dynamic_template"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends(lambda self: self._get_render_fields() + ['preview_record_ref'])"
+     ],
+     "lines": 7,
+     "name": "_compute_image_preview"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mailing_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_mailing_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('preview_record_ref')"
+     ],
+     "lines": 4,
+     "name": "_compute_res_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 15,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_view_cards"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_view_cards_clicked"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_view_cards_shared"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_mailings"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_preview"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_share"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_fetch_or_create_preview_card"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_action_share_get_default_body"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_image_b64"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_update_cards"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_url_from_res_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model')"
+     ],
+     "lines": 4,
+     "name": "_compute_render_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_get_card_element_values"
+    }
+   ],
+   "name": "card.campaign",
+   "order": "id DESC",
+   "transient": false
+  },
+  "card.campaign.tag": {
+   "abstract": false,
+   "description": "Marketing Card Campaign Tag",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    }
+   ],
+   "name": "card.campaign.tag",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique(name)",
+     "Tags may not reuse existing names."
+    ]
+   ],
+   "transient": false
+  },
+  "card.card": {
+   "abstract": false,
+   "description": "Marketing Card",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "campaign_id": {
+     "comodel": "card.campaign",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "image": {
+     "type": "Image"
+    },
+    "requires_sync": {
+     "default": true,
+     "help": "Whether the image needs to be updated to match the campaign template.",
+     "type": "Boolean"
+    },
+    "res_id": {
+     "required": true,
+     "string": "Record ID",
+     "type": "Many2oneReference"
+    },
+    "res_model": {
+     "related": "campaign_id.res_model",
+     "type": "Selection"
+    },
+    "share_status": {
+     "selection": [
+      [
+       "shared",
+       "Shared"
+      ],
+      [
+       "visited",
+       "Visited"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('campaign_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_res_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 6,
+     "name": "_gc_card"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_card_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_redirect_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_path"
+    }
+   ],
+   "name": "card.card",
+   "sql_constraints": [
+    [
+     "campaign_record_unique",
+     "unique(campaign_id, res_id)",
+     "Each record should be unique for a campaign"
+    ]
+   ],
+   "transient": false
+  },
+  "card.template": {
+   "abstract": false,
+   "description": "Marketing Card Template",
+   "extension": false,
+   "fields": {
+    "body": {
+     "type": "Html"
+    },
+    "default_background": {
+     "type": "Image"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "primary_color": {
+     "default": "#f9f9f9",
+     "required": true,
+     "type": "Char"
+    },
+    "primary_text_color": {
+     "default": "#000000",
+     "required": true,
+     "type": "Char"
+    },
+    "secondary_color": {
+     "default": "#000000",
+     "required": true,
+     "type": "Char"
+    },
+    "secondary_text_color": {
+     "default": "#ffffff",
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "card.template",
+   "transient": false
+  },
+  "ir.model": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 5,
+     "name": "_delete_linked_campaigns"
+    }
+   ],
+   "name": "ir.model",
+   "transient": false
+  },
+  "mail.compose.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_prepare_mail_values_dynamic"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_done_emails"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 25,
+     "name": "_process_generic_card_url_body"
+    }
+   ],
+   "name": "mail.compose.message",
+   "sel_methods": {
+    "_get_done_emails": []
+   },
+   "transient": false
+  },
+  "mailing.mailing": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "card_campaign_id": {
+     "comodel": "card.campaign",
+     "type": "Many2one"
+    },
+    "card_requires_sync_count": {
+     "compute": "_compute_card_requires_sync_count",
+     "type": "Integer"
+    },
+    "mailing_model_id": {
+     "compute": "_compute_mailing_model_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('card_campaign_id', 'mailing_domain', 'mailing_model_id')"
+     ],
+     "lines": 8,
+     "name": "_check_mailing_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('card_campaign_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_mailing_model_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('card_campaign_id')"
+     ],
+     "lines": 13,
+     "name": "_compute_card_requires_sync_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_put_in_queue"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_send_mail"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_update_cards"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_recipients_domain"
+    }
+   ],
+   "name": "mailing.mailing",
+   "transient": false
+  },
+  "utm.source": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 7,
+     "name": "_unlink_except_utm_source_marketing_card"
+    }
+   ],
+   "name": "utm.source",
+   "transient": false
+  }
+ },
+ "module": "marketing_card",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/marketing_card",
+ "stats": {
+  "fields": 63,
+  "methods": 42,
+  "models": 8,
+  "py_lines": 837
+ },
+ "summary": "Generate dynamic shareable cards",
+ "title": "Marketing Card",
+ "version": "1.1"
+}

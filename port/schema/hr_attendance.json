@@ -1,0 +1,1167 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Attendances",
+ "data_files": [
+  "data/hr_attendance_data.xml",
+  "security/hr_attendance_security.xml",
+  "security/ir.model.access.csv",
+  "views/hr_attendance_view.xml",
+  "views/hr_attendance_overtime_view.xml",
+  "views/hr_department_view.xml",
+  "views/hr_employee_view.xml",
+  "views/res_config_settings_views.xml",
+  "views/hr_attendance_kiosk_templates.xml",
+  "data/hr_attendance_demo.xml"
+ ],
+ "depends": [
+  "hr",
+  "barcodes"
+ ],
+ "models": {
+  "hr.attendance": {
+   "abstract": false,
+   "description": "Attendance",
+   "extension": false,
+   "fields": {
+    "check_in": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "required": true,
+     "string": "Check In",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "check_out": {
+     "string": "Check Out",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "color": {
+     "compute": "_compute_color",
+     "type": "Integer"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "readonly": true,
+     "related": "employee_id.department_id",
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "default": {
+      "$ref": "_default_employee"
+     },
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "expected_hours": {
+     "compute": "_compute_expected_hours",
+     "store": true,
+     "string": "Regular Hours",
+     "type": "Float"
+    },
+    "in_browser": {
+     "readonly": true,
+     "string": "Browser",
+     "type": "Char"
+    },
+    "in_city": {
+     "readonly": true,
+     "string": "City",
+     "type": "Char"
+    },
+    "in_country_name": {
+     "help": "Based on IP Address",
+     "readonly": true,
+     "string": "Country",
+     "type": "Char"
+    },
+    "in_ip_address": {
+     "readonly": true,
+     "string": "IP Address",
+     "type": "Char"
+    },
+    "in_latitude": {
+     "digits": [
+      10,
+      7
+     ],
+     "readonly": true,
+     "string": "Latitude",
+     "type": "Float"
+    },
+    "in_longitude": {
+     "digits": [
+      10,
+      7
+     ],
+     "readonly": true,
+     "string": "Longitude",
+     "type": "Float"
+    },
+    "in_mode": {
+     "default": "manual",
+     "readonly": true,
+     "selection": [
+      [
+       "kiosk",
+       "Kiosk"
+      ],
+      [
+       "systray",
+       "Systray"
+      ],
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "technical",
+       "Technical"
+      ]
+     ],
+     "string": "Mode",
+     "type": "Selection"
+    },
+    "manager_id": {
+     "comodel": "hr.employee",
+     "readonly": true,
+     "related": "employee_id.parent_id",
+     "type": "Many2one"
+    },
+    "no_validated_overtime_hours": {
+     "compute": "_compute_no_validated_overtime_hours",
+     "type": "Boolean"
+    },
+    "out_browser": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "out_city": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "out_country_name": {
+     "help": "Based on IP Address",
+     "readonly": true,
+     "type": "Char"
+    },
+    "out_ip_address": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "out_latitude": {
+     "digits": [
+      10,
+      7
+     ],
+     "readonly": true,
+     "type": "Float"
+    },
+    "out_longitude": {
+     "digits": [
+      10,
+      7
+     ],
+     "readonly": true,
+     "type": "Float"
+    },
+    "out_mode": {
+     "default": "manual",
+     "readonly": true,
+     "selection": [
+      [
+       "kiosk",
+       "Kiosk"
+      ],
+      [
+       "systray",
+       "Systray"
+      ],
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "technical",
+       "Technical"
+      ],
+      [
+       "auto_check_out",
+       "Automatic Check-Out"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "overtime_hours": {
+     "compute": "_compute_overtime_hours",
+     "store": true,
+     "string": "Worked Extra Hours",
+     "type": "Float"
+    },
+    "overtime_status": {
+     "compute": "_compute_overtime_status",
+     "readonly": false,
+     "selection": [
+      [
+       "to_approve",
+       "To Approve"
+      ],
+      [
+       "approved",
+       "Approved"
+      ],
+      [
+       "refused",
+       "Refused"
+      ]
+     ],
+     "store": true,
+     "tracking": true,
+     "type": "Selection"
+    },
+    "validated_overtime_hours": {
+     "compute": "_compute_validated_overtime_hours",
+     "readonly": false,
+     "store": true,
+     "string": "Validated Extra Hours",
+     "tracking": true,
+     "type": "Float"
+    },
+    "worked_hours": {
+     "compute": "_compute_worked_hours",
+     "readonly": true,
+     "store": true,
+     "string": "Worked Hours",
+     "type": "Float"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_employee"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('worked_hours', 'overtime_hours')"
+     ],
+     "lines": 3,
+     "name": "_compute_expected_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('worked_hours')"
+     ],
+     "lines": 66,
+     "name": "_compute_overtime_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'overtime_status', 'overtime_hours')"
+     ],
+     "lines": 15,
+     "name": "_compute_validated_overtime_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('validated_overtime_hours')"
+     ],
+     "lines": 3,
+     "name": "_compute_no_validated_overtime_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_overtime_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'check_in', 'check_out')"
+     ],
+     "lines": 15,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_employee_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('check_in', 'check_out')"
+     ],
+     "lines": 9,
+     "name": "_compute_worked_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_worked_hours_in_range"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('check_in', 'check_out')"
+     ],
+     "lines": 6,
+     "name": "_check_validity_check_in_check_out"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('check_in', 'check_out', 'employee_id')"
+     ],
+     "lines": 41,
+     "name": "_check_validity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_day_start_and_day"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_attendances_dates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_overtime_leave_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 193,
+     "name": "_update_overtime"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 51,
+     "name": "_get_pre_post_work_time"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "copy"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_in_attendance_maps"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_out_attendance_maps"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_kiosk_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "has_demo_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 127,
+     "name": "_load_demo_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_try_kiosk"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_read_group_employee_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_approve_overtime"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_refuse_overtime"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_cron_auto_check_out"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_cron_absence_detection"
+    }
+   ],
+   "name": "hr.attendance",
+   "order": "check_in desc",
+   "sel_methods": {
+    "_get_overtime_leave_domain": []
+   },
+   "transient": false
+  },
+  "hr.attendance.overtime": {
+   "abstract": false,
+   "description": "Attendance Overtime",
+   "extension": false,
+   "fields": {
+    "adjustment": {
+     "default": false,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "related": "employee_id.company_id",
+     "type": "Many2one"
+    },
+    "date": {
+     "string": "Day",
+     "type": "Date"
+    },
+    "duration": {
+     "default": 0.0,
+     "required": true,
+     "string": "Extra Hours",
+     "type": "Float"
+    },
+    "duration_real": {
+     "default": 0.0,
+     "help": "Extra-hours including the threshold duration",
+     "string": "Extra Hours (Real)",
+     "type": "Float"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "default": {
+      "$ref": "_default_employee"
+     },
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Employee",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_employee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "init"
+    }
+   ],
+   "name": "hr.attendance.overtime",
+   "order": "date desc",
+   "rec_name": "employee_id",
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "attendance_ids": {
+     "comodel": "hr.attendance",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "inverse_name": "employee_id",
+     "type": "One2many"
+    },
+    "attendance_manager_id": {
+     "comodel": "res.users",
+     "domain": "[('share', '=', False), ('company_ids', 'in', company_id)]",
+     "groups": "hr_attendance.group_hr_attendance_officer",
+     "help": "The user set in Attendance will access the attendance of the employee through the dedicated app and will be able to edit them.",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "attendance_state": {
+     "compute": "_compute_attendance_state",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "selection": [
+      [
+       "checked_out",
+       "Checked out"
+      ],
+      [
+       "checked_in",
+       "Checked in"
+      ]
+     ],
+     "string": "Attendance Status",
+     "type": "Selection"
+    },
+    "hours_last_month": {
+     "compute": "_compute_hours_last_month",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "type": "Float"
+    },
+    "hours_last_month_display": {
+     "compute": "_compute_hours_last_month",
+     "groups": "hr.group_hr_user",
+     "type": "Char"
+    },
+    "hours_previously_today": {
+     "compute": "_compute_hours_today",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "type": "Float"
+    },
+    "hours_today": {
+     "compute": "_compute_hours_today",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "type": "Float"
+    },
+    "last_attendance_id": {
+     "comodel": "hr.attendance",
+     "compute": "_compute_last_attendance_id",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "store": true,
+     "type": "Many2one"
+    },
+    "last_attendance_worked_hours": {
+     "compute": "_compute_hours_today",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "type": "Float"
+    },
+    "last_check_in": {
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "related": "last_attendance_id.check_in",
+     "store": true,
+     "tracking": false,
+     "type": "Datetime"
+    },
+    "last_check_out": {
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "related": "last_attendance_id.check_out",
+     "store": true,
+     "tracking": false,
+     "type": "Datetime"
+    },
+    "overtime_ids": {
+     "comodel": "hr.attendance.overtime",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "inverse_name": "employee_id",
+     "type": "One2many"
+    },
+    "total_overtime": {
+     "compute": "_compute_total_overtime",
+     "groups": "hr_attendance.group_hr_attendance_officer,hr.group_hr_user",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_archive"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('overtime_ids.duration', 'attendance_ids', 'attendance_ids.overtime_status')"
+     ],
+     "lines": 15,
+     "name": "_compute_total_overtime"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_compute_hours_last_month"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_compute_hours_today"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attendance_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_last_attendance_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('last_attendance_id.check_in', 'last_attendance_id.check_out', 'last_attendance_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_attendance_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_attendance_action_change"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_last_month_attendances"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_open_last_month_overtime"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.employee.base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id.im_status', 'attendance_state')"
+     ],
+     "lines": 16,
+     "name": "_compute_presence_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_presence_icon"
+    }
+   ],
+   "name": "hr.employee.base",
+   "transient": false
+  },
+  "hr.employee.public": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "attendance_manager_id": {
+     "groups": "hr_attendance.group_hr_attendance_officer",
+     "related": "employee_id.attendance_manager_id",
+     "type": "Many2one"
+    },
+    "attendance_state": {
+     "groups": "hr_attendance.group_hr_attendance_officer",
+     "readonly": true,
+     "related": "employee_id.attendance_state",
+     "type": "Selection"
+    },
+    "hours_today": {
+     "groups": "hr_attendance.group_hr_attendance_officer",
+     "readonly": true,
+     "related": "employee_id.hours_today",
+     "type": "Float"
+    },
+    "last_attendance_id": {
+     "groups": "hr_attendance.group_hr_attendance_officer",
+     "readonly": true,
+     "related": "employee_id.last_attendance_id",
+     "type": "Many2one"
+    },
+    "last_check_in": {
+     "groups": "hr_attendance.group_hr_attendance_officer",
+     "related": "employee_id.last_check_in",
+     "type": "Datetime"
+    },
+    "last_check_out": {
+     "groups": "hr_attendance.group_hr_attendance_officer",
+     "related": "employee_id.last_check_out",
+     "type": "Datetime"
+    },
+    "total_overtime": {
+     "groups": "hr_attendance.group_hr_attendance_officer",
+     "readonly": true,
+     "related": "employee_id.total_overtime",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.employee.public",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "absence_management": {
+     "default": false,
+     "string": "Absence Management",
+     "type": "Boolean"
+    },
+    "attendance_barcode_source": {
+     "default": "front",
+     "selection": [
+      [
+       "scanner",
+       "Scanner"
+      ],
+      [
+       "front",
+       "Front Camera"
+      ],
+      [
+       "back",
+       "Back Camera"
+      ]
+     ],
+     "string": "Barcode Source",
+     "type": "Selection"
+    },
+    "attendance_from_systray": {
+     "default": true,
+     "string": "Attendance From Systray",
+     "type": "Boolean"
+    },
+    "attendance_kiosk_delay": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "attendance_kiosk_key": {
+     "copy": false,
+     "default": {
+      "$lambda": "uuid.uuid4().hex"
+     },
+     "groups": "hr_attendance.group_hr_attendance_manager",
+     "type": "Char"
+    },
+    "attendance_kiosk_mode": {
+     "default": "barcode_manual",
+     "selection": [
+      [
+       "barcode",
+       "Barcode / RFID"
+      ],
+      [
+       "barcode_manual",
+       "Barcode / RFID and Manual Selection"
+      ],
+      [
+       "manual",
+       "Manual Selection"
+      ]
+     ],
+     "string": "Attendance Mode",
+     "type": "Selection"
+    },
+    "attendance_kiosk_url": {
+     "compute": "_compute_attendance_kiosk_url",
+     "type": "Char"
+    },
+    "attendance_kiosk_use_pin": {
+     "string": "Employee PIN Identification",
+     "type": "Boolean"
+    },
+    "attendance_overtime_validation": {
+     "default": "no_validation",
+     "selection": [
+      [
+       "no_validation",
+       "Automatically Approved"
+      ],
+      [
+       "by_manager",
+       "Approved by Manager"
+      ]
+     ],
+     "string": "Extra Hours Validation",
+     "type": "Selection"
+    },
+    "auto_check_out": {
+     "default": false,
+     "string": "Automatic Check Out",
+     "type": "Boolean"
+    },
+    "auto_check_out_tolerance": {
+     "default": 2,
+     "type": "Float"
+    },
+    "hr_attendance_display_overtime": {
+     "string": "Display Extra Hours",
+     "type": "Boolean"
+    },
+    "overtime_company_threshold": {
+     "default": 0,
+     "string": "Tolerance Time In Favor Of Company",
+     "type": "Integer"
+    },
+    "overtime_employee_threshold": {
+     "default": 0,
+     "string": "Tolerance Time In Favor Of Employee",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_company_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attendance_kiosk_key')"
+     ],
+     "lines": 3,
+     "name": "_compute_attendance_kiosk_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_init_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_regenerate_attendance_kiosk_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_hr_presence_control"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_action_open_kiosk_mode"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "absence_management": {
+     "readonly": false,
+     "related": "company_id.absence_management",
+     "type": "Boolean"
+    },
+    "attendance_barcode_source": {
+     "readonly": false,
+     "related": "company_id.attendance_barcode_source",
+     "type": "Selection"
+    },
+    "attendance_from_systray": {
+     "readonly": false,
+     "related": "company_id.attendance_from_systray",
+     "type": "Boolean"
+    },
+    "attendance_kiosk_delay": {
+     "readonly": false,
+     "related": "company_id.attendance_kiosk_delay",
+     "type": "Integer"
+    },
+    "attendance_kiosk_mode": {
+     "readonly": false,
+     "related": "company_id.attendance_kiosk_mode",
+     "type": "Selection"
+    },
+    "attendance_kiosk_url": {
+     "related": "company_id.attendance_kiosk_url",
+     "type": "Char"
+    },
+    "attendance_kiosk_use_pin": {
+     "readonly": false,
+     "related": "company_id.attendance_kiosk_use_pin",
+     "type": "Boolean"
+    },
+    "attendance_overtime_validation": {
+     "readonly": false,
+     "related": "company_id.attendance_overtime_validation",
+     "type": "Selection"
+    },
+    "auto_check_out": {
+     "readonly": false,
+     "related": "company_id.auto_check_out",
+     "type": "Boolean"
+    },
+    "auto_check_out_tolerance": {
+     "readonly": false,
+     "related": "company_id.auto_check_out_tolerance",
+     "type": "Float"
+    },
+    "hr_attendance_display_overtime": {
+     "readonly": false,
+     "related": "company_id.hr_attendance_display_overtime",
+     "type": "Boolean"
+    },
+    "overtime_company_threshold": {
+     "readonly": false,
+     "string": "Tolerance Time In Favor Of Company",
+     "type": "Integer"
+    },
+    "overtime_employee_threshold": {
+     "readonly": false,
+     "string": "Tolerance Time In Favor Of Employee",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "set_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "regenerate_kiosk_key"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "attendance_manager_id": {
+     "readonly": false,
+     "related": "employee_id.attendance_manager_id",
+     "type": "Many2one"
+    },
+    "attendance_state": {
+     "related": "employee_id.attendance_state",
+     "type": "Selection"
+    },
+    "display_extra_hours": {
+     "related": "company_id.hr_attendance_display_overtime",
+     "type": "Boolean"
+    },
+    "hours_last_month": {
+     "related": "employee_id.hours_last_month",
+     "type": "Float"
+    },
+    "hours_last_month_display": {
+     "related": "employee_id.hours_last_month_display",
+     "type": "Char"
+    },
+    "last_check_in": {
+     "related": "employee_id.last_attendance_id.check_in",
+     "type": "Datetime"
+    },
+    "last_check_out": {
+     "related": "employee_id.last_attendance_id.check_out",
+     "type": "Datetime"
+    },
+    "total_overtime": {
+     "related": "employee_id.total_overtime",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_clean_attendance_officers"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_last_month_attendances"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_open_last_month_overtime"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "resource.calendar.leaves": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_employee_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    }
+   ],
+   "name": "resource.calendar.leaves",
+   "transient": false
+  }
+ },
+ "module": "hr_attendance",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_attendance",
+ "stats": {
+  "fields": 87,
+  "methods": 66,
+  "models": 9,
+  "py_lines": 1761
+ },
+ "summary": "Track employee attendance",
+ "title": "Attendances",
+ "version": "2.0"
+}

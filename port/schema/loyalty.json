@@ -1,0 +1,1670 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/loyalty_security.xml",
+  "report/loyalty_report_templates.xml",
+  "report/loyalty_report.xml",
+  "data/mail_template_data.xml",
+  "data/loyalty_data.xml",
+  "wizard/loyalty_card_update_balance_views.xml",
+  "wizard/loyalty_generate_wizard_views.xml",
+  "views/loyalty_card_views.xml",
+  "views/loyalty_history_views.xml",
+  "views/loyalty_mail_views.xml",
+  "views/loyalty_program_views.xml",
+  "views/loyalty_reward_views.xml",
+  "views/loyalty_rule_views.xml",
+  "views/portal_templates.xml",
+  "views/res_partner_views.xml",
+  "data/loyalty_demo.xml"
+ ],
+ "depends": [
+  "product",
+  "portal",
+  "account"
+ ],
+ "models": {
+  "base.partner.merge.automatic.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_update_foreign_keys"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_merge_loyalty_cards"
+    }
+   ],
+   "name": "base.partner.merge.automatic.wizard",
+   "transient": false
+  },
+  "loyalty.card": {
+   "abstract": false,
+   "description": "Loyalty Coupon",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "code": {
+     "default": {
+      "$lambda": "self._generate_code()"
+     },
+     "required": true,
+     "type": "Char"
+    },
+    "company_id": {
+     "related": "program_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "program_id.currency_id",
+     "type": "Many2one"
+    },
+    "expiration_date": {
+     "type": "Date"
+    },
+    "history_ids": {
+     "comodel": "loyalty.history",
+     "inverse_name": "card_id",
+     "readonly": true,
+     "type": "One2many"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "index": true,
+     "type": "Many2one"
+    },
+    "point_name": {
+     "readonly": true,
+     "related": "program_id.portal_point_name",
+     "type": "Char"
+    },
+    "points": {
+     "tracking": true,
+     "type": "Float"
+    },
+    "points_display": {
+     "compute": "_compute_points_display",
+     "type": "Char"
+    },
+    "program_id": {
+     "comodel": "loyalty.program",
+     "default": {
+      "$lambda": "self.env.context.get('active_id', None)"
+     },
+     "ondelete": "restrict",
+     "type": "Many2one"
+    },
+    "program_type": {
+     "related": "program_id.program_type",
+     "type": "Selection"
+    },
+    "use_count": {
+     "compute": "_compute_use_count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_generate_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('program_id', 'code')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('code')"
+     ],
+     "lines": 4,
+     "name": "_contrains_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('points', 'point_name')"
+     ],
+     "lines": 3,
+     "name": "_compute_points_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('expiration_date')"
+     ],
+     "lines": 4,
+     "name": "_restrict_expiration_on_loyalty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_format_points"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_use_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_default_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_mail_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_mail_author"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_signature"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_has_source_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_coupon_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_send_creation_communication"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_send_points_reach_communication"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_loyalty_update_balance"
+    }
+   ],
+   "name": "loyalty.card",
+   "rec_name": "code",
+   "sql_constraints": [
+    [
+     "card_code_unique",
+     "UNIQUE(code)",
+     "A coupon/loyalty card must have a unique code."
+    ]
+   ],
+   "transient": false
+  },
+  "loyalty.card.update.balance": {
+   "abstract": false,
+   "description": "Update Loyalty Card Points",
+   "extension": false,
+   "fields": {
+    "card_id": {
+     "comodel": "loyalty.card",
+     "readonly": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "description": {
+     "required": true,
+     "type": "Char"
+    },
+    "new_balance": {
+     "type": "Float"
+    },
+    "old_balance": {
+     "related": "card_id.points",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 20,
+     "name": "action_update_card_point"
+    }
+   ],
+   "name": "loyalty.card.update.balance",
+   "transient": true
+  },
+  "loyalty.generate.wizard": {
+   "abstract": false,
+   "description": "Generate Coupons",
+   "extension": false,
+   "fields": {
+    "confirmation_message": {
+     "compute": "_compute_confirmation_message",
+     "type": "Char"
+    },
+    "coupon_qty": {
+     "compute": "_compute_coupon_qty",
+     "readonly": false,
+     "store": true,
+     "string": "Quantity",
+     "type": "Integer"
+    },
+    "customer_ids": {
+     "comodel": "res.partner",
+     "string": "Customers",
+     "type": "Many2many"
+    },
+    "customer_tag_ids": {
+     "comodel": "res.partner.category",
+     "string": "Customer Tags",
+     "type": "Many2many"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Text"
+    },
+    "mode": {
+     "default": "anonymous",
+     "required": true,
+     "selection": [
+      [
+       "anonymous",
+       "Anonymous Customers"
+      ],
+      [
+       "selected",
+       "Selected Customers"
+      ]
+     ],
+     "string": "For",
+     "type": "Selection"
+    },
+    "points_granted": {
+     "default": 1,
+     "required": true,
+     "string": "Grant",
+     "type": "Float"
+    },
+    "points_name": {
+     "readonly": true,
+     "related": "program_id.portal_point_name",
+     "type": "Char"
+    },
+    "program_id": {
+     "comodel": "loyalty.program",
+     "default": {
+      "$lambda": "self.env.context.get('active_id', False) or self.env.context.get('default_program_id', False)"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "program_type": {
+     "related": "program_id.program_type",
+     "type": "Selection"
+    },
+    "valid_until": {
+     "type": "Date"
+    },
+    "will_send_mail": {
+     "compute": "_compute_will_send_mail",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_partners"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('program_type', 'points_granted', 'coupon_qty')"
+     ],
+     "lines": 9,
+     "name": "_compute_confirmation_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('customer_ids', 'customer_tag_ids', 'mode')"
+     ],
+     "lines": 6,
+     "name": "_compute_coupon_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mode', 'program_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_will_send_mail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_coupon_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "generate_coupons"
+    }
+   ],
+   "name": "loyalty.generate.wizard",
+   "transient": true
+  },
+  "loyalty.history": {
+   "abstract": false,
+   "description": "History for Loyalty cards and Ewallets",
+   "extension": false,
+   "fields": {
+    "card_id": {
+     "comodel": "loyalty.card",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "company_id": {
+     "related": "card_id.company_id",
+     "type": "Many2one"
+    },
+    "description": {
+     "required": true,
+     "type": "Text"
+    },
+    "issued": {
+     "type": "Float"
+    },
+    "order_id": {
+     "readonly": true,
+     "type": "Many2oneReference"
+    },
+    "order_model": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "used": {
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_order_portal_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_order_description"
+    }
+   ],
+   "name": "loyalty.history",
+   "order": "id desc",
+   "transient": false
+  },
+  "loyalty.mail": {
+   "abstract": false,
+   "description": "Loyalty Communication",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "mail_template_id": {
+     "comodel": "mail.template",
+     "domain": [
+      [
+       "model",
+       "=",
+       "loyalty.card"
+      ]
+     ],
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Email Template",
+     "type": "Many2one"
+    },
+    "points": {
+     "type": "Float"
+    },
+    "program_id": {
+     "comodel": "loyalty.program",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "trigger": {
+     "required": true,
+     "selection": [
+      [
+       "create",
+       "At Creation"
+      ],
+      [
+       "points_reach",
+       "When Reaching"
+      ]
+     ],
+     "string": "When",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "loyalty.mail",
+   "transient": false
+  },
+  "loyalty.program": {
+   "abstract": false,
+   "description": "Loyalty Program",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "applies_on": {
+     "compute": "_compute_from_program_type",
+     "default": "current",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "current",
+       "Current order"
+      ],
+      [
+       "future",
+       "Future orders"
+      ],
+      [
+       "both",
+       "Current & Future orders"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "available_on": {
+     "help": "\n        Manage where your program should be available for use.\n        ",
+     "store": false,
+     "string": "Available On",
+     "type": "Boolean"
+    },
+    "communication_plan_ids": {
+     "comodel": "loyalty.mail",
+     "compute": "_compute_from_program_type",
+     "copy": true,
+     "inverse_name": "program_id",
+     "readonly": false,
+     "store": true,
+     "type": "One2many"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "coupon_count": {
+     "compute": "_compute_coupon_count",
+     "type": "Integer"
+    },
+    "coupon_count_display": {
+     "compute": "_compute_coupon_count_display",
+     "string": "Items",
+     "type": "Char"
+    },
+    "coupon_ids": {
+     "comodel": "loyalty.card",
+     "inverse_name": "program_id",
+     "type": "One2many"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "currency_symbol": {
+     "related": "currency_id.symbol",
+     "type": "Char"
+    },
+    "date_from": {
+     "help": "The start date is included in the validity period of this program",
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "date_to": {
+     "help": "The end date is included in the validity period of this program",
+     "string": "End date",
+     "type": "Date"
+    },
+    "is_nominative": {
+     "compute": "_compute_is_nominative",
+     "type": "Boolean"
+    },
+    "is_payment_program": {
+     "compute": "_compute_is_payment_program",
+     "type": "Boolean"
+    },
+    "limit_usage": {
+     "string": "Limit Usage",
+     "type": "Boolean"
+    },
+    "mail_template_id": {
+     "comodel": "mail.template",
+     "compute": "_compute_mail_template_id",
+     "readonly": false,
+     "string": "Email template",
+     "type": "Many2one"
+    },
+    "max_usage": {
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Program Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "payment_program_discount_product_id": {
+     "comodel": "product.product",
+     "compute": "_compute_payment_program_discount_product_id",
+     "help": "Product used in the sales order to apply the discount.",
+     "readonly": true,
+     "string": "Discount Product",
+     "type": "Many2one"
+    },
+    "portal_point_name": {
+     "compute": "_compute_portal_point_name",
+     "default": "Points",
+     "readonly": false,
+     "store": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "portal_visible": {
+     "default": false,
+     "help": "\n        Show in web portal, PoS customer ticket, eCommerce checkout, the number of points available and used by reward.\n        ",
+     "type": "Boolean"
+    },
+    "pricelist_ids": {
+     "comodel": "product.pricelist",
+     "domain": "[('currency_id', '=', currency_id)]",
+     "help": "This program is specific to this pricelist set.",
+     "string": "Pricelist",
+     "type": "Many2many"
+    },
+    "program_type": {
+     "default": "promotion",
+     "required": true,
+     "selection": [
+      [
+       "coupons",
+       "Coupons"
+      ],
+      [
+       "gift_card",
+       "Gift Card"
+      ],
+      [
+       "loyalty",
+       "Loyalty Cards"
+      ],
+      [
+       "promotion",
+       "Promotions"
+      ],
+      [
+       "ewallet",
+       "eWallet"
+      ],
+      [
+       "promo_code",
+       "Discount Code"
+      ],
+      [
+       "buy_x_get_y",
+       "Buy X Get Y"
+      ],
+      [
+       "next_order_coupons",
+       "Next Order Coupons"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "reward_ids": {
+     "comodel": "loyalty.reward",
+     "compute": "_compute_from_program_type",
+     "copy": true,
+     "inverse_name": "program_id",
+     "readonly": false,
+     "store": true,
+     "string": "Rewards",
+     "type": "One2many"
+    },
+    "rule_ids": {
+     "comodel": "loyalty.rule",
+     "compute": "_compute_from_program_type",
+     "copy": true,
+     "inverse_name": "program_id",
+     "readonly": false,
+     "store": true,
+     "string": "Conditional rules",
+     "type": "One2many"
+    },
+    "sequence": {
+     "copy": false,
+     "type": "Integer"
+    },
+    "total_order_count": {
+     "compute": "_compute_total_order_count",
+     "string": "Total Order Count",
+     "type": "Integer"
+    },
+    "trigger": {
+     "compute": "_compute_from_program_type",
+     "help": "\n        Automatic: Customers will be eligible for a reward automatically in their cart.\n        Use a code: Customers will be eligible for a reward if they enter a code.\n        ",
+     "readonly": false,
+     "selection": [
+      [
+       "auto",
+       "Automatic"
+      ],
+      [
+       "with_code",
+       "Use a code"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "trigger_product_ids": {
+     "readonly": false,
+     "related": "rule_ids.product_ids",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('currency_id', 'pricelist_ids')"
+     ],
+     "lines": 9,
+     "name": "_check_pricelist_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_from', 'date_to')"
+     ],
+     "lines": 5,
+     "name": "_check_date_from_date_to"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('reward_ids')"
+     ],
+     "lines": 5,
+     "name": "_constrains_reward_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_total_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('coupon_count', 'program_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_coupon_count_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('communication_plan_ids.mail_template_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_mail_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_inverse_mail_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('coupon_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_coupon_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('program_type', 'applies_on')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_nominative"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('program_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_payment_program"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('reward_ids.discount_line_product_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_payment_program_discount_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_program_items_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 156,
+     "name": "_program_type_default_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('program_type')"
+     ],
+     "lines": 8,
+     "name": "_compute_from_program_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('currency_id', 'program_type')"
+     ],
+     "lines": 5,
+     "name": "_compute_portal_point_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_valid_products"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_loyalty_cards"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_active"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 55,
+     "name": "get_program_templates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "create_from_template"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 66,
+     "name": "_get_template_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    }
+   ],
+   "name": "loyalty.program",
+   "order": "sequence",
+   "rec_name": "name",
+   "sql_constraints": [
+    [
+     "check_max_usage",
+     "CHECK (limit_usage = False OR max_usage > 0)",
+     "Max usage must be strictly positive if a limit is used."
+    ]
+   ],
+   "transient": false
+  },
+  "loyalty.reward": {
+   "abstract": false,
+   "description": "Loyalty Reward",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "all_discount_product_ids": {
+     "comodel": "product.product",
+     "compute": "_compute_all_discount_product_ids",
+     "type": "Many2many"
+    },
+    "clear_wallet": {
+     "default": false,
+     "type": "Boolean"
+    },
+    "company_id": {
+     "related": "program_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "program_id.currency_id",
+     "type": "Many2one"
+    },
+    "description": {
+     "compute": "_compute_description",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "discount": {
+     "default": 10,
+     "string": "Discount",
+     "type": "Float"
+    },
+    "discount_applicability": {
+     "default": "order",
+     "selection": [
+      [
+       "order",
+       "Order"
+      ],
+      [
+       "cheapest",
+       "Cheapest Product"
+      ],
+      [
+       "specific",
+       "Specific Products"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "discount_line_product_id": {
+     "comodel": "product.product",
+     "copy": false,
+     "help": "Product used in the sales order to apply the discount. Each reward has its own product for reporting purpose",
+     "ondelete": "restrict",
+     "type": "Many2one"
+    },
+    "discount_max_amount": {
+     "help": "This is the max amount this reward may discount, leave to 0 for no limit.",
+     "string": "Max Discount",
+     "type": "Monetary"
+    },
+    "discount_mode": {
+     "default": "percent",
+     "required": true,
+     "selection": {
+      "$ref": "_get_discount_mode_select"
+     },
+     "type": "Selection"
+    },
+    "discount_product_category_id": {
+     "comodel": "product.category",
+     "string": "Discounted Prod. Categories",
+     "type": "Many2one"
+    },
+    "discount_product_domain": {
+     "default": "[]",
+     "type": "Char"
+    },
+    "discount_product_ids": {
+     "comodel": "product.product",
+     "string": "Discounted Products",
+     "type": "Many2many"
+    },
+    "discount_product_tag_id": {
+     "comodel": "product.tag",
+     "string": "Discounted Prod. Tag",
+     "type": "Many2one"
+    },
+    "is_global_discount": {
+     "compute": "_compute_is_global_discount",
+     "type": "Boolean"
+    },
+    "multi_product": {
+     "compute": "_compute_multi_product",
+     "type": "Boolean"
+    },
+    "point_name": {
+     "readonly": true,
+     "related": "program_id.portal_point_name",
+     "type": "Char"
+    },
+    "program_id": {
+     "comodel": "loyalty.program",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "program_type": {
+     "related": "program_id.program_type",
+     "type": "Selection"
+    },
+    "required_points": {
+     "default": 1,
+     "string": "Points needed",
+     "type": "Float"
+    },
+    "reward_product_domain": {
+     "compute": "_compute_reward_product_domain",
+     "store": false,
+     "type": "Char"
+    },
+    "reward_product_id": {
+     "comodel": "product.product",
+     "domain": [
+      [
+       "type",
+       "!=",
+       "combo"
+      ]
+     ],
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "reward_product_ids": {
+     "comodel": "product.product",
+     "compute": "_compute_multi_product",
+     "help": "These are the products that can be claimed with this rule.",
+     "string": "Reward Products",
+     "type": "Many2many"
+    },
+    "reward_product_qty": {
+     "default": 1,
+     "type": "Integer"
+    },
+    "reward_product_tag_id": {
+     "comodel": "product.tag",
+     "string": "Product Tag",
+     "type": "Many2one"
+    },
+    "reward_product_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_reward_product_uom_id",
+     "type": "Many2one"
+    },
+    "reward_type": {
+     "default": "discount",
+     "required": true,
+     "selection": [
+      [
+       "product",
+       "Free Product"
+      ],
+      [
+       "discount",
+       "Discount"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "tax_ids": {
+     "comodel": "account.tax",
+     "domain": "[('type_tax_use', '=', 'sale'), ('company_id', '=', company_id)]",
+     "help": "Taxes to add on the discount line.",
+     "string": "Taxes",
+     "type": "Many2many"
+    },
+    "user_has_debug": {
+     "compute": "_compute_user_has_debug",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_discount_mode_select"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('program_id', 'description')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('reward_product_id.product_tmpl_id.uom_id', 'reward_product_tag_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_reward_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_find_all_category_children"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_discount_product_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_get_active_products_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('discount_product_domain')"
+     ],
+     "lines": 7,
+     "name": "_compute_reward_product_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('discount_product_ids', 'discount_product_category_id', 'discount_product_tag_id', 'discount_product_domain')"
+     ],
+     "lines": 7,
+     "name": "_compute_all_discount_product_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('reward_product_id', 'reward_product_tag_id', 'reward_type')"
+     ],
+     "lines": 7,
+     "name": "_compute_multi_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_search_reward_product_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('reward_type', 'reward_product_id', 'discount_mode', 'reward_product_tag_id', 'discount', 'currency_id', 'discount_applicability', 'all_discount_product_ids')"
+     ],
+     "lines": 43,
+     "name": "_compute_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('reward_type', 'discount_applicability', 'discount_mode')"
+     ],
+     "lines": 7,
+     "name": "_compute_is_global_discount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('reward_type')"
+     ],
+     "lines": 2,
+     "name": "_compute_user_has_debug"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('reward_product_id')"
+     ],
+     "lines": 3,
+     "name": "_check_reward_product_id_no_combo"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_create_missing_discount_line_products"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_discount_product_values"
+    }
+   ],
+   "name": "loyalty.reward",
+   "order": "required_points asc",
+   "rec_name": "description",
+   "sql_constraints": [
+    [
+     "required_points_positive",
+     "CHECK (required_points > 0)",
+     "The required points for a reward must be strictly positive."
+    ],
+    [
+     "product_qty_positive",
+     "CHECK (reward_type != 'product' OR reward_product_qty > 0)",
+     "The reward product quantity must be strictly positive."
+    ],
+    [
+     "discount_positive",
+     "CHECK (reward_type != 'discount' OR discount > 0)",
+     "The discount must be strictly positive."
+    ]
+   ],
+   "transient": false
+  },
+  "loyalty.rule": {
+   "abstract": false,
+   "description": "Loyalty Rule",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "code": {
+     "compute": "_compute_code",
+     "readonly": false,
+     "store": true,
+     "string": "Discount code",
+     "type": "Char"
+    },
+    "company_id": {
+     "related": "program_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "program_id.currency_id",
+     "type": "Many2one"
+    },
+    "minimum_amount": {
+     "string": "Minimum Purchase",
+     "type": "Monetary"
+    },
+    "minimum_amount_tax_mode": {
+     "default": "incl",
+     "required": true,
+     "selection": [
+      [
+       "incl",
+       "tax included"
+      ],
+      [
+       "excl",
+       "tax excluded"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "minimum_qty": {
+     "default": 1,
+     "string": "Minimum Quantity",
+     "type": "Integer"
+    },
+    "mode": {
+     "compute": "_compute_mode",
+     "readonly": false,
+     "selection": [
+      [
+       "auto",
+       "Automatic"
+      ],
+      [
+       "with_code",
+       "With a promotion code"
+      ]
+     ],
+     "store": true,
+     "string": "Application",
+     "type": "Selection"
+    },
+    "product_category_id": {
+     "comodel": "product.category",
+     "string": "Categories",
+     "type": "Many2one"
+    },
+    "product_domain": {
+     "default": "[]",
+     "type": "Char"
+    },
+    "product_ids": {
+     "comodel": "product.product",
+     "string": "Products",
+     "type": "Many2many"
+    },
+    "product_tag_id": {
+     "comodel": "product.tag",
+     "string": "Product Tag",
+     "type": "Many2one"
+    },
+    "program_id": {
+     "comodel": "loyalty.program",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "program_type": {
+     "related": "program_id.program_type",
+     "type": "Selection"
+    },
+    "reward_point_amount": {
+     "default": 1,
+     "string": "Reward",
+     "type": "Float"
+    },
+    "reward_point_mode": {
+     "default": "order",
+     "required": true,
+     "selection": {
+      "$ref": "_get_reward_point_mode_selection"
+     },
+     "type": "Selection"
+    },
+    "reward_point_name": {
+     "readonly": true,
+     "related": "program_id.portal_point_name",
+     "type": "Char"
+    },
+    "reward_point_split": {
+     "default": false,
+     "help": "Whether to separate reward coupons per matched unit, only applies to 'future' programs and trigger mode per money spent or unit paid..",
+     "string": "Split per unit",
+     "type": "Boolean"
+    },
+    "user_has_debug": {
+     "compute": "_compute_user_has_debug",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_reward_point_mode_selection"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('reward_point_split')"
+     ],
+     "lines": 5,
+     "name": "_constraint_trigger_multi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('code', 'active')"
+     ],
+     "lines": 16,
+     "name": "_constrains_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mode')"
+     ],
+     "lines": 5,
+     "name": "_compute_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 6,
+     "name": "_compute_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('mode')"
+     ],
+     "lines": 2,
+     "name": "_compute_user_has_debug"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_valid_product_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_valid_products"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_amount"
+    }
+   ],
+   "name": "loyalty.rule",
+   "sel_methods": {
+    "_get_reward_point_mode_selection": [
+     [
+      "order",
+      "per order"
+     ],
+     [
+      "money",
+      "per %s spent"
+     ],
+     [
+      "unit",
+      "per unit paid"
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "reward_point_amount_positive",
+     "CHECK (reward_point_amount > 0)",
+     "Rule points reward must be strictly positive."
+    ]
+   ],
+   "transient": false
+  },
+  "product.pricelist": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_archive"
+    }
+   ],
+   "name": "product.pricelist",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 11,
+     "name": "_unlink_except_loyalty_products"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 11,
+     "name": "_unlink_except_loyalty_products"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "loyalty_card_count": {
+     "compute": "_compute_count_active_cards",
+     "groups": "base.group_user",
+     "string": "Active loyalty cards",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_compute_count_active_cards"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_view_loyalty_cards"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "loyalty",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/loyalty",
+ "stats": {
+  "fields": 120,
+  "methods": 91,
+  "models": 13,
+  "py_lines": 1795
+ },
+ "summary": "Use discounts, gift card, eWallets and loyalty programs in different sales channels",
+ "title": "Coupons & Loyalty",
+ "version": "1.0"
+}

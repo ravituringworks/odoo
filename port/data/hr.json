@@ -1,0 +1,2411 @@
+{
+ "module": "hr",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_human_resources_employees",
+   "values": {
+    "sequence": "9"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_hr_user",
+   "values": {
+    "name": "Officer: Manage all employees",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_employees"
+    },
+    "implied_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.group_user"
+       }
+      ]
+     ]
+    ],
+    "comment": "The user will be able to approve document created by employees."
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_hr_manager",
+   "values": {
+    "name": "Administrator",
+    "comment": "The user will have access to the human resources configuration as well as statistic reports.",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_employees"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_hr_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "group_hr_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_employee_comp_rule",
+   "values": {
+    "name": "Employee multi company rule",
+    "model_id": {
+     "$ref": "model_hr_employee"
+    },
+    "domain_force": "['|', '|', '|',\n            ('company_id', 'in', company_ids + [False]),\n            ('parent_id.user_id', '=', user.id),\n            ('id', '=', user.employee_id.parent_id.id),\n            ('user_id', '=', user.id)\n        ]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_dept_comp_rule",
+   "values": {
+    "name": "Department multi company rule",
+    "model_id": {
+     "$ref": "model_hr_department"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_employee_public_comp_rule",
+   "values": {
+    "name": "Employee multi company rule",
+    "model_id": {
+     "$ref": "model_hr_employee_public"
+    },
+    "domain_force": "['|', '|', '|',\n            ('company_id', 'in', company_ids + [False]),\n            ('parent_id.user_id', '=', user.id),\n            ('id', '=', user.employee_id.parent_id.id),\n            ('user_id', '=', user.id)\n        ]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_job_comp_rule",
+   "values": {
+    "name": "Job multi company rule",
+    "model_id": {
+     "$ref": "model_hr_job"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_res_partner_bank_internal_users",
+   "values": {
+    "name": "HR: Prevent non HR officers from accessing employee bank accounts",
+    "model_id": {
+     "$ref": "base.model_res_partner_bank"
+    },
+    "domain_force": "[('partner_id.employee_ids', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_res_partner_bank_employees",
+   "values": {
+    "name": "HR: Allow HR officers from accessing employee bank accounts",
+    "model_id": {
+     "$ref": "base.model_res_partner_bank"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr.group_hr_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_contract_type_multi_company",
+   "values": {
+    "name": "HR Contract Type: Multi Company",
+    "model_id": {
+     "$ref": "model_hr_contract_type"
+    },
+    "domain_force": "['|', ('country_id', '=', False), ('country_id', 'in', user.env.companies.country_id.ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_plan_rule_group_hr_manager",
+   "values": {
+    "name": "Manager can edit employee plan",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_hr_manager"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "mail.model_mail_activity_plan"
+    },
+    "domain_force": "[('res_model', '=', 'hr.employee')]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_plan_templates_rule_group_hr_manager",
+   "values": {
+    "name": "Manager can edit employee plan template",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_hr_manager"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "mail.model_mail_activity_plan_template"
+    },
+    "domain_force": "[('plan_id.res_model', '=', 'hr.employee')]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_hr_0",
+   "values": {
+    "name": "Tip: Where's Bryan?",
+    "sequence": "3500",
+    "group_id": {
+     "$ref": "hr.group_hr_manager"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "report.paperformat",
+   "id": "paperformat_hr_employee_badge",
+   "values": {
+    "name": "Badge(s)",
+    "default": true,
+    "disable_shrinking": true,
+    "dpi": "96",
+    "format": "A4",
+    "orientation": "Portrait",
+    "margin_top": "5",
+    "margin_bottom": "0",
+    "margin_left": "0",
+    "margin_right": "0"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_departure_wizard_action",
+   "values": {
+    "name": "Register Departure",
+    "res_model": "hr.departure.wizard",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_plan_action",
+   "values": {
+    "name": "Employee Plans",
+    "res_model": "mail.activity.plan",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "mail.mail_activity_plan_view_search"
+    },
+    "context": {
+     "default_res_model": "hr.employee"
+    },
+    "domain": {
+     "$unevaluated": "[('res_model', '=', 'hr.employee'), '|', ('company_id', 'in', allowed_company_ids), ('company_id', '=', False)]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "mail_activity_plan_action_employee_view_tree",
+   "values": {
+    "sequence": "1",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "mail.mail_activity_plan_view_tree"
+    },
+    "act_window_id": {
+     "$ref": "hr.mail_activity_plan_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "mail_activity_plan_action_employee_view_form",
+   "values": {
+    "sequence": "2",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "hr.mail_activity_plan_view_form_hr_employee"
+    },
+    "act_window_id": {
+     "$ref": "hr.mail_activity_plan_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "plan_wizard_action",
+   "values": {
+    "name": "Launch Plan",
+    "res_model": "mail.activity.schedule",
+    "view_mode": "form",
+    "context": {
+     "plan_mode": true
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_departure_reason_action",
+   "values": {
+    "name": "Departure Reasons",
+    "res_model": "hr.departure.reason",
+    "view_mode": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_contract_type_action",
+   "values": {
+    "name": "Employment Types",
+    "res_model": "hr.contract.type",
+    "view_mode": "list",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_job",
+   "values": {
+    "name": "Job Positions",
+    "res_model": "hr.job",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "view_job_filter"
+    },
+    "context": {
+     "search_default_Current": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_view_categ_form",
+   "values": {
+    "name": "Employee Tags",
+    "res_model": "hr.employee.category",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_employee_public_action",
+   "values": {
+    "name": "Employees",
+    "res_model": "hr.employee.public",
+    "view_mode": "kanban,list,form",
+    "domain": {
+     "$unevaluated": "[('company_id', 'in', allowed_company_ids)]"
+    },
+    "context": {
+     "chat_icon": true
+    },
+    "view_id": false,
+    "search_view_id": {
+     "$ref": "hr_employee_public_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_public_kanban_view",
+   "values": {
+    "sequence": 10,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "hr.hr_employee_public_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_public_tree_view",
+   "values": {
+    "sequence": 15,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "hr.hr_employee_public_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_public_form_view",
+   "values": {
+    "sequence": 20,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "hr.hr_employee_public_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_view_employee_list_my",
+   "values": {
+    "name": "Employees",
+    "path": "employees",
+    "res_model": "hr.employee",
+    "view_mode": "kanban,list,form,activity,graph,pivot",
+    "domain": {
+     "$unevaluated": "[('company_id', 'in', allowed_company_ids)]"
+    },
+    "context": {
+     "chat_icon": true
+    },
+    "view_id": false,
+    "search_view_id": {
+     "$ref": "view_employee_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_kanban_view",
+   "values": {
+    "sequence": 10,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "hr.open_view_employee_list_my"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_tree_view",
+   "values": {
+    "sequence": 15,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "hr.open_view_employee_list_my"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_form_view",
+   "values": {
+    "sequence": 20,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "hr.open_view_employee_list_my"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_activity_view",
+   "values": {
+    "sequence": 25,
+    "view_mode": "activity",
+    "act_window_id": {
+     "$ref": "hr.open_view_employee_list_my"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_graph_view",
+   "values": {
+    "sequence": 30,
+    "view_mode": "graph",
+    "act_window_id": {
+     "$ref": "hr.open_view_employee_list_my"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "act_hr_employee_pivot_view",
+   "values": {
+    "sequence": 35,
+    "view_mode": "pivot",
+    "act_window_id": {
+     "$ref": "hr.open_view_employee_list_my"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_view_employee_list",
+   "values": {
+    "name": "Employees",
+    "res_model": "hr.employee",
+    "view_mode": "form,list",
+    "view_id": false,
+    "search_view_id": {
+     "$ref": "view_employee_filter"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_department_tree_action",
+   "values": {
+    "name": "Departments",
+    "res_model": "hr.department",
+    "view_mode": "list,form,kanban",
+    "search_view_id": {
+     "$ref": "view_department_filter"
+    },
+    "domain": [
+     [
+      "has_read_access",
+      "=",
+      true
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_department_tree_view_tree_action",
+   "values": {
+    "sequence": 10,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "hr.hr_department_tree_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_department_form_view_tree_action",
+   "values": {
+    "sequence": 15,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "hr.hr_department_tree_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_department_kanban_view_tree_action",
+   "values": {
+    "sequence": 20,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "hr.hr_department_tree_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_department_kanban_action",
+   "values": {
+    "name": "Departments",
+    "res_model": "hr.department",
+    "view_mode": "kanban,list,form",
+    "path": "departments",
+    "domain": [
+     [
+      "has_read_access",
+      "=",
+      true
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "view_department_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_department_kanban_view_kanban_action",
+   "values": {
+    "sequence": 10,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "hr.hr_department_kanban_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_department_tree_view_kanban_action",
+   "values": {
+    "sequence": 15,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "hr.hr_department_kanban_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "hr_department_form_view_kanban_action",
+   "values": {
+    "sequence": 20,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "hr.hr_department_kanban_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_work_location_action",
+   "values": {
+    "name": "Work Locations",
+    "res_model": "hr.work.location",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_config_settings_action",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "hr",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_users_action_my",
+   "values": {
+    "name": "Change my Preferences",
+    "res_model": "res.users",
+    "view_mode": "form",
+    "context": {
+     "from_my_profile": true
+    },
+    "view_id": {
+     "$ref": "hr.res_users_view_form_profile"
+    }
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_administration",
+   "values": {
+    "name": "Administration"
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_admin",
+   "values": {
+    "name": {
+     "$unevaluated": "obj(ref('base.partner_admin')).name"
+    },
+    "department_id": {
+     "$ref": "dep_administration"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "address_id": {
+     "$ref": "base.main_partner"
+    },
+    "private_email": "admin@example.com",
+    "image_1920": {
+     "$unevaluated": "obj(ref('base.partner_admin')).image_1920"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.plan",
+   "id": "onboarding_plan",
+   "values": {
+    "name": "Onboarding",
+    "res_model": "hr.employee",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.plan.template",
+   "id": "onboarding_setup_it_materials",
+   "values": {
+    "sequence": "10",
+    "summary": "Setup IT Materials",
+    "responsible_type": "manager",
+    "plan_id": {
+     "$ref": "onboarding_plan"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.plan.template",
+   "id": "onboarding_plan_training",
+   "values": {
+    "sequence": "20",
+    "summary": "Plan Training",
+    "responsible_type": "manager",
+    "plan_id": {
+     "$ref": "onboarding_plan"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.plan.template",
+   "id": "onboarding_training",
+   "values": {
+    "sequence": "30",
+    "summary": "Training",
+    "responsible_type": "employee",
+    "plan_id": {
+     "$ref": "onboarding_plan"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.plan",
+   "id": "offboarding_plan",
+   "values": {
+    "name": "Offboarding",
+    "res_model": "hr.employee",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.plan.template",
+   "id": "offboarding_setup_compute_out_delais",
+   "values": {
+    "sequence": "10",
+    "summary": "Organize knowledge transfer inside the team",
+    "responsible_type": "manager",
+    "plan_id": {
+     "$ref": "offboarding_plan"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.plan.template",
+   "id": "offboarding_take_back_hr_materials",
+   "values": {
+    "sequence": "20",
+    "summary": "Take Back HR Materials",
+    "responsible_type": "manager",
+    "plan_id": {
+     "$ref": "offboarding_plan"
+    }
+   }
+  },
+  {
+   "model": "hr.departure.reason",
+   "id": "departure_fired",
+   "values": {
+    "sequence": "0",
+    "name": "Fired",
+    "reason_code": "342"
+   }
+  },
+  {
+   "model": "hr.departure.reason",
+   "id": "departure_resigned",
+   "values": {
+    "sequence": "1",
+    "name": "Resigned",
+    "reason_code": "343"
+   }
+  },
+  {
+   "model": "hr.departure.reason",
+   "id": "departure_retired",
+   "values": {
+    "sequence": "2",
+    "name": "Retired",
+    "reason_code": "340"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_permanent",
+   "values": {
+    "name": "Permanent",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_temporary",
+   "values": {
+    "name": "Temporary",
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_seasonal",
+   "values": {
+    "name": "Seasonal",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_full_time",
+   "values": {
+    "name": "Full-Time",
+    "sequence": "4"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_part_time",
+   "values": {
+    "name": "Part-Time",
+    "sequence": "5"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_part_time",
+   "values": {
+    "name": "Intern",
+    "sequence": "6"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_student",
+   "values": {
+    "name": "Student",
+    "sequence": "7"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_apprenticeship",
+   "values": {
+    "name": "Apprenticeship",
+    "sequence": "8"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_thesis",
+   "values": {
+    "name": "Thesis",
+    "sequence": "9"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_statutaire",
+   "values": {
+    "name": "Statutory",
+    "sequence": "10"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_employee",
+   "values": {
+    "name": "Employee",
+    "sequence": "11"
+   }
+  },
+  {
+   "model": "hr.work.location",
+   "id": "home_work_location",
+   "values": {
+    "name": "Home",
+    "location_type": "home",
+    "address_id": {
+     "$ref": "base.main_partner"
+    }
+   }
+  },
+  {
+   "model": "hr.work.location",
+   "id": "home_work_office",
+   "values": {
+    "name": "Office",
+    "location_type": "office",
+    "address_id": {
+     "$ref": "base.main_partner"
+    }
+   }
+  },
+  {
+   "model": "hr.work.location",
+   "id": "home_work_other",
+   "values": {
+    "name": "Other",
+    "location_type": "other",
+    "address_id": {
+     "$ref": "base.main_partner"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "hr.group_hr_user"
+      }
+     ],
+     [
+      3,
+      {
+       "$ref": "hr.group_hr_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_management",
+   "values": {
+    "name": "Management",
+    "color": 5
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_administration",
+   "values": {
+    "parent_id": {
+     "$ref": "dep_management"
+    },
+    "manager_id": {
+     "$ref": "employee_admin"
+    },
+    "color": 8
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_sales",
+   "values": {
+    "name": "Sales",
+    "parent_id": {
+     "$ref": "dep_management"
+    },
+    "color": 9
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_rd",
+   "values": {
+    "name": "Research & Development",
+    "parent_id": {
+     "$ref": "dep_management"
+    },
+    "color": 10
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_rd_be",
+   "values": {
+    "name": "R&D USA",
+    "parent_id": {
+     "$ref": "dep_rd"
+    },
+    "color": 10
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_rd_ltp",
+   "values": {
+    "name": "Long Term Projects",
+    "parent_id": {
+     "$ref": "dep_rd_be"
+    },
+    "color": 10
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_ps",
+   "values": {
+    "name": "Professional Services",
+    "parent_id": {
+     "$ref": "dep_management"
+    },
+    "color": 3
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_permanent",
+   "values": {
+    "name": "Permanent",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_temporary",
+   "values": {
+    "name": "Temporary",
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "hr.contract.type",
+   "id": "contract_type_interim",
+   "values": {
+    "name": "Interim",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_ceo",
+   "values": {
+    "name": "Chief Executive Officer",
+    "department_id": {
+     "$ref": "dep_management"
+    },
+    "description": "Demonstration of different Odoo services for each client and convincing the client about functionality of the application.\nThe candidate should have excellent communication skills.\nRelationship building and influencing skills\nExpertise in New Client Acquisition (NCAs) and Relationship Management.\nGathering market and customer information.\nCoordinating with the sales and support team for adopting different strategies\nReviewing progress and identifying opportunities and new areas for development.\nBuilding strong relationships with clients / customers for business growth profitability.\nKeep regular interaction with key clients for better extraction and expansion.",
+    "requirements": "MBA in Marketing is must.\nGood Communication skills.\nOnly Fresher's can apply.\nCandidate should be ready to work in young and dynamic environment..\nCandidate should be able to work in \u201cstart- up\u201d fast paced environment,hands on attitude.\nHonest,approachable and fun team player.\nResult driven.\nExcellent analytical skills, ability to think logically and \"out of the box\"",
+    "contract_type_id": {
+     "$ref": "contract_type_permanent"
+    }
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_cto",
+   "values": {
+    "name": "Chief Technical Officer",
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "description": "You will take part in the consulting services we provide to our partners and customers: design, analysis, development, testing, project management, support/coaching. You will work autonomously as well as coordinate and supervise small distributed development teams for some projects. Optionally, you will deliver Odoo training sessions to partners and customers (8-10 people/session). You will report to the Head of Professional Services and work closely with all developers and consultants.\n\nThe job is located in Grand-Rosi\u00e8re (1367), Belgium (between Louvain-La-Neuve and Namur).",
+    "requirements": "Bachelor, master or engineering degree in Computer Science or equivalent by experience\nPreferably at least 1 years of experience\nInterest for enterprise application development\nCustomer-minded\nWilling to travel abroad occasionally for short term missions.\nPassion for the Internet and its culture\nQuick and autonomous learner, problem-solving personality, enthusiastic when faced with technical challenges\nTeam spirit and good communication\nRequired skills:\nGood knowledge of object oriented programming, object modeling, relational databases, Unix/Linux platform\nFluent in English, especially read and written\nNice-to-have skills:\nGood knowledge of Python\nGood knowledge of HTML and Javascript\nKnowledge of UML-like modeling\nGood language skills, other than English (Dutch and French preferred, others welcome)",
+    "contract_type_id": {
+     "$ref": "contract_type_permanent"
+    }
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_consultant",
+   "values": {
+    "name": "Consultant",
+    "department_id": {
+     "$ref": "dep_ps"
+    },
+    "no_of_recruitment": "5",
+    "contract_type_id": {
+     "$ref": "contract_type_interim"
+    },
+    "description": "We are currently looking for someone like that to join our Consultant team."
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_developer",
+   "values": {
+    "name": "Experienced Developer",
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "no_of_recruitment": "5",
+    "contract_type_id": {
+     "$ref": "contract_type_permanent"
+    },
+    "description": "We are currently looking for someone like that to join our Web team.\n                Someone who can snap out of coding and perform analysis or meet clients to explain the technical possibilities that can meet their needs."
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_hrm",
+   "values": {
+    "name": "Human Resources Manager",
+    "department_id": {
+     "$ref": "dep_administration"
+    },
+    "description": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+    "requirements": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+    "contract_type_id": {
+     "$ref": "contract_type_permanent"
+    }
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_marketing",
+   "values": {
+    "name": "Marketing and Community Manager",
+    "department_id": {
+     "$ref": "dep_sales"
+    },
+    "description": "The Marketing Manager defines the mid- to long-term marketing strategy for his covered market segments in the World.\n              He develops and monitors the annual budget in collaboration with Sales.\n              He defines the products and customers portfolio according to the marketing plan.\n              This mission requires strong collaboration with Technical Service and Sales."
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_trainee",
+   "values": {
+    "name": "Trainee",
+    "description": "You participate to the update of our tutorial tools and pre-sales tools after the launch of a new version of Odoo. Indeed, any new version of the software brings significant improvements in terms of functionalities, ergonomics and configuration.\nYou will have to become familiar with the existing tools (books, class supports, Odoo presentation\u2019s slides, commercial tools),\nto participate to the update of those tools in order to make them appropriate for the new version of the software and, for sure,\nto suggest improvements in order to cover the new domains of the software.\nYou join the Implementation Assistance department. This team of 3 people go with Odoo\u2019s clients in the set up of the software. Your role will be\nto animate webinars in order to show the different functionalities of the software.\nto be involved in the support of the customers and\nto answer to their questions.\nYou help the support manager to set up new support services by\nbeing involved in the treatment of new cases,\ncontributing to the set up of a new politic,\nbeing involved into satisfaction surveys in order to have a better knowledge of how the support given is seen by the customers.",
+    "requirements": "You speak fluently English and French (one other European language is a +)\nAt the time of your traineeship at Odoo, you will be in the last year of a Master or Bachelor Degree (ideally in the following sector: Business Management, IT Management, Computer Sciences)\nYou have a software and new technology awareness\nYou are ready to join a young and dynamic company, you are able to work in a \u201cstart up\u201d fast paced environment, hands on attitude\nYou are approachable, honest and a fun team player\nIf you have development competencies, we can propose you specific traineeships"
+   }
+  },
+  {
+   "model": "hr.work.location",
+   "id": "work_location_1",
+   "values": {
+    "name": "Building 1, Second Floor",
+    "location_type": "office",
+    "address_id": {
+     "$ref": "base.main_partner"
+    }
+   }
+  },
+  {
+   "model": "hr.employee.category",
+   "id": "employee_category_2",
+   "values": {
+    "name": "Sales",
+    "color": 1
+   }
+  },
+  {
+   "model": "hr.employee.category",
+   "id": "employee_category_3",
+   "values": {
+    "name": "Trainer",
+    "color": 2
+   }
+  },
+  {
+   "model": "hr.employee.category",
+   "id": "employee_category_4",
+   "values": {
+    "name": "Employee",
+    "color": 6
+   }
+  },
+  {
+   "model": "hr.employee.category",
+   "id": "employee_category_5",
+   "values": {
+    "name": "Consultant",
+    "color": 4
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_admin",
+   "values": {
+    "private_street": "215 Vine St",
+    "private_city": "Scranton",
+    "private_zip": "18503",
+    "private_country_id": {
+     "$ref": "base.us"
+    },
+    "private_state_id": {
+     "$ref": "base.state_us_39"
+    },
+    "private_phone": "+1 555-555-5555",
+    "private_email": "admin@yourcompany.example.com",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-125-2389",
+    "work_email": "admin@yourcompany.example.com",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       },
+       {
+        "$ref": "employee_category_3"
+       }
+      ]
+     ]
+    ],
+    "job_id": {
+     "$ref": "hr.job_ceo"
+    },
+    "job_title": "Chief Executive Officer",
+    "department_id": {
+     "$ref": "dep_management"
+    },
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_ngh",
+   "values": {
+    "name": "Jeffrey Kelly",
+    "email": "jeffrey.kelly72@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_ngh",
+   "values": {
+    "name": "Jeffrey Kelly",
+    "department_id": {
+     "$ref": "dep_sales"
+    },
+    "parent_id": {
+     "$ref": "employee_admin"
+    },
+    "job_id": {
+     "$ref": "hr.job_marketing"
+    },
+    "job_title": "Marketing and Community Manager",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       },
+       {
+        "$ref": "employee_category_2"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-264-7362",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_ngh"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_qdp",
+   "values": {
+    "name": "Marc Demo",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "parent_id": {
+     "$ref": "employee_admin"
+    },
+    "private_street": "361-7936 Feugiat St.",
+    "private_zip": "58521",
+    "private_city": "Williston",
+    "private_country_id": {
+     "$ref": "base.us"
+    },
+    "private_phone": "+1 555-555-5757",
+    "private_email": "demo@yourcompany.example.com",
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "+3281813700",
+    "work_contact_id": {
+     "$ref": "base.partner_demo"
+    },
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_al",
+   "values": {
+    "name": "Ronnie Hart",
+    "email": "ronnie.hart87@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_al",
+   "values": {
+    "name": "Ronnie Hart",
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "parent_id": {
+     "$ref": "employee_qdp"
+    },
+    "job_id": {
+     "$ref": "hr.job_cto"
+    },
+    "job_title": "Team Leader",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       },
+       {
+        "$ref": "employee_category_3"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-310-7863",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_al"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_vad",
+   "values": {
+    "name": "Tina Williamson",
+    "email": "tina.williamson98@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_vad",
+   "values": {
+    "name": "Tina Williamson",
+    "department_id": {
+     "$ref": "dep_administration"
+    },
+    "parent_id": {
+     "$ref": "employee_admin"
+    },
+    "job_id": {
+     "$ref": "hr.job_hrm"
+    },
+    "job_title": "Human Resources Manager",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-694-7266",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_vad"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_hne",
+   "values": {
+    "name": "Abigail Peterson",
+    "email": "abigail.peterson39@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_hne",
+   "values": {
+    "name": "Abigail Peterson",
+    "department_id": {
+     "$ref": "dep_ps"
+    },
+    "parent_id": {
+     "$ref": "employee_ngh"
+    },
+    "job_id": {
+     "$ref": "hr.job_consultant"
+    },
+    "job_title": "Consultant",
+    "private_country_id": {
+     "$ref": "base.us"
+    },
+    "private_email": "abigail.peterson33@example.com",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-233-3393",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_hne"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00",
+    "marital": "married"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_fpi",
+   "values": {
+    "name": "Audrey Peterson",
+    "email": "audrey.peterson25@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_fpi",
+   "values": {
+    "name": "Audrey Peterson",
+    "department_id": {
+     "$ref": "dep_ps"
+    },
+    "parent_id": {
+     "$ref": "employee_ngh"
+    },
+    "job_id": {
+     "$ref": "hr.job_consultant"
+    },
+    "job_title": "Consultant",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       },
+       {
+        "$ref": "employee_category_5"
+       }
+      ]
+     ]
+    ],
+    "private_country_id": {
+     "$ref": "base.us"
+    },
+    "private_email": "Audrey.peterson2020@example.com",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-276-7903",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_fpi"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_lur",
+   "values": {
+    "name": "Eli Lambert",
+    "email": "eli.lambert22@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_lur",
+   "values": {
+    "name": "Eli Lambert",
+    "department_id": {
+     "$ref": "dep_sales"
+    },
+    "parent_id": {
+     "$ref": "employee_ngh"
+    },
+    "job_id": {
+     "$ref": "hr.job_marketing"
+    },
+    "job_title": "Marketing and Community Manager",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-169-1352",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_lur"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_jod",
+   "values": {
+    "name": "Rachel Perry",
+    "email": "jod@odoo.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_jod",
+   "values": {
+    "name": "Rachel Perry",
+    "department_id": {
+     "$ref": "dep_sales"
+    },
+    "parent_id": {
+     "$ref": "employee_ngh"
+    },
+    "job_id": {
+     "$ref": "hr.job_marketing"
+    },
+    "job_title": "Marketing and Community Manager",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-267-3735",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_jod"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_fme",
+   "values": {
+    "name": "Keith Byrd",
+    "email": "keith.byrd52@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_fme",
+   "values": {
+    "name": "Keith Byrd",
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "parent_id": {
+     "$ref": "employee_al"
+    },
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-505-5146",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_fme"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_jep",
+   "values": {
+    "name": "Doris Cole",
+    "email": "doris.cole31@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_jep",
+   "values": {
+    "name": "Doris Cole",
+    "department_id": {
+     "$ref": "dep_ps"
+    },
+    "parent_id": {
+     "$ref": "employee_vad"
+    },
+    "job_id": {
+     "$ref": "hr.job_consultant"
+    },
+    "job_title": "Consultant",
+    "private_country_id": {
+     "$ref": "base.us"
+    },
+    "private_email": "Doris.cole.LoveSong@example.com",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-331-5378",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_jep"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_jgo",
+   "values": {
+    "name": "Ernest Reed",
+    "email": "ernest.reed47@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_jgo",
+   "values": {
+    "name": "Ernest Reed",
+    "department_id": {
+     "$ref": "dep_ps"
+    },
+    "parent_id": {
+     "$ref": "employee_vad"
+    },
+    "job_id": {
+     "$ref": "hr.job_consultant"
+    },
+    "job_title": "Consultant",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-518-8232",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_jgo"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_jth",
+   "values": {
+    "name": "Toni Jimenez",
+    "email": "toni.jimenez23@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_jth",
+   "values": {
+    "name": "Toni Jimenez",
+    "department_id": {
+     "$ref": "dep_ps"
+    },
+    "parent_id": {
+     "$ref": "employee_vad"
+    },
+    "job_id": {
+     "$ref": "hr.job_consultant"
+    },
+    "job_title": "Consultant",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       },
+       {
+        "$ref": "employee_category_5"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-707-8451",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_jth"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_mit",
+   "values": {
+    "name": "Anita Oliver",
+    "mobile": "(555)-672-3185",
+    "email": "anita.oliver32@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_mit",
+   "values": {
+    "name": "Anita Oliver",
+    "department_id": {
+     "$ref": "dep_rd_be"
+    },
+    "parent_id": {
+     "$ref": "employee_fme"
+    },
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "private_country_id": {
+     "$ref": "base.us"
+    },
+    "private_phone": "(538)-672-3185",
+    "private_email": "anita.oliver00@example.com",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-497-4804",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_mit"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_niv",
+   "values": {
+    "name": "Sharlene Rhodes",
+    "email": "sharlene.rhodes49@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_niv",
+   "values": {
+    "name": "Sharlene Rhodes",
+    "department_id": {
+     "$ref": "dep_management"
+    },
+    "parent_id": {
+     "$ref": "employee_qdp"
+    },
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-719-4182",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_niv"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_stw",
+   "values": {
+    "name": "Randall Lewis",
+    "email": "randall.lewis74@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_stw",
+   "values": {
+    "name": "Randall Lewis",
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "parent_id": {
+     "$ref": "employee_qdp"
+    },
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-775-6660",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_stw"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_chs",
+   "values": {
+    "name": "Jennie Fletcher",
+    "email": "jennie.fletcher76@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_chs",
+   "values": {
+    "name": "Jennie Fletcher",
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "parent_id": {
+     "$ref": "employee_fme"
+    },
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-363-8229",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_chs"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_jve",
+   "values": {
+    "name": "Paul Williams",
+    "email": "paul.williams59@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_jve",
+   "values": {
+    "name": "Paul Williams",
+    "department_id": {
+     "$ref": "dep_rd_ltp"
+    },
+    "parent_id": {
+     "$ref": "employee_qdp"
+    },
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-262-1607",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_jve"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_han",
+   "values": {
+    "name": "Walter Horton",
+    "email": "walter.horton80@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_han",
+   "values": {
+    "name": "Walter Horton",
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "parent_id": {
+     "$ref": "employee_jve"
+    },
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-912-1201",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_han"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_jog",
+   "values": {
+    "name": "Beth Evans",
+    "email": "beth.evans77@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_jog",
+   "values": {
+    "name": "Beth Evans",
+    "department_id": {
+     "$ref": "dep_rd"
+    },
+    "parent_id": {
+     "$ref": "employee_jve"
+    },
+    "job_id": {
+     "$ref": "hr.job_developer"
+    },
+    "job_title": "Experienced Developer",
+    "private_country_id": {
+     "$ref": "base.us"
+    },
+    "private_email": "beth.evans@example.com",
+    "work_location_id": {
+     "$ref": "work_location_1"
+    },
+    "work_phone": "(555)-532-3841",
+    "work_contact_id": {
+     "$ref": "hr.work_contact_jog"
+    },
+    "image_1920": "",
+    "create_date": "2010-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_management",
+   "values": {
+    "manager_id": {
+     "$ref": "employee_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_sales",
+   "values": {
+    "manager_id": {
+     "$ref": "employee_ngh"
+    }
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_rd",
+   "values": {
+    "manager_id": {
+     "$ref": "employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_rd_be",
+   "values": {
+    "manager_id": {
+     "$ref": "employee_al"
+    }
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_rd_ltp",
+   "values": {
+    "manager_id": {
+     "$ref": "employee_jve"
+    }
+   }
+  },
+  {
+   "model": "hr.department",
+   "id": "dep_ps",
+   "values": {
+    "manager_id": {
+     "$ref": "employee_vad"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_hr_root",
+   "name": "Employees",
+   "sequence": "185",
+   "groups": "group_hr_manager,group_hr_user,base.group_user",
+   "web_icon": "hr,static/description/icon.png"
+  },
+  {
+   "id": "menu_hr_main",
+   "name": "Human Resources",
+   "parent": "menu_hr_root",
+   "sequence": "0"
+  },
+  {
+   "id": "menu_hr_employee_payroll",
+   "name": "Employees",
+   "parent": "menu_hr_root",
+   "sequence": "3",
+   "groups": "group_hr_user"
+  },
+  {
+   "id": "menu_hr_employee_user",
+   "name": "Employees",
+   "parent": "menu_hr_employee_payroll",
+   "action": "open_view_employee_list_my",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_hr_employee",
+   "name": "Directory",
+   "parent": "menu_hr_root",
+   "action": "hr_employee_public_action",
+   "sequence": "4"
+  },
+  {
+   "id": "hr_menu_hr_reports",
+   "name": "Reporting",
+   "parent": "menu_hr_root",
+   "sequence": "95",
+   "groups": "group_hr_user"
+  },
+  {
+   "id": "menu_hr_reporting_timesheet",
+   "name": "Reporting",
+   "parent": "menu_hr_root",
+   "sequence": "99",
+   "groups": "group_hr_manager,group_hr_user"
+  },
+  {
+   "id": "menu_human_resources_configuration",
+   "name": "Configuration",
+   "parent": "menu_hr_root",
+   "sequence": "100",
+   "groups": "hr.group_hr_user"
+  },
+  {
+   "id": "menu_config_plan_plan",
+   "name": "Activity Plan",
+   "parent": "menu_human_resources_configuration",
+   "action": "mail_activity_plan_action",
+   "sequence": "9",
+   "groups": "group_hr_manager"
+  },
+  {
+   "id": "menu_config_employee",
+   "name": "Employee",
+   "parent": "menu_human_resources_configuration",
+   "sequence": "10",
+   "groups": "group_hr_user"
+  },
+  {
+   "id": "menu_hr_department_kanban",
+   "parent": "menu_hr_root",
+   "action": "hr_department_kanban_action",
+   "groups": "base.group_user"
+  },
+  {
+   "id": "menu_hr_work_location_tree",
+   "parent": "menu_config_employee",
+   "action": "hr_work_location_action",
+   "sequence": "5",
+   "groups": "group_hr_user"
+  },
+  {
+   "id": "menu_resource_calendar_view",
+   "name": "Working Schedules",
+   "parent": "menu_config_employee",
+   "action": "resource.action_resource_calendar_form",
+   "sequence": "6",
+   "groups": "group_hr_user"
+  },
+  {
+   "id": "menu_hr_departure_reason_tree",
+   "parent": "menu_config_employee",
+   "action": "hr_departure_reason_action",
+   "sequence": "7",
+   "groups": "group_hr_user"
+  },
+  {
+   "id": "menu_view_employee_category_form",
+   "name": "Tags",
+   "parent": "menu_config_employee",
+   "action": "open_view_categ_form",
+   "sequence": "10",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_config_recruitment",
+   "name": "Recruitment",
+   "parent": "menu_human_resources_configuration",
+   "sequence": "20",
+   "groups": "group_hr_user"
+  },
+  {
+   "id": "menu_view_hr_job",
+   "parent": "menu_config_recruitment",
+   "action": "action_hr_job",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_view_hr_contract_type",
+   "parent": "menu_config_recruitment",
+   "action": "hr_contract_type_action",
+   "sequence": "2",
+   "groups": "group_hr_user"
+  },
+  {
+   "id": "hr_menu_configuration",
+   "name": "Settings",
+   "parent": "menu_human_resources_configuration",
+   "action": "hr_config_settings_action",
+   "sequence": "0",
+   "groups": "base.group_system"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_hr_employee_category_user",
+   "model": "hr.employee.category",
+   "model_xmlid": "model_hr_employee_category",
+   "group": "group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_employee_category_emp",
+   "model": "hr.employee.category",
+   "model_xmlid": "model_hr_employee_category",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_employee_user",
+   "model": "hr.employee",
+   "model_xmlid": "model_hr_employee",
+   "group": "group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_employee_system_user",
+   "model": "hr.employee",
+   "model_xmlid": "model_hr_employee",
+   "group": "base.group_system",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_employee_public_user",
+   "model": "hr.employee.public",
+   "model_xmlid": "model_hr_employee_public",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_employee_resource_user",
+   "model": "resource.resource.resource",
+   "model_xmlid": "resource.model_resource_resource",
+   "group": "group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_department_user",
+   "model": "hr.department",
+   "model_xmlid": "model_hr_department",
+   "group": "group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_department_employee",
+   "model": "hr.department",
+   "model_xmlid": "model_hr_department",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_job_user",
+   "model": "hr.job",
+   "model_xmlid": "model_hr_job",
+   "group": "group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_departure_wizard",
+   "model": "hr.departure.wizard",
+   "model_xmlid": "model_hr_departure_wizard",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_work_location_user",
+   "model": "hr.work.location",
+   "model_xmlid": "model_hr_work_location",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_work_location_manager",
+   "model": "hr.work.location",
+   "model_xmlid": "model_hr_work_location",
+   "group": "group_hr_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_departure_reason",
+   "model": "hr.departure.reason",
+   "model_xmlid": "model_hr_departure_reason",
+   "group": "group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_contract_type_manager",
+   "model": "hr.contract.type",
+   "model_xmlid": "model_hr_contract_type",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_plan_hr_manager",
+   "model": "mail.mail.activity.plan",
+   "model_xmlid": "mail.model_mail_activity_plan",
+   "group": "hr.group_hr_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_plan_template_hr_manager",
+   "model": "mail.mail.activity.plan.template",
+   "model_xmlid": "mail.model_mail_activity_plan_template",
+   "group": "hr.group_hr_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

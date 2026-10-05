@@ -1,0 +1,251 @@
+{
+ "module": "membership",
+ "records": [
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_membership_invoice_view",
+   "values": {
+    "name": "Join Membership",
+    "res_model": "membership.invoice",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "view_membership_invoice_view"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_membership_products",
+   "values": {
+    "name": "Membership Products",
+    "res_model": "product.template",
+    "domain": [
+     [
+      "membership",
+      "=",
+      true
+     ],
+     [
+      "type",
+      "=",
+      "service"
+     ]
+    ],
+    "context": {
+     "membership": true,
+     "type": "service",
+     "default_membership": true,
+     "default_type": "service"
+    },
+    "search_view_id": {
+     "$ref": "membership_product_search_form_view"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_membership_product_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "membership_products_tree"
+    },
+    "act_window_id": {
+     "$ref": "action_membership_products"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_membership_product_view_form",
+   "values": {
+    "sequence": 2,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "membership_products_form"
+    },
+    "act_window_id": {
+     "$ref": "action_membership_products"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_membership_product_view_kanban",
+   "values": {
+    "sequence": 3,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "membership_products_kanban"
+    },
+    "act_window_id": {
+     "$ref": "action_membership_products"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_membership_members",
+   "values": {
+    "name": "Members",
+    "path": "members",
+    "res_model": "res.partner",
+    "view_mode": "kanban,list,form,activity",
+    "search_view_id": {
+     "$ref": "view_res_partner_member_filter"
+    },
+    "context": {
+     "search_default_all_members": 1,
+     "default_free_member": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_membership_members_view_tree",
+   "values": {
+    "sequence": 2,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "membership_members_tree"
+    },
+    "act_window_id": {
+     "$ref": "action_membership_members"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_membership_members_view_form",
+   "values": {
+    "sequence": 3,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "base.view_partner_form"
+    },
+    "act_window_id": {
+     "$ref": "action_membership_members"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_membership_members_view_kanban",
+   "values": {
+    "sequence": 1,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "base.res_partner_kanban_view"
+    },
+    "act_window_id": {
+     "$ref": "action_membership_members"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_report_membership_tree",
+   "values": {
+    "name": "Members Analysis",
+    "res_model": "report.membership",
+    "view_mode": "graph,pivot",
+    "search_view_id": {
+     "$ref": "view_report_membership_search"
+    },
+    "context": {
+     "search_default_start_date": 1,
+     "search_default_member": 1,
+     "search_default_Revenue": 1,
+     "search_default_this_month": 1,
+     "search_default_salesman": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_association",
+   "name": "Members",
+   "sequence": "15",
+   "groups": "account.group_account_invoice",
+   "web_icon": "membership,static/description/icon.png"
+  },
+  {
+   "id": "menu_marketing_config_association",
+   "name": "Configuration",
+   "parent": "menu_association",
+   "sequence": "100"
+  },
+  {
+   "id": "menu_membership_products",
+   "name": "Membership Products",
+   "parent": "menu_marketing_config_association",
+   "action": "action_membership_products"
+  },
+  {
+   "id": "menu_membership",
+   "name": "Members",
+   "parent": "menu_association",
+   "action": "action_membership_members",
+   "sequence": "0"
+  },
+  {
+   "id": "menu_report_membership",
+   "name": "Reporting",
+   "parent": "menu_association",
+   "action": "action_report_membership_tree",
+   "sequence": "99",
+   "groups": "base.group_partner_manager"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_membership_membership_line_partner_manager",
+   "model": "membership.membership.line",
+   "model_xmlid": "model_membership_membership_line",
+   "group": "base.group_partner_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_membership_membership_line_employee",
+   "model": "membership.membership.line",
+   "model_xmlid": "model_membership_membership_line",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_report_membership",
+   "model": "report.membership",
+   "model_xmlid": "model_report_membership",
+   "group": "base.group_partner_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_membership_invoice",
+   "model": "membership.invoice",
+   "model_xmlid": "model_membership_invoice",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

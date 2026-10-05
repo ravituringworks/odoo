@@ -1,0 +1,163 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/base_address_extended.xml",
+  "views/res_city_view.xml",
+  "views/res_country_view.xml"
+ ],
+ "depends": [
+  "base",
+  "contacts"
+ ],
+ "models": {
+  "res.city": {
+   "abstract": false,
+   "description": "City",
+   "extension": false,
+   "fields": {
+    "country_id": {
+     "comodel": "res.country",
+     "required": true,
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "state_id": {
+     "comodel": "res.country.state",
+     "domain": "[('country_id', '=', country_id)]",
+     "string": "State",
+     "type": "Many2one"
+    },
+    "zipcode": {
+     "string": "Zip",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('zipcode')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "res.city",
+   "order": "name",
+   "transient": false
+  },
+  "res.country": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "enforce_cities": {
+     "help": "Check this box to ensure every address created in that country has a 'City' chosen in the list of the country's cities.",
+     "string": "Enforce Cities",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.country",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "city_id": {
+     "comodel": "res.city",
+     "string": "City ID",
+     "type": "Many2one"
+    },
+    "country_enforce_cities": {
+     "related": "country_id.enforce_cities",
+     "type": "Boolean"
+    },
+    "street_name": {
+     "compute": "_compute_street_data",
+     "store": true,
+     "string": "Street Name",
+     "type": "Char"
+    },
+    "street_number": {
+     "compute": "_compute_street_data",
+     "store": true,
+     "string": "House",
+     "type": "Char"
+    },
+    "street_number2": {
+     "compute": "_compute_street_data",
+     "store": true,
+     "string": "Door",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_address_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_inverse_street_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('street')"
+     ],
+     "lines": 5,
+     "name": "_compute_street_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_street_split"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('city_id')"
+     ],
+     "lines": 9,
+     "name": "_onchange_city_id"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "base_address_extended",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/base_address_extended",
+ "stats": {
+  "fields": 10,
+  "methods": 6,
+  "models": 3,
+  "py_lines": 100
+ },
+ "summary": "Add extra fields on addresses",
+ "title": "Extended Addresses",
+ "version": "1.1"
+}

@@ -1,0 +1,1089 @@
+{
+ "module": "gamification",
+ "records": [
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_grant_wizard",
+   "values": {
+    "name": "Grant Badge",
+    "res_model": "gamification.badge.user.wizard",
+    "view_id": {
+     "$ref": "gamification.view_badge_wizard_grant"
+    },
+    "target": "new",
+    "context": {
+     "$unevaluated": "{\n            'default_badge_id': active_id,\n            'badge_id': active_id\n        }"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_current_rank_users",
+   "values": {
+    "name": "Users",
+    "res_model": "res.users",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "[('rank_id', '=', active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_new_simplified_res_users",
+   "values": {
+    "name": "Create User",
+    "res_model": "res.users",
+    "target": "current",
+    "view_id": {
+     "$ref": "base.view_users_simple_form"
+    },
+    "context": {},
+    "help": "Create and manage users that will connect to the system. Users can be deactivated should there be a period of time during which they will/should not connect to the system. You can assign them groups in order to give them specific access to the applications they need to use in the system."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "gamification_karma_ranks_action",
+   "values": {
+    "name": "Ranks",
+    "res_model": "gamification.karma.rank",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "gamification_karma_tracking_action",
+   "values": {
+    "name": "Karma Tracking",
+    "res_model": "gamification.karma.tracking",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "badge_list_action",
+   "values": {
+    "name": "Badges",
+    "res_model": "gamification.badge",
+    "view_mode": "kanban,list,form",
+    "search_view_id": {
+     "$ref": "gamification_badge_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "goal_list_action",
+   "values": {
+    "name": "Goals",
+    "res_model": "gamification.goal",
+    "view_mode": "list,form,kanban",
+    "context": {
+     "search_default_group_by_user": true,
+     "search_default_group_by_definition": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "goals_from_challenge_act",
+   "values": {
+    "res_model": "gamification.goal",
+    "name": "Related Goals",
+    "view_mode": "kanban,list,form",
+    "context": {
+     "$unevaluated": "{'search_default_group_by_definition': True, 'search_default_inprogress': True, 'search_default_challenge_id': active_id, 'default_challenge_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "goal_definition_list_action",
+   "values": {
+    "name": "Goal Definitions",
+    "res_model": "gamification.goal.definition",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "challenge_list_action",
+   "values": {
+    "name": "Challenges",
+    "res_model": "gamification.challenge",
+    "view_mode": "kanban,list",
+    "context": {
+     "search_default_inprogress": true,
+     "default_inprogress": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "challenge_list_action_view1",
+   "values": {
+    "sequence": 1,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "challenge_list_action"
+    },
+    "view_id": {
+     "$ref": "view_challenge_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "challenge_list_action_view2",
+   "values": {
+    "sequence": 10,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "challenge_list_action"
+    },
+    "view_id": {
+     "$ref": "challenge_form_view"
+    }
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "goal_user_visibility",
+   "values": {
+    "name": "User can only see his/her goals or goal from the same challenge in board visibility",
+    "model_id": {
+     "$ref": "model_gamification_goal"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": true,
+    "perm_create": false,
+    "perm_unlink": false,
+    "domain_force": "[\n                '|',\n                    ('user_id','=',user.id),\n                    '&',\n                        ('challenge_id.user_ids','in',user.id),\n                        ('challenge_id.visibility_mode','=','ranking')]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "goal_gamification_manager_visibility",
+   "values": {
+    "name": "Manager can see any goal",
+    "model_id": {
+     "$ref": "model_gamification_goal"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_erp_manager"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": true,
+    "perm_create": false,
+    "perm_unlink": false,
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "goal_global_multicompany",
+   "values": {
+    "name": "Multicompany rule on challenges",
+    "model_id": {
+     "$ref": "model_gamification_goal"
+    },
+    "domain_force": "[('user_id.company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_good_job",
+   "values": {
+    "name": "Good Job",
+    "description": "You did great at your job.",
+    "rule_auth": "everyone",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_problem_solver",
+   "values": {
+    "name": "Problem Solver",
+    "description": "No one can solve challenges like you do.",
+    "rule_auth": "everyone",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_hidden",
+   "values": {
+    "name": "Hidden",
+    "description": "You have found the hidden badge",
+    "rule_auth": "nobody",
+    "image_1920": "",
+    "active": false
+   }
+  },
+  {
+   "model": "gamification.badge",
+   "id": "badge_idea",
+   "values": {
+    "name": "Brilliant",
+    "description": "With your brilliant ideas, you are an inspiration to others.",
+    "rule_auth": "everyone",
+    "rule_max": "True",
+    "rule_max_number": "2",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_base_timezone",
+   "values": {
+    "name": "Set your Timezone",
+    "description": "Configure your profile and specify your timezone",
+    "computation_mode": "count",
+    "display_mode": "boolean",
+    "model_id": {
+     "$ref": "base.model_res_users"
+    },
+    "domain": [
+     [
+      "partner_id.tz",
+      "!=",
+      false
+     ]
+    ],
+    "action_id": {
+     "$ref": "base.action_res_users_my"
+    },
+    "res_id_field": "user.id",
+    "batch_mode": "True",
+    "batch_distinctive_field": {
+     "$ref": "base.field_res_users__id"
+    },
+    "batch_user_expression": "user.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_base_company_data",
+   "values": {
+    "name": "Set your Company Data",
+    "description": "Write some information about your company (specify at least a name)",
+    "computation_mode": "count",
+    "display_mode": "boolean",
+    "model_id": {
+     "$ref": "base.model_res_company"
+    },
+    "domain": {
+     "$unevaluated": "[('user_ids', 'in', [user.id]), ('name', '=', 'YourCompany')]"
+    },
+    "condition": "lower",
+    "action_id": {
+     "$ref": "base.action_res_company_form"
+    },
+    "res_id_field": "user.company_id.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_base_company_logo",
+   "values": {
+    "name": "Set your Company Logo",
+    "computation_mode": "count",
+    "display_mode": "boolean",
+    "model_id": {
+     "$ref": "base.model_res_company"
+    },
+    "domain": {
+     "$unevaluated": "[('user_ids', 'in', [user.id]),('logo', '!=', False)]"
+    },
+    "action_id": {
+     "$ref": "base.action_res_company_form"
+    },
+    "res_id_field": "user.company_id.id"
+   }
+  },
+  {
+   "model": "gamification.goal.definition",
+   "id": "definition_base_invite",
+   "values": {
+    "name": "Invite new Users",
+    "description": "Create at least another user",
+    "display_mode": "boolean",
+    "computation_mode": "count",
+    "model_id": {
+     "$ref": "base.model_res_users"
+    },
+    "domain": {
+     "$unevaluated": "[('id', '!=', user.id)]"
+    },
+    "action_id": {
+     "$ref": "action_new_simplified_res_users"
+    }
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "challenge_base_discover",
+   "values": {
+    "name": "Complete your Profile",
+    "period": "once",
+    "visibility_mode": "personal",
+    "report_message_frequency": "never",
+    "user_domain": {
+     "$unevaluated": "str([('groups_id.id', '=', ref('base.group_user'))])"
+    },
+    "state": "inprogress",
+    "challenge_category": "other"
+   }
+  },
+  {
+   "model": "gamification.challenge",
+   "id": "challenge_base_configure",
+   "values": {
+    "name": "Setup your Company",
+    "period": "once",
+    "visibility_mode": "personal",
+    "report_message_frequency": "never",
+    "user_domain": {
+     "$unevaluated": "str([('groups_id.id', '=', ref('base.group_erp_manager'))])"
+    },
+    "state": "inprogress",
+    "challenge_category": "other"
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "line_base_discover1",
+   "values": {
+    "definition_id": {
+     "$ref": "definition_base_timezone"
+    },
+    "target_goal": "1",
+    "challenge_id": {
+     "$ref": "challenge_base_discover"
+    }
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "line_base_admin2",
+   "values": {
+    "definition_id": {
+     "$ref": "definition_base_company_logo"
+    },
+    "target_goal": "1",
+    "challenge_id": {
+     "$ref": "challenge_base_configure"
+    }
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "line_base_admin1",
+   "values": {
+    "definition_id": {
+     "$ref": "definition_base_company_data"
+    },
+    "target_goal": "0",
+    "challenge_id": {
+     "$ref": "challenge_base_configure"
+    }
+   }
+  },
+  {
+   "model": "gamification.challenge.line",
+   "id": "line_base_admin3",
+   "values": {
+    "definition_id": {
+     "$ref": "definition_base_invite"
+    },
+    "target_goal": "1",
+    "challenge_id": {
+     "$ref": "challenge_base_configure"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_root",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_root"
+    },
+    "new_value": "2500",
+    "reason": "I am the Root!"
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_admin",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "new_value": "2500",
+    "reason": "I am the Admin!"
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_newbie",
+   "values": {
+    "name": "Newbie",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "description_motivational": {
+     "$unevaluated": "xml"
+    },
+    "karma_min": "1",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_student",
+   "values": {
+    "name": "Student",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "description_motivational": {
+     "$unevaluated": "xml"
+    },
+    "karma_min": "100",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_bachelor",
+   "values": {
+    "name": "Bachelor",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "description_motivational": {
+     "$unevaluated": "xml"
+    },
+    "karma_min": "500",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_master",
+   "values": {
+    "name": "Master",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "description_motivational": {
+     "$unevaluated": "xml"
+    },
+    "karma_min": "2000",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_doctor",
+   "values": {
+    "name": "Doctor",
+    "description": {
+     "$unevaluated": "xml"
+    },
+    "description_motivational": {
+     "$unevaluated": "xml"
+    },
+    "karma_min": "10000",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_student",
+   "values": {
+    "description_motivational": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_bachelor",
+   "values": {
+    "description_motivational": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_master",
+   "values": {
+    "description_motivational": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.rank",
+   "id": "rank_doctor",
+   "values": {
+    "description_motivational": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_demo_1st_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "old_value": "0",
+    "new_value": "1000",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=1, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_demo_2nd_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "old_value": "1000",
+    "new_value": "1500",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=2, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_demo_5th_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "old_value": "1500",
+    "new_value": "2000",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=5, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_demo_20th_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "old_value": "2000",
+    "new_value": "2050",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=20, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_demo_today",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "old_value": "2050",
+    "new_value": "2500",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now()).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_portal_2nd_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.demo_user0"
+    },
+    "old_value": "0",
+    "new_value": "5",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=2, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_portal_3rd_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.demo_user0"
+    },
+    "old_value": "5",
+    "new_value": "10",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=3, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_portal_10th_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.demo_user0"
+    },
+    "old_value": "10",
+    "new_value": "20",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=10, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_portal_yesterday",
+   "values": {
+    "user_id": {
+     "$ref": "base.demo_user0"
+    },
+    "old_value": "20",
+    "new_value": "25",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_portal_today",
+   "values": {
+    "user_id": {
+     "$ref": "base.demo_user0"
+    },
+    "old_value": "25",
+    "new_value": "30",
+    "tracking_date": {
+     "$unevaluated": "DateTime.now()"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_admin_1st_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "old_value": "0",
+    "new_value": "2000",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=1, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_admin_5th_day_last_month",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "old_value": "2000",
+    "new_value": "2250",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(day=5, months=1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "gamification.karma.tracking",
+   "id": "karma_tracking_user_admin_today",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "old_value": "2250",
+    "new_value": "2500",
+    "tracking_date": {
+     "$unevaluated": "(DateTime.now()).strftime('%Y-%m-%d')"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "gamification_menu",
+   "name": "Gamification Tools",
+   "parent": "base.menu_administration",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "gamification_challenge_menu",
+   "parent": "gamification_menu",
+   "action": "challenge_list_action",
+   "sequence": "0"
+  },
+  {
+   "id": "gamification_goal_menu",
+   "parent": "gamification_menu",
+   "action": "goal_list_action",
+   "sequence": "10"
+  },
+  {
+   "id": "gamification_definition_menu",
+   "parent": "gamification_menu",
+   "action": "goal_definition_list_action",
+   "sequence": "20"
+  },
+  {
+   "id": "gamification_badge_menu",
+   "parent": "gamification_menu",
+   "action": "badge_list_action",
+   "sequence": "30"
+  },
+  {
+   "id": "gamification_karma_ranks_menu",
+   "parent": "gamification_menu",
+   "action": "gamification_karma_ranks_action",
+   "sequence": "40"
+  },
+  {
+   "id": "gamification_karma_tracking_menu",
+   "parent": "gamification_menu",
+   "action": "gamification_karma_tracking_action",
+   "sequence": "50"
+  }
+ ],
+ "access": [
+  {
+   "id": "goal_employee",
+   "model": "gamification.goal",
+   "model_xmlid": "model_gamification_goal",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "goal_manager",
+   "model": "gamification.goal",
+   "model_xmlid": "model_gamification_goal",
+   "group": "base.group_erp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "goal_portal",
+   "model": "gamification.gamification.goal",
+   "model_xmlid": "gamification.model_gamification_goal",
+   "group": "base.group_portal",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "goal_definition_employee",
+   "model": "gamification.goal.definition",
+   "model_xmlid": "model_gamification_goal_definition",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "goal_definition_manager",
+   "model": "gamification.goal.definition",
+   "model_xmlid": "model_gamification_goal_definition",
+   "group": "base.group_erp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "goal_definition_portal",
+   "model": "gamification.gamification.goal.definition",
+   "model_xmlid": "gamification.model_gamification_goal_definition",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "challenge_employee",
+   "model": "gamification.challenge",
+   "model_xmlid": "model_gamification_challenge",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "challenge_manager",
+   "model": "gamification.challenge",
+   "model_xmlid": "model_gamification_challenge",
+   "group": "base.group_erp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "challenge_portal",
+   "model": "gamification.gamification.challenge",
+   "model_xmlid": "gamification.model_gamification_challenge",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "challenge_line_employee",
+   "model": "gamification.challenge.line",
+   "model_xmlid": "model_gamification_challenge_line",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "challenge_line_manager",
+   "model": "gamification.challenge.line",
+   "model_xmlid": "model_gamification_challenge_line",
+   "group": "base.group_erp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "challenge_line_portal",
+   "model": "gamification.gamification.challenge.line",
+   "model_xmlid": "gamification.model_gamification_challenge_line",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "badge_employee",
+   "model": "gamification.badge",
+   "model_xmlid": "model_gamification_badge",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "badge_manager",
+   "model": "gamification.badge",
+   "model_xmlid": "model_gamification_badge",
+   "group": "base.group_erp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "badge_portal",
+   "model": "gamification.gamification.badge",
+   "model_xmlid": "gamification.model_gamification_badge",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "badge_public",
+   "model": "gamification.gamification.badge",
+   "model_xmlid": "gamification.model_gamification_badge",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "badge_user_employee",
+   "model": "gamification.badge.user",
+   "model_xmlid": "model_gamification_badge_user",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "badge_user_manager",
+   "model": "gamification.badge.user",
+   "model_xmlid": "model_gamification_badge_user",
+   "group": "base.group_erp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "badge_user_portal",
+   "model": "gamification.gamification.badge.user",
+   "model_xmlid": "gamification.model_gamification_badge_user",
+   "group": "base.group_portal",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "badge_user_public",
+   "model": "gamification.gamification.badge.user",
+   "model_xmlid": "gamification.model_gamification_badge_user",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "gamification_karma_rank_access_public",
+   "model": "gamification.gamification.karma.rank",
+   "model_xmlid": "gamification.model_gamification_karma_rank",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "gamification_karma_rank_access_portal",
+   "model": "gamification.gamification.karma.rank",
+   "model_xmlid": "gamification.model_gamification_karma_rank",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "gamification_karma_rank_access_employee",
+   "model": "gamification.gamification.karma.rank",
+   "model_xmlid": "gamification.model_gamification_karma_rank",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "gamification_karma_rank_access_user_manager",
+   "model": "gamification.gamification.karma.rank",
+   "model_xmlid": "gamification.model_gamification_karma_rank",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "gamification_karma_tracking_access_all",
+   "model": "gamification.gamification.karma.tracking",
+   "model_xmlid": "gamification.model_gamification_karma_tracking",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "gamification_karma_tracking_access_user_manager",
+   "model": "gamification.gamification.karma.tracking",
+   "model_xmlid": "gamification.model_gamification_karma_tracking",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_gamification_goal_wizard",
+   "model": "gamification.goal.wizard",
+   "model_xmlid": "model_gamification_goal_wizard",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_gamification_badge_user_wizard",
+   "model": "gamification.badge.user.wizard",
+   "model_xmlid": "model_gamification_badge_user_wizard",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

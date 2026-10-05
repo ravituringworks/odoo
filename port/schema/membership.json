@@ -1,0 +1,525 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "wizard/membership_invoice_views.xml",
+  "data/membership_data.xml",
+  "views/product_views.xml",
+  "views/partner_views.xml",
+  "report/report_membership_views.xml"
+ ],
+ "depends": [
+  "account"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "button_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 34,
+     "name": "create"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "membership.invoice": {
+   "abstract": false,
+   "description": "Membership Invoice",
+   "extension": false,
+   "fields": {
+    "member_price": {
+     "required": true,
+     "string": "Member Price",
+     "type": "Float"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "required": true,
+     "string": "Membership",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 5,
+     "name": "onchange_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "membership_invoice"
+    }
+   ],
+   "name": "membership.invoice",
+   "transient": true
+  },
+  "membership.membership_line": {
+   "abstract": false,
+   "description": "Membership Line",
+   "extension": false,
+   "fields": {
+    "account_invoice_id": {
+     "comodel": "account.move",
+     "readonly": true,
+     "related": "account_invoice_line.move_id",
+     "string": "Invoice",
+     "type": "Many2one"
+    },
+    "account_invoice_line": {
+     "comodel": "account.move.line",
+     "ondelete": "cascade",
+     "readonly": true,
+     "string": "Account Invoice line",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "related": "account_invoice_line.move_id.company_id",
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "date": {
+     "help": "Date on which member has joined the membership",
+     "string": "Join Date",
+     "type": "Date"
+    },
+    "date_cancel": {
+     "string": "Cancel date",
+     "type": "Date"
+    },
+    "date_from": {
+     "readonly": true,
+     "string": "From",
+     "type": "Date"
+    },
+    "date_to": {
+     "readonly": true,
+     "string": "To",
+     "type": "Date"
+    },
+    "member_price": {
+     "help": "Amount for the membership",
+     "required": true,
+     "string": "Membership Fee",
+     "type": "Float"
+    },
+    "membership_id": {
+     "comodel": "product.product",
+     "required": true,
+     "string": "Membership",
+     "type": "Many2one"
+    },
+    "partner": {
+     "comodel": "res.partner",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "state": {
+     "compute": "_compute_state",
+     "help": "It indicates the membership status.\n-Non Member: A member who has not applied for any membership.\n-Cancelled Member: A member who has cancelled his membership.\n-Old Member: A member whose membership date has expired.\n-Waiting Member: A member who has applied for the membership and whose invoice is going to be created.\n-Invoiced Member: A member whose invoice has been created.\n-Paid Member: A member who has paid the membership amount.",
+     "selection": [
+      [
+       "none",
+       "Non Member"
+      ],
+      [
+       "canceled",
+       "Cancelled Member"
+      ],
+      [
+       "old",
+       "Old Member"
+      ],
+      [
+       "waiting",
+       "Waiting Member"
+      ],
+      [
+       "invoiced",
+       "Invoiced Member"
+      ],
+      [
+       "free",
+       "Free Member"
+      ],
+      [
+       "paid",
+       "Paid Member"
+      ]
+     ],
+     "store": true,
+     "string": "Membership Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_invoice_id.state', 'account_invoice_id.amount_residual', 'account_invoice_id.payment_state')"
+     ],
+     "lines": 30,
+     "name": "_compute_state"
+    }
+   ],
+   "name": "membership.membership_line",
+   "order": "id desc",
+   "rec_name": "partner",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "membership": {
+     "help": "Check if the product is eligible for membership.",
+     "type": "Boolean"
+    },
+    "membership_date_from": {
+     "help": "Date from which membership becomes active.",
+     "string": "Membership Start Date",
+     "type": "Date"
+    },
+    "membership_date_to": {
+     "help": "Date until which membership remains active.",
+     "string": "Membership End Date",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.template",
+   "sql_constraints": [
+    [
+     "membership_date_greater",
+     "check(membership_date_to >= membership_date_from)",
+     "Error! Ending Date cannot be set before Beginning Date."
+    ]
+   ],
+   "transient": false
+  },
+  "report.membership": {
+   "abstract": false,
+   "description": "Membership Analysis",
+   "extension": false,
+   "fields": {
+    "associate_member_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Associate Member",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "date_to": {
+     "readonly": true,
+     "string": "End Date",
+     "type": "Date"
+    },
+    "membership_id": {
+     "comodel": "product.product",
+     "readonly": true,
+     "string": "Membership Product",
+     "type": "Many2one"
+    },
+    "membership_state": {
+     "readonly": true,
+     "selection": [
+      [
+       "none",
+       "Non Member"
+      ],
+      [
+       "canceled",
+       "Cancelled Member"
+      ],
+      [
+       "old",
+       "Old Member"
+      ],
+      [
+       "waiting",
+       "Waiting Member"
+      ],
+      [
+       "invoiced",
+       "Invoiced Member"
+      ],
+      [
+       "free",
+       "Free Member"
+      ],
+      [
+       "paid",
+       "Paid Member"
+      ]
+     ],
+     "string": "Current Membership State",
+     "type": "Selection"
+    },
+    "num_invoiced": {
+     "readonly": true,
+     "string": "# Invoiced",
+     "type": "Integer"
+    },
+    "num_paid": {
+     "readonly": true,
+     "string": "# Paid",
+     "type": "Integer"
+    },
+    "num_waiting": {
+     "readonly": true,
+     "string": "# Waiting",
+     "type": "Integer"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Member",
+     "type": "Many2one"
+    },
+    "quantity": {
+     "readonly": true,
+     "type": "Integer"
+    },
+    "start_date": {
+     "readonly": true,
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "tot_earned": {
+     "digits": 0,
+     "readonly": true,
+     "string": "Earned Amount",
+     "type": "Float"
+    },
+    "tot_pending": {
+     "digits": 0,
+     "readonly": true,
+     "string": "Pending Amount",
+     "type": "Float"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "Salesperson",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "init"
+    }
+   ],
+   "name": "report.membership",
+   "rec_name": "start_date",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "associate_member": {
+     "comodel": "res.partner",
+     "help": "A member with whom you want to associate your membership.It will consider the membership state of the associated member.",
+     "string": "Associate Member",
+     "type": "Many2one"
+    },
+    "free_member": {
+     "help": "Select if you want to give free membership.",
+     "string": "Free Member",
+     "type": "Boolean"
+    },
+    "member_lines": {
+     "comodel": "membership.membership_line",
+     "inverse_name": "partner",
+     "string": "Membership",
+     "type": "One2many"
+    },
+    "membership_amount": {
+     "digits": [
+      16,
+      2
+     ],
+     "help": "The price negotiated by the partner",
+     "string": "Membership Amount",
+     "type": "Float"
+    },
+    "membership_cancel": {
+     "compute": "_compute_membership_state",
+     "help": "Date on which membership has been cancelled",
+     "store": true,
+     "string": "Cancel Membership Date",
+     "type": "Date"
+    },
+    "membership_start": {
+     "compute": "_compute_membership_state",
+     "help": "Date from which membership becomes active.",
+     "store": true,
+     "string": "Membership Start Date",
+     "type": "Date"
+    },
+    "membership_state": {
+     "compute": "_compute_membership_state",
+     "help": "It indicates the membership state.\n-Non Member: A partner who has not applied for any membership.\n-Cancelled Member: A member who has cancelled his membership.\n-Old Member: A member whose membership date has expired.\n-Waiting Member: A member who has applied for the membership and whose invoice is going to be created.\n-Invoiced Member: A member whose invoice has been created.\n-Paying member: A member who has paid the membership fee.",
+     "selection": [
+      [
+       "none",
+       "Non Member"
+      ],
+      [
+       "canceled",
+       "Cancelled Member"
+      ],
+      [
+       "old",
+       "Old Member"
+      ],
+      [
+       "waiting",
+       "Waiting Member"
+      ],
+      [
+       "invoiced",
+       "Invoiced Member"
+      ],
+      [
+       "free",
+       "Free Member"
+      ],
+      [
+       "paid",
+       "Paid Member"
+      ]
+     ],
+     "store": true,
+     "string": "Current Membership Status",
+     "type": "Selection"
+    },
+    "membership_stop": {
+     "compute": "_compute_membership_state",
+     "help": "Date until which membership remains active.",
+     "store": true,
+     "string": "Membership End Date",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('member_lines.account_invoice_line', 'member_lines.account_invoice_line.move_id.state', 'member_lines.account_invoice_line.move_id.payment_state', 'member_lines.account_invoice_line.move_id.partner_id', 'free_member', 'member_lines.date_to', 'member_lines.date_from', 'associate_member', 'associate_member.membership_state')"
+     ],
+     "lines": 34,
+     "name": "_compute_membership_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('associate_member')"
+     ],
+     "lines": 3,
+     "name": "_check_recursion_associate_member"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_cron_update_membership"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "create_membership_invoice"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "membership",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/membership",
+ "stats": {
+  "fields": 38,
+  "methods": 13,
+  "models": 7,
+  "py_lines": 494
+ },
+ "summary": "This module allows you to manage all operations for managing memberships.",
+ "title": "Members",
+ "version": "1.0"
+}

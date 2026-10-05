@@ -1,0 +1,1087 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/resource_data.xml",
+  "security/ir.model.access.csv",
+  "security/resource_security.xml",
+  "views/resource_resource_views.xml",
+  "views/resource_calendar_leaves_views.xml",
+  "views/resource_calendar_attendance_views.xml",
+  "views/resource_calendar_views.xml",
+  "views/menuitems.xml",
+  "data/resource_demo.xml"
+ ],
+ "depends": [
+  "base",
+  "web"
+ ],
+ "models": {
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "ondelete": "restrict",
+     "string": "Default Working Hours",
+     "type": "Many2one"
+    },
+    "resource_calendar_ids": {
+     "comodel": "resource.calendar",
+     "inverse_name": "company_id",
+     "string": "Working Hours",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_init_data_resource_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_create_resource_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_resource_calendar_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "readonly": false,
+     "related": "resource_ids.calendar_id",
+     "string": "Default Working Hours",
+     "type": "Many2one"
+    },
+    "resource_ids": {
+     "comodel": "resource.resource",
+     "inverse_name": "user_id",
+     "string": "Resources",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "resource.calendar": {
+   "abstract": false,
+   "description": "Resource Working Time",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If the active field is set to false, it will allow you to hide the Working Time without removing it.",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "attendance_ids": {
+     "comodel": "resource.calendar.attendance",
+     "compute": "_compute_attendance_ids",
+     "copy": true,
+     "inverse_name": "calendar_id",
+     "readonly": false,
+     "store": true,
+     "string": "Working Time",
+     "type": "One2many"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "domain": {
+      "$lambda": "[('id', 'in', self.env.companies.ids)]"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "flexible_hours": {
+     "help": "When enabled, it will allow employees to work flexibly, without relying on the company's working schedule (working hours).",
+     "string": "Flexible Hours",
+     "type": "Boolean"
+    },
+    "full_time_required_hours": {
+     "help": "Number of hours to work on the company schedule to be considered as fulltime.",
+     "string": "Company Full Time",
+     "type": "Float"
+    },
+    "global_leave_ids": {
+     "comodel": "resource.calendar.leaves",
+     "compute": "_compute_global_leave_ids",
+     "copy": true,
+     "domain": [
+      [
+       "resource_id",
+       "=",
+       false
+      ]
+     ],
+     "inverse_name": "calendar_id",
+     "readonly": false,
+     "store": true,
+     "string": "Global Time Off",
+     "type": "One2many"
+    },
+    "hours_per_day": {
+     "compute": "_compute_hours_per_day",
+     "digits": [
+      2,
+      2
+     ],
+     "help": "Average hours per day a resource is supposed to work with this calendar.",
+     "readonly": false,
+     "store": true,
+     "string": "Average Hour per Day",
+     "type": "Float"
+    },
+    "leave_ids": {
+     "comodel": "resource.calendar.leaves",
+     "inverse_name": "calendar_id",
+     "string": "Time Off",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "two_weeks_calendar": {
+     "string": "Calendar in 2 weeks mode",
+     "type": "Boolean"
+    },
+    "two_weeks_explanation": {
+     "compute": "_compute_two_weeks_explanation",
+     "string": "Explanation",
+     "type": "Char"
+    },
+    "tz": {
+     "default": {
+      "$lambda": "self._context.get('tz') or self.env.user.tz or self.env.ref('base.user_admin').tz or 'UTC'"
+     },
+     "help": "This field is used in order to define in which timezone the resources will work.",
+     "required": true,
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "tz_offset": {
+     "compute": "_compute_tz_offset",
+     "string": "Timezone offset",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 40,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attendance_ids', 'attendance_ids.hour_from', 'attendance_ids.hour_to', 'two_weeks_calendar', 'flexible_hours')"
+     ],
+     "lines": 6,
+     "name": "_compute_hours_per_day"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_attendance_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_global_leave_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tz')"
+     ],
+     "lines": 3,
+     "name": "_compute_tz_offset"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('attendance_ids')"
+     ],
+     "lines": 6,
+     "name": "_check_attendance_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('two_weeks_calendar')"
+     ],
+     "lines": 12,
+     "name": "_compute_two_weeks_explanation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_global_attendances"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_get_hours_per_day"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "switch_calendar_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('attendance_ids')"
+     ],
+     "lines": 17,
+     "name": "_onchange_attendance_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_check_overlap"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('attendance_ids')"
+     ],
+     "lines": 9,
+     "name": "_check_attendance"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 172,
+     "name": "_attendance_intervals_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_handle_flexible_leave_interval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_leave_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "_leave_intervals_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_work_intervals_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_unavailable_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_unavailable_intervals_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_attendance_intervals_days_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_days_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_resources_day_total"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_get_closest_work_time"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_unusual_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_flexible_leaves_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "get_work_hours_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "get_work_duration_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "plan_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "plan_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_max_number_of_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_works_on_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_working_hours"
+    }
+   ],
+   "name": "resource.calendar",
+   "sel_methods": {
+    "_get_flexible_leaves_date": []
+   },
+   "transient": false
+  },
+  "resource.calendar.attendance": {
+   "abstract": false,
+   "description": "Work Detail",
+   "extension": false,
+   "fields": {
+    "calendar_id": {
+     "comodel": "resource.calendar",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Resource's Calendar",
+     "type": "Many2one"
+    },
+    "date_from": {
+     "string": "Starting Date",
+     "type": "Date"
+    },
+    "date_to": {
+     "string": "End Date",
+     "type": "Date"
+    },
+    "day_period": {
+     "default": "morning",
+     "required": true,
+     "selection": [
+      [
+       "morning",
+       "Morning"
+      ],
+      [
+       "lunch",
+       "Break"
+      ],
+      [
+       "afternoon",
+       "Afternoon"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "dayofweek": {
+     "default": "0",
+     "index": true,
+     "required": true,
+     "selection": [
+      [
+       "0",
+       "Monday"
+      ],
+      [
+       "1",
+       "Tuesday"
+      ],
+      [
+       "2",
+       "Wednesday"
+      ],
+      [
+       "3",
+       "Thursday"
+      ],
+      [
+       "4",
+       "Friday"
+      ],
+      [
+       "5",
+       "Saturday"
+      ],
+      [
+       "6",
+       "Sunday"
+      ]
+     ],
+     "string": "Day of Week",
+     "type": "Selection"
+    },
+    "display_type": {
+     "default": false,
+     "help": "Technical field for UX purpose.",
+     "selection": [
+      [
+       "line_section",
+       "Section"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "duration_days": {
+     "compute": "_compute_duration_days",
+     "readonly": false,
+     "store": true,
+     "string": "Duration (days)",
+     "type": "Float"
+    },
+    "duration_hours": {
+     "compute": "_compute_duration_hours",
+     "string": "Duration (hours)",
+     "type": "Float"
+    },
+    "hour_from": {
+     "help": "Start and End time of working.\nA specific value of 24:00 is interpreted as 23:59:59.999999.",
+     "index": true,
+     "required": true,
+     "string": "Work from",
+     "type": "Float"
+    },
+    "hour_to": {
+     "required": true,
+     "string": "Work to",
+     "type": "Float"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "resource_id": {
+     "comodel": "resource.resource",
+     "string": "Resource",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 10,
+     "help": "Gives the sequence of this line when displaying the resource calendar.",
+     "type": "Integer"
+    },
+    "two_weeks_calendar": {
+     "related": "calendar_id.two_weeks_calendar",
+     "string": "Calendar in 2 weeks mode",
+     "type": "Boolean"
+    },
+    "week_type": {
+     "default": false,
+     "selection": [
+      [
+       "1",
+       "Second"
+      ],
+      [
+       "0",
+       "First"
+      ]
+     ],
+     "string": "Week Number",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('hour_from', 'hour_to')"
+     ],
+     "lines": 9,
+     "name": "_onchange_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "get_week_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('hour_from', 'hour_to')"
+     ],
+     "lines": 3,
+     "name": "_compute_duration_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('day_period', 'duration_hours')"
+     ],
+     "lines": 6,
+     "name": "_compute_duration_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('week_type')"
+     ],
+     "lines": 8,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_copy_attendance_vals"
+    }
+   ],
+   "name": "resource.calendar.attendance",
+   "order": "sequence, week_type, dayofweek, hour_from",
+   "transient": false
+  },
+  "resource.calendar.leaves": {
+   "abstract": false,
+   "description": "Resource Time Off Detail",
+   "extension": false,
+   "fields": {
+    "calendar_id": {
+     "comodel": "resource.calendar",
+     "compute": "_compute_calendar_id",
+     "domain": "[('company_id', 'in', [company_id, False])]",
+     "index": true,
+     "readonly": false,
+     "store": true,
+     "string": "Working Hours",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": true,
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "date_from": {
+     "required": true,
+     "string": "Start Date",
+     "type": "Datetime"
+    },
+    "date_to": {
+     "compute": "_compute_date_to",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "End Date",
+     "type": "Datetime"
+    },
+    "name": {
+     "string": "Reason",
+     "type": "Char"
+    },
+    "resource_id": {
+     "comodel": "resource.resource",
+     "help": "If empty, this is a generic time off for the company. If a resource is set, the time off is only for this resource",
+     "index": true,
+     "string": "Resource",
+     "type": "Many2one"
+    },
+    "time_type": {
+     "default": "leave",
+     "help": "Whether this should be computed as a time off or as work time (eg: formation)",
+     "selection": [
+      [
+       "leave",
+       "Time Off"
+      ],
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('resource_id.calendar_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_calendar_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('calendar_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_from')"
+     ],
+     "lines": 8,
+     "name": "_compute_date_to"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_from', 'date_to')"
+     ],
+     "lines": 3,
+     "name": "check_dates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_copy_leave_vals"
+    }
+   ],
+   "name": "resource.calendar.leaves",
+   "order": "date_from",
+   "transient": false
+  },
+  "resource.mixin": {
+   "abstract": true,
+   "description": "Resource Mixin",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "index": true,
+     "readonly": false,
+     "related": "resource_id.company_id",
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "resource_calendar_id": {
+     "comodel": "resource.calendar",
+     "default": {
+      "$lambda": "self.env.company.resource_calendar_id"
+     },
+     "index": true,
+     "readonly": false,
+     "related": "resource_id.calendar_id",
+     "store": true,
+     "string": "Working Hours",
+     "type": "Many2one"
+    },
+    "resource_id": {
+     "comodel": "resource.resource",
+     "index": true,
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Resource",
+     "type": "Many2one"
+    },
+    "tz": {
+     "help": "This field is used in order to define in which timezone the resources will work.",
+     "readonly": false,
+     "related": "resource_id.tz",
+     "string": "Timezone",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 19,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_prepare_resource_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_calendars"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_get_work_days_data_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_get_leave_days_data_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_adjust_to_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_list_work_time_per_day"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "list_leaves"
+    }
+   ],
+   "name": "resource.mixin",
+   "transient": false
+  },
+  "resource.resource": {
+   "abstract": false,
+   "description": "Resources",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If the active field is set to False, it will allow you to hide the resource record without removing it.",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "avatar_128": {
+     "compute": "_compute_avatar_128",
+     "type": "Image"
+    },
+    "calendar_id": {
+     "comodel": "resource.calendar",
+     "default": {
+      "$lambda": "self.env.company.resource_calendar_id"
+     },
+     "domain": "[('company_id', '=', company_id)]",
+     "help": "Define the working schedule of the resource. If not set, the resource will have fully flexible working hours.",
+     "string": "Working Time",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "email": {
+     "related": "user_id.email",
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "phone": {
+     "related": "user_id.phone",
+     "type": "Char"
+    },
+    "resource_type": {
+     "default": "user",
+     "required": true,
+     "selection": [
+      [
+       "user",
+       "Human"
+      ],
+      [
+       "material",
+       "Material"
+      ]
+     ],
+     "string": "Type",
+     "type": "Selection"
+    },
+    "share": {
+     "related": "user_id.share",
+     "type": "Boolean"
+    },
+    "time_efficiency": {
+     "default": 100,
+     "help": "This field is used to calculate the expected duration of a work order at this work center. For example, if a work order takes one hour and the efficiency factor is 100%, then the expected duration will be one hour. If the efficiency factor is 200%, however the expected duration will be 30 minutes.",
+     "required": true,
+     "string": "Efficiency Factor",
+     "type": "Float"
+    },
+    "tz": {
+     "default": {
+      "$lambda": "self._context.get('tz') or self.env.user.tz or 'UTC'"
+     },
+     "required": true,
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "help": "Related user name for the resource to manage its access.",
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_avatar_128"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 11,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('user_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_work_interval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_adjust_to_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_unavailable_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_calendars_validity_within_period"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_get_valid_work_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_fully_flexible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_calendar_at"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_is_flexible"
+    }
+   ],
+   "name": "resource.resource",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "check_time_efficiency",
+     "CHECK(time_efficiency>0)",
+     "Time efficiency must be strictly positive"
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "resource",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/resource",
+ "stats": {
+  "fields": 55,
+  "methods": 75,
+  "models": 7,
+  "py_lines": 1866
+ },
+ "summary": "Module for resource management.",
+ "title": "Resource",
+ "version": "1.1"
+}

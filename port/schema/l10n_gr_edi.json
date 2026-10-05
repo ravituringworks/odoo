@@ -1,0 +1,2688 @@
+{
+ "application": false,
+ "author": "Odoo",
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "data/ir_cron.xml",
+  "data/template.xml",
+  "security/ir.model.access.csv",
+  "views/account_fiscal_position_views.xml",
+  "views/account_move_views.xml",
+  "views/account_tax_views.xml",
+  "views/product_template_views.xml",
+  "views/report_invoice.xml",
+  "views/res_company_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml"
+ ],
+ "depends": [
+  "l10n_gr"
+ ],
+ "models": {
+  "account.fiscal.position": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_preferred_classification_ids": {
+     "comodel": "l10n_gr_edi.preferred_classification",
+     "inverse_name": "fiscal_position_id",
+     "string": "Preferred myDATA Classification",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.fiscal.position",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_alerts": {
+     "compute": "_compute_l10n_gr_edi_alerts",
+     "type": "Json"
+    },
+    "l10n_gr_edi_attachment_id": {
+     "comodel": "ir.attachment",
+     "compute": "_compute_from_l10n_gr_edi_document_ids",
+     "store": true,
+     "type": "Many2one"
+    },
+    "l10n_gr_edi_available_inv_type": {
+     "compute": "_compute_l10n_gr_edi_available_inv_type",
+     "type": "Char"
+    },
+    "l10n_gr_edi_cls_mark": {
+     "compute": "_compute_from_l10n_gr_edi_document_ids",
+     "store": true,
+     "string": "Classification Mark",
+     "type": "Char"
+    },
+    "l10n_gr_edi_correlation_id": {
+     "comodel": "account.move",
+     "string": "Correlated Invoice",
+     "type": "Many2one"
+    },
+    "l10n_gr_edi_document_ids": {
+     "comodel": "l10n_gr_edi.document",
+     "copy": false,
+     "inverse_name": "move_id",
+     "readonly": true,
+     "type": "One2many"
+    },
+    "l10n_gr_edi_enable_send_expense_classification": {
+     "compute": "_compute_l10n_gr_edi_enable_fields",
+     "type": "Boolean"
+    },
+    "l10n_gr_edi_enable_send_invoices": {
+     "compute": "_compute_l10n_gr_edi_enable_fields",
+     "type": "Boolean"
+    },
+    "l10n_gr_edi_enable_view_mydata": {
+     "compute": "_compute_l10n_gr_edi_enable_fields",
+     "type": "Boolean"
+    },
+    "l10n_gr_edi_inv_type": {
+     "compute": "_compute_l10n_gr_edi_inv_type",
+     "readonly": false,
+     "selection": [
+      [
+       "1.1",
+       "1.1 - Sales Invoice"
+      ],
+      [
+       "1.2",
+       "1.2 - Sales Invoice/Intra-community Supplies"
+      ],
+      [
+       "1.3",
+       "1.3 - Sales Invoice/Third Country Supplies"
+      ],
+      [
+       "1.4",
+       "1.4 - Sales Invoice/Sale on Behalf of Third Parties"
+      ],
+      [
+       "1.5",
+       "1.5 - Sales Invoice/Clearance of Sales on Behalf of Third Parties \u2013 Fees from Sales on Behalf of Third Parties"
+      ],
+      [
+       "1.6",
+       "1.6 - Sales Invoice/Supplemental Accounting Source Document"
+      ],
+      [
+       "2.1",
+       "2.1 - Service Rendered Invoice"
+      ],
+      [
+       "2.2",
+       "2.2 - Intra-community Service Rendered Invoice"
+      ],
+      [
+       "2.3",
+       "2.3 - Third Country Service Rendered Invoice"
+      ],
+      [
+       "2.4",
+       "2.4 - Service Rendered Invoice/Supplemental Accounting Source Document"
+      ],
+      [
+       "3.1",
+       "3.1 - Proof of Expenditure (non-liable Issuer)"
+      ],
+      [
+       "3.2",
+       "3.2 - Proof of Expenditure (denial of issuance by liable Issuer)"
+      ],
+      [
+       "5.1",
+       "5.1 - Credit Invoice/Associated"
+      ],
+      [
+       "5.2",
+       "5.2 - Credit Invoice/Non-Associated"
+      ],
+      [
+       "6.1",
+       "6.1 - Self-Delivery Record"
+      ],
+      [
+       "6.2",
+       "6.2 - Self-Supply Record"
+      ],
+      [
+       "7.1",
+       "7.1 - Contract \u2013 Income"
+      ],
+      [
+       "8.1",
+       "8.1 - Rents \u2013 Income"
+      ],
+      [
+       "8.2",
+       "8.2 - Special Record \u2013 Accommodation Tax Collection/Payment Receipt"
+      ],
+      [
+       "11.1",
+       "11.1 - Retail Sales Receipt"
+      ],
+      [
+       "11.2",
+       "11.2 - Service Rendered Receipt"
+      ],
+      [
+       "11.3",
+       "11.3 - Simplified Invoice"
+      ],
+      [
+       "11.4",
+       "11.4 - Retail Sales Credit Note"
+      ],
+      [
+       "11.5",
+       "11.5 - Retail Sales Receipt on Behalf of Third Parties"
+      ],
+      [
+       "13.1",
+       "13.1 - Expenses \u2013 Domestic/Foreign Retail Transaction Purchases"
+      ],
+      [
+       "13.2",
+       "13.2 - Domestic/Foreign Retail Transaction Provision"
+      ],
+      [
+       "13.3",
+       "13.3 - Shared Utility Bills"
+      ],
+      [
+       "13.4",
+       "13.4 - Subscriptions"
+      ],
+      [
+       "13.30",
+       "13.30 - Self-Declared Entity Accounting Source Documents (Dynamic)"
+      ],
+      [
+       "13.31",
+       "13.31 - Domestic/Foreign Retail Sales Credit Note"
+      ],
+      [
+       "14.1",
+       "14.1 - Invoice/Intra-community Acquisitions"
+      ],
+      [
+       "14.2",
+       "14.2 - Invoice/Third Country Acquisitions"
+      ],
+      [
+       "14.3",
+       "14.3 - Invoice/Intra-community Services Receipt"
+      ],
+      [
+       "14.4",
+       "14.4 - Invoice/Third Country Services Receipt"
+      ],
+      [
+       "14.5",
+       "14.5 - EFKA"
+      ],
+      [
+       "14.30",
+       "14.30 - Self-Declared Entity Accounting Source Documents (Dynamic)"
+      ],
+      [
+       "14.31",
+       "14.31 - Domestic/Foreign Credit Note"
+      ],
+      [
+       "15.1",
+       "15.1 - Contract-Expense"
+      ],
+      [
+       "16.1",
+       "16.1 - Rent-Expense"
+      ],
+      [
+       "17.1",
+       "17.1 - Payroll"
+      ],
+      [
+       "17.2",
+       "17.2 - Amortisations"
+      ],
+      [
+       "17.3",
+       "17.3 - Other Income Adjustment/Regularisation Entries \u2013 Accounting Base"
+      ],
+      [
+       "17.4",
+       "17.4 - Other Income Adjustment/Regularisation Entries \u2013 Tax Base"
+      ],
+      [
+       "17.5",
+       "17.5 - Other Expense Adjustment/Regularisation Entries \u2013 Accounting Base"
+      ],
+      [
+       "17.6",
+       "17.6 - Other Expense Adjustment/Regularisation Entries \u2013 Tax Base"
+      ]
+     ],
+     "store": true,
+     "string": "myDATA Invoice Type",
+     "type": "Selection"
+    },
+    "l10n_gr_edi_mark": {
+     "compute": "_compute_from_l10n_gr_edi_document_ids",
+     "store": true,
+     "string": "Mark",
+     "type": "Char"
+    },
+    "l10n_gr_edi_need_correlated": {
+     "compute": "_compute_l10n_gr_edi_need_fields",
+     "type": "Boolean"
+    },
+    "l10n_gr_edi_need_payment_method": {
+     "compute": "_compute_l10n_gr_edi_need_fields",
+     "type": "Boolean"
+    },
+    "l10n_gr_edi_payment_method": {
+     "compute": "_compute_l10n_gr_edi_payment_method",
+     "selection": [
+      [
+       "1",
+       "1 - Domestic Payments Account Number"
+      ],
+      [
+       "2",
+       "2 - Foreign Payments Account Number"
+      ],
+      [
+       "3",
+       "3 - Cash"
+      ],
+      [
+       "4",
+       "4 - Check"
+      ],
+      [
+       "5",
+       "5 - On credit"
+      ],
+      [
+       "6",
+       "6 - Web Banking"
+      ],
+      [
+       "7",
+       "7 - POS / e-POS"
+      ]
+     ],
+     "store": true,
+     "string": "Payment Method",
+     "type": "Selection"
+    },
+    "l10n_gr_edi_state": {
+     "compute": "_compute_from_l10n_gr_edi_document_ids",
+     "selection": [
+      [
+       "invoice_sent",
+       "Invoice sent"
+      ],
+      [
+       "bill_fetched",
+       "Expense classification ready to send"
+      ],
+      [
+       "bill_sent",
+       "Expense classification sent"
+      ]
+     ],
+     "store": true,
+     "string": "myDATA Status",
+     "tracking": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_document_ids')"
+     ],
+     "lines": 14,
+     "name": "_compute_from_l10n_gr_edi_document_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_state')"
+     ],
+     "lines": 7,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code', 'state')"
+     ],
+     "lines": 8,
+     "name": "_compute_l10n_gr_edi_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'l10n_gr_edi_state')"
+     ],
+     "lines": 19,
+     "name": "_compute_l10n_gr_edi_enable_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_gr_edi_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_type')"
+     ],
+     "lines": 8,
+     "name": "_compute_l10n_gr_edi_available_inv_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('fiscal_position_id', 'l10n_gr_edi_available_inv_type')"
+     ],
+     "lines": 23,
+     "name": "_compute_l10n_gr_edi_inv_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_inv_type')"
+     ],
+     "lines": 7,
+     "name": "_compute_l10n_gr_edi_need_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_l10n_gr_edi_create_error_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_l10n_gr_edi_create_sent_document"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_l10n_gr_edi_generate_xml_content"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_l10n_gr_edi_eligible_for_mydata"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_name_invoice_report"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_l10n_gr_edi_get_extra_invoice_report_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 61,
+     "name": "_l10n_gr_edi_add_address_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_l10n_gr_edi_add_payment_method_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 30,
+     "name": "_l10n_gr_edi_common_base_line_details_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 52,
+     "name": "_l10n_gr_edi_add_sum_classification_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_l10n_gr_edi_get_invoices_xml_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_l10n_gr_edi_get_expense_classification_xml_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 99,
+     "name": "_l10n_gr_edi_get_pre_error_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_l10n_gr_edi_get_pre_error_string"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 36,
+     "name": "_l10n_gr_edi_handle_send_result"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_l10n_gr_edi_send_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_l10n_gr_edi_send_expense_classification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "l10n_gr_edi_try_send_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "l10n_gr_edi_try_send_expense_classification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_gr_edi_try_send_batch"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_auto_init": [],
+    "_get_name_invoice_report": []
+   },
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_available_cls_category": {
+     "compute": "_compute_l10n_gr_edi_available_cls_category",
+     "type": "Char"
+    },
+    "l10n_gr_edi_available_cls_type": {
+     "compute": "_compute_l10n_gr_edi_available_cls_type",
+     "type": "Char"
+    },
+    "l10n_gr_edi_available_cls_vat": {
+     "compute": "_compute_l10n_gr_edi_available_cls_type",
+     "type": "Char"
+    },
+    "l10n_gr_edi_cls_category": {
+     "compute": "_compute_l10n_gr_edi_cls_category",
+     "readonly": false,
+     "selection": [
+      [
+       "category1_1",
+       "1.1 - Commodity Sale Income"
+      ],
+      [
+       "category1_2",
+       "1.2 - Product Sale Income"
+      ],
+      [
+       "category1_3",
+       "1.3 - Provision of Services Income"
+      ],
+      [
+       "category1_4",
+       "1.4 - Sale of Fixed Assets Income"
+      ],
+      [
+       "category1_5",
+       "1.5 - Other Income/Profits"
+      ],
+      [
+       "category1_6",
+       "1.6 - Self-Deliveries/Self-Supplies"
+      ],
+      [
+       "category1_7",
+       "1.7 - Income on behalf of Third Parties"
+      ],
+      [
+       "category1_8",
+       "1.8 - Past fiscal years income"
+      ],
+      [
+       "category1_9",
+       "1.9 - Future fiscal years income"
+      ],
+      [
+       "category1_10",
+       "1.10 - Other Income Adjustment/Regularisation Entries"
+      ],
+      [
+       "category1_95",
+       "1.95 - Other Income-related Information"
+      ],
+      [
+       "category2_1",
+       "2.1 - Commodity Purchases"
+      ],
+      [
+       "category2_2",
+       "2.2 - Raw and Adjuvant Material Purchases"
+      ],
+      [
+       "category2_3",
+       "2.3 - Services Receipt"
+      ],
+      [
+       "category2_4",
+       "2.4 - General Expenses Subject to VAT Deduction"
+      ],
+      [
+       "category2_5",
+       "2.5 - General Expenses Not Subject to VAT Deduction"
+      ],
+      [
+       "category2_6",
+       "2.6 - Personnel Fees and Benefits"
+      ],
+      [
+       "category2_7",
+       "2.7 - Fixed Asset Purchases"
+      ],
+      [
+       "category2_8",
+       "2.8 - Fixed Asset Amortisations"
+      ],
+      [
+       "category2_9",
+       "2.9 - Expenses on behalf of Third Parties"
+      ],
+      [
+       "category2_10",
+       "2.10 - Past fiscal years expenses"
+      ],
+      [
+       "category2_11",
+       "2.11 - Future fiscal years expenses"
+      ],
+      [
+       "category2_12",
+       "2.12 - Other Expense Adjustment/Regularisation Entries"
+      ],
+      [
+       "category2_13",
+       "2.13 - Stock at Period Start"
+      ],
+      [
+       "category2_14",
+       "2.14 - Stock at Period End"
+      ],
+      [
+       "category2_95",
+       "2.95 - Other Expense-related Information"
+      ]
+     ],
+     "store": true,
+     "string": "myDATA Category",
+     "type": "Selection"
+    },
+    "l10n_gr_edi_cls_type": {
+     "compute": "_compute_l10n_gr_edi_cls_type",
+     "readonly": false,
+     "selection": [
+      [
+       "E3_106",
+       "E3_106 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Commodities"
+      ],
+      [
+       "E3_205",
+       "E3_205 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Raw and other materials"
+      ],
+      [
+       "E3_210",
+       "E3_210 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Products and production in progress"
+      ],
+      [
+       "E3_305",
+       "E3_305 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Raw and other materials"
+      ],
+      [
+       "E3_310",
+       "E3_310 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Products and production in progress"
+      ],
+      [
+       "E3_318",
+       "E3_318 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Production expenses"
+      ],
+      [
+       "E3_561_001",
+       "E3_561_001 - Wholesale Sales of Goods and Services \u2013 for Traders"
+      ],
+      [
+       "E3_561_002",
+       "E3_561_002 - Wholesale Sales of Goods and Services pursuant to article 39a paragraph 5 of the VAT Code (Law 2859/2000)"
+      ],
+      [
+       "E3_561_003",
+       "E3_561_003 - Retail Sales of Goods and Services \u2013 Private Clientele"
+      ],
+      [
+       "E3_561_004",
+       "E3_561_004 - Retail Sales of Goods and Services pursuant to article 39a paragraph 5 of the VAT Code (Law 2859/2000)"
+      ],
+      [
+       "E3_561_005",
+       "E3_561_005 - Intra-Community Foreign Sales of Goods and Services"
+      ],
+      [
+       "E3_561_006",
+       "E3_561_006 - Third Country Foreign Sales of Goods and Services"
+      ],
+      [
+       "E3_561_007",
+       "E3_561_007 - Other Sales of Goods and Services"
+      ],
+      [
+       "E3_562",
+       "E3_562 - Other Ordinary Income"
+      ],
+      [
+       "E3_563",
+       "E3_563 - Credit Interest and Related Income"
+      ],
+      [
+       "E3_564",
+       "E3_564 - Credit Exchange Differences"
+      ],
+      [
+       "E3_565",
+       "E3_565 - Income from Participations"
+      ],
+      [
+       "E3_566",
+       "E3_566 - Profits from Disposing Non-Current Assets"
+      ],
+      [
+       "E3_567",
+       "E3_567 - Profits from the Reversal of Provisions and Impairments"
+      ],
+      [
+       "E3_568",
+       "E3_568 - Profits from Measurement at Fair Value"
+      ],
+      [
+       "E3_570",
+       "E3_570 - Extraordinary income and profits"
+      ],
+      [
+       "E3_595",
+       "E3_595 - Self-Production Expenses"
+      ],
+      [
+       "E3_596",
+       "E3_596 - Subsidies - Grants"
+      ],
+      [
+       "E3_597",
+       "E3_597 - Subsidies \u2013 Grants for Investment Purposes \u2013 Expense Coverage"
+      ],
+      [
+       "E3_880_001",
+       "E3_880_001 - Wholesale Sales of Fixed Assets"
+      ],
+      [
+       "E3_880_002",
+       "E3_880_002 - Retail Sales of Fixed Assets"
+      ],
+      [
+       "E3_880_003",
+       "E3_880_003 - Intra-Community Foreign Sales of Fixed Assets"
+      ],
+      [
+       "E3_880_004",
+       "E3_880_004 - Third Country Foreign Sales of Fixed Assets"
+      ],
+      [
+       "E3_881_001",
+       "E3_881_001 - Wholesale Sales on behalf of Third Parties"
+      ],
+      [
+       "E3_881_002",
+       "E3_881_002 - Retail Sales on behalf of Third Parties"
+      ],
+      [
+       "E3_881_003",
+       "E3_881_003 - Intra-Community Foreign Sales on behalf of Third Parties"
+      ],
+      [
+       "E3_881_004",
+       "E3_881_004 - Third Country Foreign Sales on behalf of Third Parties"
+      ],
+      [
+       "E3_598_001",
+       "E3_598_001 - Sales of goods belonging to excise duty"
+      ],
+      [
+       "E3_598_003",
+       "E3_598_003 - Sales on behalf of farmers through an agricultural cooperative e.t.c."
+      ],
+      [
+       "E3_101",
+       "E3_101 - Commodities at Period Start"
+      ],
+      [
+       "E3_102_001",
+       "E3_102_001 - Fiscal Year Commodity Purchases (net amount)/Wholesale"
+      ],
+      [
+       "E3_102_002",
+       "E3_102_002 - Fiscal Year Commodity Purchases (net amount)/Retail"
+      ],
+      [
+       "E3_102_003",
+       "E3_102_003 - Fiscal Year Commodity Purchases (net amount)/Goods under article 39a paragraph 5 of the VAT Code (Law 2859/2000)"
+      ],
+      [
+       "E3_102_004",
+       "E3_102_004 - Fiscal Year Commodity Purchases (net amount)/Foreign, Intra-Community"
+      ],
+      [
+       "E3_102_005",
+       "E3_102_005 - Fiscal Year Commodity Purchases (net amount)/Foreign, Third Countries"
+      ],
+      [
+       "E3_102_006",
+       "E3_102_006 - Fiscal Year Commodity Purchases (net amount)/Others"
+      ],
+      [
+       "E3_104",
+       "E3_104 - Commodities at Period End"
+      ],
+      [
+       "E3_201",
+       "E3_201 - Raw and Other Materials at Period Start/Production"
+      ],
+      [
+       "E3_202_001",
+       "E3_202_001 - Fiscal Year Raw and Other Material Purchases (net amount)/Wholesale"
+      ],
+      [
+       "E3_202_002",
+       "E3_202_002 - Fiscal Year Raw and Other Material Purchases (net amount)/Retail"
+      ],
+      [
+       "E3_202_003",
+       "E3_202_003 - Fiscal Year Raw and Other Material Purchases (net amount)/ Foreign, Intra-Community"
+      ],
+      [
+       "E3_202_004",
+       "E3_202_004 - Fiscal Year Raw and Other Material Purchases (net amount)/ Foreign, Third Countries"
+      ],
+      [
+       "E3_202_005",
+       "E3_202_005 - Fiscal Year Raw and Other Material Purchases (net amount)/Others"
+      ],
+      [
+       "E3_204",
+       "E3_204 - Raw and Other Material Stock at Period End/Production"
+      ],
+      [
+       "E3_207",
+       "E3_207 - Products and Production in Progress at Period Start/Production"
+      ],
+      [
+       "E3_209",
+       "E3_209 - Products and Production in Progress at Period End/Production"
+      ],
+      [
+       "E3_301",
+       "E3_301 - Raw and Other Material at Period Start/Agricultural"
+      ],
+      [
+       "E3_302_001",
+       "E3_302_001 - Fiscal Year Raw and Other Material Purchases (net amount)/Wholesale"
+      ],
+      [
+       "E3_302_002",
+       "E3_302_002 - Fiscal Year Raw and Other Material Purchases (net amount)/Retail"
+      ],
+      [
+       "E3_302_003",
+       "E3_302_003 - Fiscal Year Raw and Other Material Purchases (net amount)/Foreign, Intra-Community"
+      ],
+      [
+       "E3_302_004",
+       "E3_302_004 - Fiscal Year Raw and Other Material Purchases (net amount)/Foreign, Third Countries"
+      ],
+      [
+       "E3_302_005",
+       "E3_302_005 - Fiscal Year Raw and Other Material Purchases (net amount)/Others"
+      ],
+      [
+       "E3_304",
+       "E3_304 - Raw and Other Material Stock at Period End/Agricultural"
+      ],
+      [
+       "E3_307",
+       "E3_307 - Products and Production in Progress at Period Start/ Agricultural"
+      ],
+      [
+       "E3_309",
+       "E3_309 - Products and Production in Progress at Period End/ Agricultural"
+      ],
+      [
+       "E3_312",
+       "E3_312 - Stock at Period Start (Animals-Plants)"
+      ],
+      [
+       "E3_313_001",
+       "E3_313_001 - Animal-Plant Purchases (net amount)/Wholesale"
+      ],
+      [
+       "E3_313_002",
+       "E3_313_002 - Animal-Plant Purchases (net amount)/Retail"
+      ],
+      [
+       "E3_313_003",
+       "E3_313_003 - Animal-Plant Purchases (net amount)/ Foreign, Intra-Community"
+      ],
+      [
+       "E3_313_004",
+       "E3_313_004 - Animal-Plant Purchases (net amount)/ Foreign, Third Countries"
+      ],
+      [
+       "E3_313_005",
+       "E3_313_005 - Animal-Plant Purchases/Others"
+      ],
+      [
+       "E3_315",
+       "E3_315 - Stock at Period End (Animals-Plants)/Agricultural"
+      ],
+      [
+       "E3_581_001",
+       "E3_581_001 - Employee Benefits/Gross Earnings"
+      ],
+      [
+       "E3_581_002",
+       "E3_581_002 - Employee Benefits/Employer Contributions"
+      ],
+      [
+       "E3_581_003",
+       "E3_581_003 - Employee Benefits/Other Benefits"
+      ],
+      [
+       "E3_582",
+       "E3_582 - Asset Measurement Damages"
+      ],
+      [
+       "E3_583",
+       "E3_583 - Debit Exchange Differences"
+      ],
+      [
+       "E3_584",
+       "E3_584 - Damages from Disposing-Withdrawing Non-Current Assets"
+      ],
+      [
+       "E3_585_001",
+       "E3_585_001 - Foreign/Domestic Management Fees"
+      ],
+      [
+       "E3_585_002",
+       "E3_585_002 - Expenditures from Linked Enterprises"
+      ],
+      [
+       "E3_585_003",
+       "E3_585_003 - Expenditures from Non-Cooperative States or Privileged Tax Regimes"
+      ],
+      [
+       "E3_585_004",
+       "E3_585_004 - Expenditures for Information Day-Events"
+      ],
+      [
+       "E3_585_005",
+       "E3_585_005 - Reception and Hospitality Expenses"
+      ],
+      [
+       "E3_585_006",
+       "E3_585_006 - Travel expenses"
+      ],
+      [
+       "E3_585_007",
+       "E3_585_007 - Self-Employed Social Security Contributions"
+      ],
+      [
+       "E3_585_008",
+       "E3_585_008 - Commission Agent Expenses and Fees on behalf of Farmers"
+      ],
+      [
+       "E3_585_009",
+       "E3_585_009 - Other Fees for Domestic Services"
+      ],
+      [
+       "E3_585_010",
+       "E3_585_010 - Other Fees for Foreign Services"
+      ],
+      [
+       "E3_585_011",
+       "E3_585_011 - Energy"
+      ],
+      [
+       "E3_585_012",
+       "E3_585_012 - Water"
+      ],
+      [
+       "E3_585_013",
+       "E3_585_013 - Telecommunications"
+      ],
+      [
+       "E3_585_014",
+       "E3_585_014 - Rents"
+      ],
+      [
+       "E3_585_015",
+       "E3_585_015 - Advertisement and promotion"
+      ],
+      [
+       "E3_585_016",
+       "E3_585_016 - Other expenses"
+      ],
+      [
+       "E3_586",
+       "E3_586 - Debit interests and related expenses"
+      ],
+      [
+       "E3_587",
+       "E3_587 - Amortisations"
+      ],
+      [
+       "E3_588",
+       "E3_588 - Extraordinary expenses, damages and fines"
+      ],
+      [
+       "E3_589",
+       "E3_589 - Provisions (except for Personnel Provisions)"
+      ],
+      [
+       "E3_882_001",
+       "E3_882_001 - Fiscal Year Tangible Asset Purchases/Wholesale"
+      ],
+      [
+       "E3_882_002",
+       "E3_882_002 - Fiscal Year Tangible Asset Purchases/Retail"
+      ],
+      [
+       "E3_882_003",
+       "E3_882_003 - Fiscal Year Tangible Asset Purchases/ Intra-Community Foreign"
+      ],
+      [
+       "E3_882_004",
+       "E3_882_004 - Fiscal Year Tangible Asset Purchases/ Third Country Foreign"
+      ],
+      [
+       "E3_883_001",
+       "E3_883_001 - Fiscal Year Intangible Asset Purchases/Wholesale"
+      ],
+      [
+       "E3_883_002",
+       "E3_883_002 - Fiscal Year Intangible Asset Purchases/Retail"
+      ],
+      [
+       "E3_883_003",
+       "E3_883_003 - Fiscal Year Intangible Asset Purchases/ Intra-Community Foreign"
+      ],
+      [
+       "E3_883_004",
+       "E3_883_004 - Fiscal Year Intangible Asset Purchases/ Third Country Foreign"
+      ],
+      [
+       "E3_103",
+       "E3_103 - Impairment of goods"
+      ],
+      [
+       "E3_203",
+       "E3_203 - Impairment of raw materials and supplies"
+      ],
+      [
+       "E3_303",
+       "E3_303 - Impairment of raw materials and supplies"
+      ],
+      [
+       "E3_208",
+       "E3_208 - Impairment of products and production in progress"
+      ],
+      [
+       "E3_308",
+       "E3_308 - Impairment of products and production in progress"
+      ],
+      [
+       "E3_314",
+       "E3_314 - Impairment of animals-plants - goods"
+      ],
+      [
+       "XE3_106",
+       "E3_106 - Own production of fixed assets \u2013 Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_205",
+       "E3_205 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_305",
+       "E3_305 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_210",
+       "E3_210 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_310",
+       "E3_310 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_318",
+       "E3_318 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "E3_598_002",
+       "E3_598_002 - Purchases of goods falling into excise duty"
+      ]
+     ],
+     "store": true,
+     "string": "myDATA Type",
+     "type": "Selection"
+    },
+    "l10n_gr_edi_cls_vat": {
+     "compute": "_compute_l10n_gr_edi_cls_vat",
+     "readonly": false,
+     "selection": [
+      [
+       "VAT_361",
+       "VAT_361 - Domestic Purchases & Expenditures"
+      ],
+      [
+       "VAT_362",
+       "VAT_362 - Purchases & Imports of Investment Goods (Fixed Assets)"
+      ],
+      [
+       "VAT_363",
+       "VAT_363 - Other Imports except for Investment Goods (Fixed Assets)"
+      ],
+      [
+       "VAT_364",
+       "VAT_364 - Intra-Community Goods Acquisitions"
+      ],
+      [
+       "VAT_365",
+       "VAT_365 - Intra-Community Services Receipts per article 14.2.a"
+      ],
+      [
+       "VAT_366",
+       "VAT_366 - Other Recipient Actions"
+      ]
+     ],
+     "store": true,
+     "string": "VAT Classification",
+     "type": "Selection"
+    },
+    "l10n_gr_edi_detail_type": {
+     "compute": "_compute_l10n_gr_edi_detail_type",
+     "readonly": false,
+     "selection": [
+      [
+       "1",
+       "1"
+      ],
+      [
+       "2",
+       "2"
+      ]
+     ],
+     "store": true,
+     "string": "Detail Type",
+     "type": "Selection"
+    },
+    "l10n_gr_edi_need_exemption_category": {
+     "compute": "_compute_l10n_gr_edi_need_exemption_category",
+     "default": false,
+     "type": "Boolean"
+    },
+    "l10n_gr_edi_tax_exemption_category": {
+     "compute": "_compute_l10n_gr_edi_tax_exemption_category",
+     "readonly": false,
+     "selection": [
+      [
+       "1",
+       "1 - Without VAT - article 3 of the VAT code"
+      ],
+      [
+       "2",
+       "2 - Without VAT - article 5 of the VAT code"
+      ],
+      [
+       "3",
+       "3 - Without VAT - article 13 of the VAT code"
+      ],
+      [
+       "4",
+       "4 - Without VAT - article 14 of the VAT code"
+      ],
+      [
+       "5",
+       "5 - Without VAT - article 16 of the VAT code"
+      ],
+      [
+       "6",
+       "6 - Without VAT - article 19 of the VAT code"
+      ],
+      [
+       "7",
+       "7 - Without VAT - article 22 of the VAT code"
+      ],
+      [
+       "8",
+       "8 - Without VAT - article 24 of the VAT code"
+      ],
+      [
+       "9",
+       "9 - Without VAT - article 25 of the VAT code"
+      ],
+      [
+       "10",
+       "10 - Without VAT - article 26 of the VAT code"
+      ],
+      [
+       "11",
+       "11 - Without VAT - article 27 of the VAT code"
+      ],
+      [
+       "12",
+       "12 - Without VAT - article 27 - Seagoing Vessels of the VAT code"
+      ],
+      [
+       "13",
+       "13 - Without VAT - article 27.1.\u03b3 - Seagoing Vessels of the VAT code"
+      ],
+      [
+       "14",
+       "14 - Without VAT - article 28 of the VAT code"
+      ],
+      [
+       "15",
+       "15 - Without VAT - article 39 of the VAT code"
+      ],
+      [
+       "16",
+       "16 - Without VAT - article 39a of the VAT code"
+      ],
+      [
+       "17",
+       "17 - Without VAT - article 40 of the VAT code"
+      ],
+      [
+       "18",
+       "18 - Without VAT - article 41 of the VAT code"
+      ],
+      [
+       "19",
+       "19 - Without VAT - article 47 of the VAT code"
+      ],
+      [
+       "20",
+       "20 - VAT included - article 43 of the VAT code"
+      ],
+      [
+       "21",
+       "21 - VAT included - article 44 of the VAT code"
+      ],
+      [
+       "22",
+       "22 - VAT included - article 45 of the VAT code"
+      ],
+      [
+       "23",
+       "23 - VAT included - article 46 of the VAT code"
+      ],
+      [
+       "24",
+       "24 - Without VAT - article 6 of the VAT code"
+      ],
+      [
+       "25",
+       "25 - Without VAT - \u03a0\u039f\u039b.1029 / 1995"
+      ],
+      [
+       "26",
+       "26 - Without VAT - \u03a0\u039f\u039b.1167 / 2015"
+      ],
+      [
+       "27",
+       "27 - Without VAT \u2013 Other VAT exceptions"
+      ],
+      [
+       "28",
+       "28 - Without VAT - Article 24 (b)(1) of the VAT Code(Tax Free)"
+      ],
+      [
+       "29",
+       "29 - Without VAT - Article 47 b of the VAT Code(OSS non - EU scheme)"
+      ],
+      [
+       "30",
+       "30 - Without VAT - Article 47 c of the VAT Code(OSS EU scheme)"
+      ],
+      [
+       "31",
+       "31 - Excluding VAT - Article 47 d of the VAT Code(IOSS)"
+      ]
+     ],
+     "store": true,
+     "string": "Tax Exemption Category",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_id.l10n_gr_edi_inv_type')"
+     ],
+     "lines": 2,
+     "name": "_compute_l10n_gr_edi_detail_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_id.l10n_gr_edi_inv_type', 'move_id.l10n_gr_edi_correlation_id', 'l10n_gr_edi_detail_type')"
+     ],
+     "lines": 24,
+     "name": "_compute_l10n_gr_edi_available_cls_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_cls_category', 'move_id.l10n_gr_edi_correlation_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_l10n_gr_edi_available_cls_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_l10n_gr_edi_get_preferred_classification_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_id.l10n_gr_edi_inv_type', 'l10n_gr_edi_available_cls_category', 'product_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_l10n_gr_edi_cls_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_id.l10n_gr_edi_inv_type', 'l10n_gr_edi_available_cls_type', 'product_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_l10n_gr_edi_cls_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_available_cls_vat')"
+     ],
+     "lines": 2,
+     "name": "_compute_l10n_gr_edi_cls_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tax_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_gr_edi_need_exemption_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('tax_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_l10n_gr_edi_tax_exemption_category"
+    }
+   ],
+   "name": "account.move.line",
+   "sel_methods": {
+    "_auto_init": []
+   },
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_default_reversal"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_gr_edi_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_call_web_service_before_invoice_pdf_render"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_default_tax_exemption_category": {
+     "selection": [
+      [
+       "1",
+       "1 - Without VAT - article 3 of the VAT code"
+      ],
+      [
+       "2",
+       "2 - Without VAT - article 5 of the VAT code"
+      ],
+      [
+       "3",
+       "3 - Without VAT - article 13 of the VAT code"
+      ],
+      [
+       "4",
+       "4 - Without VAT - article 14 of the VAT code"
+      ],
+      [
+       "5",
+       "5 - Without VAT - article 16 of the VAT code"
+      ],
+      [
+       "6",
+       "6 - Without VAT - article 19 of the VAT code"
+      ],
+      [
+       "7",
+       "7 - Without VAT - article 22 of the VAT code"
+      ],
+      [
+       "8",
+       "8 - Without VAT - article 24 of the VAT code"
+      ],
+      [
+       "9",
+       "9 - Without VAT - article 25 of the VAT code"
+      ],
+      [
+       "10",
+       "10 - Without VAT - article 26 of the VAT code"
+      ],
+      [
+       "11",
+       "11 - Without VAT - article 27 of the VAT code"
+      ],
+      [
+       "12",
+       "12 - Without VAT - article 27 - Seagoing Vessels of the VAT code"
+      ],
+      [
+       "13",
+       "13 - Without VAT - article 27.1.\u03b3 - Seagoing Vessels of the VAT code"
+      ],
+      [
+       "14",
+       "14 - Without VAT - article 28 of the VAT code"
+      ],
+      [
+       "15",
+       "15 - Without VAT - article 39 of the VAT code"
+      ],
+      [
+       "16",
+       "16 - Without VAT - article 39a of the VAT code"
+      ],
+      [
+       "17",
+       "17 - Without VAT - article 40 of the VAT code"
+      ],
+      [
+       "18",
+       "18 - Without VAT - article 41 of the VAT code"
+      ],
+      [
+       "19",
+       "19 - Without VAT - article 47 of the VAT code"
+      ],
+      [
+       "20",
+       "20 - VAT included - article 43 of the VAT code"
+      ],
+      [
+       "21",
+       "21 - VAT included - article 44 of the VAT code"
+      ],
+      [
+       "22",
+       "22 - VAT included - article 45 of the VAT code"
+      ],
+      [
+       "23",
+       "23 - VAT included - article 46 of the VAT code"
+      ],
+      [
+       "24",
+       "24 - Without VAT - article 6 of the VAT code"
+      ],
+      [
+       "25",
+       "25 - Without VAT - \u03a0\u039f\u039b.1029 / 1995"
+      ],
+      [
+       "26",
+       "26 - Without VAT - \u03a0\u039f\u039b.1167 / 2015"
+      ],
+      [
+       "27",
+       "27 - Without VAT \u2013 Other VAT exceptions"
+      ],
+      [
+       "28",
+       "28 - Without VAT - Article 24 (b)(1) of the VAT Code(Tax Free)"
+      ],
+      [
+       "29",
+       "29 - Without VAT - Article 47 b of the VAT Code(OSS non - EU scheme)"
+      ],
+      [
+       "30",
+       "30 - Without VAT - Article 47 c of the VAT Code(OSS EU scheme)"
+      ],
+      [
+       "31",
+       "31 - Excluding VAT - Article 47 d of the VAT Code(IOSS)"
+      ]
+     ],
+     "string": "Default Tax Exemption Category",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_gr_edi.document": {
+   "abstract": false,
+   "description": "Greece document object for tracking all sent XML to myDATA",
+   "extension": false,
+   "fields": {
+    "attachment_id": {
+     "comodel": "ir.attachment",
+     "string": "XML File",
+     "type": "Many2one"
+    },
+    "datetime": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "type": "Datetime"
+    },
+    "message": {
+     "type": "Char"
+    },
+    "move_id": {
+     "comodel": "account.move",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "mydata_cls_mark": {
+     "type": "Char"
+    },
+    "mydata_mark": {
+     "type": "Char"
+    },
+    "mydata_url": {
+     "type": "Char"
+    },
+    "state": {
+     "ondelete": "cascade",
+     "required": true,
+     "selection": [
+      [
+       "invoice_sent",
+       "Invoice sent"
+      ],
+      [
+       "invoice_error",
+       "Invoice send failed"
+      ],
+      [
+       "bill_fetched",
+       "Expense classification ready to send"
+      ],
+      [
+       "bill_sent",
+       "Expense classification sent"
+      ],
+      [
+       "bill_error",
+       "Expense classification send failed"
+      ]
+     ],
+     "string": "myDATA Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_download"
+    }
+   ],
+   "name": "l10n_gr_edi.document",
+   "order": "datetime DESC, id DESC",
+   "transient": false
+  },
+  "l10n_gr_edi.preferred_classification": {
+   "abstract": false,
+   "description": "Preferred myDATA classification combinations for a particular product",
+   "extension": false,
+   "fields": {
+    "fiscal_position_id": {
+     "comodel": "account.fiscal.position",
+     "type": "Many2one"
+    },
+    "l10n_gr_edi_available_cls_category": {
+     "compute": "_compute_l10n_gr_edi_available_cls_category",
+     "type": "Char"
+    },
+    "l10n_gr_edi_available_cls_type": {
+     "compute": "_compute_l10n_gr_edi_available_cls_type",
+     "type": "Char"
+    },
+    "l10n_gr_edi_available_inv_type": {
+     "default": {
+      "$call": "','.join(CLASSIFICATION_MAP.keys())"
+     },
+     "type": "Char"
+    },
+    "l10n_gr_edi_cls_category": {
+     "selection": [
+      [
+       "category1_1",
+       "1.1 - Commodity Sale Income"
+      ],
+      [
+       "category1_2",
+       "1.2 - Product Sale Income"
+      ],
+      [
+       "category1_3",
+       "1.3 - Provision of Services Income"
+      ],
+      [
+       "category1_4",
+       "1.4 - Sale of Fixed Assets Income"
+      ],
+      [
+       "category1_5",
+       "1.5 - Other Income/Profits"
+      ],
+      [
+       "category1_6",
+       "1.6 - Self-Deliveries/Self-Supplies"
+      ],
+      [
+       "category1_7",
+       "1.7 - Income on behalf of Third Parties"
+      ],
+      [
+       "category1_8",
+       "1.8 - Past fiscal years income"
+      ],
+      [
+       "category1_9",
+       "1.9 - Future fiscal years income"
+      ],
+      [
+       "category1_10",
+       "1.10 - Other Income Adjustment/Regularisation Entries"
+      ],
+      [
+       "category1_95",
+       "1.95 - Other Income-related Information"
+      ],
+      [
+       "category2_1",
+       "2.1 - Commodity Purchases"
+      ],
+      [
+       "category2_2",
+       "2.2 - Raw and Adjuvant Material Purchases"
+      ],
+      [
+       "category2_3",
+       "2.3 - Services Receipt"
+      ],
+      [
+       "category2_4",
+       "2.4 - General Expenses Subject to VAT Deduction"
+      ],
+      [
+       "category2_5",
+       "2.5 - General Expenses Not Subject to VAT Deduction"
+      ],
+      [
+       "category2_6",
+       "2.6 - Personnel Fees and Benefits"
+      ],
+      [
+       "category2_7",
+       "2.7 - Fixed Asset Purchases"
+      ],
+      [
+       "category2_8",
+       "2.8 - Fixed Asset Amortisations"
+      ],
+      [
+       "category2_9",
+       "2.9 - Expenses on behalf of Third Parties"
+      ],
+      [
+       "category2_10",
+       "2.10 - Past fiscal years expenses"
+      ],
+      [
+       "category2_11",
+       "2.11 - Future fiscal years expenses"
+      ],
+      [
+       "category2_12",
+       "2.12 - Other Expense Adjustment/Regularisation Entries"
+      ],
+      [
+       "category2_13",
+       "2.13 - Stock at Period Start"
+      ],
+      [
+       "category2_14",
+       "2.14 - Stock at Period End"
+      ],
+      [
+       "category2_95",
+       "2.95 - Other Expense-related Information"
+      ]
+     ],
+     "string": "myDATA Category",
+     "type": "Selection"
+    },
+    "l10n_gr_edi_cls_type": {
+     "selection": [
+      [
+       "E3_106",
+       "E3_106 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Commodities"
+      ],
+      [
+       "E3_205",
+       "E3_205 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Raw and other materials"
+      ],
+      [
+       "E3_210",
+       "E3_210 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Products and production in progress"
+      ],
+      [
+       "E3_305",
+       "E3_305 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Raw and other materials"
+      ],
+      [
+       "E3_310",
+       "E3_310 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Products and production in progress"
+      ],
+      [
+       "E3_318",
+       "E3_318 - Self-Production of Fixed Assets \u2013 Self-Deliveries \u2013 Destroying inventory/Production expenses"
+      ],
+      [
+       "E3_561_001",
+       "E3_561_001 - Wholesale Sales of Goods and Services \u2013 for Traders"
+      ],
+      [
+       "E3_561_002",
+       "E3_561_002 - Wholesale Sales of Goods and Services pursuant to article 39a paragraph 5 of the VAT Code (Law 2859/2000)"
+      ],
+      [
+       "E3_561_003",
+       "E3_561_003 - Retail Sales of Goods and Services \u2013 Private Clientele"
+      ],
+      [
+       "E3_561_004",
+       "E3_561_004 - Retail Sales of Goods and Services pursuant to article 39a paragraph 5 of the VAT Code (Law 2859/2000)"
+      ],
+      [
+       "E3_561_005",
+       "E3_561_005 - Intra-Community Foreign Sales of Goods and Services"
+      ],
+      [
+       "E3_561_006",
+       "E3_561_006 - Third Country Foreign Sales of Goods and Services"
+      ],
+      [
+       "E3_561_007",
+       "E3_561_007 - Other Sales of Goods and Services"
+      ],
+      [
+       "E3_562",
+       "E3_562 - Other Ordinary Income"
+      ],
+      [
+       "E3_563",
+       "E3_563 - Credit Interest and Related Income"
+      ],
+      [
+       "E3_564",
+       "E3_564 - Credit Exchange Differences"
+      ],
+      [
+       "E3_565",
+       "E3_565 - Income from Participations"
+      ],
+      [
+       "E3_566",
+       "E3_566 - Profits from Disposing Non-Current Assets"
+      ],
+      [
+       "E3_567",
+       "E3_567 - Profits from the Reversal of Provisions and Impairments"
+      ],
+      [
+       "E3_568",
+       "E3_568 - Profits from Measurement at Fair Value"
+      ],
+      [
+       "E3_570",
+       "E3_570 - Extraordinary income and profits"
+      ],
+      [
+       "E3_595",
+       "E3_595 - Self-Production Expenses"
+      ],
+      [
+       "E3_596",
+       "E3_596 - Subsidies - Grants"
+      ],
+      [
+       "E3_597",
+       "E3_597 - Subsidies \u2013 Grants for Investment Purposes \u2013 Expense Coverage"
+      ],
+      [
+       "E3_880_001",
+       "E3_880_001 - Wholesale Sales of Fixed Assets"
+      ],
+      [
+       "E3_880_002",
+       "E3_880_002 - Retail Sales of Fixed Assets"
+      ],
+      [
+       "E3_880_003",
+       "E3_880_003 - Intra-Community Foreign Sales of Fixed Assets"
+      ],
+      [
+       "E3_880_004",
+       "E3_880_004 - Third Country Foreign Sales of Fixed Assets"
+      ],
+      [
+       "E3_881_001",
+       "E3_881_001 - Wholesale Sales on behalf of Third Parties"
+      ],
+      [
+       "E3_881_002",
+       "E3_881_002 - Retail Sales on behalf of Third Parties"
+      ],
+      [
+       "E3_881_003",
+       "E3_881_003 - Intra-Community Foreign Sales on behalf of Third Parties"
+      ],
+      [
+       "E3_881_004",
+       "E3_881_004 - Third Country Foreign Sales on behalf of Third Parties"
+      ],
+      [
+       "E3_598_001",
+       "E3_598_001 - Sales of goods belonging to excise duty"
+      ],
+      [
+       "E3_598_003",
+       "E3_598_003 - Sales on behalf of farmers through an agricultural cooperative e.t.c."
+      ],
+      [
+       "E3_101",
+       "E3_101 - Commodities at Period Start"
+      ],
+      [
+       "E3_102_001",
+       "E3_102_001 - Fiscal Year Commodity Purchases (net amount)/Wholesale"
+      ],
+      [
+       "E3_102_002",
+       "E3_102_002 - Fiscal Year Commodity Purchases (net amount)/Retail"
+      ],
+      [
+       "E3_102_003",
+       "E3_102_003 - Fiscal Year Commodity Purchases (net amount)/Goods under article 39a paragraph 5 of the VAT Code (Law 2859/2000)"
+      ],
+      [
+       "E3_102_004",
+       "E3_102_004 - Fiscal Year Commodity Purchases (net amount)/Foreign, Intra-Community"
+      ],
+      [
+       "E3_102_005",
+       "E3_102_005 - Fiscal Year Commodity Purchases (net amount)/Foreign, Third Countries"
+      ],
+      [
+       "E3_102_006",
+       "E3_102_006 - Fiscal Year Commodity Purchases (net amount)/Others"
+      ],
+      [
+       "E3_104",
+       "E3_104 - Commodities at Period End"
+      ],
+      [
+       "E3_201",
+       "E3_201 - Raw and Other Materials at Period Start/Production"
+      ],
+      [
+       "E3_202_001",
+       "E3_202_001 - Fiscal Year Raw and Other Material Purchases (net amount)/Wholesale"
+      ],
+      [
+       "E3_202_002",
+       "E3_202_002 - Fiscal Year Raw and Other Material Purchases (net amount)/Retail"
+      ],
+      [
+       "E3_202_003",
+       "E3_202_003 - Fiscal Year Raw and Other Material Purchases (net amount)/ Foreign, Intra-Community"
+      ],
+      [
+       "E3_202_004",
+       "E3_202_004 - Fiscal Year Raw and Other Material Purchases (net amount)/ Foreign, Third Countries"
+      ],
+      [
+       "E3_202_005",
+       "E3_202_005 - Fiscal Year Raw and Other Material Purchases (net amount)/Others"
+      ],
+      [
+       "E3_204",
+       "E3_204 - Raw and Other Material Stock at Period End/Production"
+      ],
+      [
+       "E3_207",
+       "E3_207 - Products and Production in Progress at Period Start/Production"
+      ],
+      [
+       "E3_209",
+       "E3_209 - Products and Production in Progress at Period End/Production"
+      ],
+      [
+       "E3_301",
+       "E3_301 - Raw and Other Material at Period Start/Agricultural"
+      ],
+      [
+       "E3_302_001",
+       "E3_302_001 - Fiscal Year Raw and Other Material Purchases (net amount)/Wholesale"
+      ],
+      [
+       "E3_302_002",
+       "E3_302_002 - Fiscal Year Raw and Other Material Purchases (net amount)/Retail"
+      ],
+      [
+       "E3_302_003",
+       "E3_302_003 - Fiscal Year Raw and Other Material Purchases (net amount)/Foreign, Intra-Community"
+      ],
+      [
+       "E3_302_004",
+       "E3_302_004 - Fiscal Year Raw and Other Material Purchases (net amount)/Foreign, Third Countries"
+      ],
+      [
+       "E3_302_005",
+       "E3_302_005 - Fiscal Year Raw and Other Material Purchases (net amount)/Others"
+      ],
+      [
+       "E3_304",
+       "E3_304 - Raw and Other Material Stock at Period End/Agricultural"
+      ],
+      [
+       "E3_307",
+       "E3_307 - Products and Production in Progress at Period Start/ Agricultural"
+      ],
+      [
+       "E3_309",
+       "E3_309 - Products and Production in Progress at Period End/ Agricultural"
+      ],
+      [
+       "E3_312",
+       "E3_312 - Stock at Period Start (Animals-Plants)"
+      ],
+      [
+       "E3_313_001",
+       "E3_313_001 - Animal-Plant Purchases (net amount)/Wholesale"
+      ],
+      [
+       "E3_313_002",
+       "E3_313_002 - Animal-Plant Purchases (net amount)/Retail"
+      ],
+      [
+       "E3_313_003",
+       "E3_313_003 - Animal-Plant Purchases (net amount)/ Foreign, Intra-Community"
+      ],
+      [
+       "E3_313_004",
+       "E3_313_004 - Animal-Plant Purchases (net amount)/ Foreign, Third Countries"
+      ],
+      [
+       "E3_313_005",
+       "E3_313_005 - Animal-Plant Purchases/Others"
+      ],
+      [
+       "E3_315",
+       "E3_315 - Stock at Period End (Animals-Plants)/Agricultural"
+      ],
+      [
+       "E3_581_001",
+       "E3_581_001 - Employee Benefits/Gross Earnings"
+      ],
+      [
+       "E3_581_002",
+       "E3_581_002 - Employee Benefits/Employer Contributions"
+      ],
+      [
+       "E3_581_003",
+       "E3_581_003 - Employee Benefits/Other Benefits"
+      ],
+      [
+       "E3_582",
+       "E3_582 - Asset Measurement Damages"
+      ],
+      [
+       "E3_583",
+       "E3_583 - Debit Exchange Differences"
+      ],
+      [
+       "E3_584",
+       "E3_584 - Damages from Disposing-Withdrawing Non-Current Assets"
+      ],
+      [
+       "E3_585_001",
+       "E3_585_001 - Foreign/Domestic Management Fees"
+      ],
+      [
+       "E3_585_002",
+       "E3_585_002 - Expenditures from Linked Enterprises"
+      ],
+      [
+       "E3_585_003",
+       "E3_585_003 - Expenditures from Non-Cooperative States or Privileged Tax Regimes"
+      ],
+      [
+       "E3_585_004",
+       "E3_585_004 - Expenditures for Information Day-Events"
+      ],
+      [
+       "E3_585_005",
+       "E3_585_005 - Reception and Hospitality Expenses"
+      ],
+      [
+       "E3_585_006",
+       "E3_585_006 - Travel expenses"
+      ],
+      [
+       "E3_585_007",
+       "E3_585_007 - Self-Employed Social Security Contributions"
+      ],
+      [
+       "E3_585_008",
+       "E3_585_008 - Commission Agent Expenses and Fees on behalf of Farmers"
+      ],
+      [
+       "E3_585_009",
+       "E3_585_009 - Other Fees for Domestic Services"
+      ],
+      [
+       "E3_585_010",
+       "E3_585_010 - Other Fees for Foreign Services"
+      ],
+      [
+       "E3_585_011",
+       "E3_585_011 - Energy"
+      ],
+      [
+       "E3_585_012",
+       "E3_585_012 - Water"
+      ],
+      [
+       "E3_585_013",
+       "E3_585_013 - Telecommunications"
+      ],
+      [
+       "E3_585_014",
+       "E3_585_014 - Rents"
+      ],
+      [
+       "E3_585_015",
+       "E3_585_015 - Advertisement and promotion"
+      ],
+      [
+       "E3_585_016",
+       "E3_585_016 - Other expenses"
+      ],
+      [
+       "E3_586",
+       "E3_586 - Debit interests and related expenses"
+      ],
+      [
+       "E3_587",
+       "E3_587 - Amortisations"
+      ],
+      [
+       "E3_588",
+       "E3_588 - Extraordinary expenses, damages and fines"
+      ],
+      [
+       "E3_589",
+       "E3_589 - Provisions (except for Personnel Provisions)"
+      ],
+      [
+       "E3_882_001",
+       "E3_882_001 - Fiscal Year Tangible Asset Purchases/Wholesale"
+      ],
+      [
+       "E3_882_002",
+       "E3_882_002 - Fiscal Year Tangible Asset Purchases/Retail"
+      ],
+      [
+       "E3_882_003",
+       "E3_882_003 - Fiscal Year Tangible Asset Purchases/ Intra-Community Foreign"
+      ],
+      [
+       "E3_882_004",
+       "E3_882_004 - Fiscal Year Tangible Asset Purchases/ Third Country Foreign"
+      ],
+      [
+       "E3_883_001",
+       "E3_883_001 - Fiscal Year Intangible Asset Purchases/Wholesale"
+      ],
+      [
+       "E3_883_002",
+       "E3_883_002 - Fiscal Year Intangible Asset Purchases/Retail"
+      ],
+      [
+       "E3_883_003",
+       "E3_883_003 - Fiscal Year Intangible Asset Purchases/ Intra-Community Foreign"
+      ],
+      [
+       "E3_883_004",
+       "E3_883_004 - Fiscal Year Intangible Asset Purchases/ Third Country Foreign"
+      ],
+      [
+       "E3_103",
+       "E3_103 - Impairment of goods"
+      ],
+      [
+       "E3_203",
+       "E3_203 - Impairment of raw materials and supplies"
+      ],
+      [
+       "E3_303",
+       "E3_303 - Impairment of raw materials and supplies"
+      ],
+      [
+       "E3_208",
+       "E3_208 - Impairment of products and production in progress"
+      ],
+      [
+       "E3_308",
+       "E3_308 - Impairment of products and production in progress"
+      ],
+      [
+       "E3_314",
+       "E3_314 - Impairment of animals-plants - goods"
+      ],
+      [
+       "XE3_106",
+       "E3_106 - Own production of fixed assets \u2013 Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_205",
+       "E3_205 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_305",
+       "E3_305 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_210",
+       "E3_210 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_310",
+       "E3_310 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "XE3_318",
+       "E3_318 - Own production of fixed assets - Self Deliveries \u2013 Inventory Disasters"
+      ],
+      [
+       "E3_598_002",
+       "E3_598_002 - Purchases of goods falling into excise duty"
+      ]
+     ],
+     "string": "myDATA Type",
+     "type": "Selection"
+    },
+    "l10n_gr_edi_inv_type": {
+     "selection": [
+      [
+       "1.1",
+       "1.1 - Sales Invoice"
+      ],
+      [
+       "1.2",
+       "1.2 - Sales Invoice/Intra-community Supplies"
+      ],
+      [
+       "1.3",
+       "1.3 - Sales Invoice/Third Country Supplies"
+      ],
+      [
+       "1.4",
+       "1.4 - Sales Invoice/Sale on Behalf of Third Parties"
+      ],
+      [
+       "1.5",
+       "1.5 - Sales Invoice/Clearance of Sales on Behalf of Third Parties \u2013 Fees from Sales on Behalf of Third Parties"
+      ],
+      [
+       "1.6",
+       "1.6 - Sales Invoice/Supplemental Accounting Source Document"
+      ],
+      [
+       "2.1",
+       "2.1 - Service Rendered Invoice"
+      ],
+      [
+       "2.2",
+       "2.2 - Intra-community Service Rendered Invoice"
+      ],
+      [
+       "2.3",
+       "2.3 - Third Country Service Rendered Invoice"
+      ],
+      [
+       "2.4",
+       "2.4 - Service Rendered Invoice/Supplemental Accounting Source Document"
+      ],
+      [
+       "3.1",
+       "3.1 - Proof of Expenditure (non-liable Issuer)"
+      ],
+      [
+       "3.2",
+       "3.2 - Proof of Expenditure (denial of issuance by liable Issuer)"
+      ],
+      [
+       "5.1",
+       "5.1 - Credit Invoice/Associated"
+      ],
+      [
+       "5.2",
+       "5.2 - Credit Invoice/Non-Associated"
+      ],
+      [
+       "6.1",
+       "6.1 - Self-Delivery Record"
+      ],
+      [
+       "6.2",
+       "6.2 - Self-Supply Record"
+      ],
+      [
+       "7.1",
+       "7.1 - Contract \u2013 Income"
+      ],
+      [
+       "8.1",
+       "8.1 - Rents \u2013 Income"
+      ],
+      [
+       "8.2",
+       "8.2 - Special Record \u2013 Accommodation Tax Collection/Payment Receipt"
+      ],
+      [
+       "11.1",
+       "11.1 - Retail Sales Receipt"
+      ],
+      [
+       "11.2",
+       "11.2 - Service Rendered Receipt"
+      ],
+      [
+       "11.3",
+       "11.3 - Simplified Invoice"
+      ],
+      [
+       "11.4",
+       "11.4 - Retail Sales Credit Note"
+      ],
+      [
+       "11.5",
+       "11.5 - Retail Sales Receipt on Behalf of Third Parties"
+      ],
+      [
+       "13.1",
+       "13.1 - Expenses \u2013 Domestic/Foreign Retail Transaction Purchases"
+      ],
+      [
+       "13.2",
+       "13.2 - Domestic/Foreign Retail Transaction Provision"
+      ],
+      [
+       "13.3",
+       "13.3 - Shared Utility Bills"
+      ],
+      [
+       "13.4",
+       "13.4 - Subscriptions"
+      ],
+      [
+       "13.30",
+       "13.30 - Self-Declared Entity Accounting Source Documents (Dynamic)"
+      ],
+      [
+       "13.31",
+       "13.31 - Domestic/Foreign Retail Sales Credit Note"
+      ],
+      [
+       "14.1",
+       "14.1 - Invoice/Intra-community Acquisitions"
+      ],
+      [
+       "14.2",
+       "14.2 - Invoice/Third Country Acquisitions"
+      ],
+      [
+       "14.3",
+       "14.3 - Invoice/Intra-community Services Receipt"
+      ],
+      [
+       "14.4",
+       "14.4 - Invoice/Third Country Services Receipt"
+      ],
+      [
+       "14.5",
+       "14.5 - EFKA"
+      ],
+      [
+       "14.30",
+       "14.30 - Self-Declared Entity Accounting Source Documents (Dynamic)"
+      ],
+      [
+       "14.31",
+       "14.31 - Domestic/Foreign Credit Note"
+      ],
+      [
+       "15.1",
+       "15.1 - Contract-Expense"
+      ],
+      [
+       "16.1",
+       "16.1 - Rent-Expense"
+      ],
+      [
+       "17.1",
+       "17.1 - Payroll"
+      ],
+      [
+       "17.2",
+       "17.2 - Amortisations"
+      ],
+      [
+       "17.3",
+       "17.3 - Other Income Adjustment/Regularisation Entries \u2013 Accounting Base"
+      ],
+      [
+       "17.4",
+       "17.4 - Other Income Adjustment/Regularisation Entries \u2013 Tax Base"
+      ],
+      [
+       "17.5",
+       "17.5 - Other Expense Adjustment/Regularisation Entries \u2013 Accounting Base"
+      ],
+      [
+       "17.6",
+       "17.6 - Other Expense Adjustment/Regularisation Entries \u2013 Tax Base"
+      ]
+     ],
+     "string": "Invoice Type",
+     "type": "Selection"
+    },
+    "priority": {
+     "default": 1,
+     "string": "Priority",
+     "type": "Integer"
+    },
+    "product_template_id": {
+     "comodel": "product.template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_gr_edi_available_cls_category')"
+     ],
+     "lines": 3,
+     "name": "_onchange_reset_cls_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_gr_edi_available_cls_type')"
+     ],
+     "lines": 3,
+     "name": "_onchange_reset_cls_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_inv_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_gr_edi_available_cls_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_gr_edi_inv_type', 'l10n_gr_edi_cls_category')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_gr_edi_available_cls_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_get_l10n_gr_edi_available_cls_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_get_l10n_gr_edi_available_cls_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_get_l10n_gr_edi_available_cls_vat"
+    }
+   ],
+   "name": "l10n_gr_edi.preferred_classification",
+   "order": "priority DESC, id DESC",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_preferred_classification_ids": {
+     "comodel": "l10n_gr_edi.preferred_classification",
+     "inverse_name": "product_template_id",
+     "string": "Preferred myDATA Classification",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_aade_id": {
+     "string": "AADE User ID",
+     "type": "Char"
+    },
+    "l10n_gr_edi_aade_key": {
+     "string": "AADE Subscription Key",
+     "type": "Char"
+    },
+    "l10n_gr_edi_branch_number": {
+     "readonly": false,
+     "related": "partner_id.l10n_gr_edi_branch_number",
+     "type": "Integer"
+    },
+    "l10n_gr_edi_test_env": {
+     "default": true,
+     "help": "Enable test environments with credentials obtained from https://mydata-dev-register.azurewebsites.net/",
+     "string": "Greece Test Environment",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 85,
+     "name": "_cron_l10n_gr_edi_fetch_invoices"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_aade_id": {
+     "readonly": false,
+     "related": "company_id.l10n_gr_edi_aade_id",
+     "type": "Char"
+    },
+    "l10n_gr_edi_aade_key": {
+     "readonly": false,
+     "related": "company_id.l10n_gr_edi_aade_key",
+     "type": "Char"
+    },
+    "l10n_gr_edi_branch_number": {
+     "readonly": false,
+     "related": "company_id.l10n_gr_edi_branch_number",
+     "type": "Integer"
+    },
+    "l10n_gr_edi_test_env": {
+     "readonly": false,
+     "related": "company_id.l10n_gr_edi_test_env",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_gr_edi_branch_number": {
+     "compute": "_compute_l10n_gr_edi_branch_number",
+     "help": "Branch number in the Tax Registry",
+     "readonly": false,
+     "store": true,
+     "string": "Branch Number",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_gr_edi_branch_number"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_auto_init": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_gr_edi",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_gr_edi",
+ "stats": {
+  "fields": 53,
+  "methods": 55,
+  "models": 12,
+  "py_lines": 2344
+ },
+ "summary": "Connect to myDATA API implementation for Greece",
+ "title": "Greece - myDATA",
+ "version": "1.0"
+}

@@ -1,0 +1,639 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Point Of Sale",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/default_barcode_patterns.xml",
+  "data/gift_card_data.xml",
+  "views/loyalty_card_views.xml",
+  "views/loyalty_mail_views.xml",
+  "views/pos_loyalty_menu_views.xml",
+  "views/res_config_settings_view.xml",
+  "views/loyalty_program_views.xml",
+  "views/res_partner_views.xml",
+  "data/pos_loyalty_demo.xml"
+ ],
+ "depends": [
+  "loyalty",
+  "point_of_sale"
+ ],
+ "models": {
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_discount_lines"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "barcode.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "type": {
+     "ondelete": {
+      "coupon": "set default"
+     },
+     "selection_add": [
+      [
+       "coupon",
+       "Coupon"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "barcode.rule",
+   "transient": false
+  },
+  "loyalty.card": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "source_pos_order_id": {
+     "comodel": "pos.order",
+     "help": "PoS order where this coupon was generated.",
+     "string": "PoS Order Reference",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_has_source_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_default_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_mail_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_signature"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_use_count"
+    }
+   ],
+   "name": "loyalty.card",
+   "sel_methods": {
+    "_get_default_template": [],
+    "_load_pos_data_domain": [
+     [
+      "partner_id",
+      "in"
+     ],
+     [
+      "program_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "loyalty.mail": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_report_print_id": {
+     "comodel": "ir.actions.report",
+     "domain": [
+      [
+       "model",
+       "=",
+       "loyalty.card"
+      ]
+     ],
+     "help": "The report action to be executed when creating a coupon/gift card/loyalty card in the PoS.",
+     "string": "Print Report",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "loyalty.mail",
+   "transient": false
+  },
+  "loyalty.program": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "pos_config_ids": {
+     "comodel": "pos.config",
+     "compute": "_compute_pos_config_ids",
+     "help": "Restrict publishing to those shops.",
+     "readonly": false,
+     "store": true,
+     "string": "Point of Sales",
+     "type": "Many2many"
+    },
+    "pos_ok": {
+     "default": true,
+     "string": "Point of Sale",
+     "type": "Boolean"
+    },
+    "pos_order_count": {
+     "compute": "_compute_pos_order_count",
+     "string": "PoS Order Count",
+     "type": "Integer"
+    },
+    "pos_report_print_id": {
+     "comodel": "ir.actions.report",
+     "compute": "_compute_pos_report_print_id",
+     "domain": [
+      [
+       "model",
+       "=",
+       "loyalty.card"
+      ]
+     ],
+     "help": "This is used to print the generated gift cards from PoS.",
+     "readonly": false,
+     "string": "Print Report",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_load_pos_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('communication_plan_ids.pos_report_print_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_pos_report_print_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_inverse_pos_report_print_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_ok')"
+     ],
+     "lines": 4,
+     "name": "_compute_pos_config_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_compute_pos_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_total_order_count"
+    }
+   ],
+   "name": "loyalty.program",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "loyalty.reward": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_discount_product_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_load_pos_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_reward_product_domain_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_replace_ilike_with_in"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_parse_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    }
+   ],
+   "name": "loyalty.reward",
+   "transient": false
+  },
+  "loyalty.rule": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "any_product": {
+     "compute": "_compute_valid_product_ids",
+     "help": "Technical field, whether all product match",
+     "type": "Boolean"
+    },
+    "promo_barcode": {
+     "compute": "_compute_promo_barcode",
+     "help": "A technical field used as an alternative to the promo code. This is automatically generated when the promo code is changed.",
+     "readonly": false,
+     "store": true,
+     "string": "Barcode",
+     "type": "Char"
+    },
+    "valid_product_ids": {
+     "comodel": "product.product",
+     "compute": "_compute_valid_product_ids",
+     "help": "These are the products that are valid for this rule.",
+     "relation_table": "Valid Products",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_ids', 'product_category_id', 'product_tag_id', 'product_domain')"
+     ],
+     "lines": 14,
+     "name": "_compute_valid_product_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 3,
+     "name": "_compute_promo_barcode"
+    }
+   ],
+   "name": "loyalty.rule",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "program_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_program_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_check_before_creating_new_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "use_coupon_code"
+    }
+   ],
+   "name": "pos.config",
+   "sel_methods": {
+    "_check_before_creating_new_session": []
+   },
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "validate_coupon_programs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "add_loyalty_history_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 126,
+     "name": "confirm_coupon_programs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "get_ticket_screen_order_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_check_existing_loyalty_cards"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_remove_duplicate_coupon_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_fields_for_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_add_mail_attachment"
+    }
+   ],
+   "name": "pos.order",
+   "transient": false
+  },
+  "pos.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "coupon_id": {
+     "comodel": "loyalty.card",
+     "help": "The coupon used to claim that reward.",
+     "ondelete": "restrict",
+     "string": "Coupon",
+     "type": "Many2one"
+    },
+    "is_reward_line": {
+     "help": "Whether this line is part of a reward or not.",
+     "type": "Boolean"
+    },
+    "points_cost": {
+     "help": "How many point this reward cost on the coupon.",
+     "type": "Float"
+    },
+    "reward_id": {
+     "comodel": "loyalty.reward",
+     "help": "The reward associated with this line.",
+     "index": "btree_not_null",
+     "ondelete": "restrict",
+     "string": "Reward",
+     "type": "Many2one"
+    },
+    "reward_identifier_code": {
+     "help": "\n        Technical field used to link multiple reward lines from the same reward together.\n    ",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_not_sellable_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "isRefund"
+    }
+   ],
+   "name": "pos.order.line",
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_models"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "loyalty_card_count": {
+     "groups": "base.group_user,point_of_sale.group_pos_user",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "pos_loyalty",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_loyalty",
+ "stats": {
+  "fields": 16,
+  "methods": 45,
+  "models": 13,
+  "py_lines": 868
+ },
+ "summary": "Use Coupons, Gift Cards and Loyalty programs in Point of Sale",
+ "title": "Point of Sale - Coupons & Loyalty",
+ "version": "2.0"
+}

@@ -1,0 +1,143 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Purchase",
+ "data_files": [
+  "views/purchase_views.xml",
+  "report/purchase_quotation_templates.xml",
+  "report/purchase_order_templates.xml"
+ ],
+ "depends": [
+  "purchase",
+  "product_matrix"
+ ],
+ "models": {
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "grid": {
+     "help": "Technical storage of grid. \nIf grid_update, will be loaded on the PO. \nIf not, represents the matrix to open.",
+     "store": false,
+     "type": "Char"
+    },
+    "grid_product_tmpl_id": {
+     "comodel": "product.template",
+     "help": "Technical field for product_matrix functionalities.",
+     "store": false,
+     "type": "Many2one"
+    },
+    "grid_update": {
+     "default": false,
+     "help": "Whether the grid field contains a new matrix to apply or not.",
+     "store": false,
+     "type": "Boolean"
+    },
+    "report_grids": {
+     "default": true,
+     "help": "If set, the matrix of configurable products will be shown on the report of this order.",
+     "string": "Print Variant Grids",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('grid_product_tmpl_id')"
+     ],
+     "lines": 4,
+     "name": "_set_grid_up"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_must_delete_date_planned"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('grid')"
+     ],
+     "lines": 83,
+     "name": "_apply_grid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_matrix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "get_report_matrixes"
+    }
+   ],
+   "name": "purchase.order",
+   "transient": false
+  },
+  "purchase.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_configurable_product": {
+     "related": "product_template_id.has_configurable_attributes",
+     "string": "Is the product configurable?",
+     "type": "Boolean"
+    },
+    "product_no_variant_attribute_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "ondelete": "restrict",
+     "string": "Product attribute values that do not create variants",
+     "type": "Many2many"
+    },
+    "product_template_attribute_value_ids": {
+     "readonly": true,
+     "related": "product_id.product_template_attribute_value_ids",
+     "type": "Many2many"
+    },
+    "product_template_id": {
+     "comodel": "product.template",
+     "domain": [
+      [
+       "purchase_ok",
+       "=",
+       true
+      ]
+     ],
+     "related": "product_id.product_tmpl_id",
+     "string": "Product Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_product_purchase_description"
+    }
+   ],
+   "name": "purchase.order.line",
+   "transient": false
+  }
+ },
+ "module": "purchase_product_matrix",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/purchase_product_matrix",
+ "stats": {
+  "fields": 8,
+  "methods": 6,
+  "models": 2,
+  "py_lines": 183
+ },
+ "summary": "Add variants to your purchase orders through an Order Grid Entry.",
+ "title": "Purchase Matrix",
+ "version": "1.0"
+}

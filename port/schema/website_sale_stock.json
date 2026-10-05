@@ -1,0 +1,365 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/Website",
+ "data_files": [
+  "views/product_template_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/website_sale_stock_templates.xml",
+  "views/stock_picking_views.xml",
+  "views/website_pages_views.xml",
+  "data/template_email.xml",
+  "data/ir_cron_data.xml",
+  "data/website_sale_stock_demo.xml"
+ ],
+ "depends": [
+  "website_sale",
+  "sale_stock",
+  "stock_delivery"
+ ],
+ "models": {
+  "product.combo": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_max_quantity"
+    }
+   ],
+   "name": "product.combo",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "stock_notification_partner_ids": {
+     "comodel": "res.partner",
+     "relation_table": "stock_notification_product_partner_rel",
+     "string": "Back in stock Notifications",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_has_stock_notification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_cart_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_max_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_is_sold_out"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_website_show_quick_add"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_send_availability_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_can_add_to_stock_notifications"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allow_out_of_stock_order": {
+     "default": true,
+     "string": "Continue selling when out-of-stock",
+     "type": "Boolean"
+    },
+    "available_threshold": {
+     "default": 5.0,
+     "string": "Show Threshold",
+     "type": "Float"
+    },
+    "out_of_stock_message": {
+     "string": "Out-of-Stock Message",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "show_availability": {
+     "default": false,
+     "string": "Show availability Qty",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_sold_out"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_website_show_quick_add"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_get_additionnal_combination_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "_get_additional_configurator_data"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allow_out_of_stock_order": {
+     "default": true,
+     "string": "Continue selling when out-of-stock",
+     "type": "Boolean"
+    },
+    "available_threshold": {
+     "default": 5.0,
+     "string": "Show Threshold",
+     "type": "Float"
+    },
+    "show_availability": {
+     "default": false,
+     "string": "Show availability Qty",
+     "type": "Boolean"
+    },
+    "website_warehouse_id": {
+     "comodel": "stock.warehouse",
+     "domain": "[('company_id', '=', website_company_id)]",
+     "readonly": false,
+     "related": "website_id.warehouse_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "set_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "get_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_warehouse_available"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_warehouse_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_verify_updated_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_cart_and_free_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_common_product_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_check_cart_is_ready_to_be_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_set_shop_warning_stock"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_filter_can_send_abandoned_cart_mail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_all_product_available"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_check_cart_is_ready_to_be_paid": [],
+    "_verify_updated_quantity": []
+   },
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_set_shop_warning_stock"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_max_line_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_max_available_qty"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "website_id": {
+     "comodel": "website",
+     "help": "Website where this order has been placed, for eCommerce orders.",
+     "readonly": true,
+     "related": "sale_id.website_id",
+     "store": true,
+     "string": "Website",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "warehouse_id": {
+     "comodel": "stock.warehouse",
+     "string": "Warehouse",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_warehouse_available"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_product_available_qty"
+    }
+   ],
+   "name": "website",
+   "transient": false
+  }
+ },
+ "module": "website_sale_stock",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_sale_stock",
+ "stats": {
+  "fields": 11,
+  "methods": 28,
+  "models": 8,
+  "py_lines": 563
+ },
+ "summary": "Manage product inventory & availability",
+ "title": "Product Availability",
+ "version": null
+}

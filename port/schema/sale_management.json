@@ -1,0 +1,907 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "data/digest_data.xml",
+  "security/ir.model.access.csv",
+  "security/sale_management_security.xml",
+  "report/sale_report_templates.xml",
+  "views/sale_order_template_views.xml",
+  "views/digest_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/sale_order_views.xml",
+  "views/sale_portal_templates.xml",
+  "views/sale_management_menus.xml",
+  "data/sale_order_template_demo.xml"
+ ],
+ "depends": [
+  "sale",
+  "digest"
+ ],
+ "models": {
+  "digest.digest": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "kpi_all_sale_total": {
+     "string": "All Sales",
+     "type": "Boolean"
+    },
+    "kpi_all_sale_total_value": {
+     "compute": "_compute_kpi_sale_total_value",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_kpi_sale_total_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_kpis_actions"
+    }
+   ],
+   "name": "digest.digest",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_template_id": {
+     "comodel": "sale.order.template",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', id)]",
+     "string": "Default Sale Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "company_so_template_id": {
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "readonly": false,
+     "related": "company_id.sale_order_template_id",
+     "string": "Default Template",
+     "type": "Many2one"
+    },
+    "group_sale_order_template": {
+     "string": "Quotation Templates",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "set_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_option_ids": {
+     "comodel": "sale.order.option",
+     "copy": true,
+     "inverse_name": "order_id",
+     "string": "Optional Products Lines",
+     "type": "One2many"
+    },
+    "sale_order_template_id": {
+     "comodel": "sale.order.template",
+     "compute": "_compute_sale_order_template_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Quotation Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_sale_order_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'sale_order_template_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_note"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_template_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_require_signature"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_template_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_require_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_template_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_prepayment_percent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_template_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_validity_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_template_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id', 'sale_order_option_ids')"
+     ],
+     "lines": 11,
+     "name": "_check_optional_product_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 6,
+     "name": "_onchange_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('sale_order_template_id')"
+     ],
+     "lines": 26,
+     "name": "_onchange_sale_order_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_id')"
+     ],
+     "lines": 29,
+     "name": "_onchange_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_confirmation_template"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_recompute_prices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_can_be_edited_on_portal"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "description": "Sales Order Line",
+   "extension": true,
+   "fields": {
+    "sale_order_option_ids": {
+     "comodel": "sale.order.option",
+     "inverse_name": "line_id",
+     "string": "Optional Products Lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_use_template_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_lines_without_price_recomputation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_can_be_edited_on_portal"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  },
+  "sale.order.option": {
+   "abstract": false,
+   "description": "Sale Options",
+   "extension": false,
+   "fields": {
+    "discount": {
+     "compute": "_compute_discount",
+     "digits": "Discount",
+     "readonly": false,
+     "store": true,
+     "string": "Discount (%)",
+     "type": "Float"
+    },
+    "is_present": {
+     "compute": "_compute_is_present",
+     "help": "This field will be checked if the option line's product is already present in the quotation.",
+     "string": "Present on Quotation",
+     "type": "Boolean"
+    },
+    "line_id": {
+     "comodel": "sale.order.line",
+     "copy": false,
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Description",
+     "type": "Text"
+    },
+    "order_id": {
+     "comodel": "sale.order",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Sales Order Reference",
+     "type": "Many2one"
+    },
+    "price_unit": {
+     "compute": "_compute_price_unit",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Unit Price",
+     "type": "Float"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": {
+      "$lambda": "self._product_id_domain()"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "quantity": {
+     "default": 1,
+     "digits": "Product Unit of Measure",
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "sequence": {
+     "help": "Gives the sequence order when displaying a list of optional products.",
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_uom_id",
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'uom_id', 'quantity')"
+     ],
+     "lines": 11,
+     "name": "_compute_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'uom_id', 'quantity')"
+     ],
+     "lines": 11,
+     "name": "_compute_discount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_values_to_add_to_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_id', 'order_id.order_line', 'product_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_is_present"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_search_is_present"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_product_id_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "button_add_to_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "add_option_to_order"
+    }
+   ],
+   "name": "sale.order.option",
+   "order": "sequence, id",
+   "sel_methods": {
+    "_product_id_domain": [
+     [
+      "sale_ok",
+      "="
+     ]
+    ],
+    "_search_is_present": [
+     [
+      "line_id",
+      "!="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "sale.order.template": {
+   "abstract": false,
+   "description": "Quotation Template",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If unchecked, it will allow you to hide the quotation template without removing it.",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "type": "Many2one"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "domain": [
+      [
+       "type",
+       "=",
+       "sale"
+      ]
+     ],
+     "help": "If set, SO with this template will invoice in this journal; otherwise the sales journal with the lowest sequence is used.",
+     "string": "Invoicing Journal",
+     "type": "Many2one"
+    },
+    "mail_template_id": {
+     "comodel": "mail.template",
+     "domain": [
+      [
+       "model",
+       "=",
+       "sale.order"
+      ]
+     ],
+     "help": "This e-mail template will be sent on confirmation. Leave empty to send nothing.",
+     "string": "Confirmation Mail",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Quotation Template",
+     "type": "Char"
+    },
+    "note": {
+     "string": "Terms and conditions",
+     "translate": true,
+     "type": "Html"
+    },
+    "number_of_days": {
+     "help": "Number of days for the validity date computation of the quotation",
+     "string": "Quotation Duration",
+     "type": "Integer"
+    },
+    "prepayment_percent": {
+     "compute": "_compute_prepayment_percent",
+     "help": "The percentage of the amount needed to be paid to confirm quotations.",
+     "readonly": false,
+     "store": true,
+     "string": "Prepayment percentage",
+     "type": "Float"
+    },
+    "require_payment": {
+     "compute": "_compute_require_payment",
+     "help": "Request an online payment to the customer in order to confirm orders automatically.",
+     "readonly": false,
+     "store": true,
+     "string": "Online Payment",
+     "type": "Boolean"
+    },
+    "require_signature": {
+     "compute": "_compute_require_signature",
+     "help": "Request a online signature to the customer in order to confirm orders automatically.",
+     "readonly": false,
+     "store": true,
+     "string": "Online Signature",
+     "type": "Boolean"
+    },
+    "sale_order_template_line_ids": {
+     "comodel": "sale.order.template.line",
+     "copy": true,
+     "inverse_name": "sale_order_template_id",
+     "string": "Lines",
+     "type": "One2many"
+    },
+    "sale_order_template_option_ids": {
+     "comodel": "sale.order.template.option",
+     "copy": true,
+     "inverse_name": "sale_order_template_id",
+     "string": "Optional Products",
+     "type": "One2many"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_require_signature"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_require_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'require_payment')"
+     ],
+     "lines": 5,
+     "name": "_compute_prepayment_percent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('prepayment_percent')"
+     ],
+     "lines": 4,
+     "name": "_onchange_prepayment_percent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id', 'sale_order_template_line_ids', 'sale_order_template_option_ids')"
+     ],
+     "lines": 39,
+     "name": "_check_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('prepayment_percent')"
+     ],
+     "lines": 4,
+     "name": "_check_prepayment_percent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_update_product_translations"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 42,
+     "name": "_demo_configure_template"
+    }
+   ],
+   "name": "sale.order.template",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "sale.order.template.line": {
+   "abstract": false,
+   "description": "Quotation Template Line",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "index": true,
+     "related": "sale_order_template_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "display_type": {
+     "default": false,
+     "selection": [
+      [
+       "line_section",
+       "Section"
+      ],
+      [
+       "line_note",
+       "Note"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "name": {
+     "string": "Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": {
+      "$lambda": "self._product_id_domain()"
+     },
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_product_uom_id",
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "product_uom_qty": {
+     "default": 1,
+     "digits": "Product Unit of Measure",
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "sale_order_template_id": {
+     "comodel": "sale.order.template",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Quotation Template Reference",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 10,
+     "help": "Gives the sequence order when displaying a list of sale quote lines.",
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_product_id_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_order_line_values"
+    }
+   ],
+   "name": "sale.order.template.line",
+   "order": "sale_order_template_id, sequence, id",
+   "sel_methods": {
+    "_product_id_domain": [
+     [
+      "sale_ok",
+      "="
+     ],
+     [
+      "type",
+      "!="
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "accountable_product_id_required",
+     "CHECK(display_type IS NOT NULL OR (product_id IS NOT NULL AND product_uom_id IS NOT NULL))",
+     "Missing required product and UoM on accountable sale quote line."
+    ],
+    [
+     "non_accountable_fields_null",
+     "CHECK(display_type IS NULL OR (product_id IS NULL AND product_uom_qty = 0 AND product_uom_id IS NULL))",
+     "Forbidden product, quantity and UoM on non-accountable sale quote line"
+    ]
+   ],
+   "transient": false
+  },
+  "sale.order.template.option": {
+   "abstract": false,
+   "description": "Quotation Template Option",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "index": true,
+     "related": "sale_order_template_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": {
+      "$lambda": "self._product_id_domain()"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "quantity": {
+     "default": 1,
+     "digits": "Product Unit of Measure",
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "sale_order_template_id": {
+     "comodel": "sale.order.template",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Quotation Template Reference",
+     "type": "Many2one"
+    },
+    "uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_uom_id",
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_product_id_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_prepare_option_line_values"
+    }
+   ],
+   "name": "sale.order.template.option",
+   "sel_methods": {
+    "_product_id_domain": [
+     [
+      "sale_ok",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  }
+ },
+ "module": "sale_management",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_management",
+ "stats": {
+  "fields": 48,
+  "methods": 52,
+  "models": 9,
+  "py_lines": 971
+ },
+ "summary": "From quotations to invoices",
+ "title": "Sales",
+ "version": "1.0"
+}

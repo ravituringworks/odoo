@@ -1,0 +1,2340 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Recruitment",
+ "data_files": [
+  "security/hr_recruitment_security.xml",
+  "security/ir.model.access.csv",
+  "data/digest_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/mail_template_data.xml",
+  "data/mail_templates.xml",
+  "data/hr_recruitment_data.xml",
+  "data/hr_recruitment_tour.xml",
+  "views/hr_candidate_views.xml",
+  "views/hr_recruitment_degree_views.xml",
+  "views/hr_recruitment_source_views.xml",
+  "views/hr_recruitment_stage_views.xml",
+  "views/ir_attachment_views.xml",
+  "views/hr_applicant_category_views.xml",
+  "views/hr_applicant_refuse_reason_views.xml",
+  "views/hr_applicant_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/hr_department_views.xml",
+  "views/hr_job_views.xml",
+  "views/mail_activity_views.xml",
+  "views/mail_activity_plan_views.xml",
+  "views/digest_views.xml",
+  "wizard/applicant_refuse_reason_views.xml",
+  "wizard/applicant_send_mail_views.xml",
+  "wizard/candidate_send_mail_views.xml",
+  "views/menuitems.xml",
+  "data/hr_recruitment_demo.xml"
+ ],
+ "depends": [
+  "hr",
+  "calendar",
+  "utm",
+  "attachment_indexation",
+  "web_tour",
+  "digest"
+ ],
+ "models": {
+  "applicant.get.refuse.reason": {
+   "abstract": false,
+   "description": "Get Refuse Reason",
+   "extension": false,
+   "fields": {
+    "applicant_emails": {
+     "compute": "_compute_applicant_emails",
+     "type": "Text"
+    },
+    "applicant_ids": {
+     "comodel": "hr.applicant",
+     "type": "Many2many"
+    },
+    "applicant_without_email": {
+     "compute": "_compute_applicant_without_email",
+     "string": "Applicant(s) not having email",
+     "type": "Text"
+    },
+    "duplicates": {
+     "string": "Duplicates",
+     "type": "Boolean"
+    },
+    "duplicates_count": {
+     "compute": "_compute_duplicates_count",
+     "string": "Duplicates Count",
+     "type": "Integer"
+    },
+    "refuse_reason_id": {
+     "comodel": "hr.applicant.refuse.reason",
+     "required": true,
+     "string": "Refuse Reason",
+     "type": "Many2one"
+    },
+    "send_mail": {
+     "compute": "_compute_send_mail",
+     "readonly": false,
+     "store": true,
+     "string": "Send Email",
+     "type": "Boolean"
+    },
+    "single_applicant_email": {
+     "compute": "_compute_single_applicant_email",
+     "type": "Char"
+    },
+    "template_id": {
+     "comodel": "mail.template",
+     "compute": "_compute_send_mail",
+     "domain": "[('model', '=', 'hr.applicant')]",
+     "readonly": false,
+     "store": true,
+     "string": "Email Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('refuse_reason_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_send_mail"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('applicant_ids', 'single_applicant_email')"
+     ],
+     "lines": 10,
+     "name": "_compute_applicant_without_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('applicant_ids.email_from')"
+     ],
+     "lines": 7,
+     "name": "_compute_single_applicant_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_single_applicant_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('applicant_ids.email_from')"
+     ],
+     "lines": 3,
+     "name": "_compute_applicant_emails"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 38,
+     "name": "action_refuse_reason_apply"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('applicant_ids')"
+     ],
+     "lines": 2,
+     "name": "_compute_duplicates_count"
+    }
+   ],
+   "name": "applicant.get.refuse.reason",
+   "transient": true
+  },
+  "applicant.send.mail": {
+   "abstract": false,
+   "description": "Send mails to applicants",
+   "extension": false,
+   "fields": {
+    "applicant_ids": {
+     "comodel": "hr.applicant",
+     "required": true,
+     "string": "Applications",
+     "type": "Many2many"
+    },
+    "attachment_ids": {
+     "comodel": "ir.attachment",
+     "readonly": false,
+     "store": true,
+     "string": "Attachments",
+     "type": "Many2many"
+    },
+    "author_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$lambda": "self.env.user.partner_id.id"
+     },
+     "required": true,
+     "string": "Author",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.composer.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('subject')"
+     ],
+     "lines": 2,
+     "name": "_compute_render_model"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 45,
+     "name": "action_send"
+    }
+   ],
+   "name": "applicant.send.mail",
+   "transient": true
+  },
+  "calendar.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "applicant_id": {
+     "comodel": "hr.applicant",
+     "index": "btree_not_null",
+     "ondelete": "set null",
+     "string": "Applicant",
+     "type": "Many2one"
+    },
+    "candidate_id": {
+     "comodel": "hr.candidate",
+     "compute": "_compute_candidate_id",
+     "index": "btree_not_null",
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "string": "Candidate",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 19,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_is_highlighted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('applicant_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_candidate_id"
+    }
+   ],
+   "name": "calendar.event",
+   "transient": false
+  },
+  "candidate.send.mail": {
+   "abstract": false,
+   "description": "Send mails to candidates",
+   "extension": false,
+   "fields": {
+    "attachment_ids": {
+     "comodel": "ir.attachment",
+     "readonly": false,
+     "store": true,
+     "string": "Attachments",
+     "type": "Many2many"
+    },
+    "author_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$lambda": "self.env.user.partner_id.id"
+     },
+     "required": true,
+     "string": "Author",
+     "type": "Many2one"
+    },
+    "candidate_ids": {
+     "comodel": "hr.candidate",
+     "required": true,
+     "string": "Candidates",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "mail.composer.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('subject')"
+     ],
+     "lines": 2,
+     "name": "_compute_render_model"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 58,
+     "name": "action_send"
+    }
+   ],
+   "name": "candidate.send.mail",
+   "transient": true
+  },
+  "digest.digest": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "kpi_hr_recruitment_new_colleagues": {
+     "string": "New Employees",
+     "type": "Boolean"
+    },
+    "kpi_hr_recruitment_new_colleagues_value": {
+     "compute": "_compute_kpi_hr_recruitment_new_colleagues_value",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_kpi_hr_recruitment_new_colleagues_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_kpis_actions"
+    }
+   ],
+   "name": "digest.digest",
+   "transient": false
+  },
+  "hr.applicant": {
+   "abstract": false,
+   "description": "Applicant",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If the active field is set to false, it will allow you to hide the case without removing it.",
+     "index": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "applicant_notes": {
+     "type": "Html"
+    },
+    "applicant_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "application_status": {
+     "compute": "_compute_application_status",
+     "selection": [
+      [
+       "ongoing",
+       "Ongoing"
+      ],
+      [
+       "hired",
+       "Hired"
+      ],
+      [
+       "refused",
+       "Refused"
+      ],
+      [
+       "archived",
+       "Archived"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "attachment_ids": {
+     "comodel": "ir.attachment",
+     "domain": [
+      [
+       "res_model",
+       "=",
+       "hr.applicant"
+      ]
+     ],
+     "inverse_name": "res_id",
+     "string": "Attachments",
+     "type": "One2many"
+    },
+    "attachment_number": {
+     "compute": "_get_attachment_number",
+     "string": "Number of Attachments",
+     "type": "Integer"
+    },
+    "availability": {
+     "readonly": false,
+     "related": "candidate_id.availability",
+     "type": "Date"
+    },
+    "campaign_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "candidate_id": {
+     "comodel": "hr.candidate",
+     "index": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "categ_ids": {
+     "comodel": "hr.applicant.category",
+     "compute": "_compute_categ_ids",
+     "readonly": false,
+     "store": true,
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "color": {
+     "related": "candidate_id.color",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company",
+     "readonly": false,
+     "store": true,
+     "string": "Company",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "create_date": {
+     "readonly": true,
+     "string": "Applied on",
+     "type": "Datetime"
+    },
+    "date_closed": {
+     "compute": "_compute_date_closed",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Hire Date",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "date_last_stage_update": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "index": true,
+     "string": "Last Stage Update",
+     "type": "Datetime"
+    },
+    "date_open": {
+     "readonly": true,
+     "string": "Assigned",
+     "type": "Datetime"
+    },
+    "day_close": {
+     "compute": "_compute_day",
+     "string": "Days to Close",
+     "type": "Float"
+    },
+    "day_open": {
+     "compute": "_compute_day",
+     "string": "Days to Open",
+     "type": "Float"
+    },
+    "delay_close": {
+     "compute": "_compute_delay",
+     "help": "Number of days to close",
+     "readonly": true,
+     "store": true,
+     "string": "Delay to Close",
+     "type": "Float"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_department",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Department",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "email_from": {
+     "readonly": false,
+     "related": "candidate_id.email_from",
+     "type": "Char"
+    },
+    "email_normalized": {
+     "related": "candidate_id.email_normalized",
+     "type": "Char"
+    },
+    "emp_is_active": {
+     "related": "candidate_id.emp_is_active",
+     "type": "Boolean"
+    },
+    "employee_id": {
+     "readonly": false,
+     "related": "candidate_id.employee_id",
+     "type": "Many2one"
+    },
+    "employee_name": {
+     "related": "candidate_id.employee_name",
+     "type": "Char"
+    },
+    "interviewer_ids": {
+     "comodel": "res.users",
+     "copy": false,
+     "domain": "[('share', '=', False), ('company_ids', 'in', company_id)]",
+     "index": true,
+     "relation_table": "hr_applicant_res_users_interviewers_rel",
+     "string": "Interviewers",
+     "tracking": true,
+     "type": "Many2many"
+    },
+    "job_id": {
+     "comodel": "hr.job",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "index": true,
+     "string": "Job Position",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "kanban_state": {
+     "copy": false,
+     "default": "normal",
+     "required": true,
+     "selection": [
+      [
+       "normal",
+       "Grey"
+      ],
+      [
+       "done",
+       "Green"
+      ],
+      [
+       "blocked",
+       "Red"
+      ]
+     ],
+     "string": "Kanban State",
+     "type": "Selection"
+    },
+    "last_stage_id": {
+     "comodel": "hr.recruitment.stage",
+     "help": "Stage of the applicant before being in the current stage. Used for lost cases analysis.",
+     "string": "Last Stage",
+     "type": "Many2one"
+    },
+    "legend_blocked": {
+     "related": "stage_id.legend_blocked",
+     "string": "Kanban Blocked",
+     "type": "Char"
+    },
+    "legend_done": {
+     "related": "stage_id.legend_done",
+     "string": "Kanban Valid",
+     "type": "Char"
+    },
+    "legend_normal": {
+     "related": "stage_id.legend_normal",
+     "string": "Kanban Ongoing",
+     "type": "Char"
+    },
+    "linkedin_profile": {
+     "readonly": false,
+     "related": "candidate_id.linkedin_profile",
+     "type": "Char"
+    },
+    "medium_id": {
+     "help": "This displays how the applicant has reached out, e.g. via Email, LinkedIn, Website, etc.",
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "meeting_display_date": {
+     "compute": "_compute_meeting_display",
+     "type": "Date"
+    },
+    "meeting_display_text": {
+     "compute": "_compute_meeting_display",
+     "type": "Char"
+    },
+    "meeting_ids": {
+     "comodel": "calendar.event",
+     "inverse_name": "applicant_id",
+     "string": "Meetings",
+     "type": "One2many"
+    },
+    "other_applications_count": {
+     "compute": "_compute_other_applications_count",
+     "type": "Integer"
+    },
+    "partner_id": {
+     "related": "candidate_id.partner_id",
+     "type": "Many2one"
+    },
+    "partner_name": {
+     "compute": "_compute_partner_name",
+     "type": "Char"
+    },
+    "partner_phone": {
+     "readonly": false,
+     "related": "candidate_id.partner_phone",
+     "type": "Char"
+    },
+    "partner_phone_sanitized": {
+     "related": "candidate_id.partner_phone_sanitized",
+     "type": "Char"
+    },
+    "priority": {
+     "default": "0",
+     "selection": [
+      [
+       "0",
+       "Low"
+      ],
+      [
+       "1",
+       "Medium"
+      ],
+      [
+       "2",
+       "High"
+      ],
+      [
+       "3",
+       "Very High"
+      ]
+     ],
+     "string": "Evaluation",
+     "type": "Selection"
+    },
+    "probability": {
+     "string": "Probability",
+     "type": "Float"
+    },
+    "refuse_date": {
+     "string": "Refuse Date",
+     "type": "Datetime"
+    },
+    "refuse_reason_id": {
+     "comodel": "hr.applicant.refuse.reason",
+     "string": "Refuse Reason",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "salary_expected": {
+     "groups": "hr_recruitment.group_hr_recruitment_user",
+     "help": "Salary Expected by Applicant",
+     "string": "Expected",
+     "tracking": true,
+     "type": "Float"
+    },
+    "salary_expected_extra": {
+     "groups": "hr_recruitment.group_hr_recruitment_user",
+     "help": "Salary Expected by Applicant, extra advantages",
+     "string": "Expected Salary Extra",
+     "tracking": true,
+     "type": "Char"
+    },
+    "salary_proposed": {
+     "groups": "hr_recruitment.group_hr_recruitment_user",
+     "help": "Salary Proposed by the Organisation",
+     "string": "Proposed",
+     "tracking": true,
+     "type": "Float"
+    },
+    "salary_proposed_extra": {
+     "groups": "hr_recruitment.group_hr_recruitment_user",
+     "help": "Salary Proposed by the Organisation, extra advantages",
+     "string": "Proposed Salary Extra",
+     "tracking": true,
+     "type": "Char"
+    },
+    "source_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "stage_id": {
+     "comodel": "hr.recruitment.stage",
+     "compute": "_compute_stage",
+     "copy": false,
+     "domain": "['|', ('job_ids', '=', False), ('job_ids', '=', job_id)]",
+     "index": true,
+     "ondelete": "restrict",
+     "readonly": false,
+     "store": true,
+     "string": "Stage",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "type_id": {
+     "readonly": false,
+     "related": "candidate_id.type_id",
+     "type": "Many2one"
+    },
+    "user_email": {
+     "readonly": true,
+     "related": "user_id.email",
+     "string": "User Email",
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_user",
+     "domain": "[('share', '=', False), ('company_ids', 'in', company_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Recruiter",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.cc",
+    "mail.thread.main.attachment",
+    "mail.tracking.duration.mixin",
+    "utm.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('candidate_id.partner_name')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_partner_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('candidate_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_other_applications_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_open', 'date_closed')"
+     ],
+     "lines": 14,
+     "name": "_compute_day"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('day_open', 'day_close')"
+     ],
+     "lines": 6,
+     "name": "_compute_delay"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('lang')",
+      "api.depends('meeting_ids', 'meeting_ids.start')"
+     ],
+     "lines": 21,
+     "name": "_compute_meeting_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('candidate_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_categ_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('refuse_reason_id', 'date_closed')"
+     ],
+     "lines": 10,
+     "name": "_compute_application_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_search_application_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_attachment_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_read_group_stage_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('job_id', 'department_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('job_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_department"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('job_id')"
+     ],
+     "lines": 13,
+     "name": "_compute_stage"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('job_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_phone_get_number_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('stage_id.hired_stage')"
+     ],
+     "lines": 6,
+     "name": "_compute_date_closed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 43,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_view"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 35,
+     "name": "action_create_meeting"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_open_attachments"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_open_employee"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_open_other_applications"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_track_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_creation_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_notify_get_reply_to"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_message_get_suggested_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_name')",
+      "api.depends_context('show_partner_name')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 51,
+     "name": "message_new"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_message_post_after_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "create_employee_from_applicant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "archive_applicant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "reset_applicant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "toggle_active"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_send_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_duration_from_tracking"
+    }
+   ],
+   "name": "hr.applicant",
+   "order": "priority desc, id desc",
+   "rec_name": "partner_name",
+   "sel_methods": {
+    "_message_post_after_hook": [],
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "hr.applicant.category": {
+   "abstract": false,
+   "description": "Category of applicant",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Tag Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    }
+   ],
+   "name": "hr.applicant.category",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.applicant.refuse.reason": {
+   "abstract": false,
+   "description": "Refuse Reason of Applicant",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Description",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "copy": false,
+     "default": 10,
+     "type": "Integer"
+    },
+    "template_id": {
+     "comodel": "mail.template",
+     "domain": "[('model', '=', 'hr.applicant')]",
+     "string": "Email Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.applicant.refuse.reason",
+   "order": "sequence",
+   "transient": false
+  },
+  "hr.candidate": {
+   "abstract": false,
+   "description": "Candidate",
+   "extension": false,
+   "fields": {
+    "accepted_applications_count": {
+     "compute": "_compute_applications_count",
+     "string": "# Accepted Offers",
+     "type": "Integer"
+    },
+    "active": {
+     "default": true,
+     "index": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "applicant_ids": {
+     "comodel": "hr.applicant",
+     "inverse_name": "candidate_id",
+     "type": "One2many"
+    },
+    "application_count": {
+     "compute": "_compute_application_count",
+     "type": "Integer"
+    },
+    "applications_count": {
+     "compute": "_compute_applications_count",
+     "string": "# Offers",
+     "type": "Integer"
+    },
+    "attachment_count": {
+     "compute": "_compute_attachment_count",
+     "string": "Number of Attachments",
+     "type": "Integer"
+    },
+    "attachment_ids": {
+     "comodel": "ir.attachment",
+     "domain": [
+      [
+       "res_model",
+       "=",
+       "hr.candidate"
+      ]
+     ],
+     "inverse_name": "res_id",
+     "string": "Attachments",
+     "type": "One2many"
+    },
+    "availability": {
+     "help": "The date at which the applicant will be available to start working",
+     "string": "Availability",
+     "tracking": true,
+     "type": "Date"
+    },
+    "candidate_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "categ_ids": {
+     "comodel": "hr.applicant.category",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "color": {
+     "default": 0,
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "email_from": {
+     "compute": "_compute_partner_phone_email",
+     "index": "trigram",
+     "size": 128,
+     "store": true,
+     "string": "Email",
+     "type": "Char"
+    },
+    "email_normalized": {
+     "index": "trigram",
+     "type": "Char"
+    },
+    "emp_is_active": {
+     "related": "employee_id.active",
+     "string": "Employee Active",
+     "type": "Boolean"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "copy": false,
+     "help": "Employee linked to the candidate.",
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "employee_name": {
+     "readonly": false,
+     "related": "employee_id.name",
+     "string": "Employee Name",
+     "tracking": false,
+     "type": "Char"
+    },
+    "linkedin_profile": {
+     "string": "LinkedIn Profile",
+     "type": "Char"
+    },
+    "meeting_display_date": {
+     "compute": "_compute_meeting_display",
+     "type": "Date"
+    },
+    "meeting_display_text": {
+     "compute": "_compute_meeting_display",
+     "type": "Char"
+    },
+    "meeting_ids": {
+     "comodel": "calendar.event",
+     "inverse_name": "candidate_id",
+     "string": "Meetings",
+     "type": "One2many"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "index": "btree_not_null",
+     "string": "Contact",
+     "type": "Many2one"
+    },
+    "partner_name": {
+     "string": "Candidates's Name",
+     "type": "Char"
+    },
+    "partner_phone": {
+     "compute": "_compute_partner_phone_email",
+     "index": "btree_not_null",
+     "size": 32,
+     "store": true,
+     "string": "Phone",
+     "type": "Char"
+    },
+    "partner_phone_sanitized": {
+     "compute": "_compute_partner_phone_sanitized",
+     "index": "btree_not_null",
+     "store": true,
+     "string": "Sanitized Phone Number",
+     "type": "Char"
+    },
+    "priority": {
+     "compute": "_compute_priority",
+     "selection": [
+      [
+       "0",
+       "Low"
+      ],
+      [
+       "1",
+       "Medium"
+      ],
+      [
+       "2",
+       "High"
+      ],
+      [
+       "3",
+       "Very High"
+      ]
+     ],
+     "store": true,
+     "string": "Evaluation",
+     "type": "Selection"
+    },
+    "refused_applications_count": {
+     "compute": "_compute_applications_count",
+     "string": "# Refused Offers",
+     "type": "Integer"
+    },
+    "similar_candidates_count": {
+     "compute": "_compute_similar_candidates_count",
+     "help": "Candidates with the same email or phone or mobile",
+     "type": "Integer"
+    },
+    "type_id": {
+     "comodel": "hr.recruitment.degree",
+     "string": "Degree",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user if self.env.user.id != SUPERUSER_ID else False"
+     },
+     "domain": "[('share', '=', False), ('company_ids', 'in', company_id)]",
+     "string": "Candidate Manager",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.blacklist",
+    "mail.thread.cc",
+    "mail.thread.main.attachment",
+    "mail.thread.phone"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_name')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_phone')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_phone_sanitized"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_partner_phone_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_phone_get_number_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_inverse_partner_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_from', 'partner_phone_sanitized')"
+     ],
+     "lines": 33,
+     "name": "_compute_similar_candidates_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_similar_candidates_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_attachment_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_application_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('applicant_ids.priority')"
+     ],
+     "lines": 6,
+     "name": "_compute_priority"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_applications_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('lang')",
+      "api.depends('meeting_ids', 'meeting_ids.start')"
+     ],
+     "lines": 21,
+     "name": "_compute_meeting_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_open_similar_candidates"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_applications"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_employee"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 34,
+     "name": "action_create_meeting"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_linked_employee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "create_employee_from_candidate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_employee_create_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_interviewer_access"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_open_attachments"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_send_email"
+    }
+   ],
+   "name": "hr.candidate",
+   "order": "priority desc, availability asc, id desc",
+   "rec_name": "partner_name",
+   "sel_methods": {
+    "_get_similar_candidates_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "hr.department": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expected_employee": {
+     "compute": "_compute_recruitment_stats",
+     "string": "Expected Employee",
+     "type": "Integer"
+    },
+    "new_applicant_count": {
+     "compute": "_compute_new_applicant_count",
+     "string": "New Applicant",
+     "type": "Integer"
+    },
+    "new_hired_employee": {
+     "compute": "_compute_recruitment_stats",
+     "string": "New Hired Employee",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_new_applicant_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_recruitment_stats"
+    }
+   ],
+   "name": "hr.department",
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "candidate_id": {
+     "comodel": "hr.candidate",
+     "groups": "hr.group_hr_user",
+     "inverse_name": "employee_id",
+     "string": "Candidate",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_partner_count_depends"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_related_partners"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.job": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "activities_overdue": {
+     "compute": "_compute_activities",
+     "type": "Integer"
+    },
+    "activities_today": {
+     "compute": "_compute_activities",
+     "type": "Integer"
+    },
+    "address_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$ref": "_default_address_id"
+     },
+     "domain": {
+      "$lambda": "self._address_id_domain()"
+     },
+     "help": "Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.",
+     "string": "Job Location",
+     "type": "Many2one"
+    },
+    "alias_id": {
+     "help": "Email alias for this job position. New emails will automatically create new applicants for this job position.",
+     "type": "Many2one"
+    },
+    "all_application_count": {
+     "compute": "_compute_all_application_count",
+     "string": "All Application Count",
+     "type": "Integer"
+    },
+    "allowed_user_ids": {
+     "comodel": "res.users",
+     "compute": "_compute_allowed_user_ids",
+     "readonly": true,
+     "type": "Many2many"
+    },
+    "applicant_hired": {
+     "compute": "_compute_applicant_hired",
+     "string": "Applicants Hired",
+     "type": "Integer"
+    },
+    "applicant_properties_definition": {
+     "string": "Applicant Properties",
+     "type": "PropertiesDefinition"
+    },
+    "application_count": {
+     "compute": "_compute_application_count",
+     "string": "Application Count",
+     "type": "Integer"
+    },
+    "application_ids": {
+     "comodel": "hr.applicant",
+     "inverse_name": "job_id",
+     "string": "Job Applications",
+     "type": "One2many"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "date_from": {
+     "help": "Is set, update candidates availability once hired for that specific mission.",
+     "type": "Date"
+    },
+    "date_to": {
+     "type": "Date"
+    },
+    "document_ids": {
+     "comodel": "ir.attachment",
+     "compute": "_compute_document_ids",
+     "readonly": true,
+     "string": "Documents",
+     "type": "One2many"
+    },
+    "documents_count": {
+     "compute": "_compute_document_ids",
+     "string": "Document Count",
+     "type": "Integer"
+    },
+    "extended_interviewer_ids": {
+     "comodel": "res.users",
+     "compute": "_compute_extended_interviewer_ids",
+     "relation_table": "hr_job_extended_interviewer_res_users",
+     "store": true,
+     "type": "Many2many"
+    },
+    "favorite_user_ids": {
+     "column1": "job_id",
+     "column2": "user_id",
+     "comodel": "res.users",
+     "default": {
+      "$ref": "_get_default_favorite_user_ids"
+     },
+     "relation_table": "job_favorite_user_rel",
+     "type": "Many2many"
+    },
+    "industry_id": {
+     "comodel": "res.partner.industry",
+     "string": "Industry",
+     "type": "Many2one"
+    },
+    "interviewer_ids": {
+     "comodel": "res.users",
+     "domain": "[('id', 'in', allowed_user_ids)]",
+     "help": "The Interviewers set on the job position can see all Applicants in it. They have access to the information, the attachments, the meeting management and they can refuse him. You don't need to have Recruitment rights to be set as an interviewer.",
+     "string": "Interviewers",
+     "type": "Many2many"
+    },
+    "is_favorite": {
+     "compute": "_compute_is_favorite",
+     "type": "Boolean"
+    },
+    "job_properties": {
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "manager_id": {
+     "comodel": "hr.employee",
+     "readonly": true,
+     "related": "department_id.manager_id",
+     "store": true,
+     "string": "Department Manager",
+     "type": "Many2one"
+    },
+    "new_application_count": {
+     "compute": "_compute_new_application_count",
+     "help": "Number of applications that are new in the flow (typically at first step of the flow)",
+     "string": "New Application",
+     "type": "Integer"
+    },
+    "no_of_hired_employee": {
+     "compute": "_compute_no_of_hired_employee",
+     "copy": false,
+     "help": "Number of hired employees for this job position during recruitment phase.",
+     "store": true,
+     "string": "Hired",
+     "type": "Integer"
+    },
+    "old_application_count": {
+     "compute": "_compute_old_application_count",
+     "string": "Old Application",
+     "type": "Integer"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "domain": "[('share', '=', False), ('id', 'in', allowed_user_ids)]",
+     "help": "The Recruiter will be the default value for all Applicants Recruiter's field in this job position. The Recruiter is automatically added to all meetings with the Applicant.",
+     "string": "Recruiter",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.alias.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_default_address_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_address_id_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_favorite_user_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('application_ids.date_closed')"
+     ],
+     "lines": 13,
+     "name": "_compute_no_of_hired_employee"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 29,
+     "name": "_compute_activities"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('application_ids.interviewer_ids')"
+     ],
+     "lines": 11,
+     "name": "_compute_extended_interviewer_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 20,
+     "name": "_compute_allowed_user_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_is_favorite"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_inverse_is_favorite"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_compute_document_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_all_application_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_application_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_first_stage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_compute_new_application_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_applicant_hired"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('application_count', 'new_application_count')"
+     ],
+     "lines": 3,
+     "name": "_compute_old_application_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_alias_get_creation_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 19,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 53,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_order_field_to_sql"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_creation_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_attachments_domain"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_open_attachments"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_open_activities"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_late_activities"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_today_activities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "close_dialog"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "edit_dialog"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_action_load_recruitment_scenario"
+    }
+   ],
+   "name": "hr.job",
+   "order": "sequence, name asc",
+   "sel_methods": {
+    "_get_default_favorite_user_ids": [
+     [
+      6,
+      0
+     ]
+    ],
+    "_order_field_to_sql": []
+   },
+   "transient": false
+  },
+  "hr.job.platform": {
+   "abstract": false,
+   "description": "Job Platforms",
+   "extension": false,
+   "fields": {
+    "email": {
+     "help": "Applications received from this Email won't be linked to a contact.There will be no email address set on the Applicant either.",
+     "required": true,
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "regex": {
+     "help": "The regex facilitates to extract information from the subject or body of the received email to autopopulate the Applicant's name field",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    }
+   ],
+   "name": "hr.job.platform",
+   "sql_constraints": [
+    [
+     "email_uniq",
+     "unique (email)",
+     "The Email must be unique, this one already corresponds to another Job Platform."
+    ]
+   ],
+   "transient": false
+  },
+  "hr.recruitment.degree": {
+   "abstract": false,
+   "description": "Applicant Degree",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Degree Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.recruitment.degree",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "The name of the Degree of Recruitment must be unique!"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.recruitment.source": {
+   "abstract": false,
+   "description": "Source of Applicants",
+   "extension": false,
+   "fields": {
+    "alias_id": {
+     "comodel": "mail.alias",
+     "ondelete": "restrict",
+     "string": "Alias ID",
+     "type": "Many2one"
+    },
+    "email": {
+     "readonly": true,
+     "related": "alias_id.display_name",
+     "string": "Email",
+     "type": "Char"
+    },
+    "has_domain": {
+     "compute": "_compute_has_domain",
+     "type": "Char"
+    },
+    "job_id": {
+     "comodel": "hr.job",
+     "ondelete": "cascade",
+     "string": "Job",
+     "type": "Many2one"
+    },
+    "medium_id": {
+     "comodel": "utm.medium",
+     "default": {
+      "$lambda": "self.env['utm.medium']._fetch_or_create_utm_medium('website')"
+     },
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "utm.source.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_has_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "create_alias"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    }
+   ],
+   "name": "hr.recruitment.source",
+   "transient": false
+  },
+  "hr.recruitment.stage": {
+   "abstract": false,
+   "description": "Recruitment Stages",
+   "extension": false,
+   "fields": {
+    "fold": {
+     "help": "This stage is folded in the kanban view when there are no records in that stage to display.",
+     "string": "Folded in Kanban",
+     "type": "Boolean"
+    },
+    "hired_stage": {
+     "help": "If checked, this stage is used to determine the hire date of an applicant",
+     "string": "Hired Stage",
+     "type": "Boolean"
+    },
+    "is_warning_visible": {
+     "compute": "_compute_is_warning_visible",
+     "type": "Boolean"
+    },
+    "job_ids": {
+     "comodel": "hr.job",
+     "help": "Specific jobs that use this stage. Other jobs will not use this stage.",
+     "string": "Job Specific",
+     "type": "Many2many"
+    },
+    "legend_blocked": {
+     "default": {
+      "$lambda": "_('Blocked')"
+     },
+     "required": true,
+     "string": "Red Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "legend_done": {
+     "default": {
+      "$lambda": "_('Ready for Next Stage')"
+     },
+     "required": true,
+     "string": "Green Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "legend_normal": {
+     "default": {
+      "$lambda": "_('In Progress')"
+     },
+     "required": true,
+     "string": "Grey Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Stage Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "requirements": {
+     "string": "Requirements",
+     "type": "Text"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "template_id": {
+     "comodel": "mail.template",
+     "help": "If set, a message is posted on the applicant using the template when the applicant is set to the stage.",
+     "string": "Email Template",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('hired_stage')"
+     ],
+     "lines": 8,
+     "name": "_compute_is_warning_visible"
+    }
+   ],
+   "name": "hr.recruitment.stage",
+   "order": "sequence",
+   "transient": false
+  },
+  "ir.ui.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_load_menus_blacklist"
+    }
+   ],
+   "name": "ir.ui.menu",
+   "transient": false
+  },
+  "mail.activity.plan": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_department_assignable"
+    }
+   ],
+   "name": "mail.activity.plan",
+   "transient": false
+  },
+  "mail.activity.schedule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_plan_department_filterable"
+    }
+   ],
+   "name": "mail.activity.schedule",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "candidate_properties_definition": {
+     "string": "Candidate Properties",
+     "type": "PropertiesDefinition"
+    },
+    "job_properties_definition": {
+     "string": "Job Properties",
+     "type": "PropertiesDefinition"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "group_applicant_cv_display": {
+     "type": "Boolean"
+    },
+    "module_hr_recruitment_extract": {
+     "string": "Send CV to OCR to fill applications",
+     "type": "Boolean"
+    },
+    "module_hr_recruitment_survey": {
+     "string": "Interview Forms",
+     "type": "Boolean"
+    },
+    "module_website_hr_recruitment": {
+     "string": "Online Posting",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_create_recruitment_interviewers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_remove_recruitment_interviewers"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "utm.campaign": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 7,
+     "name": "_unlink_except_utm_campaign_job"
+    }
+   ],
+   "name": "utm.campaign",
+   "transient": false
+  },
+  "utm.source": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 11,
+     "name": "_unlink_except_linked_recruitment_sources"
+    }
+   ],
+   "name": "utm.source",
+   "transient": false
+  }
+ },
+ "module": "hr_recruitment",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_recruitment",
+ "stats": {
+  "fields": 167,
+  "methods": 131,
+  "models": 24,
+  "py_lines": 2380
+ },
+ "summary": "Track your recruitment pipeline",
+ "title": "Recruitment",
+ "version": "1.1"
+}

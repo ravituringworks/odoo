@@ -1,0 +1,2550 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Expenses",
+ "data_files": [
+  "security/hr_expense_security.xml",
+  "security/ir.model.access.csv",
+  "data/digest_data.xml",
+  "data/mail_activity_type_data.xml",
+  "data/mail_alias_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/mail_templates.xml",
+  "data/hr_expense_sequence.xml",
+  "data/hr_expense_data.xml",
+  "data/hr_expense_tour.xml",
+  "wizard/hr_expense_refuse_reason_views.xml",
+  "wizard/hr_expense_approve_duplicate_views.xml",
+  "wizard/hr_expense_split_wizard_views.xml",
+  "views/hr_expense_views.xml",
+  "views/mail_activity_views.xml",
+  "security/ir_rule.xml",
+  "report/hr_expense_report.xml",
+  "views/account_move_views.xml",
+  "views/account_payment_views.xml",
+  "views/hr_department_views.xml",
+  "views/res_config_settings_views.xml",
+  "data/hr_expense_demo.xml"
+ ],
+ "depends": [
+  "account",
+  "web_tour",
+  "hr"
+ ],
+ "models": {
+  "account.analytic.account": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 15,
+     "name": "_unlink_except_account_in_analytic_distribution"
+    }
+   ],
+   "name": "account.analytic.account",
+   "transient": false
+  },
+  "account.analytic.applicability": {
+   "abstract": false,
+   "description": "Analytic Plan's Applicabilities",
+   "extension": true,
+   "fields": {
+    "business_domain": {
+     "ondelete": {
+      "expense": "cascade"
+     },
+     "selection_add": [
+      [
+       "expense",
+       "Expense"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('business_domain')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_account_prefix"
+    }
+   ],
+   "name": "account.analytic.applicability",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_sheet_id": {
+     "comodel": "hr.expense.sheet",
+     "copy": false,
+     "index": "btree_not_null",
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "show_commercial_partner_warning": {
+     "compute": "_compute_show_commercial_partner_warning",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'expense_sheet_id', 'company_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_commercial_partner_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_open_expense_report"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('commercial_partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_show_commercial_partner_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_check_journal_move_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_creation_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_sheet_id')"
+     ],
+     "lines": 20,
+     "name": "_compute_needed_terms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_product_base_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_reverse_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_must_delete_all_expense_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "button_cancel"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_check_journal_move_type": [],
+    "_creation_message": [],
+    "_reverse_moves": []
+   },
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_id": {
+     "comodel": "hr.expense",
+     "copy": true,
+     "index": "btree_not_null",
+     "string": "Expense",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('account_id', 'display_type')"
+     ],
+     "lines": 2,
+     "name": "_check_payable_receivable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_attachment_domains"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_attachment_by_record"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_totals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_extra_query_base_tax_line_mapping"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_sheet_id": {
+     "related": "move_id.expense_sheet_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_outstanding_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_open_expense_report"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_creation_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_must_delete_all_expense_payments"
+    }
+   ],
+   "name": "account.payment",
+   "sel_methods": {
+    "_creation_message": []
+   },
+   "transient": false
+  },
+  "account.payment.register": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_line_batch_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_init_payments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_reconcile_payments"
+    }
+   ],
+   "name": "account.payment.register",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "hr_expense_ids": {
+     "column1": "tax_id",
+     "column2": "expense_id",
+     "comodel": "hr.expense",
+     "copy": false,
+     "readonly": true,
+     "relation_table": "expense_tax",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('hr_expense_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_used"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_base_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_tax_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_base_line_grouping_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_tax_line_repartition_grouping_key"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "hr.department": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_sheets_to_approve_count": {
+     "compute": "_compute_expense_sheets_to_approve",
+     "string": "Expenses Reports to Approve",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_expense_sheets_to_approve"
+    }
+   ],
+   "name": "hr.department",
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_manager_id": {
+     "comodel": "res.users",
+     "compute": "_compute_expense_manager",
+     "domain": {
+      "$ref": "_group_hr_expense_user_domain"
+     },
+     "help": "Select the user responsible for approving \"Expenses\" of this employee.\nIf empty, the approval is done by an Administrator or Approver (determined in settings/users).",
+     "readonly": false,
+     "store": true,
+     "string": "Expense",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_group_hr_expense_user_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_expense_manager"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_user_m2o_to_empty_on_archived_employees"
+    }
+   ],
+   "name": "hr.employee",
+   "sel_methods": {
+    "_group_hr_expense_user_domain": [
+     [
+      "groups_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "hr.employee.base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "filter_for_expense": {
+     "groups": "hr.group_hr_user",
+     "store": false,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_search_filter_for_expense"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_expense_managers"
+    }
+   ],
+   "name": "hr.employee.base",
+   "transient": false
+  },
+  "hr.employee.public": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_manager_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.employee.public",
+   "transient": false
+  },
+  "hr.expense": {
+   "abstract": false,
+   "description": "Expense",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "account.account",
+     "compute": "_compute_account_id",
+     "domain": "[('account_type', 'not in', ('asset_receivable', 'liability_payable', 'asset_cash', 'liability_credit_card'))]",
+     "help": "An expense account is expected",
+     "readonly": false,
+     "store": true,
+     "string": "Account",
+     "type": "Many2one"
+    },
+    "accounting_date": {
+     "groups": "account.group_account_invoice,account.group_account_readonly",
+     "related": "sheet_id.accounting_date",
+     "store": true,
+     "string": "Accounting Date",
+     "type": "Date"
+    },
+    "approved_by": {
+     "comodel": "res.users",
+     "related": "sheet_id.user_id",
+     "string": "Approved By",
+     "tracking": false,
+     "type": "Many2one"
+    },
+    "approved_on": {
+     "related": "sheet_id.approval_date",
+     "string": "Approved On",
+     "type": "Datetime"
+    },
+    "attachment_ids": {
+     "comodel": "ir.attachment",
+     "domain": [
+      [
+       "res_model",
+       "=",
+       "hr.expense"
+      ]
+     ],
+     "inverse_name": "res_id",
+     "string": "Attachments",
+     "type": "One2many"
+    },
+    "company_currency_id": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "related": "company_id.currency_id",
+     "string": "Report Company Currency",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "default": {
+      "$lambda": "self.env.company.currency_id"
+     },
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "currency_rate": {
+     "compute": "_compute_currency_rate",
+     "digits": [
+      16,
+      9
+     ],
+     "readonly": true,
+     "tracking": true,
+     "type": "Float"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "string": "Expense Date",
+     "type": "Date"
+    },
+    "description": {
+     "string": "Internal Notes",
+     "type": "Text"
+    },
+    "duplicate_expense_ids": {
+     "comodel": "hr.expense",
+     "compute": "_compute_duplicate_expense_ids",
+     "type": "Many2many"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_employee_id",
+     "default": {
+      "$ref": "_default_employee_id"
+     },
+     "domain": [
+      [
+       "filter_for_expense",
+       "=",
+       true
+      ]
+     ],
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Employee",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "is_editable": {
+     "compute": "_compute_is_editable",
+     "string": "Is Editable By Current User",
+     "type": "Boolean"
+    },
+    "is_multiple_currency": {
+     "compute": "_compute_is_multiple_currency",
+     "string": "Is currency_id different from the company_currency_id",
+     "type": "Boolean"
+    },
+    "label_currency_rate": {
+     "compute": "_compute_currency_rate",
+     "readonly": true,
+     "type": "Char"
+    },
+    "message_main_attachment_checksum": {
+     "related": "message_main_attachment_id.checksum",
+     "type": "Char"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "copy": true,
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "nb_attachment": {
+     "compute": "_compute_nb_attachment",
+     "string": "Number of Attachments",
+     "type": "Integer"
+    },
+    "payment_mode": {
+     "default": "own_account",
+     "required": true,
+     "selection": [
+      [
+       "own_account",
+       "Employee (to reimburse)"
+      ],
+      [
+       "company_account",
+       "Company"
+      ]
+     ],
+     "string": "Paid By",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "price_unit": {
+     "compute": "_compute_price_unit",
+     "copy": true,
+     "readonly": true,
+     "required": true,
+     "store": true,
+     "string": "Unit Price",
+     "type": "Float"
+    },
+    "product_description": {
+     "compute": "_compute_product_description",
+     "type": "Html"
+    },
+    "product_has_cost": {
+     "compute": "_compute_from_product",
+     "type": "Boolean"
+    },
+    "product_has_tax": {
+     "compute": "_compute_from_product",
+     "string": "Whether tax is defined on a selected product",
+     "type": "Boolean"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": [
+      [
+       "can_be_expensed",
+       "=",
+       true
+      ]
+     ],
+     "ondelete": "restrict",
+     "string": "Category",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "comodel": "uom.category",
+     "readonly": true,
+     "related": "product_id.uom_id.category_id",
+     "string": "UoM Category",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_uom_id",
+     "copy": true,
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "store": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "quantity": {
+     "default": 1,
+     "digits": "Product Unit of Measure",
+     "required": true,
+     "type": "Float"
+    },
+    "same_receipt_expense_ids": {
+     "comodel": "hr.expense",
+     "compute": "_compute_same_receipt_expense_ids",
+     "type": "Many2many"
+    },
+    "sheet_id": {
+     "comodel": "hr.expense.sheet",
+     "copy": false,
+     "domain": "[('employee_id', '=', employee_id), ('company_id', '=', company_id)]",
+     "index": true,
+     "readonly": true,
+     "string": "Expense Report",
+     "type": "Many2one"
+    },
+    "state": {
+     "compute": "_compute_state",
+     "copy": false,
+     "default": "draft",
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "To Report"
+      ],
+      [
+       "reported",
+       "To Submit"
+      ],
+      [
+       "submitted",
+       "Submitted"
+      ],
+      [
+       "approved",
+       "Approved"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "refused",
+       "Refused"
+      ]
+     ],
+     "store": true,
+     "string": "Status",
+     "type": "Selection"
+    },
+    "tax_amount": {
+     "compute": "_compute_tax_amount",
+     "currency_field": "company_currency_id",
+     "help": "Tax amount in company currency",
+     "store": true,
+     "string": "Tax amount",
+     "type": "Monetary"
+    },
+    "tax_amount_currency": {
+     "compute": "_compute_tax_amount_currency",
+     "currency_field": "currency_id",
+     "help": "Tax amount in currency",
+     "store": true,
+     "string": "Tax amount in Currency",
+     "type": "Monetary"
+    },
+    "tax_ids": {
+     "column1": "expense_id",
+     "column2": "tax_id",
+     "comodel": "account.tax",
+     "compute": "_compute_tax_ids",
+     "domain": "[('type_tax_use', '=', 'purchase')]",
+     "help": "Both price-included and price-excluded taxes will behave as price-included taxes for expenses.",
+     "readonly": false,
+     "relation_table": "expense_tax",
+     "store": true,
+     "string": "Included taxes",
+     "type": "Many2many"
+    },
+    "total_amount": {
+     "compute": "_compute_total_amount",
+     "currency_field": "company_currency_id",
+     "readonly": false,
+     "store": true,
+     "string": "Total",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "total_amount_currency": {
+     "compute": "_compute_total_amount_currency",
+     "currency_field": "currency_id",
+     "readonly": false,
+     "store": true,
+     "string": "Total In Currency",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "untaxed_amount_currency": {
+     "compute": "_compute_tax_amount_currency",
+     "currency_field": "currency_id",
+     "store": true,
+     "string": "Total Untaxed Amount In Currency",
+     "type": "Monetary"
+    },
+    "vendor_id": {
+     "comodel": "res.partner",
+     "string": "Vendor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "analytic.mixin",
+    "mail.activity.mixin",
+    "mail.thread.main.attachment"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_default_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_has_cost')"
+     ],
+     "lines": 4,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sheet_id.is_editable')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_editable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_has_cost')"
+     ],
+     "lines": 4,
+     "name": "_onchange_product_has_cost"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('lang')",
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_set_expense_currency_rate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('currency_id', 'total_amount_currency', 'date')"
+     ],
+     "lines": 31,
+     "name": "_compute_currency_rate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('currency_id', 'company_currency_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_multiple_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_from_product"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.uom_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sheet_id', 'sheet_id.account_move_ids', 'sheet_id.state')"
+     ],
+     "lines": 14,
+     "name": "_compute_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('quantity', 'price_unit', 'tax_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_total_amount_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('total_amount_currency')"
+     ],
+     "lines": 5,
+     "name": "_inverse_total_amount_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date', 'company_id', 'currency_id', 'company_currency_id', 'is_multiple_currency', 'total_amount_currency', 'product_id', 'employee_id.user_id.partner_id', 'quantity')"
+     ],
+     "lines": 15,
+     "name": "_compute_total_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_inverse_total_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'company_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_tax_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('total_amount_currency', 'tax_ids')"
+     ],
+     "lines": 16,
+     "name": "_compute_tax_amount_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('total_amount', 'currency_rate', 'tax_ids', 'is_multiple_currency')"
+     ],
+     "lines": 19,
+     "name": "_compute_tax_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('total_amount', 'total_amount_currency')"
+     ],
+     "lines": 18,
+     "name": "_compute_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_needs_product_price_computation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'company_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attachment_ids')"
+     ],
+     "lines": 21,
+     "name": "_compute_same_receipt_expense_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'product_id', 'total_amount_currency')"
+     ],
+     "lines": 24,
+     "name": "_compute_duplicate_expense_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'account_id', 'employee_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_nb_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('payment_mode')"
+     ],
+     "lines": 2,
+     "name": "_check_payment_mode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_prepare_base_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "attach_document"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 42,
+     "name": "create_expense_from_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_posted_or_approved"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 69,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_get_empty_list_mail_alias"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_expense_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "check_amount_not_zero"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_show_same_receipt_expense_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_view_sheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_get_default_expense_sheet_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "get_expenses_to_submit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_create_sheets_from_expense"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_submit_expenses"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_get_attachment_view"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_approve_duplicates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_split_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_split_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_move_line_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 83,
+     "name": "_prepare_payments_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_get_base_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_prepare_move_lines_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 36,
+     "name": "get_expense_dashboard"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 39,
+     "name": "message_new"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_get_employee_from_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_parse_product"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "_parse_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_parse_expense_subject"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_send_expense_success_mail"
+    }
+   ],
+   "name": "hr.expense",
+   "order": "date desc, id desc",
+   "transient": false
+  },
+  "hr.expense.approve.duplicate": {
+   "abstract": false,
+   "description": "Expense Approve Duplicate",
+   "extension": false,
+   "fields": {
+    "expense_ids": {
+     "comodel": "hr.expense",
+     "readonly": true,
+     "type": "Many2many"
+    },
+    "sheet_ids": {
+     "comodel": "hr.expense.sheet",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "default_get"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_approve"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_refuse"
+    }
+   ],
+   "name": "hr.expense.approve.duplicate",
+   "transient": true
+  },
+  "hr.expense.refuse.wizard": {
+   "abstract": false,
+   "description": "Expense Refuse Reason Wizard",
+   "extension": false,
+   "fields": {
+    "reason": {
+     "required": true,
+     "string": "Reason",
+     "type": "Char"
+    },
+    "sheet_ids": {
+     "comodel": "hr.expense.sheet",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "default_get"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_refuse"
+    }
+   ],
+   "name": "hr.expense.refuse.wizard",
+   "transient": true
+  },
+  "hr.expense.sheet": {
+   "abstract": false,
+   "description": "Expense Report",
+   "extension": false,
+   "fields": {
+    "account_move_ids": {
+     "comodel": "account.move",
+     "inverse_name": "expense_sheet_id",
+     "readonly": true,
+     "string": "Journal Entries",
+     "type": "One2many"
+    },
+    "accounting_date": {
+     "help": "Specify the bill date of the related vendor bill.",
+     "string": "Expense Report Date",
+     "type": "Date"
+    },
+    "amount_residual": {
+     "compute": "_compute_from_account_move_ids",
+     "currency_field": "company_currency_id",
+     "readonly": true,
+     "store": true,
+     "string": "Amount Due",
+     "type": "Monetary"
+    },
+    "approval_date": {
+     "readonly": true,
+     "string": "Approval Date",
+     "type": "Datetime"
+    },
+    "approval_state": {
+     "copy": false,
+     "selection": [
+      [
+       "submit",
+       "Submitted"
+      ],
+      [
+       "approve",
+       "Approved"
+      ],
+      [
+       "cancel",
+       "Refused"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "attachment_ids": {
+     "comodel": "ir.attachment",
+     "domain": "[('res_model', '=', 'hr.expense.sheet')]",
+     "inverse_name": "res_id",
+     "string": "Attachments of expenses",
+     "type": "One2many"
+    },
+    "can_approve": {
+     "compute": "_compute_can_approve",
+     "string": "Can Approve",
+     "type": "Boolean"
+    },
+    "can_reset": {
+     "compute": "_compute_can_reset",
+     "string": "Can Reset",
+     "type": "Boolean"
+    },
+    "cannot_approve_reason": {
+     "compute": "_compute_can_approve",
+     "string": "Cannot Approve Reason",
+     "type": "Char"
+    },
+    "company_currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "string": "Report Company Currency",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "readonly": true,
+     "store": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "copy": false,
+     "related": "employee_id.department_id",
+     "store": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "default": {
+      "$ref": "_default_employee_id"
+     },
+     "domain": [
+      [
+       "filter_for_expense",
+       "=",
+       true
+      ]
+     ],
+     "readonly": true,
+     "required": true,
+     "string": "Employee",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "employee_journal_id": {
+     "comodel": "account.journal",
+     "default": {
+      "$ref": "_default_journal_id"
+     },
+     "domain": [
+      [
+       "type",
+       "=",
+       "purchase"
+      ]
+     ],
+     "help": "The journal used when the expense is paid by employee.",
+     "string": "Journal",
+     "type": "Many2one"
+    },
+    "expense_line_ids": {
+     "comodel": "hr.expense",
+     "copy": false,
+     "inverse_name": "sheet_id",
+     "string": "Expense Lines",
+     "type": "One2many"
+    },
+    "is_editable": {
+     "compute": "_compute_is_editable",
+     "string": "Expense Lines Are Editable By Current User",
+     "type": "Boolean"
+    },
+    "is_multiple_currency": {
+     "compute": "_compute_is_multiple_currency",
+     "string": "Handle lines with different currencies",
+     "type": "Boolean"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_journal_id",
+     "store": true,
+     "string": "Expense Journal",
+     "type": "Many2one"
+    },
+    "message_main_attachment_id": {
+     "compute": "_compute_main_attachment",
+     "store": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Expense Report Summary",
+     "tracking": true,
+     "type": "Char"
+    },
+    "nb_account_move": {
+     "compute": "_compute_nb_account_move",
+     "string": "Number of Journal Entries",
+     "type": "Integer"
+    },
+    "nb_expense": {
+     "compute": "_compute_nb_expense",
+     "string": "Number of Expenses",
+     "type": "Integer"
+    },
+    "payment_method_line_id": {
+     "comodel": "account.payment.method.line",
+     "compute": "_compute_payment_method_line_id",
+     "domain": "[('id', 'in', selectable_payment_method_line_ids)]",
+     "help": "The payment method used when the expense is paid by the company.",
+     "readonly": false,
+     "store": true,
+     "string": "Payment Method",
+     "type": "Many2one"
+    },
+    "payment_mode": {
+     "readonly": true,
+     "related": "expense_line_ids.payment_mode",
+     "string": "Paid By",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "payment_state": {
+     "compute": "_compute_from_account_move_ids",
+     "copy": false,
+     "readonly": true,
+     "selection": {
+      "$lambda": "self.env['account.move']._fields['payment_state']._description_selection(self.env)"
+     },
+     "store": true,
+     "string": "Payment Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "product_ids": {
+     "comodel": "product.product",
+     "compute": "_compute_product_ids",
+     "string": "Categories",
+     "type": "Many2many"
+    },
+    "selectable_payment_method_line_ids": {
+     "comodel": "account.payment.method.line",
+     "compute": "_compute_selectable_payment_method_line_ids",
+     "type": "Many2many"
+    },
+    "state": {
+     "compute": "_compute_state",
+     "copy": false,
+     "default": "draft",
+     "index": true,
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "draft",
+       "To Submit"
+      ],
+      [
+       "submit",
+       "Submitted"
+      ],
+      [
+       "approve",
+       "Approved"
+      ],
+      [
+       "post",
+       "Posted"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "cancel",
+       "Refused"
+      ]
+     ],
+     "store": true,
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "total_amount": {
+     "compute": "_compute_amount",
+     "currency_field": "company_currency_id",
+     "readonly": true,
+     "store": true,
+     "string": "Total",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "total_tax_amount": {
+     "compute": "_compute_amount",
+     "currency_field": "company_currency_id",
+     "readonly": true,
+     "store": true,
+     "string": "Taxes",
+     "type": "Monetary"
+    },
+    "untaxed_amount": {
+     "compute": "_compute_amount",
+     "currency_field": "company_currency_id",
+     "readonly": true,
+     "store": true,
+     "string": "Untaxed Amount",
+     "type": "Monetary"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_from_employee_id",
+     "copy": false,
+     "domain": {
+      "$lambda": "[('groups_id', 'in', self.env.ref('hr_expense.group_hr_expense_team_approver').id)]"
+     },
+     "readonly": true,
+     "store": true,
+     "string": "Manager",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.main.attachment"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_default_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_default_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_line_ids.total_amount', 'expense_line_ids.tax_amount')"
+     ],
+     "lines": 5,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_move_ids.payment_state', 'account_move_ids.amount_residual')"
+     ],
+     "lines": 28,
+     "name": "_compute_from_account_move_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('selectable_payment_method_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_payment_method_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_journal_id', 'payment_method_line_id', 'payment_mode')"
+     ],
+     "lines": 6,
+     "name": "_compute_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_selectable_payment_method_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_move_ids', 'payment_state', 'approval_state')"
+     ],
+     "lines": 16,
+     "name": "_compute_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_line_ids.attachment_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_main_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_line_ids.currency_id', 'company_currency_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_line_ids.currency_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_multiple_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_can_reset"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('employee_id')"
+     ],
+     "lines": 25,
+     "name": "_compute_can_approve"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_nb_expense"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_move_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_nb_account_move"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'employee_id.department_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_from_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('employee_id', 'user_id', 'state')"
+     ],
+     "lines": 33,
+     "name": "_compute_is_editable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('expense_line_ids')"
+     ],
+     "lines": 5,
+     "name": "_check_payment_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('expense_line_ids', 'employee_id')"
+     ],
+     "lines": 4,
+     "name": "_check_employee"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('expense_line_ids', 'company_id')"
+     ],
+     "lines": 4,
+     "name": "_check_expense_lines_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('expense_line_ids')"
+     ],
+     "lines": 5,
+     "name": "_update_sheet_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_get_default_sheet_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_search_product_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_posted_or_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_message_auto_subscribe_followers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "activity_update"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_submit_sheet"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_approve_expense_sheets"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_refuse_expense_sheets"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_sheet_move_post"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_reset_expense_sheets"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_register_payment"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_open_expense_view"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_open_account_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "set_to_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "set_to_posted"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_can_approve"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_can_refuse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_can_reset_approval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_check_can_create_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_do_submit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_do_approve"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_do_reset_approval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_do_refuse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_do_create_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_do_reverse_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_calculate_default_accounting_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_prepare_bills_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_prepare_move_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_validate_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_responsible_for_approval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_expense_account_destination"
+    }
+   ],
+   "name": "hr.expense.sheet",
+   "order": "accounting_date desc, id desc",
+   "sql_constraints": [
+    [
+     "journal_id_required_posted",
+     "CHECK((state IN ('post', 'done') AND journal_id IS NOT NULL) OR (state NOT IN ('post', 'done')))",
+     "The journal must be set on posted expense"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.expense.split": {
+   "abstract": false,
+   "description": "Expense Split",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "required": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "expense_id": {
+     "comodel": "hr.expense",
+     "string": "Expense",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "product_has_cost": {
+     "compute": "_compute_from_product_id",
+     "store": true,
+     "string": "Is product with non zero cost selected",
+     "type": "Boolean"
+    },
+    "product_has_tax": {
+     "compute": "_compute_product_has_tax",
+     "string": "Whether tax is defined on a selected product",
+     "type": "Boolean"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": [
+      [
+       "can_be_expensed",
+       "=",
+       true
+      ]
+     ],
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "tax_amount_currency": {
+     "compute": "_compute_tax_amount_currency",
+     "string": "Tax amount in Currency",
+     "type": "Monetary"
+    },
+    "tax_ids": {
+     "comodel": "account.tax",
+     "domain": "[('type_tax_use', '=', 'purchase')]",
+     "type": "Many2many"
+    },
+    "total_amount_currency": {
+     "compute": "_compute_from_product_id",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Total In Currency",
+     "type": "Monetary"
+    },
+    "wizard_id": {
+     "comodel": "hr.expense.split.wizard",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "analytic.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('total_amount_currency', 'tax_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_tax_amount_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_from_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 9,
+     "name": "_onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_has_tax"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_values"
+    }
+   ],
+   "name": "hr.expense.split",
+   "transient": true
+  },
+  "hr.expense.split.wizard": {
+   "abstract": false,
+   "description": "Expense Split Wizard",
+   "extension": false,
+   "fields": {
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "expense_id.currency_id",
+     "type": "Many2one"
+    },
+    "expense_id": {
+     "comodel": "hr.expense",
+     "required": true,
+     "string": "Expense",
+     "type": "Many2one"
+    },
+    "expense_split_line_ids": {
+     "comodel": "hr.expense.split",
+     "inverse_name": "wizard_id",
+     "type": "One2many"
+    },
+    "split_possible": {
+     "compute": "_compute_split_possible",
+     "help": "The sum of after split shut remain the same",
+     "type": "Boolean"
+    },
+    "tax_amount_currency": {
+     "compute": "_compute_tax_amount_currency",
+     "currency_field": "currency_id",
+     "string": "Taxes",
+     "type": "Monetary"
+    },
+    "total_amount_currency": {
+     "compute": "_compute_total_amount_currency",
+     "currency_field": "currency_id",
+     "string": "Total Amount",
+     "type": "Monetary"
+    },
+    "total_amount_currency_original": {
+     "currency_field": "currency_id",
+     "help": "Total amount of the original Expense that we are splitting",
+     "related": "expense_id.total_amount_currency",
+     "string": "Total amount original",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_split_line_ids.total_amount_currency')"
+     ],
+     "lines": 3,
+     "name": "_compute_total_amount_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expense_split_line_ids.tax_amount_currency')"
+     ],
+     "lines": 3,
+     "name": "_compute_tax_amount_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('total_amount_currency_original', 'total_amount_currency')"
+     ],
+     "lines": 4,
+     "name": "_compute_split_possible"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 29,
+     "name": "action_split_expense"
+    }
+   ],
+   "name": "hr.expense.split.wizard",
+   "transient": true
+  },
+  "ir.actions.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_render_qweb_pdf_prepare_streams"
+    }
+   ],
+   "name": "ir.actions.report",
+   "transient": false
+  },
+  "ir.attachment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 14,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "unlink"
+    }
+   ],
+   "name": "ir.attachment",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "standard_price_update_warning": {
+     "compute": "_compute_standard_price_update_warning",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('standard_price')"
+     ],
+     "lines": 17,
+     "name": "_compute_standard_price_update_warning"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "write"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "can_be_expensed": {
+     "compute": "_compute_can_be_expensed",
+     "help": "Specify whether the product can be selected in an expense.",
+     "readonly": false,
+     "store": true,
+     "string": "Expenses",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type', 'purchase_ok')"
+     ],
+     "lines": 2,
+     "name": "_compute_can_be_expensed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('can_be_expensed')"
+     ],
+     "lines": 4,
+     "name": "_compute_purchase_ok"
+    }
+   ],
+   "name": "product.template",
+   "sel_methods": {
+    "_auto_init": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "company_expense_allowed_payment_method_line_ids": {
+     "comodel": "account.payment.method.line",
+     "domain": "[('payment_type', '=', 'outbound'), ('journal_id', '!=', False), ('journal_id.active', '=', True)]",
+     "string": "Payment methods available for expenses paid by company",
+     "type": "Many2many"
+    },
+    "expense_journal_id": {
+     "comodel": "account.journal",
+     "domain": "[('type', '=', 'purchase')]",
+     "help": "The company's default journal used when an employee expense is created.",
+     "string": "Default Expense Journal",
+     "type": "Many2one"
+    },
+    "expense_outstanding_account_id": {
+     "comodel": "account.account",
+     "domain": "[('account_type', '=', 'asset_current'), ('reconcile', '=', True)]",
+     "help": "The account used to record the outstanding amount of the company expenses.",
+     "string": "Outstanding Account",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "company_expense_allowed_payment_method_line_ids": {
+     "comodel": "account.payment.method.line",
+     "readonly": false,
+     "related": "company_id.company_expense_allowed_payment_method_line_ids",
+     "type": "Many2many"
+    },
+    "expense_journal_id": {
+     "comodel": "account.journal",
+     "domain": "[('type', '=', 'purchase')]",
+     "readonly": false,
+     "related": "company_id.expense_journal_id",
+     "type": "Many2one"
+    },
+    "expense_outstanding_account_id": {
+     "comodel": "account.account",
+     "domain": "[('account_type', '=', 'asset_current'), ('reconcile', '=', True)]",
+     "readonly": false,
+     "related": "company_id.expense_outstanding_account_id",
+     "type": "Many2one"
+    },
+    "hr_expense_alias_domain_id": {
+     "comodel": "mail.alias.domain",
+     "compute": "_compute_hr_expense_alias_domain_id",
+     "readonly": false,
+     "type": "Many2one"
+    },
+    "hr_expense_alias_prefix": {
+     "compute": "_compute_hr_expense_alias_prefix",
+     "readonly": false,
+     "store": true,
+     "string": "Default Alias Name for Expenses",
+     "type": "Char"
+    },
+    "hr_expense_use_mailgateway": {
+     "string": "Let your employees record expenses by email",
+     "type": "Boolean"
+    },
+    "module_hr_expense_extract": {
+     "string": "Send bills to OCR to generate expenses",
+     "type": "Boolean"
+    },
+    "module_hr_payroll_expense": {
+     "string": "Reimburse Expenses in Payslip",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "set_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('hr_expense_use_mailgateway')"
+     ],
+     "lines": 2,
+     "name": "_compute_hr_expense_alias_prefix"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('hr_expense_use_mailgateway')"
+     ],
+     "lines": 2,
+     "name": "_compute_hr_expense_alias_domain_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inverse_hr_expense_alias_domain_id"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_manager_id": {
+     "readonly": false,
+     "related": "employee_id.expense_manager_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "hr_expense",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_expense",
+ "stats": {
+  "fields": 118,
+  "methods": 182,
+  "models": 24,
+  "py_lines": 3152
+ },
+ "summary": "Submit, validate and reinvoice employee expenses",
+ "title": "Expenses",
+ "version": "2.0"
+}

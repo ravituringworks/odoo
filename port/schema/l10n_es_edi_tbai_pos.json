@@ -1,0 +1,219 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/Point of Sale",
+ "data_files": [
+  "views/pos_order_view.xml"
+ ],
+ "depends": [
+  "l10n_es_edi_tbai",
+  "point_of_sale"
+ ],
+ "models": {
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_tbai_chain_index": {
+     "help": "Invoice index in chain, set if and only if an in-chain XML was submitted and did not error",
+     "related": "l10n_es_tbai_post_document_id.chain_index",
+     "string": "TicketBAI chain index",
+     "type": "Integer"
+    },
+    "l10n_es_tbai_is_required": {
+     "related": "company_id.l10n_es_tbai_is_enabled",
+     "string": "TicketBAI required",
+     "type": "Boolean"
+    },
+    "l10n_es_tbai_post_document_id": {
+     "comodel": "l10n_es_edi_tbai.document",
+     "copy": false,
+     "type": "Many2one"
+    },
+    "l10n_es_tbai_post_file": {
+     "related": "l10n_es_tbai_post_document_id.xml_attachment_id.datas",
+     "string": "TicketBAI Post File",
+     "type": "Binary"
+    },
+    "l10n_es_tbai_post_file_name": {
+     "related": "l10n_es_tbai_post_document_id.xml_attachment_id.name",
+     "string": "TicketBAI Post Attachment Name",
+     "type": "Char"
+    },
+    "l10n_es_tbai_refund_reason": {
+     "copy": false,
+     "help": "BOE-A-1992-28740. Ley 37/1992, de 28 de diciembre, del Impuesto sobre el Valor A\u00f1adido. Art\u00edculo 80. Modificaci\u00f3n de la base imponible.",
+     "selection": [
+      [
+       "R1",
+       "R1: Art. 80.1, 80.2, 80.6 and rights founded error"
+      ],
+      [
+       "R2",
+       "R2: Art. 80.3"
+      ],
+      [
+       "R3",
+       "R3: Art. 80.4"
+      ],
+      [
+       "R4",
+       "R4: Art. 80 - other"
+      ],
+      [
+       "R5",
+       "R5: Factura rectificativa en facturas simplificadas"
+      ]
+     ],
+     "string": "Invoice Refund Reason Code (TicketBai)",
+     "type": "Selection"
+    },
+    "l10n_es_tbai_state": {
+     "compute": "_compute_l10n_es_tbai_state",
+     "selection": [
+      [
+       "to_send",
+       "To Send"
+      ],
+      [
+       "sent",
+       "Sent"
+      ]
+     ],
+     "string": "TicketBAI status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_tbai_post_document_id.state')"
+     ],
+     "lines": 7,
+     "name": "_compute_l10n_es_tbai_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_process_saved_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_pos_order_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_invoice_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "get_l10n_es_pos_tbai_qrurl"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "l10n_es_tbai_retry_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_l10n_es_tbai_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_l10n_es_tbai_create_edi_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_l10n_es_tbai_get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_es_tbai_get_attachment_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_es_tbai_get_credit_note_values"
+    }
+   ],
+   "name": "pos.order",
+   "sel_methods": {
+    "_process_saved_order": []
+   },
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_l10n_es_get_pos_edi_mode"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "l10n_es_edi_tbai_pos",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_es_edi_tbai_pos",
+ "stats": {
+  "fields": 7,
+  "methods": 14,
+  "models": 3,
+  "py_lines": 239
+ },
+ "summary": "",
+ "title": "Spain - Point of Sale + TicketBAI",
+ "version": "1.0"
+}

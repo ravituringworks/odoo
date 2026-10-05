@@ -1,0 +1,94 @@
+{
+ "module": "auth_passkey",
+ "records": [
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_auth_passkey_key_create",
+   "values": {
+    "name": "Create Passkey Wizard",
+    "res_model": "auth.passkey.key.create",
+    "target": "new",
+    "view_mode": "form"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_auth_passkey_key_user",
+   "values": {
+    "name": "Passkeys: Users can only access own Passkeys",
+    "model_id": {
+     "$ref": "model_auth_passkey_key"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "domain_force": "[('create_uid', '=', user.id)]",
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_auth_passkey_key_admin",
+   "values": {
+    "name": "Passkeys: Admins can view and delete other peoples Passkeys",
+    "model_id": {
+     "$ref": "model_auth_passkey_key"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_erp_manager"
+      }
+     ]
+    ],
+    "domain_force": "[(1, '=', 1)]",
+    "perm_unlink": 1,
+    "perm_write": 0,
+    "perm_read": 1,
+    "perm_create": 0
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "auth_passkey.access_auth_passkey_key",
+   "model": "auth.passkey.key",
+   "model_xmlid": "model_auth_passkey_key",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "auth_passkey.access_auth_passkey_key_admin",
+   "model": "auth.passkey.key",
+   "model_xmlid": "model_auth_passkey_key",
+   "group": "base.group_erp_manager",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": true
+  },
+  {
+   "id": "auth_passkey.access_auth_passkey_key_create",
+   "model": "auth.passkey.key.create",
+   "model_xmlid": "model_auth_passkey_key_create",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

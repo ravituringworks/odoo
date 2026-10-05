@@ -1,0 +1,4433 @@
+{
+ "module": "sale",
+ "records": [
+  {
+   "model": "res.groups",
+   "id": "group_auto_done_setting",
+   "values": {
+    "name": "Lock Confirmed Sales",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_discount_per_so_line",
+   "values": {
+    "name": "Discount on lines",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_warning_sale",
+   "values": {
+    "name": "A warning can be set on a product or a customer (Sale)",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_proforma_sales",
+   "values": {
+    "name": "Pro-forma Invoices",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_comp_rule",
+   "values": {
+    "name": "Sales Order multi-company",
+    "model_id": {
+     "$ref": "model_sale_order"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_line_comp_rule",
+   "values": {
+    "name": "Sales Order Line multi-company",
+    "model_id": {
+     "$ref": "model_sale_order_line"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_report_comp_rule",
+   "values": {
+    "name": "Sales Order Analysis multi-company",
+    "model_id": {
+     "$ref": "model_sale_report"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_rule_portal",
+   "values": {
+    "name": "Portal Personal Quotations/Sales Orders",
+    "model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "domain_force": "[('message_partner_ids','child_of',[user.commercial_partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_unlink": true,
+    "perm_write": true,
+    "perm_read": true,
+    "perm_create": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_line_rule_portal",
+   "values": {
+    "name": "Portal Sales Orders Line",
+    "model_id": {
+     "$ref": "sale.model_sale_order_line"
+    },
+    "domain_force": "[('order_id.message_partner_ids','child_of',[user.commercial_partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_personal_rule",
+   "values": {
+    "name": "Personal Orders",
+    "model_id": {
+     "$ref": "model_sale_order"
+    },
+    "domain_force": "['|',('user_id','=',user.id),('user_id','=',False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_see_all",
+   "values": {
+    "name": "All Orders",
+    "model_id": {
+     "$ref": "model_sale_order"
+    },
+    "domain_force": "[(1,'=',1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_report_personal_rule",
+   "values": {
+    "name": "Personal Orders Analysis",
+    "model_id": {
+     "$ref": "model_sale_report"
+    },
+    "domain_force": "['|',('user_id','=',user.id),('user_id','=',False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_report_see_all",
+   "values": {
+    "name": "All Orders Analysis",
+    "model_id": {
+     "$ref": "model_sale_report"
+    },
+    "domain_force": "[(1,'=',1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_line_personal_rule",
+   "values": {
+    "name": "Personal Order Lines",
+    "model_id": {
+     "$ref": "model_sale_order_line"
+    },
+    "domain_force": "['|',('salesman_id','=',user.id),('salesman_id','=',False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_line_see_all",
+   "values": {
+    "name": "All Orders Lines",
+    "model_id": {
+     "$ref": "model_sale_order_line"
+    },
+    "domain_force": "[(1,'=',1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_report_rule_see_personal",
+   "values": {
+    "name": "Personal Invoices Analysis",
+    "model_id": {
+     "$ref": "model_account_invoice_report"
+    },
+    "domain_force": "['|', ('invoice_user_id', '=', user.id), ('invoice_user_id', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_report_rule_see_all",
+   "values": {
+    "name": "All Invoices Analysis",
+    "model_id": {
+     "$ref": "model_account_invoice_report"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "payment_transaction_salesman_rule",
+   "values": {
+    "name": "Access every payment transaction",
+    "model_id": {
+     "$ref": "payment.model_payment_transaction"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "payment_token_salesman_rule",
+   "values": {
+    "name": "Access every payment token",
+    "model_id": {
+     "$ref": "payment.model_payment_token"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_rule_see_personal",
+   "values": {
+    "name": "Personal Invoices",
+    "model_id": {
+     "$ref": "model_account_move"
+    },
+    "domain_force": "[('move_type', 'in', ('out_invoice', 'out_refund')), '|', ('invoice_user_id', '=', user.id), ('invoice_user_id', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_rule_see_all",
+   "values": {
+    "name": "All Invoices",
+    "model_id": {
+     "$ref": "model_account_move"
+    },
+    "domain_force": "[('move_type', 'in', ('out_invoice', 'out_refund'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_line_rule_see_personal",
+   "values": {
+    "name": "Personal Invoice Lines",
+    "model_id": {
+     "$ref": "model_account_move_line"
+    },
+    "domain_force": "[('move_id.move_type', 'in', ('out_invoice', 'out_refund')), '|', ('move_id.invoice_user_id', '=', user.id), ('move_id.invoice_user_id', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_line_rule_see_all",
+   "values": {
+    "name": "All Invoice Lines",
+    "model_id": {
+     "$ref": "model_account_move_line"
+    },
+    "domain_force": "[('move_id.move_type', 'in', ('out_invoice', 'out_refund'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_send_single_rule_see_personal",
+   "values": {
+    "name": "Personal Invoice Send and Print (single mode)",
+    "model_id": {
+     "$ref": "account.model_account_move_send_wizard"
+    },
+    "domain_force": "[('move_id.move_type', 'in', ('out_invoice', 'out_refund')), '|', ('move_id.invoice_user_id', '=', user.id), ('move_id.invoice_user_id', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_send_batch_rule_see_personal",
+   "values": {
+    "name": "Personal Invoice Send and Print (batch mode)",
+    "model_id": {
+     "$ref": "account.model_account_move_send_batch_wizard"
+    },
+    "domain_force": "[('move_ids.move_type', 'in', ('out_invoice', 'out_refund')), '|', ('move_ids.invoice_user_id', '=', user.id), ('move_ids.invoice_user_id', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_send_single_rule_see_all",
+   "values": {
+    "name": "All Invoice Send and Print (single mode)",
+    "model_id": {
+     "$ref": "account.model_account_move_send_wizard"
+    },
+    "domain_force": "[('move_id.move_type', 'in', ('out_invoice', 'out_refund'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_invoice_send_batch_rule_see_all",
+   "values": {
+    "name": "All Invoice Send and Print (batch mode)",
+    "model_id": {
+     "$ref": "account.model_account_move_send_batch_wizard"
+    },
+    "domain_force": "[('move_ids.move_type', 'in', ('out_invoice', 'out_refund'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_payment_provider_onboarding_wizard_rule",
+   "values": {
+    "name": "Payment Provider Onboarding Wizard Rule",
+    "model_id": {
+     "$ref": "model_sale_payment_provider_onboarding_wizard"
+    },
+    "domain_force": "[('create_uid', '=', user.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_advance_payment_inv_rule",
+   "values": {
+    "name": "Sales Advance Payment Invoice Rule",
+    "model_id": {
+     "$ref": "model_sale_advance_payment_inv"
+    },
+    "domain_force": "[('create_uid', '=', user.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_order_cancel_rule",
+   "values": {
+    "name": "Sales Order Cancel Rule",
+    "model_id": {
+     "$ref": "model_sale_order_cancel"
+    },
+    "domain_force": "[('create_uid', '=', user.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_mass_cancel_orders_rule",
+   "values": {
+    "name": "Sales Mass Cancel Orders: access only your own wizard",
+    "model_id": {
+     "$ref": "model_sale_mass_cancel_orders"
+    },
+    "domain_force": "[('create_uid', '=', user.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_plan_rule_group_sale_manager",
+   "values": {
+    "name": "Manager can manage sale order plans",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_manager"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "mail.model_mail_activity_plan"
+    },
+    "domain_force": "[('res_model', '=', 'sale.order')]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_plan_template_rule_group_sale_manager",
+   "values": {
+    "name": "Manager can manage sale order plan templates",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_manager"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "mail.model_mail_activity_plan_template"
+    },
+    "domain_force": "[('plan_id.res_model', '=', 'sale.order')]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_invoice_report_salesteam",
+   "values": {
+    "name": "Invoices Analysis",
+    "res_model": "account.invoice.report",
+    "view_mode": "graph",
+    "domain": [
+     [
+      "state",
+      "not in",
+      [
+       "draft",
+       "cancel"
+      ]
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{'search_default_month':1, 'search_default_team_id': [active_id]}"
+    },
+    "help": "From this report, you can have an overview of the amount invoiced to your customer. The search tool can also be used to personalise your Invoices reports and so, match this analysis to your needs."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_order_report_all",
+   "values": {
+    "name": "Sales Analysis",
+    "res_model": "sale.report",
+    "view_mode": "graph,pivot,list,form",
+    "view_id": "",
+    "search_view_id": {
+     "$ref": "view_order_product_search"
+    },
+    "domain": [
+     [
+      "state",
+      "!=",
+      "cancel"
+     ]
+    ],
+    "context": {
+     "search_default_Sales": 1,
+     "group_by": [],
+     "search_default_filter_order_date": 1
+    },
+    "help": "This report performs analysis on your quotations and sales orders. Analysis check your sales revenues and sort it by different group criteria (salesman, partner, product, etc.) Use this report to perform analysis on sales not having invoiced yet. If you want to analyse your turnover, you should use the Invoice Analysis report in the Accounting application."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_order_report_salesperson",
+   "values": {
+    "name": "Sales Analysis By Salespersons",
+    "res_model": "sale.report",
+    "view_mode": "graph,pivot",
+    "view_id": {
+     "$ref": "sale_report_graph_bar"
+    },
+    "search_view_id": {
+     "$ref": "view_order_product_search"
+    },
+    "context": {
+     "search_default_User": 1,
+     "group_by": "user_id",
+     "search_default_filter_order_date": 1
+    },
+    "help": "This report performs analysis on your quotations and sales orders. Analysis check your sales revenues and sort it by different group criteria (salesman, partner, product, etc.) Use this report to perform analysis on sales not having invoiced yet. If you want to analyse your turnover, you should use the Invoice Analysis report in the Accounting application."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_order_report_products",
+   "values": {
+    "name": "Sales Analysis By Products",
+    "res_model": "sale.report",
+    "view_mode": "graph,pivot",
+    "view_id": {
+     "$ref": "sale_report_graph_pie"
+    },
+    "search_view_id": {
+     "$ref": "view_order_product_search"
+    },
+    "context": {
+     "search_default_Sales": 1,
+     "search_default_Product": 1,
+     "group_by": "product_id",
+     "search_default_filter_order_date": 1
+    },
+    "help": "This report performs analysis on your quotations and sales orders. Analysis check your sales revenues and sort it by different group criteria (salesman, partner, product, etc.) Use this report to perform analysis on sales not having invoiced yet. If you want to analyse your turnover, you should use the Invoice Analysis report in the Accounting application."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_order_report_customers",
+   "values": {
+    "name": "Sales Analysis By Customers",
+    "res_model": "sale.report",
+    "view_mode": "graph,pivot",
+    "view_id": {
+     "$ref": "sale_report_graph_bar"
+    },
+    "search_view_id": {
+     "$ref": "view_order_product_search"
+    },
+    "context": {
+     "search_default_Customer": 1,
+     "group_by": "partner_id",
+     "search_default_filter_order_date": 1
+    },
+    "help": "This report performs analysis on your quotations and sales orders. Analysis check your sales revenues and sort it by different group criteria (salesman, partner, product, etc.) Use this report to perform analysis on sales not having invoiced yet. If you want to analyse your turnover, you should use the Invoice Analysis report in the Accounting application."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "report_all_channels_sales_action",
+   "values": {
+    "name": "Sales Analysis",
+    "res_model": "sale.report",
+    "view_mode": "list,pivot,graph,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_order_report_quotation_salesteam",
+   "values": {
+    "name": "Quotations Analysis",
+    "res_model": "sale.report",
+    "view_mode": "graph,list",
+    "domain": {
+     "$unevaluated": "[('state','=','draft'),('team_id', '=', active_id)]"
+    },
+    "context": {
+     "search_default_order_month": 1
+    },
+    "help": "This report performs analysis on your quotations. Analysis check your sales revenues and sort it by different group criteria (salesman, partner, product, etc.) Use this report to perform analysis on sales not having invoiced yet. If you want to analyse your turnover, you should use the Invoice Analysis report in the Accounting application."
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_order_report_so_salesteam",
+   "values": {
+    "name": "Sales Analysis",
+    "res_model": "sale.report",
+    "view_mode": "graph,list",
+    "domain": [
+     [
+      "state",
+      "not in",
+      [
+       "draft",
+       "cancel"
+      ]
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{\n            'search_default_Sales': 1,\n            'search_default_filter_date': 1,\n            'search_default_team_id': [active_id]}"
+    },
+    "help": "This report performs analysis on your sales orders. Analysis check your sales revenues and sort it by different group criteria (salesman, partner, product, etc.) Use this report to perform analysis on sales not having invoiced yet. If you want to analyse your turnover, you should use the Invoice Analysis report in the Accounting application."
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_sale_order",
+   "values": {
+    "name": "Sales Order",
+    "code": "sale.order",
+    "prefix": "S",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_sale_upsell",
+   "values": {
+    "name": "Order Upsell",
+    "icon": "fa-line-chart",
+    "res_model": "sale.order"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_order_sent",
+   "values": {
+    "name": "Quotation sent",
+    "res_model": "sale.order",
+    "default": false,
+    "description": "Quotation sent"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_order_confirmed",
+   "values": {
+    "name": "Sales Order Confirmed",
+    "res_model": "sale.order",
+    "default": false,
+    "description": "Quotation confirmed"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_order_viewed",
+   "values": {
+    "name": "Quotation Viewed",
+    "res_model": "sale.order",
+    "internal": true,
+    "default": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_order_sent",
+   "values": {
+    "name": "Quotation sent",
+    "sequence": "20",
+    "res_model": "crm.team",
+    "default": true,
+    "parent_id": {
+     "$ref": "sale.mt_order_sent"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_order_viewed",
+   "values": {
+    "name": "Quotation Viewed",
+    "sequence": "25",
+    "res_model": "crm.team",
+    "default": true,
+    "parent_id": {
+     "$ref": "sale.mt_order_viewed"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_order_confirmed",
+   "values": {
+    "name": "Sales Order Confirmed",
+    "sequence": "30",
+    "res_model": "crm.team",
+    "default": true,
+    "parent_id": {
+     "$ref": "sale.mt_order_confirmed"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_invoice_created",
+   "values": {
+    "name": "Invoice Created",
+    "sequence": "35",
+    "res_model": "crm.team",
+    "parent_id": {
+     "$ref": "account.mt_invoice_created"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_salesteam_invoice_confirmed",
+   "values": {
+    "name": "Invoice Confirmed",
+    "sequence": "40",
+    "res_model": "crm.team",
+    "parent_id": {
+     "$ref": "account.mt_invoice_validated"
+    },
+    "relation_field": "team_id"
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "sale_tour",
+   "values": {
+    "name": "sale_tour",
+    "sequence": "20",
+    "rainbow_man_message": "<b>Congratulations</b>, your first quotation is sent!<br>Check your email to validate the quote."
+   }
+  },
+  {
+   "model": "ir.config_parameter",
+   "id": "default_confirmation_template",
+   "values": {
+    "key": "sale.default_confirmation_template",
+    "value": {
+     "$ref": "sale.mail_template_sale_confirmation"
+    }
+   }
+  },
+  {
+   "model": "ir.config_parameter",
+   "id": "default_invoice_email_template",
+   "values": {
+    "key": "sale.default_invoice_email_template",
+    "value": {
+     "$ref": "account.email_template_edi_invoice"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_accrued_revenue_entry",
+   "values": {
+    "name": "Accrued Revenue Entry",
+    "res_model": "account.accrued.orders.wizard",
+    "view_mode": "form",
+    "binding_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_user"
+      }
+     ]
+    ],
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mass_cancel_orders",
+   "values": {
+    "name": "Cancel",
+    "res_model": "sale.mass.cancel.orders",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "mass_cancel_orders_view_form"
+    },
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "model_sale_order"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_sale_order_generate_link",
+   "values": {
+    "name": "Generate a Payment Link",
+    "res_model": "payment.link.wizard",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "payment.payment_link_wizard_view_form"
+    },
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "model_sale_order"
+    },
+    "binding_view_types": "form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_sale_config_settings",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_id": {
+     "$ref": "res_config_settings_view_form"
+    },
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "sale_management",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_sale_advance_payment_inv",
+   "values": {
+    "name": "Create invoice(s)",
+    "res_model": "sale.advance.payment.inv",
+    "view_mode": "form",
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_orders",
+   "values": {
+    "name": "Sales Orders",
+    "res_model": "sale.order",
+    "view_mode": "list,kanban,form,calendar,pivot,graph,activity",
+    "search_view_id": {
+     "$ref": "sale_order_view_search_inherit_sale"
+    },
+    "context": {},
+    "path": "orders",
+    "domain": [
+     [
+      "state",
+      "not in",
+      [
+       "draft",
+       "sent",
+       "cancel"
+      ]
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_order_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "sale.sale_order_list_upload"
+    },
+    "act_window_id": {
+     "$ref": "action_orders"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_order_kanban",
+   "values": {
+    "sequence": 2,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "sale.sale_order_kanban_upload"
+    },
+    "act_window_id": {
+     "$ref": "action_orders"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_order_form",
+   "values": {
+    "sequence": 3,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "sale.view_order_form"
+    },
+    "act_window_id": {
+     "$ref": "action_orders"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_order_calendar",
+   "values": {
+    "sequence": 4,
+    "view_mode": "calendar",
+    "view_id": {
+     "$ref": "sale.view_sale_order_calendar"
+    },
+    "act_window_id": {
+     "$ref": "action_orders"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_order_pivot",
+   "values": {
+    "sequence": 5,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "sale.view_sale_order_pivot"
+    },
+    "act_window_id": {
+     "$ref": "action_orders"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_order_graph",
+   "values": {
+    "sequence": 6,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "sale.view_sale_order_graph"
+    },
+    "act_window_id": {
+     "$ref": "action_orders"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_quotations_with_onboarding",
+   "values": {
+    "name": "Quotations",
+    "path": "sales",
+    "res_model": "sale.order",
+    "view_id": {
+     "$ref": "view_quotation_tree_with_onboarding"
+    },
+    "view_mode": "list,kanban,form,calendar,pivot,graph,activity",
+    "search_view_id": {
+     "$ref": "sale_order_view_search_inherit_quotation"
+    },
+    "context": {
+     "search_default_my_quotation": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_quotation_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "sale.view_quotation_tree_with_onboarding"
+    },
+    "act_window_id": {
+     "$ref": "action_quotations_with_onboarding"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_quotation_kanban",
+   "values": {
+    "sequence": 2,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "sale.view_quotation_kanban_with_onboarding"
+    },
+    "act_window_id": {
+     "$ref": "action_quotations_with_onboarding"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_quotations",
+   "values": {
+    "name": "Quotations",
+    "res_model": "sale.order",
+    "view_mode": "list,kanban,form,calendar,pivot,graph,activity",
+    "search_view_id": {
+     "$ref": "sale_order_view_search_inherit_quotation"
+    },
+    "context": {
+     "search_default_my_quotation": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_quotations_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "sale.view_quotation_tree"
+    },
+    "act_window_id": {
+     "$ref": "action_quotations"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_quotations_kanban",
+   "values": {
+    "sequence": 2,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "sale.view_sale_order_kanban"
+    },
+    "act_window_id": {
+     "$ref": "action_quotations"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_quotation_form",
+   "values": {
+    "sequence": 3,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "sale.view_order_form"
+    },
+    "act_window_id": {
+     "$ref": "action_quotations"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_quotation_calendar",
+   "values": {
+    "sequence": 4,
+    "view_mode": "calendar",
+    "view_id": {
+     "$ref": "sale.view_sale_order_calendar"
+    },
+    "act_window_id": {
+     "$ref": "action_quotations"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_quotation_pivot",
+   "values": {
+    "sequence": 5,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "sale.view_sale_order_pivot"
+    },
+    "act_window_id": {
+     "$ref": "action_quotations"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "sale_order_action_view_quotation_graph",
+   "values": {
+    "sequence": 6,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "sale.view_sale_order_graph"
+    },
+    "act_window_id": {
+     "$ref": "action_quotations"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_orders_to_invoice",
+   "values": {
+    "name": "Orders to Invoice",
+    "res_model": "sale.order",
+    "view_mode": "list,form,calendar,graph,pivot,kanban,activity",
+    "context": {
+     "create": false
+    },
+    "domain": [
+     [
+      "invoice_status",
+      "=",
+      "to invoice"
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "view_sales_order_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_orders_upselling",
+   "values": {
+    "name": "Orders to Upsell",
+    "res_model": "sale.order",
+    "view_mode": "list,form,calendar,graph,pivot,kanban,activity",
+    "domain": [
+     [
+      "invoice_status",
+      "=",
+      "upselling"
+     ]
+    ],
+    "context": {
+     "create": false
+    },
+    "search_view_id": {
+     "$ref": "view_sales_order_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "model_sale_order_action_quotation_sent",
+   "values": {
+    "name": "Mark Quotation as Sent",
+    "model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "binding_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "binding_view_types": "form,list",
+    "state": "code",
+    "code": "action = records.action_quotation_sent()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "model_sale_order_action_share",
+   "values": {
+    "name": "Share",
+    "model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "binding_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "action = records.action_share()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "model_sale_order_send_mail",
+   "values": {
+    "name": "Send an email",
+    "model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "sequence": "1",
+    "binding_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "binding_view_types": "list,form",
+    "state": "code",
+    "code": "if records:\n                action = records.with_context(hide_default_template=True).action_quotation_send()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_invoice_salesteams",
+   "values": {
+    "name": "Invoices",
+    "res_model": "account.move",
+    "view_mode": "list,form,kanban",
+    "view_id": {
+     "$ref": "account.view_move_tree"
+    },
+    "domain": [
+     [
+      "state",
+      "=",
+      "posted"
+     ],
+     [
+      "move_type",
+      "in",
+      [
+       "out_invoice",
+       "out_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{\n                'search_default_team_id': [active_id],\n                'default_team_id': active_id,\n                'default_move_type':'out_invoice',\n      "
+    },
+    "search_view_id": {
+     "$ref": "account.view_account_invoice_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_invoice_salesteams_view_tree",
+   "values": {
+    "sequence": "1",
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "sale.action_invoice_salesteams"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_invoice_salesteams_view_form",
+   "values": {
+    "sequence": "2",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "account.view_move_form"
+    },
+    "act_window_id": {
+     "$ref": "sale.action_invoice_salesteams"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_quotations_salesteams",
+   "values": {
+    "name": "Quotations",
+    "res_model": "sale.order",
+    "view_id": {
+     "$ref": "sale.view_quotation_tree"
+    },
+    "view_mode": "list,form,calendar,graph,kanban,pivot",
+    "context": {
+     "$unevaluated": "{\n                'search_default_team_id': [active_id],\n                'default_team_id': active_id,\n                'show_address': 1,\n            }"
+    },
+    "domain": [],
+    "search_view_id": {
+     "$ref": "sale.sale_order_view_search_inherit_quotation"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_quotation_form",
+   "values": {
+    "name": "New Quotation",
+    "res_model": "sale.order",
+    "view_mode": "form",
+    "context": {
+     "$unevaluated": "{\n                'search_default_team_id': [active_id],\n                'default_team_id': active_id,\n                'default_user_id': uid,\n        }"
+    },
+    "search_view_id": {
+     "$ref": "sale_order_view_search_inherit_quotation"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_orders_salesteams",
+   "values": {
+    "name": "Sales Orders",
+    "res_model": "sale.order",
+    "view_mode": "list,form,calendar,graph,kanban,pivot",
+    "search_view_id": {
+     "$ref": "sale.sale_order_view_search_inherit_sale"
+    },
+    "domain": [
+     [
+      "state",
+      "not in",
+      [
+       "draft",
+       "sent",
+       "cancel"
+      ]
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{\n                'search_default_team_id': [active_id],\n                'default_team_id': active_id,\n            }"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_orders_to_invoice_salesteams",
+   "values": {
+    "name": "Sales Orders",
+    "res_model": "sale.order",
+    "view_mode": "list,form,calendar,graph,kanban,pivot",
+    "search_view_id": {
+     "$ref": "sale.sale_order_view_search_inherit_sale"
+    },
+    "domain": [
+     [
+      "invoice_status",
+      "=",
+      "to invoice"
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{\n                'search_default_team_id': [active_id],\n                'default_team_id': active_id,\n            }"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sales_team.mail_activity_type_action_config_sales",
+   "values": {
+    "domain": [
+     "|",
+     [
+      "res_model",
+      "=",
+      false
+     ],
+     [
+      "res_model",
+      "in",
+      [
+       "sale.order",
+       "res.partner",
+       "product.template",
+       "product.product"
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_type_action_config_sale",
+   "values": {
+    "name": "Activity Types",
+    "res_model": "mail.activity.type",
+    "view_mode": "list,kanban,form",
+    "domain": [
+     "|",
+     [
+      "res_model",
+      "=",
+      false
+     ],
+     [
+      "res_model",
+      "=",
+      "sale.order"
+     ]
+    ],
+    "context": {
+     "default_res_model": "sale.order"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_plan_action_sale_order",
+   "values": {
+    "name": "Sale Order Plans",
+    "res_model": "mail.activity.plan",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "mail.mail_activity_plan_view_search"
+    },
+    "context": {
+     "default_res_model": "sale.order"
+    },
+    "domain": [
+     [
+      "res_model",
+      "=",
+      "sale.order"
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_template_action",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "path": "products",
+    "view_mode": "kanban,list,form,activity",
+    "view_id": {
+     "$ref": "product.product_template_kanban_view"
+    },
+    "search_view_id": {
+     "$ref": "product.product_template_search_view"
+    },
+    "context": {
+     "search_default_filter_to_sell": 1,
+     "sale_multi_pricelist_product_template": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_res_partner_2_sale_order",
+   "values": {
+    "name": "Quotations and Sales",
+    "res_model": "sale.order",
+    "view_mode": "list,kanban,form,graph",
+    "context": {
+     "$unevaluated": "{'default_partner_id': active_id}"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.consu_delivery_01",
+   "values": {
+    "invoice_policy": "order"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.consu_delivery_02",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.consu_delivery_03",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_order_01",
+   "values": {
+    "invoice_policy": "order"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_delivery_01",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_delivery_02",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_27",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_25",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_24",
+   "values": {
+    "invoice_policy": "order"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_22",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_20",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_16",
+   "values": {
+    "invoice_policy": "order"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_13",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_12",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_11b",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_11",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_10",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_9",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_8",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_7",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_6",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_5",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_4c",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_4b",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_4",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_3",
+   "values": {
+    "invoice_policy": "delivery",
+    "expense_policy": "cost"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_2",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_1",
+   "values": {
+    "invoice_policy": "delivery"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.expense_product",
+   "values": {
+    "invoice_policy": "order",
+    "expense_policy": "sales_price"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.expense_hotel",
+   "values": {
+    "invoice_policy": "delivery",
+    "expense_policy": "cost"
+   }
+  },
+  {
+   "model": "product.attribute",
+   "id": "product.product_attribute_2",
+   "values": {
+    "display_type": "color"
+   }
+  },
+  {
+   "model": "product.attribute",
+   "id": "product.product_attribute_3",
+   "values": {
+    "display_type": "select"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product.product_attribute_value_3",
+   "values": {
+    "html_color": "#FFFFFF"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product.product_attribute_value_4",
+   "values": {
+    "html_color": "#000000"
+   }
+  },
+  {
+   "model": "product.attribute.value",
+   "id": "product_attribute_value_7",
+   "values": {
+    "name": "Custom",
+    "attribute_id": {
+     "$ref": "product.product_attribute_1"
+    },
+    "is_custom": "True",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "product.template.attribute.line",
+   "id": "product.product_4_attribute_1_product_template_attribute_line",
+   "values": {
+    "value_ids": [
+     [
+      4,
+      {
+       "$ref": "product_attribute_value_7"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_4e",
+   "values": {
+    "default_code": "DESK0005",
+    "weight": "0.01"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_4f",
+   "values": {
+    "default_code": "DESK0006",
+    "weight": "0.01"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "advance_product_0",
+   "values": {
+    "name": "Deposit",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "type": "service",
+    "list_price": "150.0",
+    "invoice_policy": "order",
+    "standard_price": "100.0",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "company_id": [],
+    "image_1920": "",
+    "taxes_id": [],
+    "supplier_taxes_id": []
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product_product_1_product_template",
+   "values": {
+    "name": "Chair floor protection",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "list_price": "12.0",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description_sale": "Office chairs can harm your floor: protect it.",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product.product_product_4_product_template",
+   "values": {
+    "optional_product_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_product_11_product_template"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product.product_product_11_product_template",
+   "values": {
+    "optional_product_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product_product_1_product_template"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product.product_product_13_product_template",
+   "values": {
+    "optional_product_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "product.product_product_11_product_template"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.company",
+   "id": "base.main_company",
+   "values": {
+    "portal_confirmation_pay": true
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "sales_team.team_sales_department",
+   "values": {
+    "invoiced_target": "250000"
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "sales_team.crm_team_1",
+   "values": {
+    "invoiced_target": "40000"
+   }
+  },
+  {
+   "model": "utm.source",
+   "id": "utm_source_sale_order_0",
+   "values": {
+    "name": "Sale Promotion 1"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_1",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_1",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "295.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_2",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_02"
+    },
+    "product_uom_qty": "5",
+    "price_unit": "145.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_3",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_01"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "65.00"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_2",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_13"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_13"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor7"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_4",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_2"
+    },
+    "product_id": {
+     "$ref": "product.product_product_1"
+    },
+    "product_uom_qty": "24",
+    "price_unit": "75.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_5",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_2"
+    },
+    "product_id": {
+     "$ref": "product.product_product_2"
+    },
+    "product_uom_qty": "30",
+    "price_unit": "38.25"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_3",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor2"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_6",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_3"
+    },
+    "product_id": {
+     "$ref": "product.product_product_1"
+    },
+    "product_uom_qty": "10",
+    "price_unit": "30.75"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_7",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_3"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_01"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_4",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_8",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_4"
+    },
+    "product_id": {
+     "$ref": "product.product_product_1"
+    },
+    "product_uom_qty": "16",
+    "price_unit": "75.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_9",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_4"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_02"
+    },
+    "product_uom_qty": "10",
+    "price_unit": "45.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_10",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_4"
+    },
+    "product_id": {
+     "$ref": "product.consu_delivery_02"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "150.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_11",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_4"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_01"
+    },
+    "product_uom_qty": "2"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_5",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_12",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_5"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_02"
+    },
+    "price_unit": "405.00"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_6",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_18"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_18"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_18"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor6"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_15",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_6"
+    },
+    "product_id": {
+     "$ref": "product.product_product_4"
+    },
+    "price_unit": "750.00"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_7",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_11"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_11"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor4"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_16",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_7"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "5",
+    "price_unit": "295.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_17",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_7"
+    },
+    "product_id": {
+     "$ref": "product.consu_delivery_01"
+    },
+    "price_unit": "173.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_18",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_7"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_02"
+    },
+    "price_unit": "40.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_19",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_7"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_01"
+    },
+    "price_unit": "18.00"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_8",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_20",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_8"
+    },
+    "product_id": {
+     "$ref": "product.product_product_27"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "110.50"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_21",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_8"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_9",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_22",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_9"
+    },
+    "product_id": {
+     "$ref": "product.product_product_27"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "97.50"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_23",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_9"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_10",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=14)).strftime('%Y-%m-%d %H:%M:%S')"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor3"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_24",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_10"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "255.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_25",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_10"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_11",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=21)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_26",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_11"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "245.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_27",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_11"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_12",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=28)).strftime('%Y-%m-%d %H:%M:%S')"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor1"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_28",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_12"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "price_unit": "315.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_29",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_12"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_13",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=35)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_30",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_13"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "price_unit": "295.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_31",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_13"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_14",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_32",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_14"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "4",
+    "price_unit": "275.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_33",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_14"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "4",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_15",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=14)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_34",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_15"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "4",
+    "price_unit": "295.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_35",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_15"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_16",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=21)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_36",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_16"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "275.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_37",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_16"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_17",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=28)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_38",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_17"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "355.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_39",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_17"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_18",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.res_partner_address_25"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "sale.utm_source_sale_order_0"
+    },
+    "date_order": {
+     "$unevaluated": "(datetime.now()-relativedelta(days=35)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_40",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_18"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "295.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_order_line_41",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_18"
+    },
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "120.50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "portal_sale_order_1",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "sent",
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "date_order": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "message_partner_ids": [
+     [
+      4,
+      {
+       "$ref": "base.partner_demo_portal"
+      }
+     ]
+    ],
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor4"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "portal_sale_order_line_1",
+   "values": {
+    "order_id": {
+     "$ref": "portal_sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "product_uom_qty": "3",
+    "price_unit": "295.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "portal_sale_order_line_2",
+   "values": {
+    "order_id": {
+     "$ref": "portal_sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_02"
+    },
+    "product_uom_qty": "5",
+    "price_unit": "145.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "portal_sale_order_line_3",
+   "values": {
+    "order_id": {
+     "$ref": "portal_sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_01"
+    },
+    "product_uom_qty": "2",
+    "price_unit": "65.00"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "portal_sale_order_2",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "partner_invoice_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "partner_shipping_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "team_id": {
+     "$ref": "sales_team.team_sales_department"
+    },
+    "date_order": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "message_partner_ids": [
+     [
+      4,
+      {
+       "$ref": "base.partner_demo_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "portal_sale_order_line_4",
+   "values": {
+    "order_id": {
+     "$ref": "portal_sale_order_2"
+    },
+    "product_id": {
+     "$ref": "product.product_product_1"
+    },
+    "product_uom_qty": "24",
+    "price_unit": "75.00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "portal_sale_order_line_5",
+   "values": {
+    "order_id": {
+     "$ref": "portal_sale_order_2"
+    },
+    "product_id": {
+     "$ref": "product.product_product_2"
+    },
+    "product_uom_qty": "30",
+    "price_unit": "38.25"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_9",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() - relativedelta(days=7)"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_11",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() - relativedelta(days=21)"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_15",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() - relativedelta(days=14)"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_17",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() - relativedelta(days=28)"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_18",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() - relativedelta(days=35)"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "portal_sale_order_2",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() - relativedelta(months=1)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_sale_1",
+   "values": {
+    "model": "sale.order",
+    "res_id": {
+     "$ref": "sale_order_2"
+    },
+    "body": "Hi,\nI have a question regarding services pricing: I heard of a possible discount for quantities exceeding 25 hours.\nCould you confirm, please?",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_sale_2",
+   "values": {
+    "model": "sale.order",
+    "res_id": {
+     "$ref": "sale_order_2"
+    },
+    "parent_id": {
+     "$ref": "message_sale_1"
+    },
+    "body": "Hello,\nUnfortunately that was a temporary discount that is not available anymore.\nDo you still plan to confirm the order based on the quoted prices?\nThanks!",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_root"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "message_sale_3",
+   "values": {
+    "model": "sale.order",
+    "res_id": {
+     "$ref": "sale_order_2"
+    },
+    "parent_id": {
+     "$ref": "message_sale_2"
+    },
+    "body": "Alright, thanks for the clarification. I will confirm the order as soon as I get my manager's approval.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_activity_2",
+   "values": {
+    "res_id": {
+     "$ref": "sale.sale_order_3"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Answer questions",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_activity_3",
+   "values": {
+    "res_id": {
+     "$ref": "sale.sale_order_4"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "sale.mail_act_sale_upsell"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_activity_4",
+   "values": {
+    "res_id": {
+     "$ref": "sale.sale_order_5"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "create_uid": {
+     "$ref": "base.user_demo"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_activity_6",
+   "values": {
+    "res_id": {
+     "$ref": "sale.sale_order_7"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_todo"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Check delivery requirements",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_activity_7",
+   "values": {
+    "res_id": {
+     "$ref": "sale.sale_order_10"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_todo"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Confirm Delivery",
+    "create_uid": {
+     "$ref": "base.user_demo"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_activity_8",
+   "values": {
+    "res_id": {
+     "$ref": "sale.sale_order_12"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "create_uid": {
+     "$ref": "base.user_demo"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_activity_9",
+   "values": {
+    "res_id": {
+     "$ref": "sale.sale_order_16"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "sale.mail_act_sale_upsell"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "create_uid": {
+     "$ref": "base.user_demo"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_activity_10",
+   "values": {
+    "res_id": {
+     "$ref": "sale.portal_sale_order_1"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_todo"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Get quote confirmation",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "sale_menu_root",
+   "name": "Sales",
+   "sequence": "30",
+   "web_icon": "sale_management,static/description/icon.png"
+  },
+  {
+   "id": "sale_order_menu",
+   "name": "Orders",
+   "sequence": "10",
+   "parent": "sale_menu_root"
+  },
+  {
+   "id": "menu_sale_quotations",
+   "action": "action_quotations_with_onboarding",
+   "sequence": "10",
+   "groups": "sales_team.group_sale_salesman",
+   "parent": "sale_order_menu"
+  },
+  {
+   "id": "menu_sale_order",
+   "name": "Orders",
+   "action": "action_orders",
+   "sequence": "20",
+   "groups": "sales_team.group_sale_salesman",
+   "parent": "sale_order_menu"
+  },
+  {
+   "id": "report_sales_team",
+   "name": "Sales Teams",
+   "action": "sales_team.crm_team_action_sales",
+   "sequence": "30",
+   "groups": "sales_team.group_sale_manager",
+   "parent": "sale_order_menu"
+  },
+  {
+   "id": "res_partner_menu",
+   "action": "account.res_partner_action_customer",
+   "sequence": "40",
+   "groups": "sales_team.group_sale_salesman",
+   "parent": "sale_order_menu"
+  },
+  {
+   "id": "menu_sale_invoicing",
+   "name": "To Invoice",
+   "sequence": "20",
+   "groups": "sales_team.group_sale_salesman",
+   "parent": "sale_menu_root"
+  },
+  {
+   "id": "menu_sale_order_invoice",
+   "action": "action_orders_to_invoice",
+   "sequence": "10",
+   "parent": "menu_sale_invoicing"
+  },
+  {
+   "id": "menu_sale_order_upselling",
+   "action": "action_orders_upselling",
+   "sequence": "20",
+   "parent": "menu_sale_invoicing"
+  },
+  {
+   "id": "product_menu_catalog",
+   "name": "Products",
+   "sequence": "30",
+   "groups": "sales_team.group_sale_salesman",
+   "parent": "sale_menu_root"
+  },
+  {
+   "id": "menu_product_template_action",
+   "action": "product_template_action",
+   "sequence": "10",
+   "parent": "product_menu_catalog"
+  },
+  {
+   "id": "menu_products",
+   "action": "product.product_normal_action_sell",
+   "sequence": "20",
+   "groups": "product.group_product_variant",
+   "parent": "product_menu_catalog"
+  },
+  {
+   "id": "menu_product_pricelist_main",
+   "name": "Pricelists",
+   "action": "product.product_pricelist_action2",
+   "sequence": "30",
+   "groups": "product.group_product_pricelist",
+   "parent": "product_menu_catalog"
+  },
+  {
+   "id": "menu_sale_report",
+   "name": "Reporting",
+   "sequence": "40",
+   "groups": "sales_team.group_sale_manager",
+   "parent": "sale_menu_root"
+  },
+  {
+   "id": "menu_reporting_sales",
+   "name": "Sales",
+   "action": "action_order_report_all",
+   "sequence": "10",
+   "parent": "menu_sale_report"
+  },
+  {
+   "id": "menu_reporting_salespeople",
+   "name": "Salespersons",
+   "action": "action_order_report_salesperson",
+   "sequence": "20",
+   "parent": "menu_sale_report"
+  },
+  {
+   "id": "menu_reporting_product",
+   "name": "Products",
+   "action": "action_order_report_products",
+   "sequence": "30",
+   "parent": "menu_sale_report"
+  },
+  {
+   "id": "menu_reporting_customer",
+   "name": "Customers",
+   "action": "action_order_report_customers",
+   "sequence": "40",
+   "parent": "menu_sale_report"
+  },
+  {
+   "id": "menu_sale_config",
+   "name": "Configuration",
+   "sequence": "50",
+   "groups": "sales_team.group_sale_manager",
+   "parent": "sale_menu_root"
+  },
+  {
+   "id": "menu_sale_general_settings",
+   "name": "Settings",
+   "action": "action_sale_config_settings",
+   "sequence": "10",
+   "groups": "base.group_system",
+   "parent": "menu_sale_config"
+  },
+  {
+   "id": "sales_team_config",
+   "name": "Sales Teams",
+   "action": "sales_team.crm_team_action_config",
+   "sequence": "20",
+   "parent": "menu_sale_config"
+  },
+  {
+   "id": "menu_sales_config",
+   "name": "Sales Orders",
+   "sequence": "30",
+   "parent": "menu_sale_config"
+  },
+  {
+   "id": "menu_tag_config",
+   "name": "Tags",
+   "action": "sales_team.sales_team_crm_tag_action",
+   "sequence": "10",
+   "parent": "menu_sales_config"
+  },
+  {
+   "id": "prod_config_main",
+   "name": "Products",
+   "sequence": "40",
+   "parent": "menu_sale_config"
+  },
+  {
+   "id": "menu_product_attribute_action",
+   "action": "product.attribute_action",
+   "sequence": "10",
+   "groups": "product.group_product_variant",
+   "parent": "prod_config_main"
+  },
+  {
+   "id": "menu_product_combos",
+   "name": "Combo Choices",
+   "action": "product.product_combo_action",
+   "sequence": "15",
+   "parent": "prod_config_main"
+  },
+  {
+   "id": "menu_product_categories",
+   "action": "product.product_category_action_form",
+   "sequence": "20",
+   "parent": "prod_config_main"
+  },
+  {
+   "id": "menu_product_tags",
+   "action": "product.product_tag_action",
+   "sequence": "30",
+   "parent": "prod_config_main"
+  },
+  {
+   "id": "payment_menu",
+   "name": "Online Payments",
+   "sequence": "45",
+   "groups": "base.group_system",
+   "parent": "menu_sale_config"
+  },
+  {
+   "id": "payment_provider_menu",
+   "action": "payment.action_payment_provider",
+   "sequence": "10",
+   "parent": "payment_menu"
+  },
+  {
+   "id": "payment_method_menu",
+   "action": "payment.action_payment_method",
+   "sequence": "20",
+   "parent": "payment_menu"
+  },
+  {
+   "id": "payment_token_menu",
+   "action": "payment.action_payment_token",
+   "sequence": "30",
+   "groups": "base.group_no_one",
+   "parent": "payment_menu"
+  },
+  {
+   "id": "payment_transaction_menu",
+   "action": "payment.action_payment_transaction",
+   "sequence": "40",
+   "groups": "base.group_no_one",
+   "parent": "payment_menu"
+  },
+  {
+   "id": "next_id_16",
+   "name": "Units of Measure",
+   "sequence": "50",
+   "groups": "uom.group_uom",
+   "parent": "menu_sale_config"
+  },
+  {
+   "id": "menu_product_uom_form_action",
+   "action": "uom.product_uom_form_action",
+   "sequence": "10",
+   "groups": "base.group_no_one",
+   "parent": "next_id_16"
+  },
+  {
+   "id": "menu_product_uom_categ_form_action",
+   "action": "uom.product_uom_categ_form_action",
+   "sequence": "20",
+   "parent": "next_id_16"
+  },
+  {
+   "id": "sale_menu_config_activities",
+   "name": "Activities",
+   "sequence": "55",
+   "parent": "menu_sale_config"
+  },
+  {
+   "id": "sale_menu_config_activity_type",
+   "action": "mail_activity_type_action_config_sale",
+   "sequence": "10",
+   "groups": "base.group_no_one",
+   "parent": "sale_menu_config_activities"
+  },
+  {
+   "id": "sale_menu_config_activity_plan",
+   "name": "Activity Plans",
+   "action": "mail_activity_plan_action_sale_order",
+   "sequence": "20",
+   "groups": "sales_team.group_sale_manager",
+   "parent": "sale_menu_config_activities"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_account_account_salesman",
+   "model": "account.account.account",
+   "model_xmlid": "account.model_account_account",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_account_salesman",
+   "model": "analytic.account.analytic.account",
+   "model_xmlid": "analytic.model_account_analytic_account",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_account_tag_sale_salesman",
+   "model": "account.account.account.tag",
+   "model_xmlid": "account.model_account_account_tag",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_send_wizard_salesman",
+   "model": "account.account.move.send.wizard",
+   "model_xmlid": "account.model_account_move_send_wizard",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_send_batch_wizard_salesman",
+   "model": "account.account.move.send.batch.wizard",
+   "model_xmlid": "account.model_account_move_send_batch_wizard",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_account_journal",
+   "model": "account.account.journal",
+   "model_xmlid": "account.model_account_journal",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_salesman",
+   "model": "account.account.move",
+   "model_xmlid": "account.model_account_move",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move_line_salesman",
+   "model": "account.account.move.line",
+   "model_xmlid": "account.model_account_move_line",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_partial_reconcile_salesman",
+   "model": "account.account.partial.reconcile",
+   "model_xmlid": "account.model_account_partial_reconcile",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment_term_salesman",
+   "model": "account.account.payment.term",
+   "model_xmlid": "account.model_account_payment_term",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_user",
+   "model": "account.account.tax",
+   "model_xmlid": "account.model_account_tax",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_group_sale_manager",
+   "model": "account.account.tax.group",
+   "model_xmlid": "account.model_account_tax_group",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_sale_user",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_sale_manager",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_activity_type_sale_manager",
+   "model": "mail.mail.activity.type",
+   "model_xmlid": "mail.model_mail_activity_type",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_category_sale_manager",
+   "model": "product.product.category",
+   "model_xmlid": "product.model_product_category",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_sale_user",
+   "model": "product.product.pricelist",
+   "model_xmlid": "product.model_product_pricelist",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_pricelist_sale_manager",
+   "model": "product.product.pricelist",
+   "model_xmlid": "product.model_product_pricelist",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_item_sale_manager",
+   "model": "product.product.pricelist.item",
+   "model_xmlid": "product.model_product_pricelist_item",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_sale_manager",
+   "model": "product.product.attribute",
+   "model_xmlid": "product.model_product_attribute",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_value_sale_manager",
+   "model": "product.product.attribute.value",
+   "model_xmlid": "product.model_product_attribute_value",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_update_product_attribute_value_sale_manager",
+   "model": "product.update.product.attribute.value",
+   "model_xmlid": "product.model_update_product_attribute_value",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_attribute_sale_manager",
+   "model": "product.product.template.attribute.value",
+   "model_xmlid": "product.model_product_template_attribute_value",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_attribute_custom_value_sale_user",
+   "model": "product.product.attribute.custom.value",
+   "model_xmlid": "product.model_product_attribute_custom_value",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_supplierinfo_user",
+   "model": "product.product.supplierinfo",
+   "model_xmlid": "product.model_product_supplierinfo",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_supplierinfo_sale_manager",
+   "model": "product.product.supplierinfo",
+   "model_xmlid": "product.model_product_supplierinfo",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_attribute_exclusion_sale_manager",
+   "model": "product.product.template.attribute.exclusion",
+   "model_xmlid": "product.model_product_template_attribute_exclusion",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_attribute_line_sale_manager",
+   "model": "product.product.template.attribute.line",
+   "model_xmlid": "product.model_product_template_attribute_line",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_tag_sale_manager",
+   "model": "product.product.tag",
+   "model_xmlid": "product.model_product_tag",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_sale_user",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_sale_manager",
+   "model": "product.product",
+   "model_xmlid": "model_product_product",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_sale_user",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_template_sale_manager",
+   "model": "product.template",
+   "model_xmlid": "model_product_template",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_uom_uom_user",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_uom_category_sale_manager",
+   "model": "uom.uom.category",
+   "model_xmlid": "uom.model_uom_category",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_uom_uom_sale_manager",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sale_order_portal",
+   "model": "sale.sale.order",
+   "model_xmlid": "sale.model_sale_order",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_readonly",
+   "model": "sale.order",
+   "model_xmlid": "model_sale_order",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_invoicing_payments",
+   "model": "sale.order",
+   "model_xmlid": "model_sale_order",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_accountant",
+   "model": "sale.order",
+   "model_xmlid": "model_sale_order",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order",
+   "model": "sale.order",
+   "model_xmlid": "model_sale_order",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_manager",
+   "model": "sale.order",
+   "model_xmlid": "model_sale_order",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sale_order_line_portal",
+   "model": "sale.sale.order.line",
+   "model_xmlid": "sale.model_sale_order_line",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_line_readonly",
+   "model": "sale.order.line",
+   "model_xmlid": "model_sale_order_line",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_line_invoicing_payments",
+   "model": "sale.order.line",
+   "model_xmlid": "model_sale_order_line",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_line_accountant",
+   "model": "sale.order.line",
+   "model_xmlid": "model_sale_order_line",
+   "group": "account.group_account_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_line",
+   "model": "sale.order.line",
+   "model_xmlid": "model_sale_order_line",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_sale_report_salesman",
+   "model": "sale.report",
+   "model_xmlid": "model_sale_report",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_payment_link_wizard_sale",
+   "model": "payment.payment.link.wizard",
+   "model_xmlid": "payment.model_payment_link_wizard",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_payment_provider_onboarding_wizard",
+   "model": "sale.payment.provider.onboarding.wizard",
+   "model_xmlid": "model_sale_payment_provider_onboarding_wizard",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_advance_payment_inv",
+   "model": "sale.advance.payment.inv",
+   "model_xmlid": "model_sale_advance_payment_inv",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_cancel",
+   "model": "sale.order.cancel",
+   "model_xmlid": "model_sale_order_cancel",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_mass_cancel_orders",
+   "model": "sale.mass.cancel.orders",
+   "model_xmlid": "model_sale_mass_cancel_orders",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_discount",
+   "model": "sale.order.discount",
+   "model_xmlid": "model_sale_order_discount",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_activity_plan_sale_manager",
+   "model": "mail.mail.activity.plan",
+   "model_xmlid": "mail.model_mail_activity_plan",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_plan_template_sale_manager",
+   "model": "mail.mail.activity.plan.template",
+   "model_xmlid": "mail.model_mail_activity_plan_template",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

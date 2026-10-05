@@ -1,0 +1,481 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "base",
+  "web"
+ ],
+ "models": {
+  "bus.bus": {
+   "abstract": false,
+   "description": "Communication Bus",
+   "extension": false,
+   "fields": {
+    "channel": {
+     "string": "Channel",
+     "type": "Char"
+    },
+    "message": {
+     "string": "Message",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 8,
+     "name": "_gc_messages"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "_sendone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_ensure_hooks"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_poll"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_bus_last_id"
+    }
+   ],
+   "name": "bus.bus",
+   "transient": false
+  },
+  "bus.listener.mixin": {
+   "abstract": true,
+   "description": "Can send messages via bus.bus",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_bus_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_bus_channel"
+    }
+   ],
+   "name": "bus.listener.mixin",
+   "transient": false
+  },
+  "bus.presence": {
+   "abstract": false,
+   "description": "User Presence",
+   "extension": false,
+   "fields": {
+    "last_poll": {
+     "default": {
+      "$lambda": "fields.Datetime.now()"
+     },
+     "string": "Last Poll",
+     "type": "Datetime"
+    },
+    "last_presence": {
+     "default": {
+      "$lambda": "fields.Datetime.now()"
+     },
+     "string": "Last Presence",
+     "type": "Datetime"
+    },
+    "status": {
+     "default": "offline",
+     "selection": [
+      [
+       "online",
+       "Online"
+      ],
+      [
+       "away",
+       "Away"
+      ],
+      [
+       "offline",
+       "Offline"
+      ]
+     ],
+     "string": "IM Status",
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "ondelete": "cascade",
+     "string": "Users",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "update_presence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_bus_target"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_identity_field_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_identity_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_update_presence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_invalidate_im_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_send_presence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_send_status_updated_notification"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 4,
+     "name": "_gc_bus_presence"
+    }
+   ],
+   "name": "bus.presence",
+   "transient": false
+  },
+  "ir.attachment": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "bus.listener.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_bus_channel"
+    }
+   ],
+   "name": "ir.attachment",
+   "transient": false
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "get_frontend_session_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "session_info"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "ir.model": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_get_model_definitions"
+    }
+   ],
+   "name": "ir.model",
+   "transient": false
+  },
+  "ir.qweb": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_bundles_to_pregenarate"
+    }
+   ],
+   "name": "ir.qweb",
+   "transient": false
+  },
+  "ir.websocket": {
+   "abstract": true,
+   "description": "websocket message handling",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_missed_presences_identity_domains"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_missed_presences_bus_target"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_build_presence_channel_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_build_bus_channel_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_prepare_subscribe_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_subscribe"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_bus_presence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_on_websocket_closed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_authenticate"
+    }
+   ],
+   "name": "ir.websocket",
+   "transient": false
+  },
+  "res.groups": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "bus.listener.mixin"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "res.groups",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "im_status": {
+     "compute": "_compute_im_status",
+     "string": "IM Status",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "bus.listener.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_im_status"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "im_status": {
+     "compute": "_compute_im_status",
+     "string": "IM Status",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "bus.listener.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_im_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_bus_channel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_user_available"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "res.users.settings": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "bus.listener.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_bus_channel"
+    }
+   ],
+   "name": "res.users.settings",
+   "transient": false
+  }
+ },
+ "module": "bus",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/bus",
+ "stats": {
+  "fields": 8,
+  "methods": 39,
+  "models": 12,
+  "py_lines": 1963
+ },
+ "summary": "Instant Messaging Bus allow you to send messages to users, in live.",
+ "title": "IM Bus",
+ "version": "1.0"
+}

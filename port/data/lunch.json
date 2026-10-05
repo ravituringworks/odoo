@@ -1,0 +1,1866 @@
+{
+ "module": "lunch",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "module_lunch_category",
+   "values": {
+    "name": "Lunch",
+    "description": "Helps you handle your lunch needs, if you are a manager you will be able to create new products, cashmoves and to confirm or cancel orders.",
+    "sequence": "16"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_lunch_user",
+   "values": {
+    "name": "User : Order your meal",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_lunch"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_lunch_manager",
+   "values": {
+    "name": "Administrator",
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_lunch_user"
+      }
+     ]
+    ],
+    "category_id": {
+     "$ref": "base.module_category_human_resources_lunch"
+    },
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "lunch_mind_your_own_food_money",
+   "values": {
+    "name": "lunch.cashmove: do not see other people's cashmove",
+    "model_id": {
+     "$ref": "model_lunch_cashmove"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_lunch_user"
+      }
+     ]
+    ],
+    "domain_force": "[('user_id', '=', user.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "lunch_mind_other_food_money",
+   "values": {
+    "name": "lunch.cashmove: do see other people's cashmove",
+    "model_id": {
+     "$ref": "model_lunch_cashmove"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_lunch_manager"
+      }
+     ]
+    ],
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "lunch_order_rule_delete",
+   "values": {
+    "name": "lunch.order: Only new and cancelled order lines deleted.",
+    "model_id": {
+     "$ref": "lunch.model_lunch_order"
+    },
+    "domain_force": "[('state', 'in', ('new', 'cancelled'))]",
+    "perm_read": 0,
+    "perm_write": 0,
+    "perm_create": 0,
+    "perm_unlink": 1,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "lunch.group_lunch_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "lunch_order_rule_write",
+   "values": {
+    "name": "lunch.order: Don't change confirmed order",
+    "model_id": {
+     "$ref": "lunch.model_lunch_order"
+    },
+    "domain_force": "[('state', '!=', 'confirmed'), ('user_id', '=', user.id)]",
+    "perm_read": 0,
+    "perm_create": 0,
+    "perm_unlink": 0,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "lunch_order_rule_write_manager",
+   "values": {
+    "name": "manager can do whatever",
+    "model_id": {
+     "$ref": "lunch.model_lunch_order"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "perm_read": 0,
+    "perm_create": 0,
+    "perm_unlink": 0,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "lunch.group_lunch_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "lunch.group_lunch_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_lunch_supplier_multi_company",
+   "values": {
+    "name": "Lunch supplier: Multi Company",
+    "model_id": {
+     "$ref": "model_lunch_supplier"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_lunch_order_multi_company",
+   "values": {
+    "name": "Lunch order: Multi Company",
+    "model_id": {
+     "$ref": "model_lunch_order"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_lunch_product_multi_company",
+   "values": {
+    "name": "Lunch product: Multi Company",
+    "model_id": {
+     "$ref": "model_lunch_product"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_lunch_product_category_multi_company",
+   "values": {
+    "name": "Lunch product category: Multi Company",
+    "model_id": {
+     "$ref": "model_lunch_product_category"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_lunch_location_multi_company",
+   "values": {
+    "name": "Lunch location: Multi Company",
+    "model_id": {
+     "$ref": "model_lunch_location"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_cashmove_report_action_account",
+   "values": {
+    "name": "My Account",
+    "res_model": "lunch.cashmove.report",
+    "view_mode": "list",
+    "search_view_id": {
+     "$ref": "lunch_cashmove_report_view_search"
+    },
+    "domain": {
+     "$unevaluated": "[('user_id','=',uid)]"
+    },
+    "view_id": {
+     "$ref": "lunch_cashmove_report_view_tree_2"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_cashmove_report_action_control_accounts",
+   "values": {
+    "name": "Control Accounts",
+    "res_model": "lunch.cashmove.report",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "lunch_cashmove_report_view_search_2"
+    },
+    "context": {
+     "search_default_group_by_user": 1
+    },
+    "view_id": {
+     "$ref": "lunch_cashmove_report_view_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_alert_action",
+   "values": {
+    "name": "Lunch Alerts",
+    "res_model": "lunch.alert",
+    "search_view_id": {
+     "$ref": "lunch_alert_view_search"
+    },
+    "view_mode": "list,form,kanban",
+    "domain": [
+     "|",
+     [
+      "active",
+      "=",
+      true
+     ],
+     [
+      "active",
+      "=",
+      false
+     ]
+    ],
+    "context": {},
+    "view_id": {
+     "$ref": "lunch_alert_view_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_cashmove_action_payment",
+   "values": {
+    "name": "Cash Moves",
+    "res_model": "lunch.cashmove",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "lunch_cashmove_view_search"
+    },
+    "view_id": {
+     "$ref": "lunch_cashmove_view_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_location_action",
+   "values": {
+    "name": "Lunch Locations",
+    "res_model": "lunch.location",
+    "view_mode": "list,form,kanban",
+    "search_view_id": {
+     "$ref": "lunch_location_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_order_action",
+   "values": {
+    "name": "My Orders",
+    "res_model": "lunch.order",
+    "view_mode": "list,kanban,pivot",
+    "search_view_id": {
+     "$ref": "lunch_order_view_search"
+    },
+    "context": {
+     "search_default_is_mine": 1,
+     "search_default_group_by_date": 1,
+     "show_reorder_button": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_order_action_by_supplier",
+   "values": {
+    "name": "Today's Orders",
+    "res_model": "lunch.order",
+    "view_mode": "list,kanban",
+    "search_view_id": {
+     "$ref": "lunch_order_view_search"
+    },
+    "context": {
+     "search_default_group_by_supplier": 1,
+     "search_default_date_filter": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_order_action_control_suppliers",
+   "values": {
+    "name": "Control Vendors",
+    "res_model": "lunch.order",
+    "view_mode": "list,kanban,pivot",
+    "search_view_id": {
+     "$ref": "lunch_order_view_search"
+    },
+    "context": {
+     "search_default_group_by_supplier": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_product_action_statbutton",
+   "values": {
+    "name": "Products",
+    "res_model": "lunch.product",
+    "view_mode": "kanban,list,form",
+    "context": {
+     "search_default_group_by_supplier": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_product_action",
+   "values": {
+    "name": "Products",
+    "res_model": "lunch.product",
+    "view_mode": "list,kanban,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_product_action_order",
+   "values": {
+    "name": "Order Your Lunch",
+    "path": "lunch",
+    "res_model": "lunch.product",
+    "view_mode": "kanban,list",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "view_lunch_product_kanban_order"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "lunch_product_view_tree_order"
+       }
+      }
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "lunch_product_view_search"
+    },
+    "domain": [],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_product_category_action",
+   "values": {
+    "name": "Product Categories",
+    "res_model": "lunch.product.category",
+    "view_mode": "list,form,kanban",
+    "search_view_id": {
+     "$ref": "lunch_product_category_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_vendors_action",
+   "values": {
+    "name": "Vendors",
+    "res_model": "lunch.supplier",
+    "view_mode": "kanban,list,form",
+    "search_view_id": {
+     "$ref": "lunch_supplier_view_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "lunch_config_settings_action",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_id": {
+     "$ref": "res_config_settings_view_form"
+    },
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "lunch",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "lunch.location",
+   "id": "lunch_location_main",
+   "values": {
+    "name": "HQ Office"
+   }
+  },
+  {
+   "model": "lunch.product.category",
+   "id": "categ_sandwich",
+   "values": {
+    "name": "Sandwich"
+   }
+  },
+  {
+   "model": "lunch.product.category",
+   "id": "categ_pizza",
+   "values": {
+    "name": "Pizza",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "lunch.product.category",
+   "id": "categ_burger",
+   "values": {
+    "name": "Burger",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "lunch.product.category",
+   "id": "categ_drinks",
+   "values": {
+    "name": "Drinks",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "partner_hungry_dog",
+   "values": {
+    "name": "Lunch Supplier"
+   }
+  },
+  {
+   "model": "lunch.supplier",
+   "id": "supplier_hungry_dog",
+   "values": {
+    "partner_id": {
+     "$ref": "partner_hungry_dog"
+    },
+    "available_location_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "lunch_location_main"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "lunch_order_action_confirm",
+   "values": {
+    "name": "Lunch: Receive meals",
+    "model_id": {
+     "$ref": "model_lunch_order"
+    },
+    "binding_model_id": {
+     "$ref": "model_lunch_order"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "records.action_confirm()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "lunch_order_action_cancel",
+   "values": {
+    "name": "Lunch: Cancel meals",
+    "model_id": {
+     "$ref": "model_lunch_order"
+    },
+    "binding_model_id": {
+     "$ref": "model_lunch_order"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "records.action_cancel()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "lunch_order_action_notify",
+   "values": {
+    "name": "Lunch: Send notifications",
+    "model_id": {
+     "$ref": "model_lunch_order"
+    },
+    "binding_model_id": {
+     "$ref": "model_lunch_order"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "records.action_notify()"
+   }
+  },
+  {
+   "model": "lunch.location",
+   "id": "lunch_location_main",
+   "values": {
+    "address": "87323 Francis Corner Oscarhaven, OK 12782"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "partner_hungry_dog",
+   "values": {
+    "name": "Hungry Dog",
+    "city": "Russeltown",
+    "country_id": {
+     "$ref": "base.us"
+    },
+    "street": "975 Bullock Orchard",
+    "zip": "02155",
+    "email": "hungry_dog@yourcompany.example.com",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_bacon_0",
+   "values": {
+    "name": "Bacon",
+    "category_id": {
+     "$ref": "categ_burger"
+    },
+    "price": "7.2",
+    "supplier_id": {
+     "$ref": "supplier_hungry_dog"
+    },
+    "description": "Beef, Bacon, Salad, Cheddar, Fried Onion, BBQ Sauce",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_cheese_burger_0",
+   "values": {
+    "name": "Cheese Burger",
+    "category_id": {
+     "$ref": "categ_burger"
+    },
+    "price": "6.8",
+    "supplier_id": {
+     "$ref": "supplier_hungry_dog"
+    },
+    "description": "Beef, Cheddar, Salad, Fried Onions, BBQ Sauce",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_club_0",
+   "values": {
+    "name": "Club",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "3.4",
+    "supplier_id": {
+     "$ref": "supplier_hungry_dog"
+    },
+    "description": "Ham, Cheese, Vegetables",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_coke_0",
+   "values": {
+    "name": "Coca Cola",
+    "category_id": {
+     "$ref": "categ_drinks"
+    },
+    "price": "2.9",
+    "description": "",
+    "supplier_id": {
+     "$ref": "supplier_hungry_dog"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_pizza_0",
+   "values": {
+    "name": "Pizza Margherita",
+    "category_id": {
+     "$ref": "categ_pizza"
+    },
+    "price": "6.90",
+    "supplier_id": {
+     "$ref": "supplier_hungry_dog"
+    },
+    "description": "Tomatoes, Mozzarella",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.location",
+   "id": "location_office_1",
+   "values": {
+    "name": "Office 1"
+   }
+  },
+  {
+   "model": "lunch.location",
+   "id": "location_office_2",
+   "values": {
+    "name": "Office 2"
+   }
+  },
+  {
+   "model": "lunch.location",
+   "id": "location_office_3",
+   "values": {
+    "name": "Office 3"
+   }
+  },
+  {
+   "model": "lunch.alert",
+   "id": "alert_office_3",
+   "values": {
+    "name": "Alert for Office 3",
+    "message": "Please order",
+    "location_ids": [
+     [
+      4,
+      {
+       "$ref": "location_office_3"
+      }
+     ]
+    ],
+    "mode": "chat"
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_admin",
+   "values": {
+    "last_lunch_location_id": {
+     "$ref": "location_office_2"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "last_lunch_location_id": {
+     "$ref": "location_office_3"
+    },
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "lunch.group_lunch_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "lunch.product.category",
+   "id": "categ_pasta",
+   "values": {
+    "name": "Pasta"
+   }
+  },
+  {
+   "model": "lunch.product.category",
+   "id": "categ_sushi",
+   "values": {
+    "name": "Sushi"
+   }
+  },
+  {
+   "model": "lunch.product.category",
+   "id": "categ_temaki",
+   "values": {
+    "name": "Temaki"
+   }
+  },
+  {
+   "model": "lunch.product.category",
+   "id": "categ_chirashi",
+   "values": {
+    "name": "Chirashi"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "partner_coin_gourmand",
+   "values": {
+    "name": "Coin gourmand",
+    "city": "Tirana",
+    "country_id": {
+     "$ref": "base.al"
+    },
+    "street": "Rr. e Durr\u00ebsit, Pall. M.C. Inerte",
+    "street2": "Kati.1, Laprak\u00eb, Tirana, Shqip\u00ebri",
+    "email": "coin.gourmand@yourcompany.example.com",
+    "phone": "+32485562388",
+    "company_type": "company"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "partner_pizza_inn",
+   "values": {
+    "name": "Pizza Inn",
+    "city": "Gandhi Nagar",
+    "country_id": {
+     "$ref": "base.in"
+    },
+    "company_type": "company",
+    "image_1920": "",
+    "street": "#8, 1 st Floor,iscore complex",
+    "street2": "Gandhi Gramam",
+    "zip": "607308",
+    "email": "pizza.inn@yourcompany.example.com",
+    "phone": "+32456325289"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "partner_corner",
+   "values": {
+    "name": "The Corner",
+    "city": "Atlanta",
+    "country_id": {
+     "$ref": "base.us"
+    },
+    "street": "Genessee Ave SW",
+    "zip": "607409",
+    "email": "info@corner.com",
+    "phone": "+32654321515",
+    "company_type": "company"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "partner_sushi_shop",
+   "values": {
+    "name": "Sushi Shop",
+    "city": "Paris",
+    "country_id": {
+     "$ref": "base.fr"
+    },
+    "street": "Boulevard Saint-Germain",
+    "zip": "486624",
+    "email": "order@sushi.com",
+    "phone": "+32498859912",
+    "company_type": "company"
+   }
+  },
+  {
+   "model": "lunch.supplier",
+   "id": "supplier_coin_gourmand",
+   "values": {
+    "partner_id": {
+     "$ref": "partner_coin_gourmand"
+    },
+    "available_location_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "location_office_1"
+       },
+       {
+        "$ref": "location_office_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "lunch.supplier",
+   "id": "supplier_pizza_inn",
+   "values": {
+    "partner_id": {
+     "$ref": "partner_pizza_inn"
+    },
+    "send_by": "mail",
+    "automatic_email_time": "11",
+    "available_location_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "location_office_1"
+       },
+       {
+        "$ref": "location_office_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "lunch.supplier",
+   "id": "supplier_corner",
+   "values": {
+    "partner_id": {
+     "$ref": "partner_corner"
+    },
+    "available_location_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "location_office_3"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "lunch.supplier",
+   "id": "supplier_sushi_shop",
+   "values": {
+    "partner_id": {
+     "$ref": "partner_sushi_shop"
+    },
+    "available_location_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "location_office_1"
+       },
+       {
+        "$ref": "location_office_2"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_bacon",
+   "values": {
+    "name": "Bacon",
+    "category_id": {
+     "$ref": "categ_burger"
+    },
+    "price": "7.5",
+    "supplier_id": {
+     "$ref": "supplier_corner"
+    },
+    "description": "Beef, Bacon, Salad, Cheddar, Fried Onion, BBQ Sauce",
+    "image_1920": "",
+    "new_until": {
+     "$unevaluated": "datetime.today() + relativedelta(weeks=1)"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_cheeseburger",
+   "values": {
+    "name": "Cheese Burger",
+    "category_id": {
+     "$ref": "categ_burger"
+    },
+    "price": "7.0",
+    "supplier_id": {
+     "$ref": "supplier_corner"
+    },
+    "description": "Beef, Cheddar, Salad, Fried Onions, BBQ Sauce",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_chicken_curry",
+   "values": {
+    "name": "Chicken Curry",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "3.0",
+    "supplier_id": {
+     "$ref": "supplier_corner"
+    },
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_spicy_tuna",
+   "values": {
+    "name": "Spicy Tuna",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "3.0",
+    "supplier_id": {
+     "$ref": "supplier_corner"
+    },
+    "description": "",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_mozzarella",
+   "values": {
+    "name": "Mozzarella",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "3.9",
+    "supplier_id": {
+     "$ref": "supplier_corner"
+    },
+    "description": "Mozzarella, Pesto, Tomatoes",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_club",
+   "values": {
+    "name": "Club",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "3.4",
+    "supplier_id": {
+     "$ref": "supplier_corner"
+    },
+    "description": "Ham, Cheese, Vegetables",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_maki",
+   "values": {
+    "name": "Lunch Maki 18pc",
+    "category_id": {
+     "$ref": "categ_sushi"
+    },
+    "price": "12.0",
+    "supplier_id": {
+     "$ref": "supplier_sushi_shop"
+    },
+    "description": "6 Maki Salmon - 6 Maki Tuna - 6 Maki Shrimp/Avocado",
+    "image_1920": "",
+    "new_until": {
+     "$unevaluated": "datetime.today() + relativedelta(weeks=1)"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_salmon",
+   "values": {
+    "name": "Lunch Salmon 20pc",
+    "category_id": {
+     "$ref": "categ_sushi"
+    },
+    "price": "13.80",
+    "supplier_id": {
+     "$ref": "supplier_sushi_shop"
+    },
+    "description": "4 Sushi Salmon - 6 Maki Salmon - 4 Sashimi Salmon",
+    "image_1920": "",
+    "new_until": {
+     "$unevaluated": "datetime.today() + relativedelta(weeks=1)"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_temaki",
+   "values": {
+    "name": "Lunch Temaki mix 3pc",
+    "category_id": {
+     "$ref": "categ_temaki"
+    },
+    "price": "14.0",
+    "supplier_id": {
+     "$ref": "supplier_sushi_shop"
+    },
+    "description": "1 Avocado - 1 Salmon - 1 Eggs - 1 Tuna",
+    "image_1920": "",
+    "new_until": {
+     "$unevaluated": "datetime.today() + relativedelta(weeks=1)"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_chirashi",
+   "values": {
+    "name": "Salmon and Avocado",
+    "category_id": {
+     "$ref": "categ_chirashi"
+    },
+    "price": "9.25",
+    "supplier_id": {
+     "$ref": "supplier_sushi_shop"
+    },
+    "description": "2 Tempuras, Cabbages, Onions, Sesame Sauce",
+    "image_1920": "",
+    "new_until": {
+     "$unevaluated": "datetime.today() + relativedelta(weeks=1)"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_cheese_ham",
+   "values": {
+    "name": "Cheese And Ham",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "3.30",
+    "supplier_id": {
+     "$ref": "supplier_coin_gourmand"
+    },
+    "description": "Cheese, Ham, Salad, Tomatoes, cucumbers, eggs",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_country",
+   "values": {
+    "name": "The Country",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "3.30",
+    "supplier_id": {
+     "$ref": "supplier_coin_gourmand"
+    },
+    "description": "Brie, Honey, Walnut Kernels",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_tuna",
+   "values": {
+    "name": "Tuna",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "2.50",
+    "supplier_id": {
+     "$ref": "supplier_coin_gourmand"
+    },
+    "description": "Tuna, Mayonnaise",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_gouda",
+   "values": {
+    "name": "Gouda Cheese",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "2.50",
+    "supplier_id": {
+     "$ref": "supplier_coin_gourmand"
+    },
+    "description": "",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_chicken_curry",
+   "values": {
+    "name": "Chicken Curry",
+    "category_id": {
+     "$ref": "categ_sandwich"
+    },
+    "price": "2.60",
+    "supplier_id": {
+     "$ref": "supplier_coin_gourmand"
+    },
+    "description": "",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_margherita",
+   "values": {
+    "name": "Pizza Margherita",
+    "category_id": {
+     "$ref": "categ_pizza"
+    },
+    "price": "6.90",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "description": "Tomatoes, Mozzarella",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_funghi",
+   "values": {
+    "name": "Pizza Funghi",
+    "category_id": {
+     "$ref": "categ_pizza"
+    },
+    "price": "7.00",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "description": "Tomatoes, Mushrooms, Mozzarella",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_vege",
+   "values": {
+    "name": "Pizza Vegetarian",
+    "category_id": {
+     "$ref": "categ_pizza"
+    },
+    "price": "7.00",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "description": "Tomatoes, Mozzarella, Mushrooms, Peppers, Olives",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_italiana",
+   "values": {
+    "name": "Pizza Italiana",
+    "category_id": {
+     "$ref": "categ_pizza"
+    },
+    "price": "7.40",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "description": "Fresh Tomatoes, Basil, Mozzarella",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_Bolognese",
+   "values": {
+    "name": "Bolognese Pasta",
+    "category_id": {
+     "$ref": "categ_pasta"
+    },
+    "price": "7.70",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "description": "",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_Napoli",
+   "values": {
+    "name": "Napoli Pasta",
+    "category_id": {
+     "$ref": "categ_pasta"
+    },
+    "price": "7.70",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "description": "Tomatoes, Basil",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.topping",
+   "id": "product_olives",
+   "values": {
+    "name": "Olives",
+    "price": "0.30",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    }
+   }
+  },
+  {
+   "model": "lunch.product",
+   "id": "product_4formaggi",
+   "values": {
+    "name": "4 Formaggi",
+    "category_id": {
+     "$ref": "categ_pasta"
+    },
+    "price": "5.50",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "description": "Tomato sauce, Olive oil, Fresh Tomatoes, Onions, Vegetables, Parmesan",
+    "image_1920": "",
+    "company_id": {
+     "$ref": "base.main_company"
+    }
+   }
+  },
+  {
+   "model": "lunch.cashmove",
+   "id": "cashmove_1",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + timedelta(days=3)).strftime('%Y-%m-%d')"
+    },
+    "description": "Payment: 5 lunch tickets (6\u20ac)",
+    "amount": "30"
+   }
+  },
+  {
+   "model": "lunch.cashmove",
+   "id": "cashmove_2",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - timedelta(days=3)).strftime('%Y-%m-%d')"
+    },
+    "description": "Payment: 7 lunch tickets (6\u20ac)",
+    "amount": "42"
+   }
+  },
+  {
+   "model": "lunch.order",
+   "id": "order_line_1",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "product_id": {
+     "$ref": "product_Bolognese"
+    },
+    "price": "7.70",
+    "date": {
+     "$unevaluated": "(DateTime.now() + timedelta(days=2)).strftime('%Y-%m-%d')"
+    },
+    "state": "new",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "quantity": "1",
+    "lunch_location_id": {
+     "$ref": "location_office_3"
+    }
+   }
+  },
+  {
+   "model": "lunch.order",
+   "id": "order_line_2",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "product_id": {
+     "$ref": "product_italiana"
+    },
+    "price": "7.40",
+    "date": {
+     "$unevaluated": "(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d')"
+    },
+    "state": "confirmed",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "quantity": "1",
+    "lunch_location_id": {
+     "$ref": "location_office_3"
+    }
+   }
+  },
+  {
+   "model": "lunch.order",
+   "id": "order_line_3",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "product_id": {
+     "$ref": "product_gouda"
+    },
+    "price": "2.50",
+    "date": {
+     "$unevaluated": "(DateTime.now() + timedelta(days=3)).strftime('%Y-%m-%d')"
+    },
+    "state": "cancelled",
+    "supplier_id": {
+     "$ref": "supplier_coin_gourmand"
+    },
+    "quantity": "1",
+    "lunch_location_id": {
+     "$ref": "location_office_3"
+    }
+   }
+  },
+  {
+   "model": "lunch.order",
+   "id": "order_line_4",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "product_id": {
+     "$ref": "product_chicken_curry"
+    },
+    "price": "2.60",
+    "date": {
+     "$unevaluated": "(DateTime.now() + timedelta(days=3)).strftime('%Y-%m-%d')"
+    },
+    "state": "confirmed",
+    "supplier_id": {
+     "$ref": "supplier_coin_gourmand"
+    },
+    "quantity": "1",
+    "lunch_location_id": {
+     "$ref": "location_office_3"
+    }
+   }
+  },
+  {
+   "model": "lunch.order",
+   "id": "order_line_5",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "product_id": {
+     "$ref": "product_4formaggi"
+    },
+    "price": "5.50",
+    "date": {
+     "$unevaluated": "(DateTime.now() + timedelta(days=3)).strftime('%Y-%m-%d')"
+    },
+    "state": "confirmed",
+    "supplier_id": {
+     "$ref": "supplier_pizza_inn"
+    },
+    "lunch_location_id": {
+     "$ref": "location_office_2"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_lunch",
+   "name": "Lunch",
+   "sequence": "235",
+   "groups": "group_lunch_user",
+   "web_icon": "lunch,static/description/icon.png"
+  },
+  {
+   "id": "menu_lunch_title",
+   "name": "My Lunch",
+   "sequence": "50",
+   "parent": "menu_lunch"
+  },
+  {
+   "id": "lunch_order_menu_form",
+   "name": "New Order",
+   "action": "lunch.lunch_product_action_order",
+   "sequence": "1",
+   "parent": "menu_lunch_title"
+  },
+  {
+   "id": "lunch_order_menu_tree",
+   "name": "My Order History",
+   "action": "lunch_order_action",
+   "sequence": "2",
+   "parent": "menu_lunch_title"
+  },
+  {
+   "id": "lunch_cashmove_report_menu_form",
+   "name": "My Account History",
+   "action": "lunch_cashmove_report_action_account",
+   "sequence": "3",
+   "parent": "menu_lunch_title"
+  },
+  {
+   "id": "menu_lunch_admin",
+   "name": "Manager",
+   "sequence": "51",
+   "groups": "group_lunch_manager",
+   "parent": "menu_lunch"
+  },
+  {
+   "id": "lunch_order_menu_by_supplier",
+   "name": "Today's Orders",
+   "action": "lunch_order_action_by_supplier",
+   "parent": "menu_lunch_admin"
+  },
+  {
+   "id": "lunch_order_menu_control_suppliers",
+   "name": "Control Vendors",
+   "action": "lunch_order_action_control_suppliers",
+   "parent": "menu_lunch_admin"
+  },
+  {
+   "id": "lunch_cashmove_report_menu_control_accounts",
+   "name": "Control Accounts",
+   "action": "lunch_cashmove_report_action_control_accounts",
+   "parent": "menu_lunch_admin"
+  },
+  {
+   "id": "lunch_cashmove_report_menu_payment",
+   "name": "Cash Moves",
+   "action": "lunch_cashmove_action_payment",
+   "parent": "menu_lunch_admin"
+  },
+  {
+   "id": "menu_lunch_config",
+   "name": "Configuration",
+   "sequence": "53",
+   "groups": "group_lunch_manager",
+   "parent": "menu_lunch"
+  },
+  {
+   "id": "lunch_settings_menu",
+   "name": "Settings",
+   "action": "lunch_config_settings_action",
+   "sequence": "1",
+   "parent": "menu_lunch_config"
+  },
+  {
+   "id": "lunch_vendors_menu",
+   "name": "Vendors",
+   "action": "lunch_vendors_action",
+   "sequence": "2",
+   "parent": "menu_lunch_config"
+  },
+  {
+   "id": "lunch_location_menu",
+   "name": "Locations",
+   "action": "lunch_location_action",
+   "sequence": "3",
+   "parent": "menu_lunch_config"
+  },
+  {
+   "id": "lunch_product_menu",
+   "name": "Products",
+   "action": "lunch_product_action",
+   "sequence": "4",
+   "parent": "menu_lunch_config"
+  },
+  {
+   "id": "lunch_product_category_menu",
+   "name": "Product Categories",
+   "action": "lunch_product_category_action",
+   "sequence": "5",
+   "parent": "menu_lunch_config"
+  },
+  {
+   "id": "lunch_alert_menu",
+   "name": "Alerts",
+   "action": "lunch_alert_action",
+   "sequence": "6",
+   "parent": "menu_lunch_config"
+  }
+ ],
+ "access": [
+  {
+   "id": "cashmove_user",
+   "model": "lunch.cashmove",
+   "model_xmlid": "model_lunch_cashmove",
+   "group": "group_lunch_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "cashmove_manager",
+   "model": "lunch.cashmove",
+   "model_xmlid": "model_lunch_cashmove",
+   "group": "group_lunch_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "order_user",
+   "model": "lunch.order",
+   "model_xmlid": "model_lunch_order",
+   "group": "group_lunch_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "order_manager",
+   "model": "lunch.order",
+   "model_xmlid": "model_lunch_order",
+   "group": "group_lunch_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "product_user",
+   "model": "lunch.product",
+   "model_xmlid": "model_lunch_product",
+   "group": "group_lunch_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "product_manager",
+   "model": "lunch.product",
+   "model_xmlid": "model_lunch_product",
+   "group": "group_lunch_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "product_category_user",
+   "model": "lunch.product.category",
+   "model_xmlid": "model_lunch_product_category",
+   "group": "group_lunch_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "product_category_manager",
+   "model": "lunch.product.category",
+   "model_xmlid": "model_lunch_product_category",
+   "group": "group_lunch_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "lunch_alert_access",
+   "model": "lunch.alert",
+   "model_xmlid": "model_lunch_alert",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "lunch_alert_manager",
+   "model": "lunch.alert",
+   "model_xmlid": "model_lunch_alert",
+   "group": "group_lunch_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "lunch_cashmove_report_manager",
+   "model": "lunch.cashmove.report",
+   "model_xmlid": "model_lunch_cashmove_report",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "lunch_location_user",
+   "model": "lunch.location",
+   "model_xmlid": "model_lunch_location",
+   "group": "group_lunch_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "lunch_location_manager",
+   "model": "lunch.location",
+   "model_xmlid": "model_lunch_location",
+   "group": "group_lunch_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "lunch_topping_user",
+   "model": "lunch.topping",
+   "model_xmlid": "model_lunch_topping",
+   "group": "group_lunch_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "lunch_topping_manager",
+   "model": "lunch.topping",
+   "model_xmlid": "model_lunch_topping",
+   "group": "group_lunch_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "lunch_supplier_user",
+   "model": "lunch.supplier",
+   "model_xmlid": "model_lunch_supplier",
+   "group": "group_lunch_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "lunch_supplier_manager",
+   "model": "lunch.supplier",
+   "model_xmlid": "model_lunch_supplier",
+   "group": "group_lunch_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

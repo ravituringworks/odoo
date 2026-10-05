@@ -1,0 +1,144 @@
+{
+ "application": false,
+ "author": "Odoo S.A., ADHOC SA",
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "data/l10n_latam.identification.type.csv",
+  "views/res_partner_view.xml",
+  "views/l10n_latam_identification_type_view.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "contacts",
+  "base_vat"
+ ],
+ "models": {
+  "l10n_latam.identification.type": {
+   "abstract": false,
+   "description": "Identification Types",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "type": "Many2one"
+    },
+    "description": {
+     "translate": true,
+     "type": "Char"
+    },
+    "is_vat": {
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "l10n_latam.identification.type",
+   "order": "sequence",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 11,
+     "name": "create"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_latam_identification_type_id": {
+     "comodel": "l10n_latam.identification.type",
+     "default": {
+      "$lambda": "self.env.ref('l10n_latam_base.it_vat', raise_if_not_found=False)"
+     },
+     "help": "The type of identification",
+     "index": "btree_not_null",
+     "string": "Identification Type",
+     "type": "Many2one"
+    },
+    "vat": {
+     "help": "Identification Number for selected type",
+     "string": "Identification Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_commercial_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('vat', 'l10n_latam_identification_type_id')"
+     ],
+     "lines": 3,
+     "name": "check_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('country_id')"
+     ],
+     "lines": 7,
+     "name": "_onchange_country"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_latam_base",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_latam_base",
+ "stats": {
+  "fields": 8,
+  "methods": 5,
+  "models": 3,
+  "py_lines": 90
+ },
+ "summary": "LATAM Identification Types",
+ "title": "LATAM Localization Base",
+ "version": "1.0"
+}

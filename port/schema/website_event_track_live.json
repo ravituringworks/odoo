@@ -1,0 +1,83 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "views/event_track_templates_list.xml",
+  "views/event_track_templates_page.xml",
+  "views/event_track_views.xml",
+  "data/event_track_demo.xml"
+ ],
+ "depends": [
+  "website_event_track"
+ ],
+ "models": {
+  "event.track": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_youtube_chat_available": {
+     "compute": "_compute_is_youtube_chat_available",
+     "string": "Is Chat Available",
+     "type": "Boolean"
+    },
+    "is_youtube_replay": {
+     "help": "Check this option if the video is already available on YouTube to avoid showing 'Direct' options (Chat, ...)",
+     "string": "Is YouTube Replay",
+     "type": "Boolean"
+    },
+    "youtube_video_id": {
+     "compute": "_compute_youtube_video_id",
+     "help": "Extracted from the video URL and used to infer various links (embed/thumbnail/...)",
+     "string": "YouTube video ID",
+     "type": "Char"
+    },
+    "youtube_video_url": {
+     "string": "YouTube Video Link",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('youtube_video_url')"
+     ],
+     "lines": 10,
+     "name": "_compute_youtube_video_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('youtube_video_id', 'is_youtube_replay', 'date_end', 'is_track_done')"
+     ],
+     "lines": 5,
+     "name": "_compute_website_image_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('youtube_video_url', 'is_youtube_replay', 'date', 'date_end', 'is_track_upcoming', 'is_track_live')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_youtube_chat_available"
+    }
+   ],
+   "name": "event.track",
+   "transient": false
+  }
+ },
+ "module": "website_event_track_live",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_event_track_live",
+ "stats": {
+  "fields": 4,
+  "methods": 3,
+  "models": 1,
+  "py_lines": 113
+ },
+ "summary": "Support live tracks: streaming, participation, youtube",
+ "title": "Live Event Tracks",
+ "version": "1.0"
+}

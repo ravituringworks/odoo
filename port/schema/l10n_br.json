@@ -1,0 +1,455 @@
+{
+ "application": false,
+ "author": "Akretion, Odoo Brasil",
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/res_partner_views.xml",
+  "data/account_tax_report_data.xml",
+  "data/res_country_data.xml",
+  "data/res.city.csv",
+  "data/l10n_br.zip.range.csv",
+  "data/l10n_latam.identification.type.csv",
+  "data/l10n_latam.document.type.csv",
+  "views/account_view.xml",
+  "views/account_fiscal_position_views.xml",
+  "views/ir_ui_menu_brazil.xml",
+  "views/res_company_views.xml",
+  "views/account_journal_views.xml",
+  "views/res_bank_views.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "account",
+  "account_qr_code_emv",
+  "base_address_extended",
+  "l10n_latam_base",
+  "l10n_latam_invoice_document"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_get_demo_data_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_br_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_br_res_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_br_account_journal"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.fiscal.position": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_br_fp_type": {
+     "selection": [
+      [
+       "internal",
+       "Internal"
+      ],
+      [
+       "ss_nnm",
+       "South/Southeast selling to North/Northeast/Midwest"
+      ],
+      [
+       "interstate",
+       "Other interstate"
+      ]
+     ],
+     "string": "Interstate Fiscal Position Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_get_fiscal_position"
+    }
+   ],
+   "name": "account.fiscal.position",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_br_invoice_serial": {
+     "copy": false,
+     "help": "Brazil: Series number associated with this Journal. If more than one Series needs to be used, duplicate this Journal and assign the new Series to the duplicated Journal.",
+     "string": "Series",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_br_invoice_serial')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_l10n_latam_document_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_last_sequence_domain"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_compute_l10n_latam_document_type": []
+   },
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_document_type"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "amount_mva": {
+     "default": 0,
+     "digits": 0,
+     "help": "Um percentual decimal em % entre 0-1.",
+     "required": true,
+     "string": "MVA Percent",
+     "type": "Float"
+    },
+    "base_reduction": {
+     "default": 0,
+     "digits": 0,
+     "help": "Um percentual decimal em % entre 0-1.",
+     "required": true,
+     "string": "Redution",
+     "type": "Float"
+    },
+    "tax_discount": {
+     "help": "Mark it for (ICMS, PIS e etc.).",
+     "string": "Discount this Tax in Price",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_br.zip.range": {
+   "abstract": false,
+   "description": "Brazilian city zip range",
+   "extension": false,
+   "fields": {
+    "city_id": {
+     "comodel": "res.city",
+     "required": true,
+     "string": "City",
+     "type": "Many2one"
+    },
+    "end": {
+     "required": true,
+     "string": "To",
+     "type": "Char"
+    },
+    "start": {
+     "required": true,
+     "string": "From",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('start', 'end')"
+     ],
+     "lines": 16,
+     "name": "_check_range"
+    }
+   ],
+   "name": "l10n_br.zip.range",
+   "sql_constraints": [
+    [
+     "uniq_start",
+     "unique(start)",
+     "The \"from\" zip must be unique"
+    ],
+    [
+     "uniq_end",
+     "unique(\"end\")",
+     "The \"to\" zip must be unique."
+    ]
+   ],
+   "transient": false
+  },
+  "res.city": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_br_zip_range_ids": {
+     "comodel": "l10n_br.zip.range",
+     "help": "Brazil: technical field that maps a city to one or more zip code ranges.",
+     "inverse_name": "city_id",
+     "string": "Zip Ranges",
+     "type": "One2many"
+    },
+    "l10n_br_zip_ranges": {
+     "compute": "_compute_l10n_br_zip_ranges",
+     "help": "Brazil: technical field that maps a city to one or more zip code ranges for the frontend.",
+     "string": "Frontend Zip Ranges",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_br_zip_range_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_l10n_br_zip_ranges"
+    }
+   ],
+   "name": "res.city",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_br_cpf_code": {
+     "help": "Natural Persons Register.",
+     "string": "CPF",
+     "type": "Char"
+    },
+    "l10n_br_ie_code": {
+     "help": "State Tax Identification Number. Should contain 9-14 digits.",
+     "string": "IE",
+     "type": "Char"
+    },
+    "l10n_br_im_code": {
+     "help": "Municipal Tax Identification Number",
+     "string": "IM",
+     "type": "Char"
+    },
+    "l10n_br_nire_code": {
+     "help": "State Commercial Identification Number. Should contain 11 digits.",
+     "string": "NIRE",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_localization_use_documents"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_br_ie_code": {
+     "help": "State Tax Identification Number. Should contain 9-14 digits.",
+     "string": "IE",
+     "type": "Char"
+    },
+    "l10n_br_im_code": {
+     "help": "Municipal Tax Identification Number",
+     "string": "IM",
+     "type": "Char"
+    },
+    "l10n_br_isuf_code": {
+     "help": "SUFRAMA registration number.",
+     "string": "SUFRAMA code",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.partner.bank": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "proxy_type": {
+     "ondelete": {
+      "br_cpf_cnpj": "set default",
+      "br_random": "set default",
+      "email": "set default",
+      "mobile": "set default"
+     },
+     "selection_add": [
+      [
+       "email",
+       "Email Address"
+      ],
+      [
+       "mobile",
+       "Mobile Number"
+      ],
+      [
+       "br_cpf_cnpj",
+       "CPF/CNPJ (BR)"
+      ],
+      [
+       "br_random",
+       "Random Key (BR)"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('proxy_type', 'proxy_value', 'partner_id')"
+     ],
+     "lines": 34,
+     "name": "_check_br_proxy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_qr_setting"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_additional_data_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_qr_code_vals_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_merchant_account_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_error_messages_for_qr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_check_for_qr_code_errors"
+    }
+   ],
+   "name": "res.partner.bank",
+   "sel_methods": {
+    "_check_for_qr_code_errors": [],
+    "_get_additional_data_field": [],
+    "_get_error_messages_for_qr": [],
+    "_get_merchant_account_info": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_br",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_br",
+ "stats": {
+  "fields": 18,
+  "methods": 19,
+  "models": 11,
+  "py_lines": 423
+ },
+ "summary": "Base module for the Brazilian localization",
+ "title": "Brazilian - Accounting",
+ "version": "1.1"
+}

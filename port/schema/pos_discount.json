@@ -1,0 +1,148 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Point of Sale",
+ "data_files": [
+  "data/pos_discount_data.xml",
+  "views/res_config_settings_views.xml",
+  "views/pos_config_views.xml"
+ ],
+ "depends": [
+  "point_of_sale"
+ ],
+ "models": {
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_discount_lines"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "discount_pc": {
+     "default": 10.0,
+     "help": "The default discount percentage when clicking on the Discount button",
+     "string": "Discount Percentage",
+     "type": "Float"
+    },
+    "discount_product_id": {
+     "comodel": "product.product",
+     "domain": [
+      [
+       "sale_ok",
+       "=",
+       true
+      ]
+     ],
+     "help": "The product used to apply the discount on the ticket.",
+     "string": "Discount Product",
+     "type": "Many2one"
+    },
+    "iface_discount": {
+     "help": "Allow the cashier to give discounts on the whole order.",
+     "string": "Order Discounts",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_default_discount_value_on_module_install"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "open_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_special_products"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_discount_pc": {
+     "readonly": false,
+     "related": "pos_config_id.discount_pc",
+     "type": "Float"
+    },
+    "pos_discount_product_id": {
+     "comodel": "product.product",
+     "compute": "_compute_pos_discount_product_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'pos_module_pos_discount', 'pos_config_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_pos_discount_product_id"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "pos_discount",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_discount",
+ "stats": {
+  "fields": 5,
+  "methods": 6,
+  "models": 4,
+  "py_lines": 108
+ },
+ "summary": "Simple Discounts in the Point of Sale",
+ "title": "Point of Sale Discounts",
+ "version": "1.0"
+}

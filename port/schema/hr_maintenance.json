@@ -1,0 +1,281 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources",
+ "data_files": [
+  "security/equipment.xml",
+  "views/maintenance_views.xml",
+  "views/hr_views.xml",
+  "wizard/hr_departure_wizard_views.xml"
+ ],
+ "depends": [
+  "hr",
+  "maintenance"
+ ],
+ "models": {
+  "hr.departure.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "unassign_equipment": {
+     "default": true,
+     "help": "Unassign Employee from Equipments",
+     "string": "Free Equiments",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_register_departure"
+    }
+   ],
+   "name": "hr.departure.wizard",
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "equipment_count": {
+     "compute": "_compute_equipment_count",
+     "groups": "hr.group_hr_user",
+     "string": "Equipment Count",
+     "type": "Integer"
+    },
+    "equipment_ids": {
+     "comodel": "maintenance.equipment",
+     "groups": "hr.group_hr_user",
+     "inverse_name": "employee_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('equipment_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_equipment_count"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "maintenance.equipment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "assign_date": {
+     "compute": "_compute_equipment_assign",
+     "copy": true,
+     "readonly": false,
+     "store": true,
+     "type": "Date"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_equipment_assign",
+     "readonly": false,
+     "store": true,
+     "string": "Assigned Department",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_equipment_assign",
+     "readonly": false,
+     "store": true,
+     "string": "Assigned Employee",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "equipment_assign_to": {
+     "default": "employee",
+     "required": true,
+     "selection": [
+      [
+       "department",
+       "Department"
+      ],
+      [
+       "employee",
+       "Employee"
+      ],
+      [
+       "other",
+       "Other"
+      ]
+     ],
+     "string": "Used By",
+     "type": "Selection"
+    },
+    "owner_user_id": {
+     "compute": "_compute_owner",
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'department_id', 'equipment_assign_to')"
+     ],
+     "lines": 7,
+     "name": "_compute_owner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('equipment_assign_to')"
+     ],
+     "lines": 12,
+     "name": "_compute_equipment_assign"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 12,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    }
+   ],
+   "name": "maintenance.equipment",
+   "sel_methods": {
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "maintenance.request": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_id": {
+     "comodel": "hr.employee",
+     "default": {
+      "$ref": "_default_employee_get"
+     },
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "equipment_id": {
+     "domain": "['|', ('employee_id', '=', employee_id), ('employee_id', '=', False)]",
+     "type": "Many2one"
+    },
+    "owner_user_id": {
+     "compute": "_compute_owner",
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('self')"
+     ],
+     "lines": 2,
+     "name": "_default_employee_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_owner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "message_new"
+    }
+   ],
+   "name": "maintenance.request",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "equipment_count": {
+     "related": "employee_id.equipment_count",
+     "string": "Assigned Equipment",
+     "type": "Integer"
+    },
+    "equipment_ids": {
+     "comodel": "maintenance.equipment",
+     "inverse_name": "owner_user_id",
+     "string": "Managed Equipment",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "hr_maintenance",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_maintenance",
+ "stats": {
+  "fields": 13,
+  "methods": 13,
+  "models": 5,
+  "py_lines": 178
+ },
+ "summary": "Equipment, Assets, Internal Hardware, Allocation Tracking",
+ "title": "Maintenance - HR",
+ "version": "1.0"
+}

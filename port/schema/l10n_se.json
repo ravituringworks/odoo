@@ -1,0 +1,263 @@
+{
+ "application": false,
+ "author": "XCLUDE, Odoo S.A.",
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "data/account.account.tag.csv",
+  "data/account_tax_report_data.xml",
+  "data/res_country_data.xml",
+  "views/partner_view.xml",
+  "views/account_journal_view.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "account",
+  "base_vat"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_se_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_se_res_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_se_K2_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_se_K2_res_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_se_K3_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_se_K3_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_reference_model": {
+     "ondelete": {
+      "se_ocr2": "set default",
+      "se_ocr3": "set default",
+      "se_ocr4": "set default"
+     },
+     "selection_add": [
+      [
+       "se_ocr2",
+       "Sweden OCR Level 1 & 2"
+      ],
+      [
+       "se_ocr3",
+       "Sweden OCR Level 3"
+      ],
+      [
+       "se_ocr4",
+       "Sweden OCR Level 4"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "l10n_se_invoice_ocr_length": {
+     "default": 6,
+     "help": "Total length of OCR Reference Number including checksum.",
+     "string": "OCR Number Length",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_se_invoice_ocr_length')"
+     ],
+     "lines": 4,
+     "name": "_check_l10n_se_invoice_ocr_length"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_reference_se_ocr2"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_invoice_reference_se_ocr3"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_invoice_reference_se_ocr4"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_reference_se_ocr2_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_reference_se_ocr3_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_reference_se_ocr4_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_reference_se_ocr2_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_reference_se_ocr3_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoice_reference_se_ocr4_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_id')"
+     ],
+     "lines": 5,
+     "name": "_onchange_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('payment_reference', 'state')"
+     ],
+     "lines": 13,
+     "name": "_l10n_se_check_payment_reference"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_onchange_partner_id": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "org_number": {
+     "compute": "_compute_org_number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vat')"
+     ],
+     "lines": 9,
+     "name": "_compute_org_number"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_se_check_vendor_ocr": {
+     "help": "This Vendor uses OCR Number on their Vendor Bills.",
+     "string": "Check Vendor OCR",
+     "type": "Boolean"
+    },
+    "l10n_se_default_vendor_payment_ref": {
+     "help": "If set, the vendor uses the same Default Payment Reference or OCR Number on all their Vendor Bills.",
+     "string": "Default Vendor Payment Ref",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_se_default_vendor_payment_ref')"
+     ],
+     "lines": 7,
+     "name": "onchange_l10n_se_default_vendor_payment_ref"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_se",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_se",
+ "stats": {
+  "fields": 5,
+  "methods": 20,
+  "models": 5,
+  "py_lines": 239
+ },
+ "summary": "Swedish Accounting",
+ "title": "Sweden - Accounting",
+ "version": "1.1"
+}

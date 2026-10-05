@@ -1,0 +1,1574 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Services/Timesheets",
+ "data_files": [
+  "security/hr_timesheet_security.xml",
+  "security/ir.model.access.csv",
+  "security/ir.model.access.xml",
+  "data/digest_data.xml",
+  "views/hr_timesheet_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/project_project_views.xml",
+  "views/project_task_views.xml",
+  "views/project_task_portal_templates.xml",
+  "views/hr_timesheet_portal_templates.xml",
+  "report/hr_timesheet_report_view.xml",
+  "report/project_report_view.xml",
+  "report/report_timesheet_templates.xml",
+  "views/hr_department_views.xml",
+  "views/hr_employee_views.xml",
+  "data/hr_timesheet_data.xml",
+  "views/project_task_sharing_views.xml",
+  "views/project_update_views.xml",
+  "wizard/hr_employee_delete_wizard_views.xml",
+  "views/hr_timesheet_menus.xml",
+  "data/hr_timesheet_demo.xml"
+ ],
+ "depends": [
+  "hr",
+  "hr_hourly_cost",
+  "analytic",
+  "project",
+  "uom"
+ ],
+ "models": {
+  "account.analytic.applicability": {
+   "abstract": false,
+   "description": "Analytic Plan's Applicabilities",
+   "extension": true,
+   "fields": {
+    "business_domain": {
+     "ondelete": {
+      "timesheet": "cascade"
+     },
+     "selection_add": [
+      [
+       "timesheet",
+       "Timesheet"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.analytic.applicability",
+   "transient": false
+  },
+  "account.analytic.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "department_id": {
+     "comodel": "hr.department",
+     "compute": "_compute_department_id",
+     "store": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "domain": {
+      "$ref": "_domain_employee_id"
+     },
+     "help": "Define an 'hourly cost' on the employee to track the cost of their time.",
+     "index": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "encoding_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_encoding_uom_id",
+     "type": "Many2one"
+    },
+    "job_title": {
+     "related": "employee_id.job_title",
+     "type": "Char"
+    },
+    "manager_id": {
+     "comodel": "hr.employee",
+     "related": "employee_id.parent_id",
+     "store": true,
+     "string": "Manager",
+     "type": "Many2one"
+    },
+    "message_partner_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_message_partner_ids",
+     "type": "Many2many"
+    },
+    "milestone_id": {
+     "comodel": "project.milestone",
+     "related": "task_id.milestone_id",
+     "type": "Many2one"
+    },
+    "parent_task_id": {
+     "comodel": "project.task",
+     "index": "btree_not_null",
+     "related": "task_id.parent_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "compute": "_compute_partner_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "compute": "_compute_project_id",
+     "domain": {
+      "$ref": "_domain_project_id"
+     },
+     "index": true,
+     "readonly": false,
+     "store": true,
+     "string": "Project",
+     "type": "Many2one"
+    },
+    "readonly_timesheet": {
+     "compute": "_compute_readonly_timesheet",
+     "type": "Boolean"
+    },
+    "task_id": {
+     "comodel": "project.task",
+     "compute": "_compute_task_id",
+     "domain": "[('allow_timesheets', '=', True), ('project_id', '=?', project_id)]",
+     "index": "btree_not_null",
+     "readonly": false,
+     "store": true,
+     "string": "Task",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "compute": "_compute_user_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_favorite_project_id_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_favorite_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_domain_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_domain_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_search_message_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id.message_partner_ids', 'task_id.message_partner_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_message_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id', 'task_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_readonly"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_readonly_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_encoding_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('task_id.partner_id', 'project_id.partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('task_id.project_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_task_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('project_id')"
+     ],
+     "lines": 6,
+     "name": "_onchange_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id.user_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_department_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_can_write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_can_create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 107,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "get_views"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_timesheet_get_portal_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_timesheet_preprocess_get_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_timesheet_postprocess"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_timesheet_postprocess_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_split_amount_fname"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_timesheet_encode_uom_day"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_updatable_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_convert_hours_to_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_timesheet_time_day"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_hourly_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_report_base_filename"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_ensure_uom_hours"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_timesheet_view_portal"
+    }
+   ],
+   "name": "account.analytic.line",
+   "sel_methods": {
+    "_domain_employee_id": [
+     [
+      "company_id",
+      "in"
+     ]
+    ],
+    "_domain_project_id": [
+     [
+      "allow_timesheets",
+      "="
+     ]
+    ],
+    "_get_favorite_project_id_domain": [
+     [
+      "employee_id",
+      "="
+     ],
+     [
+      "project_id",
+      "!="
+     ],
+     [
+      "project_id.active",
+      "="
+     ],
+     [
+      "project_id.allow_timesheets",
+      "="
+     ]
+    ],
+    "_timesheet_get_portal_domain": [
+     [
+      "message_partner_ids",
+      "child_of"
+     ],
+     [
+      "project_id.privacy_visibility",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_timesheet": {
+     "compute": "_compute_has_timesheet",
+     "groups": "hr.group_hr_user,base.group_system",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_has_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'user_id')",
+      "api.depends_context('allowed_company_ids')"
+     ],
+     "lines": 17,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_unlink_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_timesheet_from_employee"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.employee.delete.wizard": {
+   "abstract": false,
+   "description": "Employee Delete Wizard",
+   "extension": false,
+   "fields": {
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "string": "Employees",
+     "type": "Many2many"
+    },
+    "has_active_employee": {
+     "compute": "_compute_has_active_employee",
+     "string": "Has Active Employee",
+     "type": "Boolean"
+    },
+    "has_timesheet": {
+     "compute": "_compute_has_timesheet",
+     "string": "Has Timesheet",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_has_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_has_active_employee"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_archive"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_confirm_delete"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_open_timesheets"
+    }
+   ],
+   "name": "hr.employee.delete.wizard",
+   "transient": true
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "session_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "get_timesheet_uoms"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "ir.ui.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_load_menus_blacklist"
+    }
+   ],
+   "name": "ir.ui.menu",
+   "transient": false
+  },
+  "project.collaborator": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_toggle_project_sharing_portal_rules"
+    }
+   ],
+   "name": "project.collaborator",
+   "transient": false
+  },
+  "project.project": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_id": {
+     "domain": "[\n            '|', ('company_id', '=', False), ('company_id', '=?', company_id),\n            ('partner_id', '=?', partner_id),\n        ]",
+     "type": "Many2one"
+    },
+    "allocated_hours": {
+     "string": "Allocated Time",
+     "type": "Float"
+    },
+    "allow_timesheets": {
+     "compute": "_compute_allow_timesheets",
+     "default": true,
+     "readonly": false,
+     "store": true,
+     "string": "Timesheets",
+     "type": "Boolean"
+    },
+    "analytic_account_active": {
+     "related": "account_id.active",
+     "string": "Active Account",
+     "type": "Boolean"
+    },
+    "effective_hours": {
+     "compute": "_compute_remaining_hours",
+     "string": "Time Spent",
+     "type": "Float"
+    },
+    "encode_uom_in_days": {
+     "compute": "_compute_encode_uom_in_days",
+     "type": "Boolean"
+    },
+    "is_internal_project": {
+     "compute": "_compute_is_internal_project",
+     "type": "Boolean"
+    },
+    "is_project_overtime": {
+     "compute": "_compute_remaining_hours",
+     "string": "Project in Overtime",
+     "type": "Boolean"
+    },
+    "remaining_hours": {
+     "compute": "_compute_remaining_hours",
+     "string": "Time Remaining",
+     "type": "Float"
+    },
+    "timesheet_encode_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_timesheet_encode_uom_id",
+     "type": "Many2one"
+    },
+    "timesheet_ids": {
+     "comodel": "account.analytic.line",
+     "inverse_name": "project_id",
+     "string": "Associated Timesheets",
+     "type": "One2many"
+    },
+    "total_timesheet_time": {
+     "compute": "_compute_total_timesheet_time",
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "string": "Total number of time (in the proper UoM) recorded in the project, rounded to the unit.",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_encode_uom_in_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'company_id.timesheet_encode_uom_id')",
+      "api.depends_context('company')"
+     ],
+     "lines": 3,
+     "name": "_compute_timesheet_encode_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_allow_timesheets"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_internal_project"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_search_is_internal_project"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allow_timesheets', 'timesheet_ids.unit_amount', 'allocated_hours')"
+     ],
+     "lines": 11,
+     "name": "_compute_remaining_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_search_is_project_overtime"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('allow_timesheets', 'account_id')"
+     ],
+     "lines": 8,
+     "name": "_check_allow_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_ids', 'timesheet_encode_uom_id')"
+     ],
+     "lines": 21,
+     "name": "_compute_total_timesheet_time"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 18,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_internal_project', 'company_id')",
+      "api.depends_context('allowed_company_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_init_data_analytic_account"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 16,
+     "name": "_unlink_except_contains_entries"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "get_create_edit_project_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_convert_project_uom_to_timesheet_encode_uom"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_project_timesheets"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_get_stat_buttons"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_view_tasks"
+    }
+   ],
+   "name": "project.project",
+   "transient": false
+  },
+  "project.task": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "allow_timesheets": {
+     "compute": "_compute_allow_timesheets",
+     "readonly": true,
+     "string": "Allow timesheets",
+     "type": "Boolean"
+    },
+    "analytic_account_active": {
+     "related": "project_id.analytic_account_active",
+     "string": "Active Analytic Account",
+     "type": "Boolean"
+    },
+    "display_name": {
+     "help": "Use these keywords in the title to set new tasks:\n\n        30h Allocate 30 hours to the task\n        #tags Set tags on the task\n        @user Assign the task to a user\n        !\u00a0Set the task a high priority\n\n        Make sure to use the right format and order\u00a0e.g. Improve the configuration screen 5h #feature #v16 @Mitchell !",
+     "type": "Char"
+    },
+    "effective_hours": {
+     "compute": "_compute_effective_hours",
+     "store": true,
+     "string": "Time Spent",
+     "type": "Float"
+    },
+    "encode_uom_in_days": {
+     "compute": "_compute_encode_uom_in_days",
+     "default": {
+      "$lambda": "self._uom_in_days()"
+     },
+     "type": "Boolean"
+    },
+    "overtime": {
+     "compute": "_compute_progress_hours",
+     "store": true,
+     "type": "Float"
+    },
+    "progress": {
+     "compute": "_compute_progress_hours",
+     "store": true,
+     "string": "Progress",
+     "type": "Float"
+    },
+    "project_id": {
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=?',  company_id), ('is_internal_project', '=', False)]",
+     "type": "Many2one"
+    },
+    "remaining_hours": {
+     "compute": "_compute_remaining_hours",
+     "help": "Number of allocated hours minus the number of hours spent.",
+     "readonly": true,
+     "store": true,
+     "string": "Time Remaining",
+     "type": "Float"
+    },
+    "remaining_hours_percentage": {
+     "compute": "_compute_remaining_hours_percentage",
+     "type": "Float"
+    },
+    "subtask_effective_hours": {
+     "compute": "_compute_subtask_effective_hours",
+     "help": "Time spent on the sub-tasks (and their own sub-tasks) of this task.",
+     "store": true,
+     "string": "Time Spent on Sub-tasks",
+     "type": "Float"
+    },
+    "timesheet_ids": {
+     "comodel": "account.analytic.line",
+     "inverse_name": "task_id",
+     "string": "Timesheets",
+     "type": "One2many"
+    },
+    "total_hours_spent": {
+     "compute": "_compute_total_hours_spent",
+     "help": "Time spent on this task and its sub-tasks (and their own sub-tasks).",
+     "store": true,
+     "string": "Total Time Spent",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('project_id')"
+     ],
+     "lines": 4,
+     "name": "_check_project_root"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_uom_in_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_encode_uom_in_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id.allow_timesheets')"
+     ],
+     "lines": 3,
+     "name": "_compute_allow_timesheets"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_search_allow_timesheets"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_ids.unit_amount')"
+     ],
+     "lines": 9,
+     "name": "_compute_effective_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('effective_hours', 'subtask_effective_hours', 'allocated_hours')"
+     ],
+     "lines": 9,
+     "name": "_compute_progress_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allocated_hours', 'remaining_hours')"
+     ],
+     "lines": 6,
+     "name": "_compute_remaining_hours_percentage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_search_remaining_hours_percentage"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('effective_hours', 'subtask_effective_hours', 'allocated_hours')"
+     ],
+     "lines": 6,
+     "name": "_compute_remaining_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('effective_hours', 'subtask_effective_hours')"
+     ],
+     "lines": 3,
+     "name": "_compute_total_hours_spent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('child_ids.effective_hours', 'child_ids.subtask_effective_hours')"
+     ],
+     "lines": 3,
+     "name": "_compute_subtask_effective_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_group_pattern"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_prepare_pattern_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_cannot_start_with_patterns"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_extract_allocated_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_groups"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 37,
+     "name": "action_view_subtask_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_timesheet_report_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('hr_timesheet_display_remaining_hours')"
+     ],
+     "lines": 16,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 20,
+     "name": "_unlink_except_contains_entries"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_convert_hours_to_days"
+    }
+   ],
+   "name": "project.task",
+   "sel_methods": {
+    "_search_allow_timesheets": [
+     [
+      "project_id",
+      "in"
+     ]
+    ],
+    "_search_remaining_hours_percentage": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "project.update": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allocated_time": {
+     "readonly": true,
+     "string": "Allocated Time",
+     "type": "Integer"
+    },
+    "display_timesheet_stats": {
+     "compute": "_compute_display_timesheet_stats",
+     "type": "Boolean"
+    },
+    "timesheet_percentage": {
+     "compute": "_compute_timesheet_percentage",
+     "type": "Integer"
+    },
+    "timesheet_time": {
+     "readonly": true,
+     "string": "Timesheet Time",
+     "type": "Integer"
+    },
+    "uom_id": {
+     "comodel": "uom.uom",
+     "readonly": true,
+     "string": "Unit Of Measure",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_timesheet_percentage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_display_timesheet_stats"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 13,
+     "name": "create"
+    }
+   ],
+   "name": "project.update",
+   "transient": false
+  },
+  "report.project.task.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allocated_hours": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "readonly": true,
+     "string": "Allocated Time",
+     "type": "Float"
+    },
+    "effective_hours": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "readonly": true,
+     "string": "Time Spent",
+     "type": "Float"
+    },
+    "overtime": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "readonly": true,
+     "type": "Float"
+    },
+    "progress": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "readonly": true,
+     "string": "Progress",
+     "type": "Float"
+    },
+    "remaining_hours": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "readonly": true,
+     "string": "Time Remaining",
+     "type": "Float"
+    },
+    "remaining_hours_percentage": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "readonly": true,
+     "string": "Time Remaining Percentage",
+     "type": "Float"
+    },
+    "subtask_effective_hours": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "help": "Time spent on the sub-tasks (and their own sub-tasks) of this task.",
+     "string": "Time Spent on Sub-Tasks",
+     "type": "Float"
+    },
+    "total_hours_spent": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "help": "Time spent on this task, including its sub-tasks.",
+     "string": "Hours By Task (Including Subtasks)",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_group_by"
+    }
+   ],
+   "name": "report.project.task.user",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "internal_project_id": {
+     "comodel": "project.project",
+     "help": "Default project value for timesheet generated from time off type.",
+     "string": "Internal Project",
+     "type": "Many2one"
+    },
+    "project_time_mode_id": {
+     "comodel": "uom.uom",
+     "default": {
+      "$ref": "_default_project_time_mode_id"
+     },
+     "help": "This will set the unit of measure used in projects and tasks.\nIf you use the timesheet linked to projects, don't forget to setup the right unit of measure in your employees.",
+     "string": "Project Time Unit",
+     "type": "Many2one"
+    },
+    "timesheet_encode_uom_id": {
+     "comodel": "uom.uom",
+     "default": {
+      "$ref": "_default_timesheet_encode_uom_id"
+     },
+     "domain": {
+      "$lambda": "[('category_id', '=', self.env.ref('uom.uom_categ_wtime').id)]"
+     },
+     "string": "Timesheet Encoding Unit",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_default_project_time_mode_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_default_timesheet_encode_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('internal_project_id')"
+     ],
+     "lines": 3,
+     "name": "_check_internal_project_id_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_create_internal_project_task"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_encode_uom_days": {
+     "compute": "_compute_is_encode_uom_days",
+     "type": "Boolean"
+    },
+    "module_project_timesheet_holidays": {
+     "compute": "_compute_timesheet_modules",
+     "readonly": false,
+     "store": true,
+     "string": "Time Off",
+     "type": "Boolean"
+    },
+    "project_time_mode_id": {
+     "comodel": "uom.uom",
+     "help": "This will set the unit of measure used in projects and tasks.\nIf you use the timesheet linked to projects, don't forget to setup the right unit of measure in your employees.",
+     "readonly": false,
+     "related": "company_id.project_time_mode_id",
+     "string": "Project Time Unit",
+     "type": "Many2one"
+    },
+    "reminder_allow": {
+     "string": "Approver Reminder",
+     "type": "Boolean"
+    },
+    "reminder_user_allow": {
+     "string": "Employee Reminder",
+     "type": "Boolean"
+    },
+    "timesheet_encode_method": {
+     "compute": "_compute_timesheet_encode_method",
+     "required": true,
+     "selection": [
+      [
+       "hours",
+       "Hours / Minutes"
+      ],
+      [
+       "days",
+       "Days / Half-Days"
+      ]
+     ],
+     "string": "Encoding Method",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_timesheet_encode_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inverse_timesheet_encode_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_encode_method')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_encode_uom_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('module_hr_timesheet')"
+     ],
+     "lines": 4,
+     "name": "_compute_timesheet_modules"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "timesheets.analysis.report": {
+   "abstract": false,
+   "description": "Timesheets Analysis Report",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "currency_field": "currency_id",
+     "readonly": true,
+     "string": "Amount",
+     "type": "Monetary"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date": {
+     "readonly": true,
+     "string": "Date",
+     "type": "Date"
+    },
+    "department_id": {
+     "comodel": "hr.department",
+     "readonly": true,
+     "string": "Department",
+     "type": "Many2one"
+    },
+    "manager_id": {
+     "comodel": "hr.employee",
+     "readonly": true,
+     "string": "Manager",
+     "type": "Many2one"
+    },
+    "message_partner_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_message_partner_ids",
+     "readonly": true,
+     "type": "Many2many"
+    },
+    "milestone_id": {
+     "comodel": "project.milestone",
+     "related": "task_id.milestone_id",
+     "type": "Many2one"
+    },
+    "name": {
+     "readonly": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "parent_task_id": {
+     "comodel": "project.task",
+     "readonly": true,
+     "string": "Parent Task",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "readonly": true,
+     "string": "Project",
+     "type": "Many2one"
+    },
+    "task_id": {
+     "comodel": "project.task",
+     "readonly": true,
+     "string": "Task",
+     "type": "Many2one"
+    },
+    "unit_amount": {
+     "readonly": true,
+     "string": "Time Spent",
+     "type": "Float"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "hr.manager.department.report"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id.message_partner_ids', 'task_id.message_partner_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_message_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_message_partner_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_table_query"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_from"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_where"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "init"
+    }
+   ],
+   "name": "timesheets.analysis.report",
+   "transient": false
+  },
+  "uom.uom": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "timesheet_widget": {
+     "string": "Widget",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_unprotected_uom_xml_ids"
+    }
+   ],
+   "name": "uom.uom",
+   "transient": false
+  }
+ },
+ "module": "hr_timesheet",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_timesheet",
+ "stats": {
+  "fields": 81,
+  "methods": 115,
+  "models": 15,
+  "py_lines": 1916
+ },
+ "summary": "Track employee time on tasks",
+ "title": "Task Logs",
+ "version": "1.1"
+}

@@ -1,0 +1,162 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/hr_employee_views.xml",
+  "views/hr_templates.xml",
+  "data/hr_resume_data.xml"
+ ],
+ "depends": [
+  "hr_skills",
+  "website_slides"
+ ],
+ "models": {
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "courses_completion_text": {
+     "compute": "_compute_courses_completion_text",
+     "groups": "hr.group_hr_user",
+     "type": "Char"
+    },
+    "has_subscribed_courses": {
+     "compute": "_compute_courses_completion_text",
+     "groups": "hr.group_hr_user,base.group_system",
+     "type": "Boolean"
+    },
+    "subscribed_courses": {
+     "comodel": "slide.channel",
+     "related": "user_partner_id.slide_channel_ids",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('lang')",
+      "api.depends('subscribed_courses', 'user_partner_id.slide_channel_completed_ids')"
+     ],
+     "lines": 12,
+     "name": "_compute_courses_completion_text"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_open_courses"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.resume.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "channel_id": {
+     "comodel": "slide.channel",
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Course",
+     "type": "Many2one"
+    },
+    "course_url": {
+     "compute": "_compute_course_url",
+     "default": false,
+     "type": "Char"
+    },
+    "display_type": {
+     "selection_add": [
+      [
+       "course",
+       "Course"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('channel_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_course_url"
+    }
+   ],
+   "name": "hr.resume.line",
+   "transient": false
+  },
+  "slide.channel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_action_add_members"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_remove_membership"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_message_employee_chatter"
+    }
+   ],
+   "name": "slide.channel",
+   "transient": false
+  },
+  "slide.channel.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_recompute_completion"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_send_completed_mail"
+    }
+   ],
+   "name": "slide.channel.partner",
+   "transient": false
+  }
+ },
+ "module": "hr_skills_slides",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_skills_slides",
+ "stats": {
+  "fields": 6,
+  "methods": 8,
+  "models": 4,
+  "py_lines": 171
+ },
+ "summary": "Add completed courses to resume of your employees",
+ "title": "Skills e-learning",
+ "version": "1.0"
+}

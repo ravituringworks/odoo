@@ -1,0 +1,218 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Productivity/Dashboard",
+ "data_files": [
+  "security/security.xml",
+  "security/ir.model.access.csv",
+  "views/spreadsheet_dashboard_views.xml",
+  "views/menu_views.xml",
+  "data/dashboard.xml"
+ ],
+ "depends": [
+  "spreadsheet"
+ ],
+ "models": {
+  "spreadsheet.dashboard": {
+   "abstract": false,
+   "description": "Spreadsheet Dashboard",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "type": "Many2one"
+    },
+    "dashboard_group_id": {
+     "comodel": "spreadsheet.dashboard.group",
+     "required": true,
+     "type": "Many2one"
+    },
+    "group_ids": {
+     "comodel": "res.groups",
+     "default": {
+      "$lambda": "self.env.ref('base.group_user')"
+     },
+     "type": "Many2many"
+    },
+    "is_published": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "main_data_model_ids": {
+     "comodel": "ir.model",
+     "type": "Many2many"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sample_dashboard_file_path": {
+     "type": "Char"
+    },
+    "sequence": {
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "spreadsheet.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "get_readonly_dashboard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_sample_dashboard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_dashboard_is_empty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "copy_data"
+    }
+   ],
+   "name": "spreadsheet.dashboard",
+   "order": "sequence",
+   "transient": false
+  },
+  "spreadsheet.dashboard.group": {
+   "abstract": false,
+   "description": "Group of dashboards",
+   "extension": false,
+   "fields": {
+    "dashboard_ids": {
+     "comodel": "spreadsheet.dashboard",
+     "inverse_name": "dashboard_group_id",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "published_dashboard_ids": {
+     "comodel": "spreadsheet.dashboard",
+     "domain": [
+      [
+       "is_published",
+       "=",
+       true
+      ]
+     ],
+     "inverse_name": "dashboard_group_id",
+     "type": "One2many"
+    },
+    "sequence": {
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 6,
+     "name": "_unlink_except_spreadsheet_data"
+    }
+   ],
+   "name": "spreadsheet.dashboard.group",
+   "order": "sequence",
+   "transient": false
+  },
+  "spreadsheet.dashboard.share": {
+   "abstract": false,
+   "description": "Copy of a shared dashboard",
+   "extension": false,
+   "fields": {
+    "access_token": {
+     "default": {
+      "$lambda": "str(uuid.uuid4())"
+     },
+     "required": true,
+     "type": "Char"
+    },
+    "dashboard_id": {
+     "comodel": "spreadsheet.dashboard",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "excel_export": {
+     "type": "Binary"
+    },
+    "full_url": {
+     "compute": "_compute_full_url",
+     "string": "URL",
+     "type": "Char"
+    },
+    "name": {
+     "related": "dashboard_id.name",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "spreadsheet.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('access_token')"
+     ],
+     "lines": 3,
+     "name": "_compute_full_url"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "action_get_share_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_dashboard_access"
+    }
+   ],
+   "name": "spreadsheet.dashboard.share",
+   "transient": false
+  }
+ },
+ "module": "spreadsheet_dashboard",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/spreadsheet_dashboard",
+ "stats": {
+  "fields": 17,
+  "methods": 9,
+  "models": 3,
+  "py_lines": 195
+ },
+ "summary": "Spreadsheet",
+ "title": "Spreadsheet dashboard",
+ "version": "1.0"
+}

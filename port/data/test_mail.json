@@ -1,0 +1,1194 @@
+{
+ "module": "test_mail",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_simple_dummy",
+   "values": {
+    "name": "Dummy rule, just to enable rule evaluation, shows some specific errors",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_simple"
+    },
+    "domain_force": "[('email_from', '!=', 'donotsetmewiththisvalue')]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_public",
+   "values": {
+    "name": "Public: public only",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access"
+    },
+    "domain_force": "[('access', '=', 'public')]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_portal",
+   "values": {
+    "name": "Portal: public/logged/logged readonly only",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access"
+    },
+    "domain_force": "[\n            '|', ('access', 'in', ('public', 'logged', 'logged_ro')),\n            '&', ('access', '=', 'followers'), ('message_partner_ids', 'in', [user.partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_portal_update",
+   "values": {
+    "name": "Portal: update logged only",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access"
+    },
+    "domain_force": "[\n            '|', ('access', '=', 'logged'),\n            '&', ('access', '=', 'followers'), ('message_partner_ids', 'in', [user.partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_write": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_internal",
+   "values": {
+    "name": "Internal: read not admin",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access"
+    },
+    "domain_force": "[('access', '!=', 'admin')]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_internal_update",
+   "values": {
+    "name": "Internal: update not admin and not readonly",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access"
+    },
+    "domain_force": "[('access', 'not in', ('internal_ro', 'admin'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_read": false,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_admin",
+   "values": {
+    "name": "Admin: all",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_system"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_custo_portal_read",
+   "values": {
+    "name": "Portal: read unlocked",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access_custo"
+    },
+    "domain_force": "[('is_locked', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_custo_update",
+   "values": {
+    "name": "Internal: create/write/unlink unlocked and not readonly",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access_custo"
+    },
+    "domain_force": "[('is_readonly', '=', False), ('is_locked', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": false,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_mail_test_access_custo_update_admin",
+   "values": {
+    "name": "Admin: all",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_access_custo"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_system"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_multi_company_rule",
+   "values": {
+    "name": "Mail Test Multi Company",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_multi_company"
+    },
+    "global": true,
+    "domain_force": "['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_multi_company_rule",
+   "values": {
+    "name": "Mail Test Multi Company",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_multi_company"
+    },
+    "global": true,
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_multi_company_read_rule",
+   "values": {
+    "name": "MC Readonly Rule",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_multi_company_read"
+    },
+    "perm_read": false,
+    "domain_force": "[('company_id', 'in', company_ids + [False])]",
+    "global": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_multi_company_with_activity_rule",
+   "values": {
+    "name": "Mail Test Multi Company With Activity",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_multi_company_with_activity"
+    },
+    "global": true,
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_ticket_rule_portal",
+   "values": {
+    "name": "Portal Mail Test Ticket",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_ticket"
+    },
+    "domain_force": "[('message_partner_ids', 'in', [user.partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_ticket_mc_rule",
+   "values": {
+    "name": "Mail Test Ticket Multi Company",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_ticket_mc"
+    },
+    "global": true,
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_ticket_mc_rule_portal",
+   "values": {
+    "name": "Portal Mail Test Ticket Multi Company",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_ticket_mc"
+    },
+    "domain_force": "[('message_partner_ids', 'in', [user.partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_container_rule_portal",
+   "values": {
+    "name": "Portal Mail Test Container",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_container"
+    },
+    "domain_force": "[('message_partner_ids', 'in', [user.partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_container_mc_rule",
+   "values": {
+    "name": "Mail Test Container Multi Company",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_container_mc"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]",
+    "global": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_test_container_mc_rule_portal",
+   "values": {
+    "name": "Portal Mail Test Container Multi Company",
+    "model_id": {
+     "$ref": "test_mail.model_mail_test_container_mc"
+    },
+    "domain_force": "[('message_partner_ids', 'in', [user.partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_test_todo",
+   "values": {
+    "name": "Do Stuff",
+    "summary": "Really?! Wow! A superpowers drug you can just rub onto your skin?",
+    "category": "default",
+    "res_model": "mail.test.activity"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_test_meeting",
+   "values": {
+    "name": "Meet People",
+    "summary": "You'd think it would be something you'd have to freebase. Noooooo!",
+    "category": "default",
+    "res_model": "mail.test.activity"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_test_call",
+   "values": {
+    "name": "Call People",
+    "summary": "Then throw her in the laundry room, which will hereafter be referred to as \"the brig\".",
+    "category": "default",
+    "res_model": "mail.test.activity"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_test_chained_2",
+   "values": {
+    "name": "Step 2",
+    "summary": "Take the second step.",
+    "category": "default",
+    "res_model": "mail.test.activity",
+    "delay_count": "10",
+    "delay_from": "current_date",
+    "delay_unit": "days"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_test_chained_1",
+   "values": {
+    "name": "Step 1",
+    "summary": "Take the first step.",
+    "category": "default",
+    "res_model": "mail.test.activity",
+    "chaining_type": "trigger",
+    "triggered_next_type_id": {
+     "$ref": "test_mail.mail_act_test_chained_2"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_test_upload_document",
+   "values": {
+    "name": "Upload Document",
+    "delay_count": "5",
+    "category": "upload_file",
+    "res_model": "mail.test.activity"
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_act_test_todo_generic",
+   "values": {
+    "name": "Do Stuff",
+    "summary": "Hey Zoidberg! Get in here!",
+    "category": "default"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "st_mail_test_simple_external",
+   "values": {
+    "name": "External subtype",
+    "description": "External subtype",
+    "res_model": "mail.test.simple",
+    "default": false,
+    "internal": false
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "st_mail_test_ticket_container_upd",
+   "values": {
+    "name": "Container Changed Subtype",
+    "description": "Container Changed",
+    "res_model": "mail.test.ticket",
+    "default": true,
+    "internal": false
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "st_mail_test_container_default",
+   "values": {
+    "name": "Container Default Subtype",
+    "res_model": "mail.test.container",
+    "default": true,
+    "internal": false
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "st_mail_test_container_child_full",
+   "values": {
+    "name": "Container Child Full Subtype",
+    "res_model": "mail.test.container",
+    "parent_id": {
+     "$ref": "test_mail.st_mail_test_ticket_container_upd"
+    },
+    "relation_field": "container_id",
+    "default": false,
+    "internal": false
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "st_mail_test_ticket_container_mc_upd",
+   "values": {
+    "name": "Container MC Changed Subtype",
+    "description": "Container Changed",
+    "res_model": "mail.test.ticket.mc",
+    "default": true,
+    "internal": false
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "st_mail_test_ticket_internal",
+   "values": {
+    "name": "Ticket MC Internal",
+    "description": "Ticket MC Internal",
+    "res_model": "mail.test.ticket.mc",
+    "default": false,
+    "internal": true
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_mail_performance_thread",
+   "model": "mail.performance.thread",
+   "model_xmlid": "model_mail_performance_thread",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_performance_tracking_user",
+   "model": "mail.performance.tracking",
+   "model_xmlid": "model_mail_performance_tracking",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_access_portal",
+   "model": "mail.test.access",
+   "model_xmlid": "model_mail_test_access",
+   "group": "base.group_portal",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_access_public",
+   "model": "mail.test.access",
+   "model_xmlid": "model_mail_test_access",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_access_user",
+   "model": "mail.test.access",
+   "model_xmlid": "model_mail_test_access",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_access_custo_portal",
+   "model": "mail.test.access.custo",
+   "model_xmlid": "model_mail_test_access_custo",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_access_custo_user",
+   "model": "mail.test.access.custo",
+   "model_xmlid": "model_mail_test_access_custo",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_alias_optional_portal",
+   "model": "mail.test.alias.optional",
+   "model_xmlid": "model_mail_test_alias_optional",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_alias_optional_user",
+   "model": "mail.test.alias.optional",
+   "model_xmlid": "model_mail_test_alias_optional",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_simple_portal",
+   "model": "mail.test.simple",
+   "model_xmlid": "model_mail_test_simple",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_simple_user",
+   "model": "mail.test.simple",
+   "model_xmlid": "model_mail_test_simple",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_simple_unnamed_portal",
+   "model": "mail.test.simple.unnamed",
+   "model_xmlid": "model_mail_test_simple_unnamed",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_simple_unnamed_user",
+   "model": "mail.test.simple.unnamed",
+   "model_xmlid": "model_mail_test_simple_unnamed",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_simple_unfollow_portal",
+   "model": "mail.test.simple.unfollow",
+   "model_xmlid": "model_mail_test_simple_unfollow",
+   "group": "base.group_portal",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_simple_unfollow_user",
+   "model": "mail.test.simple.unfollow",
+   "model_xmlid": "model_mail_test_simple_unfollow",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_simple_main_attachment_portal",
+   "model": "mail.test.simple.main.attachment",
+   "model_xmlid": "model_mail_test_simple_main_attachment",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_simple_main_attachment_user",
+   "model": "mail.test.simple.main.attachment",
+   "model_xmlid": "model_mail_test_simple_main_attachment",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_gateway_portal",
+   "model": "mail.test.gateway",
+   "model_xmlid": "model_mail_test_gateway",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_gateway_user",
+   "model": "mail.test.gateway",
+   "model_xmlid": "model_mail_test_gateway",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_gateway_company_user",
+   "model": "mail.test.gateway.company",
+   "model_xmlid": "model_mail_test_gateway_company",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_gateway_main_attachment_user",
+   "model": "mail.test.gateway.main.attachment",
+   "model_xmlid": "model_mail_test_gateway_main_attachment",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_gateway_groups_portal",
+   "model": "mail.test.gateway.groups",
+   "model_xmlid": "model_mail_test_gateway_groups",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_gateway_groups_user",
+   "model": "mail.test.gateway.groups",
+   "model_xmlid": "model_mail_test_gateway_groups",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_track_portal",
+   "model": "mail.test.track",
+   "model_xmlid": "model_mail_test_track",
+   "group": "base.group_portal",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_track_user",
+   "model": "mail.test.track",
+   "model_xmlid": "model_mail_test_track",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_activity_portal",
+   "model": "mail.test.activity",
+   "model_xmlid": "model_mail_test_activity",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_activity_user",
+   "model": "mail.test.activity",
+   "model_xmlid": "model_mail_test_activity",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_field_type_portal",
+   "model": "mail.test.field.type",
+   "model_xmlid": "model_mail_test_field_type",
+   "group": "base.group_portal",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_field_type_user",
+   "model": "mail.test.field.type",
+   "model_xmlid": "model_mail_test_field_type",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_lead_user",
+   "model": "mail.test.lead",
+   "model_xmlid": "model_mail_test_lead",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_ticket_portal",
+   "model": "mail.test.ticket",
+   "model_xmlid": "model_mail_test_ticket",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_ticket_user",
+   "model": "mail.test.ticket",
+   "model_xmlid": "model_mail_test_ticket",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_ticket_el_portal",
+   "model": "mail.test.ticket.el",
+   "model_xmlid": "model_mail_test_ticket_el",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_ticket_el_user",
+   "model": "mail.test.ticket.el",
+   "model_xmlid": "model_mail_test_ticket_el",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_ticket_mc_portal",
+   "model": "mail.test.ticket.mc",
+   "model_xmlid": "model_mail_test_ticket_mc",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_ticket_mc_user",
+   "model": "mail.test.ticket.mc",
+   "model_xmlid": "model_mail_test_ticket_mc",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_composer_mixin_all",
+   "model": "mail.test.composer.mixin",
+   "model_xmlid": "model_mail_test_composer_mixin",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_composer_mixin_user",
+   "model": "mail.test.composer.mixin",
+   "model_xmlid": "model_mail_test_composer_mixin",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_composer_source_all",
+   "model": "mail.test.composer.source",
+   "model_xmlid": "model_mail_test_composer_source",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_composer_source_user",
+   "model": "mail.test.composer.source",
+   "model_xmlid": "model_mail_test_composer_source",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_container_portal",
+   "model": "mail.test.container",
+   "model_xmlid": "model_mail_test_container",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_container_user",
+   "model": "mail.test.container",
+   "model_xmlid": "model_mail_test_container",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_container_mc_portal",
+   "model": "mail.test.container.mc",
+   "model_xmlid": "model_mail_test_container_mc",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_container_mc_user",
+   "model": "mail.test.container.mc",
+   "model_xmlid": "model_mail_test_container_mc",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_cc_portal",
+   "model": "mail.test.cc",
+   "model_xmlid": "model_mail_test_cc",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_cc_user",
+   "model": "mail.test.cc",
+   "model_xmlid": "model_mail_test_cc",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_lang_portal",
+   "model": "mail.test.lang",
+   "model_xmlid": "model_mail_test_lang",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_lang_user",
+   "model": "mail.test.lang",
+   "model_xmlid": "model_mail_test_lang",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_multi_company_user",
+   "model": "mail.test.multi.company",
+   "model_xmlid": "model_mail_test_multi_company",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_multi_company_portal",
+   "model": "mail.test.multi.company",
+   "model_xmlid": "model_mail_test_multi_company",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_multi_company_read_user",
+   "model": "mail.test.multi.company.read",
+   "model_xmlid": "model_mail_test_multi_company_read",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_multi_company_read_portal",
+   "model": "mail.test.multi.company.read",
+   "model_xmlid": "model_mail_test_multi_company_read",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_multi_company_with_activity_user",
+   "model": "mail.test.multi.company.with.activity",
+   "model_xmlid": "model_mail_test_multi_company_with_activity",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_multi_company_with_activity_portal",
+   "model": "mail.test.multi.company.with.activity",
+   "model_xmlid": "model_mail_test_multi_company_with_activity",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_nothread_user",
+   "model": "mail.test.nothread",
+   "model_xmlid": "model_mail_test_nothread",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_nothread_portal",
+   "model": "mail.test.nothread",
+   "model_xmlid": "model_mail_test_nothread",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_track_all",
+   "model": "mail.test.track.all",
+   "model_xmlid": "model_mail_test_track_all",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_track_all_m2m",
+   "model": "mail.test.track.all.m2m",
+   "model_xmlid": "model_mail_test_track_all_m2m",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_track_all_o2m",
+   "model": "mail.test.track.all.o2m",
+   "model_xmlid": "model_mail_test_track_all_o2m",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_track_compute",
+   "model": "mail.test.track.compute",
+   "model_xmlid": "model_mail_test_track_compute",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_track_groups",
+   "model": "mail.test.track.groups",
+   "model_xmlid": "model_mail_test_track_groups",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_track_monetary",
+   "model": "mail.test.track.monetary",
+   "model_xmlid": "model_mail_test_track_monetary",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_track_selection_portal",
+   "model": "mail.test.track.selection",
+   "model_xmlid": "model_mail_test_track_selection",
+   "group": "base.group_portal",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_test_track_selection_user",
+   "model": "mail.test.track.selection",
+   "model_xmlid": "model_mail_test_track_selection",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_properties_user",
+   "model": "mail.test.properties",
+   "model_xmlid": "model_mail_test_properties",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_mail_tracking_duration",
+   "model": "mail.test.mail.tracking.duration",
+   "model_xmlid": "model_mail_test_mail_tracking_duration",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_public_user",
+   "model": "mail.test.public",
+   "model_xmlid": "model_mail_test_public",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_test_public_public",
+   "model": "mail.test.public",
+   "model_xmlid": "model_mail_test_public",
+   "group": "base.group_public",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

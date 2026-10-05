@@ -1,0 +1,526 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/onboarding_templates.xml",
+  "views/onboarding_views.xml",
+  "views/onboarding_menus.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "web"
+ ],
+ "models": {
+  "onboarding.onboarding": {
+   "abstract": false,
+   "description": "Onboarding",
+   "extension": false,
+   "fields": {
+    "current_onboarding_state": {
+     "compute": "_compute_current_progress",
+     "readonly": true,
+     "selection": [
+      [
+       "not_done",
+       "Not done"
+      ],
+      [
+       "just_done",
+       "Just done"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "string": "Completion State",
+     "type": "Selection"
+    },
+    "current_progress_id": {
+     "comodel": "onboarding.progress",
+     "compute": "_compute_current_progress",
+     "help": "Onboarding Progress for the current context (company).",
+     "string": "Onboarding Progress",
+     "type": "Many2one"
+    },
+    "is_onboarding_closed": {
+     "compute": "_compute_current_progress",
+     "string": "Was panel closed?",
+     "type": "Boolean"
+    },
+    "is_per_company": {
+     "compute": "_compute_is_per_company",
+     "readonly": true,
+     "store": false,
+     "string": "Should be done per company?",
+     "type": "Boolean"
+    },
+    "name": {
+     "string": "Name of the onboarding",
+     "translate": true,
+     "type": "Char"
+    },
+    "panel_close_action_name": {
+     "help": "Name of the onboarding model action to execute when closing the panel.",
+     "string": "Closing action",
+     "type": "Char"
+    },
+    "progress_ids": {
+     "comodel": "onboarding.progress",
+     "help": "All Onboarding Progress Records (across companies).",
+     "inverse_name": "onboarding_id",
+     "readonly": true,
+     "string": "Onboarding Progress Records",
+     "type": "One2many"
+    },
+    "route_name": {
+     "required": true,
+     "string": "One word name",
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "step_ids": {
+     "comodel": "onboarding.onboarding.step",
+     "string": "Onboarding steps",
+     "type": "Many2many"
+    },
+    "text_completed": {
+     "default": {
+      "$lambda": "s.env._('Nice work! Your configuration is done.')"
+     },
+     "help": "Text shown on onboarding when completed",
+     "string": "Message at completion",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('progress_ids', 'progress_ids.company_id', 'step_ids', 'step_ids.is_per_company')"
+     ],
+     "lines": 9,
+     "name": "_compute_is_per_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('progress_ids', 'progress_ids.is_onboarding_closed', 'progress_ids.onboarding_state', 'progress_ids.company_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_current_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_close"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "action_close_panel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_refresh_progress_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_toggle_visibility"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_search_or_create_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_create_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_prepare_rendering_values"
+    }
+   ],
+   "name": "onboarding.onboarding",
+   "order": "sequence asc, id desc",
+   "sql_constraints": [
+    [
+     "route_name_uniq",
+     "UNIQUE (route_name)",
+     "Onboarding alias must be unique."
+    ]
+   ],
+   "transient": false
+  },
+  "onboarding.onboarding.step": {
+   "abstract": false,
+   "description": "Onboarding Step",
+   "extension": false,
+   "fields": {
+    "button_text": {
+     "default": {
+      "$lambda": "s.env._(\"Let's do it\")"
+     },
+     "help": "Text on the panel's button to start this step",
+     "required": true,
+     "string": "Button text",
+     "translate": true,
+     "type": "Char"
+    },
+    "current_progress_step_id": {
+     "comodel": "onboarding.progress.step",
+     "compute": "_compute_current_progress",
+     "help": "Onboarding Progress Step for the current context (company).",
+     "string": "Step Progress",
+     "type": "Many2one"
+    },
+    "current_step_state": {
+     "compute": "_compute_current_progress",
+     "selection": [
+      [
+       "not_done",
+       "Not done"
+      ],
+      [
+       "just_done",
+       "Just done"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "string": "Completion State",
+     "type": "Selection"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Char"
+    },
+    "done_icon": {
+     "default": "fa-star",
+     "string": "Font Awesome Icon when completed",
+     "type": "Char"
+    },
+    "done_text": {
+     "default": {
+      "$lambda": "s.env._('Step Completed!')"
+     },
+     "string": "Text to show when step is completed",
+     "translate": true,
+     "type": "Char"
+    },
+    "is_per_company": {
+     "default": true,
+     "string": "Is per company",
+     "type": "Boolean"
+    },
+    "onboarding_ids": {
+     "comodel": "onboarding.onboarding",
+     "string": "Onboardings",
+     "type": "Many2many"
+    },
+    "panel_step_open_action_name": {
+     "help": "Name of the onboarding step model action to execute when opening the step, e.g. action_open_onboarding_1_step_1",
+     "required": false,
+     "string": "Opening action",
+     "type": "Char"
+    },
+    "progress_ids": {
+     "comodel": "onboarding.progress.step",
+     "help": "All related Onboarding Progress Step Records (across companies)",
+     "inverse_name": "step_id",
+     "readonly": true,
+     "string": "Onboarding Progress Step Records",
+     "type": "One2many"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "step_image": {
+     "string": "Step Image",
+     "type": "Binary"
+    },
+    "step_image_alt": {
+     "default": "Onboarding Step Image",
+     "help": "Show when impossible to load the image",
+     "string": "Alt Text for the Step Image",
+     "translate": true,
+     "type": "Char"
+    },
+    "step_image_filename": {
+     "string": "Step Image Filename",
+     "type": "Char"
+    },
+    "title": {
+     "string": "Title",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('progress_ids', 'progress_ids.step_state')"
+     ],
+     "lines": 15,
+     "name": "_compute_current_progress"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('onboarding_ids')"
+     ],
+     "lines": 7,
+     "name": "check_step_on_onboarding_has_action"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_set_just_done"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "action_validate_step"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_placeholder_filename"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_create_progress_steps"
+    }
+   ],
+   "name": "onboarding.onboarding.step",
+   "order": "sequence asc, id asc",
+   "rec_name": "title",
+   "sel_methods": {
+    "_get_placeholder_filename": []
+   },
+   "transient": false
+  },
+  "onboarding.progress": {
+   "abstract": false,
+   "description": "Onboarding Progress Tracker",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "is_onboarding_closed": {
+     "string": "Was panel closed?",
+     "type": "Boolean"
+    },
+    "onboarding_id": {
+     "comodel": "onboarding.onboarding",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Related onboarding tracked",
+     "type": "Many2one"
+    },
+    "onboarding_state": {
+     "compute": "_compute_onboarding_state",
+     "selection": [
+      [
+       "not_done",
+       "Not done"
+      ],
+      [
+       "just_done",
+       "Just done"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "store": true,
+     "string": "Onboarding progress",
+     "type": "Selection"
+    },
+    "progress_step_ids": {
+     "comodel": "onboarding.progress.step",
+     "string": "Progress Steps Trackers",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('onboarding_id.step_ids', 'progress_step_ids', 'progress_step_ids.step_state')"
+     ],
+     "lines": 9,
+     "name": "_compute_onboarding_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_recompute_progress_step_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_close"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_toggle_visibility"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_and_update_onboarding_state"
+    }
+   ],
+   "name": "onboarding.progress",
+   "rec_name": "onboarding_id",
+   "transient": false
+  },
+  "onboarding.progress.step": {
+   "abstract": false,
+   "description": "Onboarding Progress Step Tracker",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "progress_ids": {
+     "comodel": "onboarding.progress",
+     "string": "Related Onboarding Progress Tracker",
+     "type": "Many2many"
+    },
+    "step_id": {
+     "comodel": "onboarding.onboarding.step",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Onboarding Step",
+     "type": "Many2one"
+    },
+    "step_state": {
+     "default": "not_done",
+     "selection": [
+      [
+       "not_done",
+       "Not done"
+      ],
+      [
+       "just_done",
+       "Just done"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "string": "Onboarding Step Progress",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "init"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_consolidate_just_done"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_set_just_done"
+    }
+   ],
+   "name": "onboarding.progress.step",
+   "rec_name": "step_id",
+   "transient": false
+  }
+ },
+ "module": "onboarding",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/onboarding",
+ "stats": {
+  "fields": 35,
+  "methods": 26,
+  "models": 4,
+  "py_lines": 398
+ },
+ "summary": "This module allows to manage onboardings and their progress",
+ "title": "Onboarding Toolbox",
+ "version": "1.2"
+}

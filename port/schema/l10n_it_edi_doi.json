@@ -1,0 +1,690 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/invoice_it_template.xml",
+  "views/l10n_it_edi_doi_declaration_of_intent_views.xml",
+  "views/account_move_views.xml",
+  "views/report_invoice.xml",
+  "views/res_partner_views.xml",
+  "views/sale_ir_actions_report_templates.xml",
+  "views/sale_order_views.xml"
+ ],
+ "depends": [
+  "l10n_it_edi",
+  "sale"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_it_edi_doi_account_tax"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_it_edi_doi_account_fiscal_position"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_it_edi_doi_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.fiscal.position": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_never_unlink_declaration_of_intent_fiscal_position"
+    }
+   ],
+   "name": "account.fiscal.position",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_it_edi_doi_amount": {
+     "compute": "_compute_l10n_it_edi_doi_amount",
+     "help": "Total amount of sales under the Declaration of Intent of this document",
+     "readonly": true,
+     "store": true,
+     "string": "Declaration of Intent Amount",
+     "type": "Monetary"
+    },
+    "l10n_it_edi_doi_date": {
+     "compute": "_compute_l10n_it_edi_doi_date",
+     "string": "Date on which Declaration of Intent is applied",
+     "type": "Date"
+    },
+    "l10n_it_edi_doi_id": {
+     "comodel": "l10n_it_edi_doi.declaration_of_intent",
+     "compute": "_compute_l10n_it_edi_doi_id",
+     "readonly": false,
+     "store": true,
+     "string": "Declaration of Intent",
+     "type": "Many2one"
+    },
+    "l10n_it_edi_doi_use": {
+     "compute": "_compute_l10n_it_edi_doi_use",
+     "string": "Use Declaration of Intent",
+     "type": "Boolean"
+    },
+    "l10n_it_edi_doi_warning": {
+     "compute": "_compute_l10n_it_edi_doi_warning",
+     "string": "Declaration of Intent Threshold Warning",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_date')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_it_edi_doi_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_doi_id', 'country_code', 'move_type')"
+     ],
+     "lines": 7,
+     "name": "_compute_l10n_it_edi_doi_use"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'partner_id.commercial_partner_id', 'l10n_it_edi_doi_date', 'currency_id')"
+     ],
+     "lines": 18,
+     "name": "_compute_l10n_it_edi_doi_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_doi_id', 'tax_totals', 'move_type')"
+     ],
+     "lines": 20,
+     "name": "_compute_l10n_it_edi_doi_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_doi_id', 'l10n_it_edi_doi_amount', 'state')"
+     ],
+     "lines": 45,
+     "name": "_compute_l10n_it_edi_doi_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_doi_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_fiscal_position_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_it_edi_doi_id')"
+     ],
+     "lines": 7,
+     "name": "_check_l10n_it_edi_doi_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_post"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_declaration_of_intent"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_post": []
+   },
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_never_unlink_declaration_of_intent_tax"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_it_edi_doi.declaration_of_intent": {
+   "abstract": false,
+   "description": "Declaration of Intent",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company._accessible_branches()[:1]"
+     },
+     "index": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "default": {
+      "$lambda": "self.env.ref('base.EUR', raise_if_not_found=False).id"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "end_date": {
+     "copy": false,
+     "help": "Last date on which the Declaration of Intent is valid",
+     "required": true,
+     "string": "End Date",
+     "type": "Date"
+    },
+    "invoice_ids": {
+     "comodel": "account.move",
+     "copy": false,
+     "inverse_name": "l10n_it_edi_doi_id",
+     "readonly": true,
+     "string": "Invoices / Refunds",
+     "type": "One2many"
+    },
+    "invoiced": {
+     "compute": "_compute_invoiced",
+     "help": "Total amount of sales under this Declaration of Intent",
+     "readonly": true,
+     "store": true,
+     "string": "Invoiced",
+     "type": "Monetary"
+    },
+    "issue_date": {
+     "copy": false,
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "help": "Date on which the Declaration of Intent was issued",
+     "required": true,
+     "string": "Date of Issue",
+     "type": "Date"
+    },
+    "not_yet_invoiced": {
+     "compute": "_compute_not_yet_invoiced",
+     "help": "Total amount of planned sales under this Declaration of Intent (i.e. current quotation and sales orders) that can still be invoiced",
+     "readonly": true,
+     "store": true,
+     "string": "Not Yet Invoiced",
+     "type": "Monetary"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "domain": "['|', ('is_company', '=', True), ('parent_id', '=', False)]",
+     "index": true,
+     "required": true,
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "protocol_number_part1": {
+     "copy": false,
+     "readonly": false,
+     "required": true,
+     "string": "Protocol 1",
+     "type": "Char"
+    },
+    "protocol_number_part2": {
+     "copy": false,
+     "readonly": false,
+     "required": true,
+     "string": "Protocol 2",
+     "type": "Char"
+    },
+    "remaining": {
+     "compute": "_compute_remaining",
+     "help": "Remaining amount after deduction of the Invoiced and Not Yet Invoiced amounts.",
+     "readonly": true,
+     "store": true,
+     "string": "Remaining",
+     "type": "Monetary"
+    },
+    "sale_order_ids": {
+     "comodel": "sale.order",
+     "copy": false,
+     "inverse_name": "l10n_it_edi_doi_id",
+     "readonly": true,
+     "string": "Sales Orders / Quotations",
+     "type": "One2many"
+    },
+    "start_date": {
+     "copy": false,
+     "help": "First date on which the Declaration of Intent is valid",
+     "required": true,
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "state": {
+     "default": "draft",
+     "help": "The state of this Declaration of Intent. \n- 'Draft' means that the Declaration of Intent still needs to be confirmed before being usable. \n- 'Active' means that the Declaration of Intent is usable. \n- 'Terminated' designates that the Declaration of Intent has been marked as not to use anymore without invalidating usages of it. \n- 'Revoked' means the Declaration of Intent should not have been used. You will probably need to revert previous usages of it, if any.\n",
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "active",
+       "Active"
+      ],
+      [
+       "revoked",
+       "Revoked"
+      ],
+      [
+       "terminated",
+       "Terminated"
+      ]
+     ],
+     "string": "State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "threshold": {
+     "help": "Total amount of allowed sales without VAT under this Declaration of Intent",
+     "required": true,
+     "string": "Threshold",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.main.attachment"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('protocol_number_part1', 'protocol_number_part2')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_ids', 'invoice_ids.state', 'invoice_ids.l10n_it_edi_doi_amount')"
+     ],
+     "lines": 6,
+     "name": "_compute_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids', 'sale_order_ids.state', 'sale_order_ids.l10n_it_edi_doi_not_yet_invoiced')"
+     ],
+     "lines": 6,
+     "name": "_compute_not_yet_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('threshold', 'not_yet_invoiced', 'invoiced')"
+     ],
+     "lines": 3,
+     "name": "_compute_remaining"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_build_threshold_warning_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_validity_errors"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_validity_warnings"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_fetch_valid_declaration_of_intent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_linked_to_document"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_validate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_reset_to_draft"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_reactivate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_revoke"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_terminate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_sale_order_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_invoice_ids"
+    }
+   ],
+   "name": "l10n_it_edi_doi.declaration_of_intent",
+   "order": "protocol_number_part1, protocol_number_part2",
+   "sql_constraints": [
+    [
+     "protocol_number_unique",
+     "unique(protocol_number_part1, protocol_number_part2)",
+     "The Protocol Number of a Declaration of Intent must be unique! Please choose another one."
+    ],
+    [
+     "threshold_positive",
+     "CHECK(threshold > 0)",
+     "The Threshold of a Declaration of Intent must be positive."
+    ]
+   ],
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_it_edi_doi_fiscal_position_id": {
+     "comodel": "account.fiscal.position",
+     "string": "Declaration of Intent Fiscal Position",
+     "type": "Many2one"
+    },
+    "l10n_it_edi_doi_tax_id": {
+     "comodel": "account.tax",
+     "string": "Declaration of Intent Tax",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_it_edi_doi_ids": {
+     "comodel": "l10n_it_edi_doi.declaration_of_intent",
+     "domain": {
+      "$lambda": "[('company_id', '=', self.env.company.id)]"
+     },
+     "inverse_name": "partner_id",
+     "string": "Available Declarations of Intent of this partner",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "l10n_it_edi_doi_action_open_declarations"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_it_edi_doi_date": {
+     "compute": "_compute_l10n_it_edi_doi_date",
+     "string": "Date on which Declaration of Intent is applied",
+     "type": "Date"
+    },
+    "l10n_it_edi_doi_id": {
+     "comodel": "l10n_it_edi_doi.declaration_of_intent",
+     "compute": "_compute_l10n_it_edi_doi_id",
+     "readonly": false,
+     "store": true,
+     "string": "Declaration of Intent",
+     "type": "Many2one"
+    },
+    "l10n_it_edi_doi_not_yet_invoiced": {
+     "compute": "_compute_l10n_it_edi_doi_not_yet_invoiced",
+     "help": "Total under the Declaration of Intent of this document that can still be invoiced",
+     "readonly": true,
+     "store": true,
+     "string": "Declaration of Intent Amount Not Yet Invoiced",
+     "type": "Monetary"
+    },
+    "l10n_it_edi_doi_use": {
+     "compute": "_compute_l10n_it_edi_doi_use",
+     "string": "Use Declaration of Intent",
+     "type": "Boolean"
+    },
+    "l10n_it_edi_doi_warning": {
+     "compute": "_compute_l10n_it_edi_doi_warning",
+     "string": "Declaration of Intent Threshold Warning",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_order')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_it_edi_doi_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_doi_id', 'country_code')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_it_edi_doi_use"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'partner_id.commercial_partner_id', 'l10n_it_edi_doi_date', 'currency_id')"
+     ],
+     "lines": 18,
+     "name": "_compute_l10n_it_edi_doi_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_doi_id', 'tax_totals', 'order_line', 'order_line.qty_invoiced_posted')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_it_edi_doi_not_yet_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_doi_id', 'l10n_it_edi_doi_id.remaining', 'state', 'tax_totals')"
+     ],
+     "lines": 32,
+     "name": "_compute_l10n_it_edi_doi_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_it_edi_doi_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_fiscal_position_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_prepare_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_l10n_it_edi_doi_check_configuration"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_quotation_send"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_quotation_sent"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_it_edi_doi_id')"
+     ],
+     "lines": 11,
+     "name": "_check_l10n_it_edi_doi_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_declaration_of_intent"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_l10n_it_edi_doi_get_amount_not_yet_invoiced"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  }
+ },
+ "module": "l10n_it_edi_doi",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_it_edi_doi",
+ "stats": {
+  "fields": 28,
+  "methods": 47,
+  "models": 8,
+  "py_lines": 898
+ },
+ "summary": "Add support for the Declaration of Intent (Dichiarazione di Intento) to the Italian localization.",
+ "title": "Italy - Declaration of Intent",
+ "version": "0.1"
+}

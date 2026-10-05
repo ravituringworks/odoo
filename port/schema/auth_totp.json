@@ -1,0 +1,256 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Extra Tools",
+ "data_files": [
+  "security/security.xml",
+  "security/ir.model.access.csv",
+  "data/ir_action_data.xml",
+  "views/res_users_views.xml",
+  "views/templates.xml",
+  "wizard/auth_totp_wizard_views.xml"
+ ],
+ "depends": [
+  "web"
+ ],
+ "models": {
+  "auth_totp.device": {
+   "abstract": false,
+   "description": "Authentication Device",
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "res.users.apikeys"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_credentials_for_uid"
+    }
+   ],
+   "name": "auth_totp.device",
+   "transient": false
+  },
+  "auth_totp.wizard": {
+   "abstract": false,
+   "description": "2-Factor Setup Wizard",
+   "extension": false,
+   "fields": {
+    "code": {
+     "size": 7,
+     "string": "Verification Code",
+     "type": "Char"
+    },
+    "qrcode": {
+     "compute": "_compute_qrcode",
+     "readonly": true,
+     "store": true,
+     "type": "Binary"
+    },
+    "secret": {
+     "readonly": true,
+     "required": true,
+     "type": "Char"
+    },
+    "url": {
+     "compute": "_compute_qrcode",
+     "readonly": true,
+     "store": true,
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id.login', 'user_id.company_id.display_name', 'secret')"
+     ],
+     "lines": 22,
+     "name": "_compute_qrcode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "enable"
+    }
+   ],
+   "name": "auth_totp.wizard",
+   "transient": true
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "totp_enabled": {
+     "compute": "_compute_totp_enabled",
+     "string": "Two-factor authentication",
+     "type": "Boolean"
+    },
+    "totp_secret": {
+     "compute": "_compute_totp_secret",
+     "copy": false,
+     "groups": {
+      "$ref": "fields.NO_ACCESS"
+     },
+     "type": "Char"
+    },
+    "totp_trusted_device_ids": {
+     "comodel": "auth_totp.device",
+     "inverse_name": "user_id",
+     "string": "Trusted Devices",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_mfa_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_should_alert_new_device"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_mfa_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('totp_secret')"
+     ],
+     "lines": 3,
+     "name": "_compute_totp_enabled"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_rpc_api_keys_only"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_session_token_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_totp_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_totp_try_setting"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_totp_disable"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 24,
+     "name": "action_totp_enable_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "revoke_all_devices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_revoke_all_devices"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "change_password"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_totp_secret"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_totp_enable_search"
+    }
+   ],
+   "name": "res.users",
+   "sel_methods": {
+    "_should_alert_new_device": [],
+    "_totp_enable_search": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  }
+ },
+ "module": "auth_totp",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/auth_totp",
+ "stats": {
+  "fields": 8,
+  "methods": 21,
+  "models": 3,
+  "py_lines": 452
+ },
+ "summary": "Two-Factor Authentication (TOTP)",
+ "title": "Two-Factor Authentication (TOTP)",
+ "version": null
+}

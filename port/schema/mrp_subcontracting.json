@@ -1,0 +1,1148 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Manufacturing/Manufacturing",
+ "data_files": [
+  "data/mrp_subcontracting_data.xml",
+  "security/mrp_subcontracting_security.xml",
+  "security/ir.model.access.csv",
+  "views/mrp_bom_views.xml",
+  "views/res_partner_views.xml",
+  "views/stock_warehouse_views.xml",
+  "views/stock_move_views.xml",
+  "views/stock_quant_views.xml",
+  "views/stock_picking_views.xml",
+  "views/supplier_info_views.xml",
+  "views/mrp_production_views.xml",
+  "views/subcontracting_portal_views.xml",
+  "views/subcontracting_portal_templates.xml",
+  "views/stock_location_views.xml",
+  "data/mrp_subcontracting_demo.xml"
+ ],
+ "depends": [
+  "mrp"
+ ],
+ "models": {
+  "change.production.qty": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_need_quantity_propagation"
+    }
+   ],
+   "name": "change.production.qty",
+   "transient": false
+  },
+  "mrp.bom": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "subcontractor_ids": {
+     "comodel": "res.partner",
+     "relation_table": "mrp_bom_subcontractor",
+     "string": "Subcontractors",
+     "type": "Many2many"
+    },
+    "type": {
+     "ondelete": {
+      "$expr": "{'subcontract': lambda recs: recs.write({'type': 'normal', 'active': False})}"
+     },
+     "selection_add": [
+      [
+       "subcontract",
+       "Subcontracting"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_bom_subcontract_find"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('operation_ids', 'byproduct_ids', 'type')"
+     ],
+     "lines": 3,
+     "name": "_check_subcontracting_no_operation"
+    }
+   ],
+   "name": "mrp.bom",
+   "transient": false
+  },
+  "mrp.consumption.warning": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_cancel"
+    }
+   ],
+   "name": "mrp.consumption.warning",
+   "transient": false
+  },
+  "mrp.production": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bom_product_ids": {
+     "comodel": "product.product",
+     "compute": "_compute_bom_product_ids",
+     "help": "List of Products used in the BoM, used to filter the list of products in the subcontracting portal view",
+     "type": "Many2many"
+    },
+    "incoming_picking": {
+     "related": "move_finished_ids.move_dest_ids.picking_id",
+     "type": "Many2one"
+    },
+    "move_line_raw_ids": {
+     "comodel": "stock.move.line",
+     "compute": "_compute_move_line_raw_ids",
+     "readonly": false,
+     "string": "Detail Component",
+     "type": "One2many"
+    },
+    "subcontracting_has_been_recorded": {
+     "copy": false,
+     "string": "Has been recorded?",
+     "type": "Boolean"
+    },
+    "subcontractor_id": {
+     "comodel": "res.partner",
+     "help": "Used to restrict access to the portal user through Record Rules",
+     "string": "Subcontractor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_raw_ids.move_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_move_line_raw_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_bom_product_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_inverse_move_line_raw_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_merge"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "subcontracting_record_component"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "pre_button_mark_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_postpone_date_finished"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 49,
+     "name": "_update_finished_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_subcontracting_filter_to_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_has_been_recorded"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_has_tracked_component"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_has_workorders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_subcontract_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_writeable_fields_portal_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_subcontract_sanity_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "button_unbuild"
+    }
+   ],
+   "name": "mrp.production",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_sellers"
+    }
+   ],
+   "name": "product.product",
+   "sel_methods": {
+    "_prepare_sellers": []
+   },
+   "transient": false
+  },
+  "product.supplierinfo": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_subcontractor": {
+     "compute": "_compute_is_subcontractor",
+     "help": "Choose a vendor of type subcontractor if you want to subcontract the product",
+     "string": "Subcontracted",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'product_id', 'product_tmpl_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_is_subcontractor"
+    }
+   ],
+   "name": "product.supplierinfo",
+   "transient": false
+  },
+  "report.mrp.report_bom_structure": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_subcontracting_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_bom_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_bom_array_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_need_special_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_find_special_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "_format_route_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_get_quantities_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_get_resupply_availability"
+    }
+   ],
+   "name": "report.mrp.report_bom_structure",
+   "sel_methods": {
+    "_need_special_rules": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "subcontracting_location_id": {
+     "comodel": "stock.location",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_create_missing_subcontracting_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_per_company_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_create_subcontracting_location"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bom_ids": {
+     "comodel": "mrp.bom",
+     "compute": "_compute_bom_ids",
+     "string": "BoMs for which the Partner is one of the subcontractors",
+     "type": "Many2many"
+    },
+    "is_subcontractor": {
+     "compute": "_compute_is_subcontractor",
+     "store": false,
+     "string": "Subcontractor",
+     "type": "Boolean"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "compute": "_compute_picking_ids",
+     "string": "Stock Pickings for which the Partner is the subcontractor",
+     "type": "Many2many"
+    },
+    "production_ids": {
+     "comodel": "mrp.production",
+     "compute": "_compute_production_ids",
+     "string": "MRP Productions for which the Partner is the subcontractor",
+     "type": "Many2many"
+    },
+    "property_stock_subcontractor": {
+     "comodel": "stock.location",
+     "help": "The stock location used as source and destination when sending        goods to this contact during a subcontracting process.",
+     "string": "Subcontractor Location",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_bom_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_production_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_picking_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_search_is_subcontractor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_is_subcontractor"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "stock.location": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_subcontracting_location": {
+     "help": "Check this box to create a new dedicated subcontracting location for this company. Note that standard subcontracting routes will be adapted so as to take these into account automatically.",
+     "string": "Is a Subcontracting Location?",
+     "type": "Boolean"
+    },
+    "subcontractor_ids": {
+     "comodel": "res.partner",
+     "inverse_name": "property_stock_subcontractor",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('is_subcontracting_location', 'usage', 'location_id')"
+     ],
+     "lines": 6,
+     "name": "_check_subcontracting_location"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_check_access_putaway"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_activate_subcontracting_location_rules"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_archive_subcontracting_location_rules"
+    }
+   ],
+   "name": "stock.location",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_subcontract": {
+     "string": "The move is a subcontract receipt",
+     "type": "Boolean"
+    },
+    "show_subcontracting_details_visible": {
+     "compute": "_compute_show_subcontracting_details_visible",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_display_assign_serial"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_show_subcontracting_details_visible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_compute_show_details_visible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_is_quantity_done_editable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_set_quantity_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_set_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_auto_record_components"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_show_details"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_show_subcontract_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_action_record_components"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_subcontract_bom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_subcontrating_should_be_record"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_subcontrating_can_be_record"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_subcontracting_possible_record"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_subcontract_production"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_recorded_subcontract_production"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_has_tracked_subcontract_components"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_move_split_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_should_bypass_reservation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_available_move_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_should_count_for_quantity_received"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_update_subcontract_order_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_reduce_subcontract_order_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_access_if_subcontractor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_is_subcontract_return"
+    }
+   ],
+   "name": "stock.move",
+   "sel_methods": {
+    "_action_cancel": [],
+    "_action_done": [],
+    "_get_available_move_lines": []
+   },
+   "transient": false
+  },
+  "stock.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('lot_name', 'lot_id')"
+     ],
+     "lines": 9,
+     "name": "_onchange_serial_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    }
+   ],
+   "name": "stock.move.line",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "display_action_record_components": {
+     "compute": "_compute_display_action_record_components",
+     "selection": [
+      [
+       "hide",
+       "Hide"
+      ],
+      [
+       "facultative",
+       "Facultative"
+      ],
+      [
+       "mandatory",
+       "Mandatory"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "move_line_ids_without_package": {
+     "domain": [
+      "&",
+      "|",
+      [
+       "location_dest_id.usage",
+       "!=",
+       "production"
+      ],
+      [
+       "move_id.picking_code",
+       "!=",
+       "outgoing"
+      ],
+      "|",
+      [
+       "package_level_id",
+       "=",
+       false
+      ],
+      [
+       "picking_type_entire_packs",
+       "=",
+       false
+      ]
+     ],
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'move_ids')"
+     ],
+     "lines": 12,
+     "name": "_compute_display_action_record_components"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id', 'partner_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_location_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_action_done"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_record_components"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_subcontract"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_subcontract_production"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_warehouse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_prepare_subcontract_mo_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_subcontracted_produce"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.quant": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_subcontract": {
+     "store": false,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_search_is_subcontract"
+    }
+   ],
+   "name": "stock.quant",
+   "transient": false
+  },
+  "stock.replenish.mixin": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_allowed_route_domain"
+    }
+   ],
+   "name": "stock.replenish.mixin",
+   "transient": false
+  },
+  "stock.return.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_picking_default_values"
+    }
+   ],
+   "name": "stock.return.picking",
+   "transient": false
+  },
+  "stock.return.picking.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_move_default_values"
+    }
+   ],
+   "name": "stock.return.picking.line",
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_push_prepare_move_copy_values"
+    }
+   ],
+   "name": "stock.rule",
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "subcontracting_mto_pull_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Subcontracting MTO Rule",
+     "type": "Many2one"
+    },
+    "subcontracting_pull_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Subcontracting MTS Rule",
+     "type": "Many2one"
+    },
+    "subcontracting_resupply_type_id": {
+     "comodel": "stock.picking.type",
+     "copy": false,
+     "domain": [
+      [
+       "code",
+       "=",
+       "internal"
+      ]
+     ],
+     "string": "Subcontracting Resupply Operation Type",
+     "type": "Many2one"
+    },
+    "subcontracting_route_id": {
+     "comodel": "stock.route",
+     "copy": false,
+     "ondelete": "restrict",
+     "string": "Resupply Subcontractor",
+     "type": "Many2one"
+    },
+    "subcontracting_to_resupply": {
+     "default": true,
+     "string": "Resupply Subcontractors",
+     "type": "Boolean"
+    },
+    "subcontracting_type_id": {
+     "comodel": "stock.picking.type",
+     "copy": false,
+     "domain": [
+      [
+       "code",
+       "=",
+       "mrp_operation"
+      ]
+     ],
+     "string": "Subcontracting Operation Type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_rules_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_global_route_resupply_subcontractor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_routes_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_generate_global_route_rules_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_picking_type_create_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_sequence_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_picking_type_update_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_subcontracting_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_subcontracting_locations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_update_subcontracting_locations_rules"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_update_resupply_rules"
+    }
+   ],
+   "name": "stock.warehouse",
+   "transient": false
+  }
+ },
+ "module": "mrp_subcontracting",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/mrp_subcontracting",
+ "stats": {
+  "fields": 27,
+  "methods": 107,
+  "models": 19,
+  "py_lines": 1724
+ },
+ "summary": "Subcontract Productions",
+ "title": "MRP Subcontracting",
+ "version": "0.1"
+}

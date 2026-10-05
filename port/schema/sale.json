@@ -1,0 +1,5049 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/res_groups.xml",
+  "security/ir_rules.xml",
+  "report/account_invoice_report_views.xml",
+  "report/ir_actions_report_templates.xml",
+  "report/ir_actions_report.xml",
+  "report/sale_report_views.xml",
+  "data/ir_cron.xml",
+  "data/ir_sequence_data.xml",
+  "data/mail_activity_type_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/mail_template_data.xml",
+  "data/sale_tour.xml",
+  "data/ir_config_parameter.xml",
+  "wizard/account_accrued_orders_wizard_views.xml",
+  "wizard/mass_cancel_orders_views.xml",
+  "wizard/payment_link_wizard_views.xml",
+  "wizard/res_config_settings_views.xml",
+  "wizard/sale_make_invoice_advance_views.xml",
+  "wizard/sale_order_cancel_views.xml",
+  "wizard/sale_order_discount_views.xml",
+  "views/sale_order_views.xml",
+  "views/account_views.xml",
+  "views/crm_team_views.xml",
+  "views/mail_activity_views.xml",
+  "views/mail_activity_plan_views.xml",
+  "views/payment_views.xml",
+  "views/product_document_views.xml",
+  "views/product_packaging_views.xml",
+  "views/product_template_views.xml",
+  "views/product_views.xml",
+  "views/res_partner_views.xml",
+  "views/sale_order_line_views.xml",
+  "views/sale_portal_templates.xml",
+  "views/utm_campaign_views.xml",
+  "views/sale_menus.xml",
+  "data/product_demo.xml",
+  "data/sale_demo.xml"
+ ],
+ "depends": [
+  "sales_team",
+  "account_payment",
+  "utm"
+ ],
+ "models": {
+  "account.analytic.applicability": {
+   "abstract": false,
+   "description": "Analytic Plan's Applicabilities",
+   "extension": true,
+   "fields": {
+    "business_domain": {
+     "ondelete": {
+      "sale_order": "cascade"
+     },
+     "selection_add": [
+      [
+       "sale_order",
+       "Sale Order"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.analytic.applicability",
+   "transient": false
+  },
+  "account.analytic.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "so_line": {
+     "comodel": "sale.order.line",
+     "domain": [
+      [
+       "qty_delivered_method",
+       "=",
+       "analytic"
+      ]
+     ],
+     "index": "btree_not_null",
+     "string": "Sales Order Item",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.analytic.line",
+   "transient": false
+  },
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_property_accounts"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.invoice.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "team_id": {
+     "comodel": "crm.team",
+     "string": "Sales Team",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_select"
+    }
+   ],
+   "name": "account.invoice.report",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "campaign_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "medium_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "sale_order_count": {
+     "compute": "_compute_origin_so_count",
+     "string": "Sale Order Count",
+     "type": "Integer"
+    },
+    "source_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "compute": "_compute_team_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "string": "Sales Team",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "utm.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_user_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids.sale_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_origin_so_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_reverse_moves"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "button_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_invoice_paid_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_action_invoice_ready_to_be_sent"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_view_source_sale_orders"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_downpayment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_sale_order_invoiced_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_partner_credit_warning_exclude_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids.sale_line_ids.order_id', 'currency_id', 'tax_totals', 'date')"
+     ],
+     "lines": 14,
+     "name": "_compute_partner_credit"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_reverse_moves": []
+   },
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_downpayment": {
+     "type": "Boolean"
+    },
+    "sale_line_ids": {
+     "column1": "invoice_line_id",
+     "column2": "order_line_id",
+     "comodel": "sale.order.line",
+     "copy": false,
+     "readonly": true,
+     "relation_table": "sale_order_line_invoice_rel",
+     "string": "Sales Order Lines",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_copy_data_extend_business_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_related_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_prepare_analytic_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_sale_can_be_reinvoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 85,
+     "name": "_sale_create_reinvoice_sale_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_sale_determine_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_sale_prepare_sale_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_sale_get_invoice_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_downpayment_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_discount_lines"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "base.document.layout": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_preview_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_render_information"
+    }
+   ],
+   "name": "base.document.layout",
+   "sel_methods": {
+    "_get_preview_template": []
+   },
+   "transient": false
+  },
+  "crm.team": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoiced": {
+     "compute": "_compute_invoiced",
+     "help": "Invoice revenue for the current month. This is the amount the sales channel has invoiced this month. It is used to compute the progression ratio of the current and target revenue on the kanban view.",
+     "readonly": true,
+     "string": "Invoiced This Month",
+     "type": "Float"
+    },
+    "invoiced_target": {
+     "help": "Revenue Target for the current month (untaxed total of paid invoices).",
+     "string": "Invoicing Target",
+     "type": "Float"
+    },
+    "quotations_amount": {
+     "compute": "_compute_quotations_to_invoice",
+     "readonly": true,
+     "string": "Amount of quotations to invoice",
+     "type": "Float"
+    },
+    "quotations_count": {
+     "compute": "_compute_quotations_to_invoice",
+     "readonly": true,
+     "string": "Number of quotations to invoice",
+     "type": "Integer"
+    },
+    "sale_order_count": {
+     "compute": "_compute_sale_order_count",
+     "string": "# Sale Orders",
+     "type": "Integer"
+    },
+    "sales_to_invoice_count": {
+     "compute": "_compute_sales_to_invoice",
+     "readonly": true,
+     "string": "Number of sales to invoice",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_compute_quotations_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_sales_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_compute_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_sale_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_in_sale_scope"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_get_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_date_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_graph_get_table"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_y_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_extra_sql_conditions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_title_and_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_dashboard_button_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_primary_channel_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "update_invoiced_target"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 12,
+     "name": "_unlink_except_used_for_sales"
+    }
+   ],
+   "name": "crm.team",
+   "sel_methods": {
+    "_extra_sql_conditions": [],
+    "_graph_date_column": [],
+    "_graph_get_model": [],
+    "_graph_get_table": [],
+    "_graph_title_and_key": [],
+    "_graph_y_query": []
+   },
+   "transient": false
+  },
+  "ir.config_parameter": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_sale_sync_cron"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    }
+   ],
+   "name": "ir.config_parameter",
+   "transient": false
+  },
+  "mail.compose.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_schedule_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_mail_values_rendered"
+    }
+   ],
+   "name": "mail.compose.message",
+   "transient": false
+  },
+  "mail.scheduled.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_post_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_notification_parameters_whitelist"
+    }
+   ],
+   "name": "mail.scheduled.message",
+   "transient": false
+  },
+  "payment.link.wizard": {
+   "abstract": false,
+   "description": "Generate Sales Payment Link",
+   "extension": true,
+   "fields": {
+    "amount_paid": {
+     "readonly": true,
+     "string": "Already Paid",
+     "type": "Monetary"
+    },
+    "confirmation_message": {
+     "compute": "_compute_confirmation_message",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount')"
+     ],
+     "lines": 13,
+     "name": "_compute_confirmation_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_warning_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_query_params"
+    }
+   ],
+   "name": "payment.link.wizard",
+   "transient": false
+  },
+  "payment.provider": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "so_reference_type": {
+     "default": "so_name",
+     "help": "You can set here the communication type that will appear on sales orders.The communication will be given to the customer when they choose the payment method.",
+     "selection": [
+      [
+       "so_name",
+       "Based on Document Reference"
+      ],
+      [
+       "partner",
+       "Based on Customer ID"
+      ]
+     ],
+     "string": "Communication",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "payment.provider",
+   "transient": false
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_ids": {
+     "column1": "transaction_id",
+     "column2": "sale_order_id",
+     "comodel": "sale.order",
+     "copy": false,
+     "readonly": true,
+     "relation_table": "sale_order_transaction_rel",
+     "string": "Sales Orders",
+     "type": "Many2many"
+    },
+    "sale_order_ids_nbr": {
+     "compute": "_compute_sale_order_ids_nbr",
+     "string": "# of Sales Orders",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_compute_sale_order_reference"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_sale_order_ids_nbr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_post_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_check_amount_and_confirm_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_log_message_on_linked_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_send_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_cron_send_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_invoice_sale_orders"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_compute_reference_prefix"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_view_sales_orders"
+    }
+   ],
+   "name": "payment.transaction",
+   "sel_methods": {
+    "_compute_reference_prefix": []
+   },
+   "transient": false
+  },
+  "product.attribute.custom.value": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "ondelete": "cascade",
+     "string": "Sales Order Line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.attribute.custom.value",
+   "sql_constraints": [
+    [
+     "sol_custom_value_unique",
+     "unique(custom_product_template_attribute_value_id, sale_order_line_id)",
+     "Only one Custom Value is allowed per Attribute Value per Sales Order Line."
+    ]
+   ],
+   "transient": false
+  },
+  "product.category": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "property_account_downpayment_categ_id": {
+     "comodel": "account.account",
+     "domain": [
+      [
+       "deprecated",
+       "=",
+       false
+      ],
+      [
+       "account_type",
+       "not in",
+       [
+        "asset_receivable",
+        "liability_payable",
+        "asset_cash",
+        "liability_credit_card",
+        "off_balance"
+       ]
+      ]
+     ],
+     "help": "This account will be used on Downpayment invoices.",
+     "string": "Downpayment Account",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.category",
+   "transient": false
+  },
+  "product.document": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "attached_on_sale": {
+     "default": "hidden",
+     "groups": "sales_team.group_sale_salesman",
+     "help": "Allows you to share the document with your customers within a sale.\nOn quote: the document will be sent to and accessible by customers at any time.\ne.g. this option can be useful to share Product description files.\nOn order confirmation: the document will be sent to and accessible by customers.\ne.g. this option can be useful to share User Manual or digital content bought on ecommerce. ",
+     "required": true,
+     "selection": [
+      [
+       "hidden",
+       "Hidden"
+      ],
+      [
+       "quotation",
+       "On quote"
+      ],
+      [
+       "sale_order",
+       "On confirmed order"
+      ]
+     ],
+     "string": "Sale : Visible at",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.document",
+   "transient": false
+  },
+  "product.packaging": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sales": {
+     "default": true,
+     "help": "If true, the packaging can be used for sales orders",
+     "string": "Sales",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.packaging",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "product_catalog_product_is_in_sale_order": {
+     "compute": "_compute_product_is_in_sale_order",
+     "type": "Boolean"
+    },
+    "sales_count": {
+     "compute": "_compute_sales_count",
+     "digits": "Product Unit of Measure",
+     "string": "Sold",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_compute_sales_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('type')"
+     ],
+     "lines": 6,
+     "name": "_onchange_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('order_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_product_is_in_sale_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_product_is_in_sale_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_view_sales"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_backend_root_menu_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_invoice_policy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_filter_to_unlink"
+    }
+   ],
+   "name": "product.product",
+   "sel_methods": {
+    "_filter_to_unlink": [],
+    "_search_product_is_in_sale_order": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "expense_policy": {
+     "compute": "_compute_expense_policy",
+     "default": "no",
+     "help": "Validated expenses, vendor bills, or stock pickings (set up to track costs) can be invoiced to the customer at either cost or sales price.",
+     "readonly": false,
+     "selection": [
+      [
+       "no",
+       "No"
+      ],
+      [
+       "cost",
+       "At cost"
+      ],
+      [
+       "sales_price",
+       "Sales price"
+      ]
+     ],
+     "store": true,
+     "string": "Re-Invoice Costs",
+     "type": "Selection"
+    },
+    "invoice_policy": {
+     "compute": "_compute_invoice_policy",
+     "help": "Ordered Quantity: Invoice quantities ordered by the customer.\nDelivered Quantity: Invoice quantities delivered to the customer.",
+     "readonly": false,
+     "selection": [
+      [
+       "order",
+       "Ordered quantities"
+      ],
+      [
+       "delivery",
+       "Delivered quantities"
+      ]
+     ],
+     "store": true,
+     "string": "Invoicing Policy",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "optional_product_ids": {
+     "column1": "src_id",
+     "column2": "dest_id",
+     "comodel": "product.template",
+     "help": "Optional Products are suggested whenever the customer hits *Add to Cart* (cross-sell strategy, e.g. for computers: warranty, software, etc.).",
+     "relation_table": "product_optional_rel",
+     "string": "Optional Products",
+     "type": "Many2many"
+    },
+    "sale_line_warn": {
+     "default": "no-message",
+     "help": {
+      "$ref": "WARNING_HELP"
+     },
+     "required": true,
+     "selection": [
+      [
+       "no-message",
+       "No Message"
+      ],
+      [
+       "warning",
+       "Warning"
+      ],
+      [
+       "block",
+       "Blocking Message"
+      ]
+     ],
+     "string": "Sales Order Line",
+     "type": "Selection"
+    },
+    "sale_line_warn_msg": {
+     "string": "Message for Sales Order Line",
+     "type": "Text"
+    },
+    "sales_count": {
+     "compute": "_compute_sales_count",
+     "digits": "Product Unit of Measure",
+     "string": "Sold",
+     "type": "Float"
+    },
+    "service_type": {
+     "compute": "_compute_service_type",
+     "help": "Manually set quantities on order: Invoice based on the manually entered quantity, without creating an analytic account.\nTimesheets on contract: Invoice based on the tracked hours on the related timesheet.\nCreate a task and track hours: Create a task on the sales order validation and track the work hours.",
+     "readonly": false,
+     "selection": [
+      [
+       "manual",
+       "Manually set quantities on order"
+      ]
+     ],
+     "store": true,
+     "string": "Track Service",
+     "type": "Selection"
+    },
+    "visible_expense_policy": {
+     "compute": "_compute_visible_expense_policy",
+     "string": "Re-Invoice Policy visible",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_policy', 'sale_ok', 'service_tracking')"
+     ],
+     "lines": 2,
+     "name": "_compute_product_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_prepare_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_prepare_invoicing_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_prepare_service_tracking_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_ok')"
+     ],
+     "lines": 3,
+     "name": "_compute_service_tracking"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('purchase_ok')"
+     ],
+     "lines": 4,
+     "name": "_compute_visible_expense_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_ok')"
+     ],
+     "lines": 2,
+     "name": "_compute_expense_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.sales_count')"
+     ],
+     "lines": 3,
+     "name": "_compute_sales_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id')"
+     ],
+     "lines": 24,
+     "name": "_check_sale_product_company"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_view_sales"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('type')"
+     ],
+     "lines": 8,
+     "name": "_onchange_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 2,
+     "name": "_compute_service_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 2,
+     "name": "_compute_invoice_policy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_backend_root_menu_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "get_import_templates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_incompatible_types"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains(lambda self: self._get_incompatible_types())"
+     ],
+     "lines": 18,
+     "name": "_check_incompatible_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "get_single_product_variant"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_saleable_tracking_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_product_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_get_configurator_display_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_get_configurator_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_get_additional_configurator_data"
+    }
+   ],
+   "name": "product.template",
+   "sel_methods": {
+    "_get_incompatible_types": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "portal_confirmation_pay": {
+     "string": "Online Payment",
+     "type": "Boolean"
+    },
+    "portal_confirmation_sign": {
+     "default": true,
+     "string": "Online Signature",
+     "type": "Boolean"
+    },
+    "prepayment_percent": {
+     "default": 1.0,
+     "help": "The percentage of the amount needed to be paid to confirm quotations.",
+     "string": "Prepayment percentage",
+     "type": "Float"
+    },
+    "quotation_validity_days": {
+     "default": 30,
+     "help": "Days between quotation proposal and expiration. 0 days means automatic expiration is disabled",
+     "string": "Default Quotation Validity",
+     "type": "Integer"
+    },
+    "sale_discount_product_id": {
+     "comodel": "product.product",
+     "domain": [
+      [
+       "type",
+       "=",
+       "service"
+      ],
+      [
+       "invoice_policy",
+       "=",
+       "order"
+      ]
+     ],
+     "help": "Default product used for discounts",
+     "string": "Discount Product",
+     "type": "Many2one"
+    },
+    "sale_onboarding_payment_method": {
+     "selection": [
+      [
+       "digital_signature",
+       "Sign online"
+      ],
+      [
+       "paypal",
+       "PayPal"
+      ],
+      [
+       "stripe",
+       "Stripe"
+      ],
+      [
+       "other",
+       "Pay with another payment provider"
+      ],
+      [
+       "manual",
+       "Manual Payment"
+      ]
+     ],
+     "string": "Sale onboarding selected payment method",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('prepayment_percent')"
+     ],
+     "lines": 4,
+     "name": "_check_prepayment_percent"
+    }
+   ],
+   "name": "res.company",
+   "sql_constraints": [
+    [
+     "check_quotation_validity_days",
+     "CHECK(quotation_validity_days >= 0)",
+     "You cannot set a negative number for the default quotation validity. Leave empty (or 0) to disable the automatic expiration of quotations."
+    ]
+   ],
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "automatic_invoice": {
+     "help": "The invoice is generated automatically and available in the customer portal when the transaction is confirmed by the payment provider.\nThe invoice is marked as paid and the payment is registered in the payment journal defined in the configuration of the payment provider.\nThis mode is advised if you issue the final invoice at the order and not after the delivery.",
+     "string": "Automatic Invoice",
+     "type": "Boolean"
+    },
+    "default_invoice_policy": {
+     "default": "order",
+     "selection": [
+      [
+       "order",
+       "Invoice what is ordered"
+      ],
+      [
+       "delivery",
+       "Invoice what is delivered"
+      ]
+     ],
+     "string": "Invoicing Policy",
+     "type": "Selection"
+    },
+    "group_auto_done_setting": {
+     "string": "Lock Confirmed Sales",
+     "type": "Boolean"
+    },
+    "group_discount_per_so_line": {
+     "string": "Discounts",
+     "type": "Boolean"
+    },
+    "group_proforma_sales": {
+     "help": "Allows you to send pro-forma invoice.",
+     "string": "Pro-Forma Invoice",
+     "type": "Boolean"
+    },
+    "group_warning_sale": {
+     "string": "Sale Order Warnings",
+     "type": "Boolean"
+    },
+    "invoice_mail_template_id": {
+     "comodel": "mail.template",
+     "domain": [
+      [
+       "model",
+       "=",
+       "account.move"
+      ]
+     ],
+     "help": "Email sent to the customer once the invoice is available.",
+     "string": "Invoice Email Template",
+     "type": "Many2one"
+    },
+    "module_delivery": {
+     "string": "Delivery Methods",
+     "type": "Boolean"
+    },
+    "module_delivery_bpost": {
+     "string": "bpost Connector",
+     "type": "Boolean"
+    },
+    "module_delivery_dhl": {
+     "string": "DHL Express Connector",
+     "type": "Boolean"
+    },
+    "module_delivery_easypost": {
+     "string": "Easypost Connector",
+     "type": "Boolean"
+    },
+    "module_delivery_fedex": {
+     "string": "FedEx Connector",
+     "type": "Boolean"
+    },
+    "module_delivery_sendcloud": {
+     "string": "Sendcloud Connector",
+     "type": "Boolean"
+    },
+    "module_delivery_shiprocket": {
+     "string": "Shiprocket Connector",
+     "type": "Boolean"
+    },
+    "module_delivery_starshipit": {
+     "string": "Starshipit Connector",
+     "type": "Boolean"
+    },
+    "module_delivery_ups": {
+     "string": "UPS Connector",
+     "type": "Boolean"
+    },
+    "module_delivery_usps": {
+     "string": "USPS Connector",
+     "type": "Boolean"
+    },
+    "module_product_email_template": {
+     "string": "Specific Email",
+     "type": "Boolean"
+    },
+    "module_sale_amazon": {
+     "string": "Amazon Sync",
+     "type": "Boolean"
+    },
+    "module_sale_commission": {
+     "string": "Commissions",
+     "type": "Boolean"
+    },
+    "module_sale_loyalty": {
+     "string": "Coupons & Loyalty",
+     "type": "Boolean"
+    },
+    "module_sale_margin": {
+     "string": "Margins",
+     "type": "Boolean"
+    },
+    "module_sale_pdf_quote_builder": {
+     "string": "PDF Quote builder",
+     "type": "Boolean"
+    },
+    "module_sale_product_matrix": {
+     "string": "Sales Grid Entry",
+     "type": "Boolean"
+    },
+    "portal_confirmation_pay": {
+     "readonly": false,
+     "related": "company_id.portal_confirmation_pay",
+     "type": "Boolean"
+    },
+    "portal_confirmation_sign": {
+     "readonly": false,
+     "related": "company_id.portal_confirmation_sign",
+     "type": "Boolean"
+    },
+    "prepayment_percent": {
+     "readonly": false,
+     "related": "company_id.prepayment_percent",
+     "type": "Float"
+    },
+    "quotation_validity_days": {
+     "readonly": false,
+     "related": "company_id.quotation_validity_days",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('group_discount_per_so_line')"
+     ],
+     "lines": 3,
+     "name": "_onchange_group_discount_per_so_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('group_product_variant')"
+     ],
+     "lines": 5,
+     "name": "_onchange_group_product_variant"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('portal_confirmation_pay')"
+     ],
+     "lines": 2,
+     "name": "_onchange_portal_confirmation_pay"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('prepayment_percent')"
+     ],
+     "lines": 3,
+     "name": "_onchange_prepayment_percent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('quotation_validity_days')"
+     ],
+     "lines": 11,
+     "name": "_onchange_quotation_validity_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "set_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_count": {
+     "compute": "_compute_sale_order_count",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Sale Order Count",
+     "type": "Integer"
+    },
+    "sale_order_ids": {
+     "comodel": "sale.order",
+     "inverse_name": "partner_id",
+     "string": "Sales Order",
+     "type": "One2many"
+    },
+    "sale_warn": {
+     "default": "no-message",
+     "help": {
+      "$ref": "WARNING_HELP"
+     },
+     "selection": [
+      [
+       "no-message",
+       "No Message"
+      ],
+      [
+       "warning",
+       "Warning"
+      ],
+      [
+       "block",
+       "Blocking Message"
+      ]
+     ],
+     "string": "Sales Warnings",
+     "type": "Selection"
+    },
+    "sale_warn_msg": {
+     "string": "Message for Sales Order",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_sale_order_domain_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_compute_sale_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_has_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_can_edit_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "can_edit_vat"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_view_sale_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_compute_credit_to_invoice"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_get_sale_order_domain_count": []
+   },
+   "transient": false
+  },
+  "sale.advance.payment.inv": {
+   "abstract": false,
+   "description": "Sales Advance Payment Invoice",
+   "extension": false,
+   "fields": {
+    "advance_payment_method": {
+     "default": "delivered",
+     "help": "A standard invoice is issued with all the order lines ready for invoicing,according to their invoicing policy (based on ordered or delivered quantity).",
+     "required": true,
+     "selection": [
+      [
+       "delivered",
+       "Regular invoice"
+      ],
+      [
+       "percentage",
+       "Down payment (percentage)"
+      ],
+      [
+       "fixed",
+       "Down payment (fixed amount)"
+      ]
+     ],
+     "string": "Create Invoice",
+     "type": "Selection"
+    },
+    "amount": {
+     "help": "The percentage of amount to be invoiced in advance.",
+     "string": "Down Payment",
+     "type": "Float"
+    },
+    "amount_invoiced": {
+     "compute": "_compute_invoice_amounts",
+     "help": "Only confirmed down payments are considered.",
+     "string": "Already invoiced",
+     "type": "Monetary"
+    },
+    "amount_to_invoice": {
+     "compute": "_compute_invoice_amounts",
+     "help": "The amount to invoice = Sale Order Total - Confirmed Down Payments.",
+     "string": "Amount to invoice",
+     "type": "Monetary"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "consolidated_billing": {
+     "default": true,
+     "help": "Create one invoice for all orders related to same customer and same invoicing address",
+     "string": "Consolidated Billing",
+     "type": "Boolean"
+    },
+    "count": {
+     "compute": "_compute_count",
+     "string": "Order Count",
+     "type": "Integer"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "deduct_down_payments": {
+     "default": true,
+     "string": "Deduct down payments",
+     "type": "Boolean"
+    },
+    "display_draft_invoice_warning": {
+     "compute": "_compute_display_draft_invoice_warning",
+     "type": "Boolean"
+    },
+    "display_invoice_amount_warning": {
+     "compute": "_compute_display_invoice_amount_warning",
+     "type": "Boolean"
+    },
+    "fixed_amount": {
+     "help": "The fixed amount to be invoiced in advance.",
+     "string": "Down Payment Amount (Fixed)",
+     "type": "Monetary"
+    },
+    "has_down_payments": {
+     "compute": "_compute_has_down_payments",
+     "string": "Has down payments",
+     "type": "Boolean"
+    },
+    "sale_order_ids": {
+     "comodel": "sale.order",
+     "default": {
+      "$lambda": "self.env.context.get('active_ids')"
+     },
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_has_down_payments"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount', 'fixed_amount', 'advance_payment_method', 'amount_to_invoice')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_invoice_amount_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_draft_invoice_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_invoice_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('advance_payment_method')"
+     ],
+     "lines": 4,
+     "name": "_onchange_advance_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_check_amount_is_positive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "create_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "view_draft_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 72,
+     "name": "_create_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_down_payment_section_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 78,
+     "name": "_prepare_down_payment_lines_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_prepare_base_downpayment_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_invoice_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_down_payment_description"
+    }
+   ],
+   "name": "sale.advance.payment.inv",
+   "transient": true
+  },
+  "sale.mass.cancel.orders": {
+   "abstract": false,
+   "description": "Cancel multiple quotations",
+   "extension": false,
+   "fields": {
+    "has_confirmed_order": {
+     "compute": "_compute_has_confirmed_order",
+     "type": "Boolean"
+    },
+    "sale_order_ids": {
+     "comodel": "sale.order",
+     "default": {
+      "$lambda": "self.env.context.get('active_ids')"
+     },
+     "relation_table": "sale_order_mass_cancel_wizard_rel",
+     "string": "Sale orders to cancel",
+     "type": "Many2many"
+    },
+    "sale_orders_count": {
+     "compute": "_compute_sale_orders_count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_sale_orders_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_has_confirmed_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_mass_cancel"
+    }
+   ],
+   "name": "sale.mass.cancel.orders",
+   "transient": true
+  },
+  "sale.order": {
+   "abstract": false,
+   "description": "Sales Order",
+   "extension": false,
+   "fields": {
+    "amount_invoiced": {
+     "compute": "_compute_amount_invoiced",
+     "string": "Already invoiced",
+     "type": "Monetary"
+    },
+    "amount_paid": {
+     "compute": "_compute_amount_paid",
+     "help": "Sum of transactions made in through the online payment form that are in the state 'done' or 'authorized' and linked to this order.",
+     "string": "Payment Transactions Amount",
+     "type": "Float"
+    },
+    "amount_tax": {
+     "compute": "_compute_amounts",
+     "store": true,
+     "string": "Taxes",
+     "type": "Monetary"
+    },
+    "amount_to_invoice": {
+     "compute": "_compute_amount_to_invoice",
+     "string": "Un-invoiced Balance",
+     "type": "Monetary"
+    },
+    "amount_total": {
+     "compute": "_compute_amounts",
+     "store": true,
+     "string": "Total",
+     "tracking": 4,
+     "type": "Monetary"
+    },
+    "amount_undiscounted": {
+     "compute": "_compute_amount_undiscounted",
+     "digits": 0,
+     "string": "Amount Before Discount",
+     "type": "Float"
+    },
+    "amount_untaxed": {
+     "compute": "_compute_amounts",
+     "store": true,
+     "string": "Untaxed Amount",
+     "tracking": 5,
+     "type": "Monetary"
+    },
+    "authorized_transaction_ids": {
+     "comodel": "payment.transaction",
+     "compute": "_compute_authorized_transaction_ids",
+     "copy": false,
+     "string": "Authorized Transactions",
+     "type": "Many2many"
+    },
+    "campaign_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "client_order_ref": {
+     "copy": false,
+     "string": "Customer Reference",
+     "type": "Char"
+    },
+    "commitment_date": {
+     "copy": false,
+     "help": "This is the delivery date promised to the customer. If set, the delivery order will be scheduled based on this date rather than product lead times.",
+     "string": "Delivery Date",
+     "type": "Datetime"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "index": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "company_price_include": {
+     "related": "company_id.account_price_include",
+     "type": "Selection"
+    },
+    "country_code": {
+     "related": "company_id.account_fiscal_country_id.code",
+     "string": "Country code",
+     "type": "Char"
+    },
+    "create_date": {
+     "index": true,
+     "readonly": true,
+     "string": "Creation Date",
+     "type": "Datetime"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "ondelete": "restrict",
+     "store": true,
+     "type": "Many2one"
+    },
+    "currency_rate": {
+     "compute": "_compute_currency_rate",
+     "digits": 0,
+     "store": true,
+     "string": "Currency Rate",
+     "type": "Float"
+    },
+    "date_order": {
+     "copy": false,
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "help": "Creation date of draft/sent orders,\nConfirmation date of confirmed orders.",
+     "required": true,
+     "string": "Order Date",
+     "type": "Datetime"
+    },
+    "duplicated_order_ids": {
+     "comodel": "sale.order",
+     "compute": "_compute_duplicated_order_ids",
+     "type": "Many2many"
+    },
+    "expected_date": {
+     "compute": "_compute_expected_date",
+     "help": "Delivery date you can promise to the customer, computed from the minimum lead time of the order lines.",
+     "store": false,
+     "string": "Expected Date",
+     "type": "Datetime"
+    },
+    "fiscal_position_id": {
+     "comodel": "account.fiscal.position",
+     "compute": "_compute_fiscal_position_id",
+     "help": "Fiscal positions are used to adapt taxes and accounts for particular customers or sales orders/invoices.The default value comes from the customer.",
+     "readonly": false,
+     "store": true,
+     "string": "Fiscal Position",
+     "type": "Many2one"
+    },
+    "has_active_pricelist": {
+     "compute": "_compute_has_active_pricelist",
+     "type": "Boolean"
+    },
+    "has_archived_products": {
+     "compute": "_compute_has_archived_products",
+     "type": "Boolean"
+    },
+    "invoice_count": {
+     "compute": "_get_invoiced",
+     "string": "Invoice Count",
+     "type": "Integer"
+    },
+    "invoice_ids": {
+     "comodel": "account.move",
+     "compute": "_get_invoiced",
+     "copy": false,
+     "string": "Invoices",
+     "type": "Many2many"
+    },
+    "invoice_status": {
+     "compute": "_compute_invoice_status",
+     "selection": [
+      [
+       "upselling",
+       "Upselling Opportunity"
+      ],
+      [
+       "invoiced",
+       "Fully Invoiced"
+      ],
+      [
+       "to invoice",
+       "To Invoice"
+      ],
+      [
+       "no",
+       "Nothing to Invoice"
+      ]
+     ],
+     "store": true,
+     "string": "Invoice Status",
+     "type": "Selection"
+    },
+    "is_expired": {
+     "compute": "_compute_is_expired",
+     "string": "Is Expired",
+     "type": "Boolean"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_journal_id",
+     "domain": [
+      [
+       "type",
+       "=",
+       "sale"
+      ]
+     ],
+     "help": "If set, the SO will invoice in this journal; otherwise the sales journal with the lowest sequence is used.",
+     "readonly": false,
+     "store": true,
+     "string": "Invoicing Journal",
+     "type": "Many2one"
+    },
+    "locked": {
+     "copy": false,
+     "default": false,
+     "help": "Locked orders cannot be modified.",
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "medium_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "_('New')"
+     },
+     "index": "trigram",
+     "readonly": false,
+     "required": true,
+     "string": "Order Reference",
+     "type": "Char"
+    },
+    "note": {
+     "compute": "_compute_note",
+     "readonly": false,
+     "store": true,
+     "string": "Terms and conditions",
+     "type": "Html"
+    },
+    "order_line": {
+     "comodel": "sale.order.line",
+     "copy": true,
+     "inverse_name": "order_id",
+     "string": "Order Lines",
+     "type": "One2many"
+    },
+    "origin": {
+     "help": "Reference of the document that generated this sales order request",
+     "string": "Source Document",
+     "type": "Char"
+    },
+    "partner_credit_warning": {
+     "compute": "_compute_partner_credit_warning",
+     "type": "Text"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "index": true,
+     "required": true,
+     "string": "Customer",
+     "tracking": 1,
+     "type": "Many2one"
+    },
+    "partner_invoice_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_partner_invoice_id",
+     "index": "btree_not_null",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Invoice Address",
+     "type": "Many2one"
+    },
+    "partner_shipping_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_partner_shipping_id",
+     "index": "btree_not_null",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Delivery Address",
+     "type": "Many2one"
+    },
+    "payment_term_id": {
+     "comodel": "account.payment.term",
+     "compute": "_compute_payment_term_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Payment Terms",
+     "type": "Many2one"
+    },
+    "prepayment_percent": {
+     "compute": "_compute_prepayment_percent",
+     "help": "The percentage of the amount needed that must be paid by the customer to confirm the order.",
+     "readonly": false,
+     "store": true,
+     "string": "Prepayment percentage",
+     "type": "Float"
+    },
+    "pricelist_id": {
+     "comodel": "product.pricelist",
+     "compute": "_compute_pricelist_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "help": "If you change the pricelist, only newly added lines will be affected.",
+     "readonly": false,
+     "store": true,
+     "string": "Pricelist",
+     "tracking": 1,
+     "type": "Many2one"
+    },
+    "reference": {
+     "copy": false,
+     "help": "The payment communication of this sale order.",
+     "string": "Payment Ref.",
+     "type": "Char"
+    },
+    "require_payment": {
+     "compute": "_compute_require_payment",
+     "help": "Request a online payment from the customer to confirm the order.",
+     "readonly": false,
+     "store": true,
+     "string": "Online payment",
+     "type": "Boolean"
+    },
+    "require_signature": {
+     "compute": "_compute_require_signature",
+     "help": "Request a online signature from the customer to confirm the order.",
+     "readonly": false,
+     "store": true,
+     "string": "Online signature",
+     "type": "Boolean"
+    },
+    "show_update_fpos": {
+     "store": false,
+     "string": "Has Fiscal Position Changed",
+     "type": "Boolean"
+    },
+    "show_update_pricelist": {
+     "store": false,
+     "string": "Has Pricelist Changed",
+     "type": "Boolean"
+    },
+    "signature": {
+     "copy": false,
+     "string": "Signature",
+     "type": "Image"
+    },
+    "signed_by": {
+     "copy": false,
+     "string": "Signed By",
+     "type": "Char"
+    },
+    "signed_on": {
+     "copy": false,
+     "string": "Signed On",
+     "type": "Datetime"
+    },
+    "source_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "state": {
+     "copy": false,
+     "default": "draft",
+     "index": true,
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "Quotation"
+      ],
+      [
+       "sent",
+       "Quotation Sent"
+      ],
+      [
+       "sale",
+       "Sales Order"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "tracking": 3,
+     "type": "Selection"
+    },
+    "tag_ids": {
+     "column1": "order_id",
+     "column2": "tag_id",
+     "comodel": "crm.tag",
+     "relation_table": "sale_order_tag_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "tax_calculation_rounding_method": {
+     "related": "company_id.tax_calculation_rounding_method",
+     "type": "Selection"
+    },
+    "tax_country_id": {
+     "comodel": "res.country",
+     "compute": "_compute_tax_country_id",
+     "type": "Many2one"
+    },
+    "tax_totals": {
+     "compute": "_compute_tax_totals",
+     "type": "Binary"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "compute": "_compute_team_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "index": true,
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "string": "Sales Team",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "terms_type": {
+     "related": "company_id.terms_type",
+     "type": "Selection"
+    },
+    "transaction_ids": {
+     "column1": "sale_order_id",
+     "column2": "transaction_id",
+     "comodel": "payment.transaction",
+     "copy": false,
+     "readonly": true,
+     "relation_table": "sale_order_transaction_rel",
+     "string": "Transactions",
+     "type": "Many2many"
+    },
+    "type_name": {
+     "compute": "_compute_type_name",
+     "string": "Type Name",
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_user_id",
+     "domain": {
+      "$lambda": "\"[('groups_id', '=', {}), ('share', '=', False), ('company_ids', '=', company_id)]\".format(self.env.ref('sales_team.group_sale_salesman').id)"
+     },
+     "index": true,
+     "readonly": false,
+     "store": true,
+     "string": "Salesperson",
+     "tracking": 2,
+     "type": "Many2one"
+    },
+    "validity_date": {
+     "compute": "_compute_validity_date",
+     "copy": false,
+     "help": "Validity of the quotation. After this date, you will no longer be able to sign and pay it.",
+     "readonly": false,
+     "store": true,
+     "string": "Expiration",
+     "type": "Date"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread",
+    "portal.mixin",
+    "product.catalog.mixin",
+    "utm.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_rec_names_search"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')",
+      "api.depends_context('sale_show_partner_name')"
+     ],
+     "lines": 8,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.product_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_has_archived_products"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_require_signature"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_require_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('require_payment')"
+     ],
+     "lines": 3,
+     "name": "_compute_prepayment_percent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_validity_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 15,
+     "name": "_compute_note"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_note_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_invoice_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_shipping_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_shipping_id', 'partner_id', 'company_id')"
+     ],
+     "lines": 18,
+     "name": "_compute_fiscal_position_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_payment_term_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'company_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_pricelist_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pricelist_id', 'company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('currency_id', 'date_order', 'company_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_currency_rate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_has_active_pricelist"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'user_id')"
+     ],
+     "lines": 15,
+     "name": "_compute_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_priced_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.price_subtotal', 'currency_id', 'company_id', 'payment_term_id')"
+     ],
+     "lines": 16,
+     "name": "_compute_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_add_base_lines_for_early_payment_discount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.invoice_lines')"
+     ],
+     "lines": 9,
+     "name": "_get_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_search_invoice_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'order_line.invoice_status')"
+     ],
+     "lines": 46,
+     "name": "_compute_invoice_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_authorized_transaction_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_amount_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_amount_undiscounted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('client_order_ref', 'date_order', 'origin', 'partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_duplicated_order_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_fetch_duplicate_orders"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.customer_lead', 'date_order', 'state')"
+     ],
+     "lines": 16,
+     "name": "_compute_expected_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_select_expected_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_is_expired"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'fiscal_position_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_tax_country_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.amount_to_invoice')"
+     ],
+     "lines": 3,
+     "name": "_compute_amount_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.amount_invoiced')"
+     ],
+     "lines": 3,
+     "name": "_compute_amount_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'partner_id', 'amount_total')"
+     ],
+     "lines": 11,
+     "name": "_compute_partner_credit_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('lang')",
+      "api.depends('order_line.price_subtotal', 'currency_id', 'company_id', 'payment_term_id')"
+     ],
+     "lines": 13,
+     "name": "_compute_tax_totals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')",
+      "api.depends_context('lang')"
+     ],
+     "lines": 6,
+     "name": "_compute_type_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_access_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id', 'order_line')"
+     ],
+     "lines": 15,
+     "name": "_check_order_line_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('prepayment_percent')"
+     ],
+     "lines": 4,
+     "name": "_check_prepayment_percent"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "onchange"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('commitment_date', 'expected_date')"
+     ],
+     "lines": 10,
+     "name": "_onchange_commitment_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 13,
+     "name": "_onchange_company_id_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 6,
+     "name": "_onchange_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('fiscal_position_id')"
+     ],
+     "lines": 6,
+     "name": "_onchange_fpos_id_show_update_fpos"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_id')"
+     ],
+     "lines": 24,
+     "name": "_onchange_partner_id_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pricelist_id')"
+     ],
+     "lines": 2,
+     "name": "_onchange_pricelist_id_show_update_prices"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('prepayment_percent')"
+     ],
+     "lines": 3,
+     "name": "_onchange_prepayment_percent"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('order_line')"
+     ],
+     "lines": 45,
+     "name": "_onchange_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_copiable_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 6,
+     "name": "_unlink_except_draft_or_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_discount_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_draft"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 53,
+     "name": "action_quotation_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_find_mail_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_confirmation_template"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_quotation_sent"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 37,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_should_be_locked"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_confirmation_error_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_confirmation_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_send_order_confirmation_mail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_send_payment_succeeded_for_order_mail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_send_order_notification_mail"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_lock"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_unlock"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 37,
+     "name": "action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_show_cancel_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_preview_sale_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_update_taxes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_recompute_taxes"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_update_prices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_recompute_prices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_default_order_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_action_add_from_catalog_extra_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_product_catalog_domain"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_business_doc"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_prepare_invoice"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 27,
+     "name": "action_view_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_invoice_grouping_keys"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_nothing_to_invoice_error_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_update_prices_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_invoiceable_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_create_account_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 186,
+     "name": "_create_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_discard_tracking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_track_finalize"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('mail.message', lambda value: value.id)"
+     ],
+     "lines": 7,
+     "name": "message_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_notify_by_email_prepare_rendering_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_phone_get_number_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_message_get_suggested_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_model_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_force_lines_to_invoice_policy_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "payment_action_capture"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "payment_action_void"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "get_portal_last_transaction"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_order_lines_to_report"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_default_payment_link_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "create_document_from_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_create_order_from_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_extend_with_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_order_edi_decoder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_has_to_be_signed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_has_to_be_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_portal_return_action"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_name_portal_content_view"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_name_tax_totals_view"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_report_base_filename"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_field_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_create_upsell_activity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_prepare_analytic_account_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_prepare_down_payment_section_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_prepayment_required_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_is_confirmation_amount_reached"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_generate_downpayment_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_product_catalog_order_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_product_catalog_record_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_product_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_filter_product_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_update_order_line_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_is_readonly"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_is_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_lang"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_validate_order"
+    }
+   ],
+   "name": "sale.order",
+   "order": "date_order desc, id desc",
+   "sel_methods": {
+    "_phone_get_number_fields": [],
+    "_track_finalize": [],
+    "_track_subtype": []
+   },
+   "sql_constraints": [
+    [
+     "date_order_conditional_required",
+     "CHECK((state = 'sale' AND date_order IS NOT NULL) OR state != 'sale')",
+     "A confirmed sales order requires a confirmation date."
+    ]
+   ],
+   "transient": false
+  },
+  "sale.order.cancel": {
+   "abstract": false,
+   "description": "Sales Order Cancel",
+   "extension": false,
+   "fields": {
+    "author_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$ref": "_default_author_id"
+     },
+     "index": true,
+     "ondelete": "set null",
+     "string": "Author",
+     "type": "Many2one"
+    },
+    "display_invoice_alert": {
+     "compute": "_compute_display_invoice_alert",
+     "string": "Invoice Alert",
+     "type": "Boolean"
+    },
+    "order_id": {
+     "comodel": "sale.order",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Sale Order",
+     "type": "Many2one"
+    },
+    "recipient_ids": {
+     "comodel": "res.partner",
+     "compute": "_compute_recipient_ids",
+     "readonly": false,
+     "string": "Recipients",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "mail.composer.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_default_author_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_recipient_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_invoice_alert"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_subject"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_body"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_send_mail_and_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_cancel"
+    }
+   ],
+   "name": "sale.order.cancel",
+   "transient": true
+  },
+  "sale.order.discount": {
+   "abstract": false,
+   "description": "Discount Wizard",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "related": "sale_order_id.company_id",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "sale_order_id.currency_id",
+     "type": "Many2one"
+    },
+    "discount_amount": {
+     "string": "Amount",
+     "type": "Monetary"
+    },
+    "discount_percentage": {
+     "string": "Percentage",
+     "type": "Float"
+    },
+    "discount_type": {
+     "default": "sol_discount",
+     "selection": [
+      [
+       "sol_discount",
+       "On All Order Lines"
+      ],
+      [
+       "so_discount",
+       "Global Discount"
+      ],
+      [
+       "amount",
+       "Fixed Amount"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "default": {
+      "$lambda": "self.env.context.get('active_id')"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "tax_ids": {
+     "comodel": "account.tax",
+     "domain": "[('type_tax_use', '=', 'sale'), ('company_id', '=', company_id)]",
+     "help": "Taxes to add on the discount line.",
+     "string": "Taxes",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('discount_type', 'discount_percentage')"
+     ],
+     "lines": 7,
+     "name": "_check_discount_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_prepare_discount_product_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_prepare_discount_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_discount_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 71,
+     "name": "_create_discount_lines"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_apply_discount"
+    }
+   ],
+   "name": "sale.order.discount",
+   "transient": true
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "description": "Sales Order Line",
+   "extension": false,
+   "fields": {
+    "amount_invoiced": {
+     "compute": "_compute_amount_invoiced",
+     "string": "Invoiced Amount",
+     "type": "Monetary"
+    },
+    "amount_to_invoice": {
+     "compute": "_compute_amount_to_invoice",
+     "string": "Un-invoiced Balance",
+     "type": "Monetary"
+    },
+    "analytic_line_ids": {
+     "comodel": "account.analytic.line",
+     "inverse_name": "so_line",
+     "string": "Analytic lines",
+     "type": "One2many"
+    },
+    "combo_item_id": {
+     "comodel": "product.combo.item",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "index": true,
+     "related": "order_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "company_price_include": {
+     "related": "company_id.account_price_include",
+     "type": "Selection"
+    },
+    "currency_id": {
+     "related": "order_id.currency_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "customer_lead": {
+     "compute": "_compute_customer_lead",
+     "help": "Number of days between the order confirmation and the shipping of the products to the customer",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Lead Time",
+     "type": "Float"
+    },
+    "discount": {
+     "compute": "_compute_discount",
+     "digits": "Discount",
+     "readonly": false,
+     "store": true,
+     "string": "Discount (%)",
+     "type": "Float"
+    },
+    "display_type": {
+     "default": false,
+     "selection": [
+      [
+       "line_section",
+       "Section"
+      ],
+      [
+       "line_note",
+       "Note"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "invoice_lines": {
+     "column1": "order_line_id",
+     "column2": "invoice_line_id",
+     "comodel": "account.move.line",
+     "copy": false,
+     "relation_table": "sale_order_line_invoice_rel",
+     "string": "Invoice Lines",
+     "type": "Many2many"
+    },
+    "invoice_status": {
+     "compute": "_compute_invoice_status",
+     "selection": [
+      [
+       "upselling",
+       "Upselling Opportunity"
+      ],
+      [
+       "invoiced",
+       "Fully Invoiced"
+      ],
+      [
+       "to invoice",
+       "To Invoice"
+      ],
+      [
+       "no",
+       "Nothing to Invoice"
+      ]
+     ],
+     "store": true,
+     "string": "Invoice Status",
+     "type": "Selection"
+    },
+    "is_configurable_product": {
+     "related": "product_template_id.has_configurable_attributes",
+     "string": "Is the product configurable?",
+     "type": "Boolean"
+    },
+    "is_downpayment": {
+     "help": "Down payments are made when creating invoices from a sales order. They are not copied when duplicating a sales order.",
+     "string": "Is a down payment",
+     "type": "Boolean"
+    },
+    "is_expense": {
+     "help": "Is true if the sales order line comes from an expense or a vendor bills",
+     "string": "Is expense",
+     "type": "Boolean"
+    },
+    "is_product_archived": {
+     "compute": "_compute_is_product_archived",
+     "type": "Boolean"
+    },
+    "linked_line_id": {
+     "comodel": "sale.order.line",
+     "copy": false,
+     "domain": "[('order_id', '=', order_id)]",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Linked Order Line",
+     "type": "Many2one"
+    },
+    "linked_line_ids": {
+     "comodel": "sale.order.line",
+     "inverse_name": "linked_line_id",
+     "string": "Linked Order Lines",
+     "type": "One2many"
+    },
+    "linked_virtual_id": {
+     "type": "Char"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Description",
+     "type": "Text"
+    },
+    "order_id": {
+     "comodel": "sale.order",
+     "copy": false,
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Order Reference",
+     "type": "Many2one"
+    },
+    "order_partner_id": {
+     "index": true,
+     "related": "order_id.partner_id",
+     "store": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "price_reduce_taxexcl": {
+     "compute": "_compute_price_reduce_taxexcl",
+     "store": true,
+     "string": "Price Reduce Tax excl",
+     "type": "Monetary"
+    },
+    "price_reduce_taxinc": {
+     "compute": "_compute_price_reduce_taxinc",
+     "store": true,
+     "string": "Price Reduce Tax incl",
+     "type": "Monetary"
+    },
+    "price_subtotal": {
+     "compute": "_compute_amount",
+     "store": true,
+     "string": "Subtotal",
+     "type": "Monetary"
+    },
+    "price_tax": {
+     "compute": "_compute_amount",
+     "store": true,
+     "string": "Total Tax",
+     "type": "Float"
+    },
+    "price_total": {
+     "compute": "_compute_amount",
+     "store": true,
+     "string": "Total",
+     "type": "Monetary"
+    },
+    "price_unit": {
+     "compute": "_compute_price_unit",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Unit Price",
+     "type": "Float"
+    },
+    "pricelist_item_id": {
+     "comodel": "product.pricelist.item",
+     "compute": "_compute_pricelist_item_id",
+     "type": "Many2one"
+    },
+    "product_custom_attribute_value_ids": {
+     "comodel": "product.attribute.custom.value",
+     "compute": "_compute_custom_attribute_values",
+     "copy": true,
+     "inverse_name": "sale_order_line_id",
+     "readonly": false,
+     "store": true,
+     "string": "Custom Values",
+     "type": "One2many"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": "[('sale_ok', '=', True)]",
+     "index": "btree_not_null",
+     "ondelete": "restrict",
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_no_variant_attribute_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "compute": "_compute_no_variant_attribute_values",
+     "ondelete": "restrict",
+     "readonly": false,
+     "store": true,
+     "string": "Extra Values",
+     "type": "Many2many"
+    },
+    "product_packaging_id": {
+     "comodel": "product.packaging",
+     "compute": "_compute_product_packaging_id",
+     "domain": "[('sales', '=', True), ('product_id','=',product_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Packaging",
+     "type": "Many2one"
+    },
+    "product_packaging_qty": {
+     "compute": "_compute_product_packaging_qty",
+     "readonly": false,
+     "store": true,
+     "string": "Packaging Quantity",
+     "type": "Float"
+    },
+    "product_template_attribute_value_ids": {
+     "related": "product_id.product_template_attribute_value_ids",
+     "type": "Many2many"
+    },
+    "product_template_id": {
+     "comodel": "product.template",
+     "compute": "_compute_product_template_id",
+     "domain": [
+      [
+       "sale_ok",
+       "=",
+       true
+      ]
+     ],
+     "readonly": false,
+     "string": "Product Template",
+     "type": "Many2one"
+    },
+    "product_type": {
+     "related": "product_id.type",
+     "type": "Selection"
+    },
+    "product_uom": {
+     "comodel": "uom.uom",
+     "compute": "_compute_product_uom",
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "ondelete": "restrict",
+     "readonly": false,
+     "store": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "product_uom_qty": {
+     "compute": "_compute_product_uom_qty",
+     "default": 1.0,
+     "digits": "Product Unit of Measure",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "product_uom_readonly": {
+     "compute": "_compute_product_uom_readonly",
+     "type": "Boolean"
+    },
+    "product_updatable": {
+     "compute": "_compute_product_updatable",
+     "string": "Can Edit Product",
+     "type": "Boolean"
+    },
+    "qty_delivered": {
+     "compute": "_compute_qty_delivered",
+     "copy": false,
+     "default": 0.0,
+     "digits": "Product Unit of Measure",
+     "readonly": false,
+     "store": true,
+     "string": "Delivery Quantity",
+     "type": "Float"
+    },
+    "qty_delivered_method": {
+     "compute": "_compute_qty_delivered_method",
+     "help": "According to product configuration, the delivered quantity can be automatically computed by mechanism:\n  - Manual: the quantity is set manually on the line\n  - Analytic From expenses: the quantity is the quantity sum from posted expenses\n  - Timesheet: the quantity is the sum of hours recorded on tasks linked to this sale line\n  - Stock Moves: the quantity comes from confirmed pickings\n",
+     "selection": [
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "analytic",
+       "Analytic From Expenses"
+      ]
+     ],
+     "store": true,
+     "string": "Method to update delivered qty",
+     "type": "Selection"
+    },
+    "qty_invoiced": {
+     "compute": "_compute_qty_invoiced",
+     "digits": "Product Unit of Measure",
+     "store": true,
+     "string": "Invoiced Quantity",
+     "type": "Float"
+    },
+    "qty_invoiced_posted": {
+     "compute": "_compute_qty_invoiced_posted",
+     "digits": "Product Unit of Measure",
+     "string": "Invoiced Quantity (posted)",
+     "type": "Float"
+    },
+    "qty_to_invoice": {
+     "compute": "_compute_qty_to_invoice",
+     "digits": "Product Unit of Measure",
+     "store": true,
+     "string": "Quantity To Invoice",
+     "type": "Float"
+    },
+    "salesman_id": {
+     "related": "order_id.user_id",
+     "store": true,
+     "string": "Salesperson",
+     "type": "Many2one"
+    },
+    "selected_combo_items": {
+     "store": false,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "service_tracking": {
+     "related": "product_id.service_tracking",
+     "type": "Selection"
+    },
+    "state": {
+     "copy": false,
+     "related": "order_id.state",
+     "store": true,
+     "string": "Order Status",
+     "type": "Selection"
+    },
+    "tax_calculation_rounding_method": {
+     "readonly": true,
+     "related": "company_id.tax_calculation_rounding_method",
+     "string": "Tax calculation rounding method",
+     "type": "Selection"
+    },
+    "tax_country_id": {
+     "related": "order_id.tax_country_id",
+     "type": "Many2one"
+    },
+    "tax_id": {
+     "comodel": "account.tax",
+     "compute": "_compute_tax_id",
+     "readonly": false,
+     "store": true,
+     "string": "Taxes",
+     "type": "Many2many"
+    },
+    "technical_price_unit": {
+     "type": "Float"
+    },
+    "translated_product_name": {
+     "compute": "_compute_translated_product_name",
+     "type": "Text"
+    },
+    "untaxed_amount_invoiced": {
+     "compute": "_compute_untaxed_amount_invoiced",
+     "store": true,
+     "string": "Untaxed Invoiced Amount",
+     "type": "Monetary"
+    },
+    "untaxed_amount_to_invoice": {
+     "compute": "_compute_untaxed_amount_to_invoice",
+     "store": true,
+     "string": "Untaxed Amount To Invoice",
+     "type": "Monetary"
+    },
+    "virtual_id": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "analytic.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_partner_id', 'order_id', 'product_id')"
+     ],
+     "lines": 19,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_product_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_product_archived"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_custom_attribute_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_no_variant_attribute_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'linked_line_id', 'linked_line_ids')"
+     ],
+     "lines": 15,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_sale_order_line_multiline_description_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_get_sale_order_line_multiline_description_variants"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_downpayment_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_translated_product_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('display_type', 'product_id', 'product_packaging_qty')"
+     ],
+     "lines": 14,
+     "name": "_compute_product_uom_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_uom"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'company_id')"
+     ],
+     "lines": 27,
+     "name": "_compute_tax_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_custom_compute_tax_cache_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_uom', 'product_uom_qty')"
+     ],
+     "lines": 11,
+     "name": "_compute_pricelist_item_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_uom', 'product_uom_qty')"
+     ],
+     "lines": 29,
+     "name": "_compute_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_reset_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_order_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_display_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_display_price_ignore_combo"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_pricelist_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_product_price_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_pricelist_price_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_pricelist_price_before_discount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_get_combo_item_display_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_uom', 'product_uom_qty')"
+     ],
+     "lines": 31,
+     "name": "_compute_discount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_prepare_base_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_uom_qty', 'discount', 'price_unit', 'tax_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('price_subtotal', 'product_uom_qty')"
+     ],
+     "lines": 3,
+     "name": "_compute_price_reduce_taxexcl"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('price_total', 'product_uom_qty')"
+     ],
+     "lines": 3,
+     "name": "_compute_price_reduce_taxinc"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_uom_qty', 'product_uom')"
+     ],
+     "lines": 11,
+     "name": "_compute_product_packaging_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_packaging_id', 'product_uom', 'product_uom_qty')"
+     ],
+     "lines": 6,
+     "name": "_compute_product_packaging_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_customer_lead"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_expense')"
+     ],
+     "lines": 14,
+     "name": "_compute_qty_delivered_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('qty_delivered_method', 'analytic_line_ids.so_line', 'analytic_line_ids.unit_amount', 'analytic_line_ids.product_uom_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_qty_delivered"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_downpayment_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_get_delivered_quantity_by_analytic"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_lines.move_id.state', 'invoice_lines.quantity')"
+     ],
+     "lines": 23,
+     "name": "_compute_qty_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_lines.move_id.state', 'invoice_lines.quantity')"
+     ],
+     "lines": 15,
+     "name": "_compute_qty_invoiced_posted"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_invoice_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('qty_invoiced', 'qty_delivered', 'product_uom_qty', 'state')"
+     ],
+     "lines": 28,
+     "name": "_compute_qty_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'product_uom_qty', 'qty_delivered', 'qty_to_invoice', 'qty_invoiced')"
+     ],
+     "lines": 29,
+     "name": "_compute_invoice_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_can_be_invoiced_alone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_discount_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_lines', 'invoice_lines.price_total', 'invoice_lines.move_id.state', 'invoice_lines.move_id.move_type')"
+     ],
+     "lines": 18,
+     "name": "_compute_untaxed_amount_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_lines', 'invoice_lines.price_total', 'invoice_lines.move_id.state')"
+     ],
+     "lines": 10,
+     "name": "_compute_amount_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'product_id', 'untaxed_amount_invoiced', 'qty_delivered', 'product_uom_qty', 'price_unit')"
+     ],
+     "lines": 46,
+     "name": "_compute_untaxed_amount_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('discount', 'price_total', 'product_uom_qty', 'qty_invoiced_posted')"
+     ],
+     "lines": 9,
+     "name": "_compute_amount_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id.partner_id', 'product_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'state', 'qty_invoiced', 'qty_delivered')"
+     ],
+     "lines": 13,
+     "name": "_compute_product_updatable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_uom_readonly"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('combo_item_id')"
+     ],
+     "lines": 16,
+     "name": "_check_combo_item_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 15,
+     "name": "_onchange_product_id_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_packaging_id')"
+     ],
+     "lines": 16,
+     "name": "_onchange_product_packaging_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_packaging_qty')"
+     ],
+     "lines": 2,
+     "name": "_onchange_product_packaging_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 25,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_add_precomputed_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_protected_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_update_line_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_check_line_unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_confirmed"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_add_from_catalog"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_expected_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "compute_uom_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_invoice_line_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_prepare_invoice_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_validate_analytic_distribution"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_downpayment_line_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_partner_display"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_additional_name_per_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_delivery"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_not_sellable_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 68,
+     "name": "_get_product_catalog_lines_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_convert_to_sol_currency"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_discounted_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "has_valued_move_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_linked_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_linked_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_sellable_lines_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_lines_with_price"
+    }
+   ],
+   "name": "sale.order.line",
+   "order": "order_id, sequence, id",
+   "sel_methods": {
+    "_sellable_lines_domain": [
+     [
+      "is_downpayment",
+      "="
+     ]
+    ]
+   },
+   "sql_constraints": [
+    [
+     "accountable_required_fields",
+     "CHECK(display_type IS NOT NULL OR is_downpayment OR (product_id IS NOT NULL AND product_uom IS NOT NULL))",
+     "Missing required fields on accountable sale order line."
+    ],
+    [
+     "non_accountable_null_fields",
+     "CHECK(display_type IS NULL OR (product_id IS NULL AND price_unit = 0 AND product_uom_qty = 0 AND product_uom IS NULL AND customer_lead = 0))",
+     "Forbidden values on non-accountable sale order line"
+    ]
+   ],
+   "transient": false
+  },
+  "sale.payment.provider.onboarding.wizard": {
+   "abstract": false,
+   "description": "Sale Payment provider onboarding wizard",
+   "extension": false,
+   "fields": {
+    "payment_method": {
+     "default": {
+      "$ref": "_get_default_payment_method"
+     },
+     "selection_add": [
+      [
+       "digital_signature",
+       "Electronic signature"
+      ],
+      [
+       "stripe",
+       "Credit & Debit card (via Stripe)"
+      ],
+      [
+       "paypal",
+       "PayPal"
+      ],
+      [
+       "manual",
+       "Custom payment instructions"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "payment.provider.onboarding.wizard"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "add_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_start_stripe_onboarding"
+    }
+   ],
+   "name": "sale.payment.provider.onboarding.wizard",
+   "transient": true
+  },
+  "sale.report": {
+   "abstract": false,
+   "description": "Sales Analysis Report",
+   "extension": false,
+   "fields": {
+    "campaign_id": {
+     "comodel": "utm.campaign",
+     "readonly": true,
+     "string": "Campaign",
+     "type": "Many2one"
+    },
+    "categ_id": {
+     "comodel": "product.category",
+     "readonly": true,
+     "string": "Product Category",
+     "type": "Many2one"
+    },
+    "commercial_partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Customer Entity",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "readonly": true,
+     "string": "Customer Country",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "type": "Many2one"
+    },
+    "date": {
+     "readonly": true,
+     "string": "Order Date",
+     "type": "Datetime"
+    },
+    "discount": {
+     "readonly": true,
+     "string": "Discount %",
+     "type": "Float"
+    },
+    "discount_amount": {
+     "readonly": true,
+     "string": "Discount Amount",
+     "type": "Monetary"
+    },
+    "industry_id": {
+     "comodel": "res.partner.industry",
+     "readonly": true,
+     "string": "Customer Industry",
+     "type": "Many2one"
+    },
+    "invoice_status": {
+     "readonly": true,
+     "selection": [
+      [
+       "upselling",
+       "Upselling Opportunity"
+      ],
+      [
+       "invoiced",
+       "Fully Invoiced"
+      ],
+      [
+       "to invoice",
+       "To Invoice"
+      ],
+      [
+       "no",
+       "Nothing to Invoice"
+      ]
+     ],
+     "string": "Order Invoice Status",
+     "type": "Selection"
+    },
+    "line_invoice_status": {
+     "readonly": true,
+     "selection": [
+      [
+       "upselling",
+       "Upselling Opportunity"
+      ],
+      [
+       "invoiced",
+       "Fully Invoiced"
+      ],
+      [
+       "to invoice",
+       "To Invoice"
+      ],
+      [
+       "no",
+       "Nothing to Invoice"
+      ]
+     ],
+     "string": "Invoice Status",
+     "type": "Selection"
+    },
+    "medium_id": {
+     "comodel": "utm.medium",
+     "readonly": true,
+     "string": "Medium",
+     "type": "Many2one"
+    },
+    "name": {
+     "readonly": true,
+     "string": "Order Reference",
+     "type": "Char"
+    },
+    "nbr": {
+     "readonly": true,
+     "string": "# of Lines",
+     "type": "Integer"
+    },
+    "order_reference": {
+     "selection": [
+      [
+       "sale.order",
+       "Sales Order"
+      ]
+     ],
+     "string": "Order",
+     "type": "Reference"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "partner_zip": {
+     "readonly": true,
+     "string": "Customer ZIP",
+     "type": "Char"
+    },
+    "price_subtotal": {
+     "readonly": true,
+     "string": "Untaxed Total",
+     "type": "Monetary"
+    },
+    "price_total": {
+     "readonly": true,
+     "string": "Total",
+     "type": "Monetary"
+    },
+    "price_unit": {
+     "readonly": true,
+     "string": "Unit Price",
+     "type": "Float"
+    },
+    "pricelist_id": {
+     "comodel": "product.pricelist",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "readonly": true,
+     "string": "Product Variant",
+     "type": "Many2one"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "readonly": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_uom": {
+     "comodel": "uom.uom",
+     "readonly": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "product_uom_qty": {
+     "readonly": true,
+     "string": "Qty Ordered",
+     "type": "Float"
+    },
+    "qty_delivered": {
+     "readonly": true,
+     "string": "Qty Delivered",
+     "type": "Float"
+    },
+    "qty_invoiced": {
+     "readonly": true,
+     "string": "Qty Invoiced",
+     "type": "Float"
+    },
+    "qty_to_deliver": {
+     "readonly": true,
+     "string": "Qty To Deliver",
+     "type": "Float"
+    },
+    "qty_to_invoice": {
+     "readonly": true,
+     "string": "Qty To Invoice",
+     "type": "Float"
+    },
+    "source_id": {
+     "comodel": "utm.source",
+     "readonly": true,
+     "string": "Source",
+     "type": "Many2one"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "Quotation"
+      ],
+      [
+       "sent",
+       "Quotation Sent"
+      ],
+      [
+       "sale",
+       "Sales Order"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "state_id": {
+     "comodel": "res.country.state",
+     "readonly": true,
+     "string": "Customer State",
+     "type": "Many2one"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "readonly": true,
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "untaxed_amount_invoiced": {
+     "readonly": true,
+     "string": "Untaxed Amount Invoiced",
+     "type": "Monetary"
+    },
+    "untaxed_amount_to_invoice": {
+     "readonly": true,
+     "string": "Untaxed Amount To Invoice",
+     "type": "Monetary"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "Salesperson",
+     "type": "Many2one"
+    },
+    "volume": {
+     "readonly": true,
+     "string": "Volume",
+     "type": "Float"
+    },
+    "weight": {
+     "readonly": true,
+     "string": "Gross Weight",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_done_states"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('allowed_company_ids')"
+     ],
+     "lines": 2,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_with_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 73,
+     "name": "_select_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_case_value_or_one"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_select_additional_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_from_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_where_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_group_by_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_table_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_order_reference"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_open_order"
+    }
+   ],
+   "name": "sale.report",
+   "order": "date desc",
+   "rec_name": "date",
+   "transient": false
+  },
+  "utm.campaign": {
+   "abstract": false,
+   "description": "UTM Campaign",
+   "extension": true,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "invoiced_amount": {
+     "compute": "_compute_sale_invoiced_amount",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Revenues generated by the campaign",
+     "type": "Integer"
+    },
+    "quotation_count": {
+     "compute": "_compute_quotation_count",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Quotation Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_quotation_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_compute_sale_invoiced_amount"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_redirect_to_quotations"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_redirect_to_invoiced"
+    }
+   ],
+   "name": "utm.campaign",
+   "transient": false
+  }
+ },
+ "module": "sale",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale",
+ "stats": {
+  "fields": 266,
+  "methods": 384,
+  "models": 32,
+  "py_lines": 8026
+ },
+ "summary": "Sales internal machinery",
+ "title": "Sales",
+ "version": "1.2"
+}

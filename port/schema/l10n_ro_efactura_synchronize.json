@@ -1,0 +1,191 @@
+{
+ "application": false,
+ "author": "Odoo",
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "data/ir_cron.xml",
+  "views/account_move_views.xml",
+  "views/res_config_settings.xml"
+ ],
+ "depends": [
+  "l10n_ro_edi"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 45,
+     "name": "_l10n_ro_edi_fetch_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 74,
+     "name": "_l10n_ro_edi_process_invoice_accepted_messages"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 37,
+     "name": "_l10n_ro_edi_process_invoice_refused_messages"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 88,
+     "name": "_l10n_ro_edi_process_bill_messages"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_l10n_ro_edi_fetch_invoices"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.send.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids.l10n_ro_edi_state', 'enable_ubl_cii_xml')"
+     ],
+     "lines": 9,
+     "name": "_compute_l10n_ro_edi_send_enable"
+    }
+   ],
+   "name": "account.move.send.wizard",
+   "transient": false
+  },
+  "l10n_ro_edi.document": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_request_ciusro_send_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_request_ciusro_fetch_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 89,
+     "name": "_request_ciusro_synchronize_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_request_ciusro_xml_to_pdf"
+    }
+   ],
+   "name": "l10n_ro_edi.document",
+   "sel_methods": {
+    "_request_ciusro_fetch_status": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ro_edi_anaf_imported_inv_journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_l10n_ro_edi_anaf_imported_inv_journal",
+     "domain": "[('type', '=', 'purchase')]",
+     "readonly": false,
+     "store": true,
+     "string": "Select journal for SPV imported bills",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_code')"
+     ],
+     "lines": 8,
+     "name": "_compute_l10n_ro_edi_anaf_imported_inv_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_cron_l10n_ro_edi_synchronize_invoices"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ro_edi_anaf_imported_inv_journal_id": {
+     "readonly": false,
+     "related": "company_id.l10n_ro_edi_anaf_imported_inv_journal_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "l10n_ro_efactura_synchronize",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_ro_efactura_synchronize",
+ "stats": {
+  "fields": 2,
+  "methods": 12,
+  "models": 5,
+  "py_lines": 491
+ },
+ "summary": "Additional module to synchronize bills with the SPV",
+ "title": "Romania - Synchronize E-Factura",
+ "version": "1.0"
+}

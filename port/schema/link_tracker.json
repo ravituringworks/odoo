@@ -1,0 +1,386 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing",
+ "data_files": [
+  "views/link_tracker_views.xml",
+  "views/utm_campaign_views.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "utm",
+  "mail"
+ ],
+ "models": {
+  "link.tracker": {
+   "abstract": false,
+   "description": "Link Tracker",
+   "extension": false,
+   "fields": {
+    "absolute_url": {
+     "compute": "_compute_absolute_url",
+     "string": "Absolute URL",
+     "type": "Char"
+    },
+    "campaign_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "code": {
+     "compute": "_compute_code",
+     "readonly": false,
+     "string": "Short URL code",
+     "type": "Char"
+    },
+    "count": {
+     "compute": "_compute_count",
+     "store": true,
+     "string": "Number of Clicks",
+     "type": "Integer"
+    },
+    "label": {
+     "string": "Button label",
+     "type": "Char"
+    },
+    "link_click_ids": {
+     "comodel": "link.tracker.click",
+     "inverse_name": "link_id",
+     "string": "Clicks",
+     "type": "One2many"
+    },
+    "link_code_ids": {
+     "comodel": "link.tracker.code",
+     "inverse_name": "link_id",
+     "string": "Codes",
+     "type": "One2many"
+    },
+    "medium_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "redirected_url": {
+     "compute": "_compute_redirected_url",
+     "string": "Redirected URL",
+     "type": "Char"
+    },
+    "short_url": {
+     "compute": "_compute_short_url",
+     "string": "Tracked URL",
+     "type": "Char"
+    },
+    "short_url_host": {
+     "compute": "_compute_short_url_host",
+     "string": "Host of the short URL",
+     "type": "Char"
+    },
+    "source_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "title": {
+     "store": true,
+     "string": "Page Title",
+     "type": "Char"
+    },
+    "url": {
+     "required": true,
+     "string": "Target URL",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "utm.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('url')"
+     ],
+     "lines": 7,
+     "name": "_compute_absolute_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('link_click_ids.link_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 3,
+     "name": "_compute_short_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_short_url_host"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_inverse_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('url')"
+     ],
+     "lines": 30,
+     "name": "_compute_redirected_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model",
+      "api.depends('url')"
+     ],
+     "lines": 5,
+     "name": "_get_title_from_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains(*LINK_TRACKER_UNIQUE_FIELDS)"
+     ],
+     "lines": 35,
+     "name": "_check_unicity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 30,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 49,
+     "name": "search_or_create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "convert_links"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_convert_links_text"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_view_statistics"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_visit_page"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "recent_links"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "get_url_from_code"
+    }
+   ],
+   "name": "link.tracker",
+   "order": "count DESC",
+   "rec_name": "short_url",
+   "transient": false
+  },
+  "link.tracker.click": {
+   "abstract": false,
+   "description": "Link Tracker Click",
+   "extension": false,
+   "fields": {
+    "campaign_id": {
+     "comodel": "utm.campaign",
+     "index": "btree_not_null",
+     "ondelete": "set null",
+     "related": "link_id.campaign_id",
+     "store": true,
+     "string": "UTM Campaign",
+     "type": "Many2one"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "ip": {
+     "string": "Internet Protocol",
+     "type": "Char"
+    },
+    "link_id": {
+     "comodel": "link.tracker",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Link",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_click_values_from_route"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "add_click"
+    }
+   ],
+   "name": "link.tracker.click",
+   "rec_name": "link_id",
+   "transient": false
+  },
+  "link.tracker.code": {
+   "abstract": false,
+   "description": "Link Tracker Code",
+   "extension": false,
+   "fields": {
+    "code": {
+     "required": true,
+     "store": true,
+     "string": "Short URL Code",
+     "type": "Char"
+    },
+    "link_id": {
+     "comodel": "link.tracker",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Link",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_get_random_code_strings"
+    }
+   ],
+   "name": "link.tracker.code",
+   "rec_name": "code",
+   "sql_constraints": [
+    [
+     "code",
+     "unique( code )",
+     "Code must be unique."
+    ]
+   ],
+   "transient": false
+  },
+  "mail.render.mixin": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 39,
+     "name": "_shorten_links"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 27,
+     "name": "_shorten_links_text"
+    }
+   ],
+   "name": "mail.render.mixin",
+   "transient": false
+  },
+  "utm.campaign": {
+   "abstract": false,
+   "description": "UTM Campaign",
+   "extension": true,
+   "fields": {
+    "click_count": {
+     "compute": "_compute_clicks_count",
+     "string": "Number of clicks generated by the campaign",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_clicks_count"
+    }
+   ],
+   "name": "utm.campaign",
+   "transient": false
+  }
+ },
+ "module": "link_tracker",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/link_tracker",
+ "stats": {
+  "fields": 21,
+  "methods": 23,
+  "models": 5,
+  "py_lines": 574
+ },
+ "summary": "Shorten URLs and use them to track clicks and UTMs",
+ "title": "Link Tracker",
+ "version": "1.1"
+}

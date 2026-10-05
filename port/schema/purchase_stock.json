@@ -1,0 +1,1873 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Purchase",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/purchase_stock_data.xml",
+  "data/mail_templates.xml",
+  "report/vendor_delay_report.xml",
+  "views/purchase_views.xml",
+  "views/stock_views.xml",
+  "views/stock_picking_views.xml",
+  "views/stock_rule_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml",
+  "views/stock_lot_views.xml",
+  "views/stock_orderpoint_views.xml",
+  "views/product_views.xml",
+  "report/purchase_report_views.xml",
+  "report/purchase_report_templates.xml",
+  "report/report_stock_rule.xml",
+  "wizard/stock_replenishment_info.xml",
+  "wizard/product_replenish_views.xml",
+  "data/purchase_stock_demo.xml"
+ ],
+ "depends": [
+  "stock_account",
+  "purchase"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 104,
+     "name": "_stock_account_prepare_anglo_saxon_in_lines_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_stock_account_get_last_step_stock_moves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('purchase_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_incoterm_location"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_valued_in_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_out_and_not_invoiced_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_apply_price_difference"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 109,
+     "name": "_generate_price_difference_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 69,
+     "name": "_replay_history"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_prepare_pdiff_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_prepare_pdiff_aml_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_prepare_pdiff_svl_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_get_price_unit_val_dif_and_relevant_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_related_analytic_distribution"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "procurement.group": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchase_line_ids": {
+     "comodel": "purchase.order.line",
+     "copy": false,
+     "inverse_name": "group_id",
+     "string": "Linked Purchase Order Lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "run"
+    }
+   ],
+   "name": "procurement.group",
+   "transient": false
+  },
+  "product.category": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "property_account_creditor_price_difference_categ": {
+     "comodel": "account.account",
+     "help": "This account will be used to value price difference between purchase price and accounting cost.",
+     "ondelete": "restrict",
+     "string": "Price Difference Account",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.category",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "purchase_order_line_ids": {
+     "comodel": "purchase.order.line",
+     "inverse_name": "product_id",
+     "string": "PO Lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_quantity_in_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_get_lines_domain"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.replenish": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('route_id')"
+     ],
+     "lines": 5,
+     "name": "_onchange_supplier_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('route_id', 'supplier_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_date_planned"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_run_values"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_stock_replenishment_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_record_to_notify"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_replenishment_order_notification_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_date_planned"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_route_domain"
+    }
+   ],
+   "name": "product.replenish",
+   "sel_methods": {
+    "_get_replenishment_order_notification_link": []
+   },
+   "transient": false
+  },
+  "product.supplierinfo": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "last_purchase_date": {
+     "compute": "_compute_last_purchase_date",
+     "string": "Last Purchase",
+     "type": "Date"
+    },
+    "show_set_supplier_button": {
+     "compute": "_compute_show_set_supplier_button",
+     "string": "Show Set Supplier Button",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_compute_last_purchase_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_show_set_supplier_button"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 27,
+     "name": "action_set_supplier"
+    }
+   ],
+   "name": "product.supplierinfo",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "property_account_creditor_price_difference": {
+     "comodel": "account.account",
+     "help": "This account is used in automated inventory valuation to record the price difference between a purchase order and its related vendor bill when validating this vendor bill.",
+     "ondelete": "restrict",
+     "string": "Price Difference Account",
+     "type": "Many2one"
+    },
+    "route_ids": {
+     "default": {
+      "$lambda": "self._get_buy_route()"
+     },
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_buy_route"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "default_location_dest_id_usage": {
+     "help": "Technical field used to display the Drop Ship Address",
+     "readonly": true,
+     "related": "picking_type_id.default_location_dest_id.usage",
+     "string": "Destination Location Type",
+     "type": "Selection"
+    },
+    "dest_address_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_dest_address_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "effective_date": {
+     "compute": "_compute_effective_date",
+     "copy": false,
+     "help": "Completion date of the first receipt order.",
+     "store": true,
+     "string": "Arrival",
+     "type": "Datetime"
+    },
+    "group_id": {
+     "comodel": "procurement.group",
+     "copy": false,
+     "string": "Procurement Group",
+     "type": "Many2one"
+    },
+    "incoming_picking_count": {
+     "compute": "_compute_incoming_picking_count",
+     "string": "Incoming Shipment count",
+     "type": "Integer"
+    },
+    "incoterm_location": {
+     "string": "Incoterm Location",
+     "type": "Char"
+    },
+    "is_shipped": {
+     "compute": "_compute_is_shipped",
+     "type": "Boolean"
+    },
+    "on_time_rate": {
+     "related": "partner_id.on_time_rate",
+     "type": "Float"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "compute": "_compute_picking_ids",
+     "copy": false,
+     "store": true,
+     "string": "Receptions",
+     "type": "Many2many"
+    },
+    "picking_type_id": {
+     "comodel": "stock.picking.type",
+     "default": {
+      "$ref": "_default_picking_type"
+     },
+     "domain": "['|', ('warehouse_id', '=', False), ('warehouse_id.company_id', '=', company_id)]",
+     "help": "This will determine operation type of incoming shipment",
+     "required": true,
+     "string": "Deliver To",
+     "type": "Many2one"
+    },
+    "receipt_status": {
+     "compute": "_compute_receipt_status",
+     "help": "Red: Late\n            Orange: To process today\n            Green: On time",
+     "selection": [
+      [
+       "pending",
+       "Not Received"
+      ],
+      [
+       "partial",
+       "Partially Received"
+      ],
+      [
+       "full",
+       "Fully Received"
+      ]
+     ],
+     "store": true,
+     "string": "Receipt Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_default_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.move_ids.picking_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_picking_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_incoming_picking_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids.date_done')"
+     ],
+     "lines": 4,
+     "name": "_compute_effective_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.state')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_shipped"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.state')"
+     ],
+     "lines": 10,
+     "name": "_compute_receipt_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_dest_address_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_add_from_catalog"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "button_approve"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_prepare_grouped_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "button_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_view_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_action_view_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_log_decrease_ordered_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_destination_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_final_location_record"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_group_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_prepare_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_create_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_add_picking_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_update_date_activity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_update_date_activity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_orders_to_remind"
+    }
+   ],
+   "name": "purchase.order",
+   "transient": false
+  },
+  "purchase.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "forecasted_issue": {
+     "compute": "_compute_forecasted_issue",
+     "type": "Boolean"
+    },
+    "group_id": {
+     "comodel": "procurement.group",
+     "string": "Procurement group that generated this line",
+     "type": "Many2one"
+    },
+    "is_storable": {
+     "related": "product_id.is_storable",
+     "type": "Boolean"
+    },
+    "location_final_id": {
+     "comodel": "stock.location",
+     "string": "Location from procurement",
+     "type": "Many2one"
+    },
+    "move_dest_ids": {
+     "column1": "created_purchase_line_id",
+     "column2": "move_id",
+     "comodel": "stock.move",
+     "relation_table": "stock_move_created_purchase_line_rel",
+     "string": "Downstream moves alt",
+     "type": "Many2many"
+    },
+    "move_ids": {
+     "comodel": "stock.move",
+     "copy": false,
+     "inverse_name": "purchase_line_id",
+     "readonly": true,
+     "string": "Reservation",
+     "type": "One2many"
+    },
+    "orderpoint_id": {
+     "comodel": "stock.warehouse.orderpoint",
+     "copy": false,
+     "index": "btree_not_null",
+     "string": "Orderpoint",
+     "type": "Many2one"
+    },
+    "product_description_variants": {
+     "string": "Custom Description",
+     "type": "Char"
+    },
+    "propagate_cancel": {
+     "default": true,
+     "string": "Propagate cancellation",
+     "type": "Boolean"
+    },
+    "qty_received_method": {
+     "ondelete": {
+      "$expr": "{'stock_moves': _ondelete_stock_moves}"
+     },
+     "selection_add": [
+      [
+       "stock_moves",
+       "Stock Moves"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_ondelete_stock_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_qty_received_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_po_line_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_po_line_invoice_lines_su"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids.state', 'move_ids.product_uom', 'move_ids.quantity')"
+     ],
+     "lines": 25,
+     "name": "_compute_qty_received"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_uom_qty', 'date_planned')"
+     ],
+     "lines": 10,
+     "name": "_compute_forecasted_issue"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_product_forecast_report"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_move_date_deadline"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_create_or_update_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_stock_move_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_move_dests_initial_demand"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_prepare_stock_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_qty_procurement"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_check_orderpoint_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_prepare_stock_move_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_prepare_account_move_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "_prepare_purchase_order_line_from_procurement"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_create_stock_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_find_candidate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_outgoing_incoming_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_update_date_planned"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_update_qty_received_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_merge_po_line"
+    }
+   ],
+   "name": "purchase.order.line",
+   "transient": false
+  },
+  "purchase.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "days_to_arrival": {
+     "digits": [
+      16,
+      2
+     ],
+     "readonly": true,
+     "string": "Effective Days To Arrival",
+     "type": "Float"
+    },
+    "effective_date": {
+     "string": "Effective Date",
+     "type": "Datetime"
+    },
+    "picking_type_id": {
+     "comodel": "stock.warehouse",
+     "readonly": true,
+     "string": "Warehouse",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_group_by"
+    }
+   ],
+   "name": "purchase.report",
+   "transient": false
+  },
+  "report.stock.report_stock_rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_rule_loc"
+    }
+   ],
+   "name": "report.stock.report_stock_rule",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "days_to_purchase": {
+     "help": "Days needed to confirm a PO, define when a PO should be validated",
+     "string": "Days to Purchase",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "days_to_purchase": {
+     "readonly": false,
+     "related": "company_id.days_to_purchase",
+     "type": "Float"
+    },
+    "is_installed_sale": {
+     "string": "Is the Sale Module Installed",
+     "type": "Boolean"
+    },
+    "module_stock_dropshipping": {
+     "string": "Dropshipping",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "get_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "on_time_rate": {
+     "compute": "_compute_on_time_rate",
+     "help": "Over the past x days; the number of products received on time divided by the number of ordered products.x is either the System Parameter purchase_stock.on_time_delivery_days or the default 365",
+     "string": "On-Time Delivery Rate",
+     "type": "Float"
+    },
+    "purchase_line_ids": {
+     "comodel": "purchase.order.line",
+     "inverse_name": "partner_id",
+     "string": "Purchase Lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('purchase_line_ids')"
+     ],
+     "lines": 31,
+     "name": "_compute_on_time_rate"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "stock.forecasted_product_product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_report_header"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_product_purchase_domain"
+    }
+   ],
+   "name": "stock.forecasted_product_product",
+   "transient": false
+  },
+  "stock.lot": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchase_order_count": {
+     "compute": "_compute_purchase_order_ids",
+     "string": "Purchase order count",
+     "type": "Integer"
+    },
+    "purchase_order_ids": {
+     "comodel": "purchase.order",
+     "compute": "_compute_purchase_order_ids",
+     "readonly": true,
+     "store": false,
+     "string": "Purchase Orders",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 9,
+     "name": "_compute_purchase_order_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_view_po"
+    }
+   ],
+   "name": "stock.lot",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "created_purchase_line_ids": {
+     "column1": "move_id",
+     "column2": "created_purchase_line_id",
+     "comodel": "purchase.order.line",
+     "copy": false,
+     "relation_table": "stock_move_created_purchase_line_rel",
+     "string": "Created Purchase Order Lines",
+     "type": "Many2many"
+    },
+    "purchase_line_id": {
+     "comodel": "purchase.order.line",
+     "index": "btree_not_null",
+     "ondelete": "set null",
+     "readonly": true,
+     "string": "Purchase Order Line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_prepare_merge_moves_distinct_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_prepare_merge_negative_moves_excluded_distinct_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_should_ignore_pol_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 66,
+     "name": "_get_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_qty_received_without_self"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_currency_convert_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_generate_valuation_lines_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_account_entry_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_move_split_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_clean_merged"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_upstream_documents_and_responsibles"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_related_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_source_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_valuation_price_and_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_purchase_return"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_all_related_aml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_all_related_sm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_purchase_line_and_partner_from_chain"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "days_to_arrive": {
+     "compute": "_compute_effective_date",
+     "copy": false,
+     "type": "Datetime"
+    },
+    "delay_pass": {
+     "compute": "_compute_date_order",
+     "copy": false,
+     "index": true,
+     "type": "Datetime"
+    },
+    "purchase_id": {
+     "comodel": "purchase.order",
+     "readonly": true,
+     "related": "move_ids.purchase_line_id.order_id",
+     "string": "Purchase Orders",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'location_dest_id.usage', 'date_done')"
+     ],
+     "lines": 6,
+     "name": "_compute_effective_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_date_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_search_days_to_arrive"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_search_delay_pass"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.replenish.mixin": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "show_vendor": {
+     "compute": "_compute_show_vendor",
+     "type": "Boolean"
+    },
+    "supplier_id": {
+     "comodel": "product.supplierinfo",
+     "string": "Vendor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('route_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_vendor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_show_vendor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_additional_replenishment_context"
+    }
+   ],
+   "name": "stock.replenish.mixin",
+   "transient": false
+  },
+  "stock.replenishment.info": {
+   "abstract": false,
+   "description": "Stock supplier replenishment information",
+   "extension": true,
+   "fields": {
+    "supplierinfo_id": {
+     "related": "orderpoint_id.supplier_id",
+     "type": "Many2one"
+    },
+    "supplierinfo_ids": {
+     "comodel": "product.supplierinfo",
+     "compute": "_compute_supplierinfo_ids",
+     "store": true,
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('orderpoint_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_supplierinfo_ids"
+    }
+   ],
+   "name": "stock.replenishment.info",
+   "transient": false
+  },
+  "stock.replenishment.option": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "select_route"
+    }
+   ],
+   "name": "stock.replenishment.option",
+   "transient": false
+  },
+  "stock.return.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_move_default_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_create_return"
+    }
+   ],
+   "name": "stock.return.picking",
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "action": {
+     "ondelete": {
+      "buy": "cascade"
+     },
+     "selection_add": [
+      [
+       "buy",
+       "Buy"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_message_dict"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('action')"
+     ],
+     "lines": 8,
+     "name": "_compute_picking_type_code_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('action')"
+     ],
+     "lines": 3,
+     "name": "_onchange_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 109,
+     "name": "_run_buy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_get_lead_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_procurements_to_merge_groupby"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_procurements_to_merge"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 34,
+     "name": "_merge_procurements"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_update_purchase_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_prepare_purchase_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_make_po_get_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_push_prepare_move_copy_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_partner_id"
+    }
+   ],
+   "name": "stock.rule",
+   "sel_methods": {
+    "_make_po_get_domain": [
+     [
+      "partner_id",
+      "="
+     ],
+     [
+      "state",
+      "="
+     ],
+     [
+      "picking_type_id",
+      "="
+     ],
+     [
+      "company_id",
+      "="
+     ],
+     [
+      "user_id",
+      "="
+     ],
+     [
+      "currency_id",
+      "="
+     ],
+     [
+      "date_order",
+      "<="
+     ],
+     [
+      "date_order",
+      ">="
+     ],
+     [
+      "dest_address_id",
+      "="
+     ],
+     [
+      "group_id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "stock.valuation.layer": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_layer_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_related_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_should_impact_price_unit_receipt_value"
+    }
+   ],
+   "name": "stock.valuation.layer",
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "buy_pull_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Buy rule",
+     "type": "Many2one"
+    },
+    "buy_to_resupply": {
+     "default": true,
+     "help": "When products are bought, they can be delivered to this warehouse",
+     "string": "Buy to Resupply",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_generate_global_route_rules_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_all_routes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_rules_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_receive_rules_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_routes_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_name_and_code"
+    }
+   ],
+   "name": "stock.warehouse",
+   "transient": false
+  },
+  "stock.warehouse.orderpoint": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "product_supplier_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_product_supplier_id",
+     "store": true,
+     "string": "Product Supplier",
+     "type": "Many2one"
+    },
+    "purchase_visibility_days": {
+     "default": 0.0,
+     "help": "Visibility Days applied on the purchase routes.",
+     "type": "Float"
+    },
+    "show_supplier": {
+     "compute": "_compute_show_suppplier",
+     "string": "Show supplier column",
+     "type": "Boolean"
+    },
+    "supplier_id": {
+     "comodel": "product.supplierinfo",
+     "domain": "['|', ('product_id', '=', product_id), '&', ('product_id', '=', False), ('product_tmpl_id', '=', product_tmpl_id)]",
+     "string": "Supplier",
+     "type": "Many2one"
+    },
+    "vendor_id": {
+     "related": "supplier_id.partner_id",
+     "store": true,
+     "string": "Vendor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.purchase_order_line_ids.product_qty', 'product_id.purchase_order_line_ids.state')"
+     ],
+     "lines": 3,
+     "name": "_compute_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('supplier_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_lead_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_visibility_days"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_tmpl_id', 'product_tmpl_id.seller_ids', 'product_tmpl_id.seller_ids.sequence', 'product_tmpl_id.seller_ids.partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_supplier_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_set_visibility_days"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_days_to_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('route_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_suppplier"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_view_purchase"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_lead_days_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_replenishment_order_notification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_quantity_in_progress"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_set_default_route_id"
+    }
+   ],
+   "name": "stock.warehouse.orderpoint",
+   "sel_methods": {
+    "_compute_lead_days": [],
+    "_compute_qty": [],
+    "_get_replenishment_order_notification": [],
+    "_set_default_route_id": []
+   },
+   "transient": false
+  },
+  "vendor.delay.report": {
+   "abstract": false,
+   "description": "Vendor Delay Report",
+   "extension": false,
+   "fields": {
+    "category_id": {
+     "comodel": "product.category",
+     "readonly": true,
+     "string": "Product Category",
+     "type": "Many2one"
+    },
+    "date": {
+     "readonly": true,
+     "string": "Effective Date",
+     "type": "Datetime"
+    },
+    "on_time_rate": {
+     "readonly": true,
+     "string": "On-Time Delivery Rate",
+     "type": "Float"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Vendor",
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "readonly": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "qty_on_time": {
+     "readonly": true,
+     "string": "On-Time Quantity",
+     "type": "Float"
+    },
+    "qty_total": {
+     "readonly": true,
+     "string": "Total Quantity",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_read_group_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_read_group"
+    }
+   ],
+   "name": "vendor.delay.report",
+   "sel_methods": {
+    "_read_group": [],
+    "_read_group_select": []
+   },
+   "transient": false
+  }
+ },
+ "module": "purchase_stock",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/purchase_stock",
+ "stats": {
+  "fields": 63,
+  "methods": 161,
+  "models": 28,
+  "py_lines": 2960
+ },
+ "summary": "Purchase Orders, Receipts, Vendor Bills for Stock",
+ "title": "Purchase Stock",
+ "version": "1.2"
+}

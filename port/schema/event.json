@@ -1,0 +1,2709 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "security/event_security.xml",
+  "security/ir.model.access.csv",
+  "views/event_menu_views.xml",
+  "views/event_ticket_views.xml",
+  "views/event_mail_views.xml",
+  "views/event_registration_views.xml",
+  "views/event_type_views.xml",
+  "views/event_event_views.xml",
+  "views/event_stage_views.xml",
+  "report/event_event_templates.xml",
+  "report/event_event_reports.xml",
+  "report/event_registration_report.xml",
+  "data/ir_cron_data.xml",
+  "data/mail_template_data.xml",
+  "data/event_data.xml",
+  "data/event_tour.xml",
+  "views/res_config_settings_views.xml",
+  "views/event_templates.xml",
+  "views/res_partner_views.xml",
+  "views/event_tag_views.xml",
+  "views/event_question_views.xml",
+  "views/event_registration_answer_views.xml",
+  "data/res_users_demo.xml",
+  "data/res_partner_demo.xml",
+  "data/event_demo_misc.xml",
+  "data/event_demo.xml",
+  "data/event_registration_demo.xml"
+ ],
+ "depends": [
+  "barcodes",
+  "base_setup",
+  "mail",
+  "phone_validation",
+  "portal",
+  "utm"
+ ],
+ "models": {
+  "event.event": {
+   "abstract": false,
+   "description": "Event",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "address_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$lambda": "self.env.company.partner_id.id"
+     },
+     "string": "Venue",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "address_inline": {
+     "compute": "_compute_address_inline",
+     "string": "Venue (formatted for one line uses)",
+     "type": "Char"
+    },
+    "address_search": {
+     "comodel": "res.partner",
+     "compute": "_compute_address_search",
+     "string": "Address",
+     "type": "Many2one"
+    },
+    "badge_format": {
+     "default": "A6",
+     "required": true,
+     "selection": [
+      [
+       "A4_french_fold",
+       "A4 foldable"
+      ],
+      [
+       "A6",
+       "A6"
+      ],
+      [
+       "four_per_sheet",
+       "4 per sheet"
+      ],
+      [
+       "96x82",
+       "96x82mm (Badge Printer)"
+      ],
+      [
+       "96x134",
+       "96x134mm (Badge Printer)"
+      ]
+     ],
+     "string": "Badge Dimension",
+     "type": "Selection"
+    },
+    "badge_image": {
+     "string": "Badge Background",
+     "type": "Image"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": false,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "readonly": false,
+     "related": "address_id.country_id",
+     "store": true,
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "date_begin": {
+     "help": "When the event is scheduled to take place (expressed in your local timezone on the form view).",
+     "required": true,
+     "string": "Start Date",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "date_begin_located": {
+     "compute": "_compute_date_begin_tz",
+     "string": "Start Date Located",
+     "type": "Char"
+    },
+    "date_end": {
+     "required": true,
+     "string": "End Date",
+     "tracking": true,
+     "type": "Datetime"
+    },
+    "date_end_located": {
+     "compute": "_compute_date_end_tz",
+     "string": "End Date Located",
+     "type": "Char"
+    },
+    "date_tz": {
+     "compute": "_compute_date_tz",
+     "help": "Indicates the timezone in which the event dates/times will be displayed on the website.",
+     "readonly": false,
+     "required": true,
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "store": true,
+     "string": "Display Timezone",
+     "type": "Selection"
+    },
+    "description": {
+     "default": {
+      "$ref": "_default_description"
+     },
+     "string": "Description",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "event_mail_ids": {
+     "comodel": "event.mail",
+     "compute": "_compute_event_mail_ids",
+     "copy": true,
+     "inverse_name": "event_id",
+     "readonly": false,
+     "store": true,
+     "string": "Mail Schedule",
+     "type": "One2many"
+    },
+    "event_registrations_open": {
+     "compute": "_compute_event_registrations_open",
+     "help": "Registrations are open if:\n- the event is not ended\n- there are seats available on event\n- the tickets are sellable (if ticketing is used)",
+     "string": "Registration open",
+     "type": "Boolean"
+    },
+    "event_registrations_sold_out": {
+     "compute": "_compute_event_registrations_sold_out",
+     "help": "The event is sold out if no more seats are available on event. If ticketing is used and all tickets are sold out, the event will be sold out.",
+     "string": "Sold Out",
+     "type": "Boolean"
+    },
+    "event_registrations_started": {
+     "compute": "_compute_event_registrations_started",
+     "help": "registrations have started if the current datetime is after the earliest starting date of tickets.",
+     "string": "Registrations started",
+     "type": "Boolean"
+    },
+    "event_ticket_ids": {
+     "comodel": "event.event.ticket",
+     "compute": "_compute_event_ticket_ids",
+     "copy": true,
+     "inverse_name": "event_id",
+     "readonly": false,
+     "store": true,
+     "string": "Event Ticket",
+     "type": "One2many"
+    },
+    "event_type_id": {
+     "comodel": "event.type",
+     "help": "Choose a template to auto-fill tickets, communications, descriptions and other fields.",
+     "ondelete": "set null",
+     "string": "Template",
+     "type": "Many2one"
+    },
+    "general_question_ids": {
+     "comodel": "event.question",
+     "domain": [
+      [
+       "once_per_order",
+       "=",
+       true
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "General Questions",
+     "type": "One2many"
+    },
+    "is_finished": {
+     "compute": "_compute_is_finished",
+     "type": "Boolean"
+    },
+    "is_one_day": {
+     "compute": "_compute_field_is_one_day",
+     "type": "Boolean"
+    },
+    "is_ongoing": {
+     "compute": "_compute_is_ongoing",
+     "string": "Is Ongoing",
+     "type": "Boolean"
+    },
+    "kanban_state": {
+     "copy": false,
+     "default": "normal",
+     "selection": [
+      [
+       "normal",
+       "In Progress"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "blocked",
+       "Blocked"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "kanban_state_label": {
+     "compute": "_compute_kanban_state_label",
+     "store": true,
+     "string": "Kanban State Label",
+     "tracking": true,
+     "type": "Char"
+    },
+    "lang": {
+     "help": "All the communication emails sent to attendees will be translated in this language.",
+     "selection": {
+      "$ref": "_lang_get"
+     },
+     "string": "Language",
+     "type": "Selection"
+    },
+    "legend_blocked": {
+     "readonly": true,
+     "related": "stage_id.legend_blocked",
+     "string": "Kanban Blocked Explanation",
+     "type": "Char"
+    },
+    "legend_done": {
+     "readonly": true,
+     "related": "stage_id.legend_done",
+     "string": "Kanban Valid Explanation",
+     "type": "Char"
+    },
+    "legend_normal": {
+     "readonly": true,
+     "related": "stage_id.legend_normal",
+     "string": "Kanban Ongoing Explanation",
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Event",
+     "translate": true,
+     "type": "Char"
+    },
+    "note": {
+     "compute": "_compute_note",
+     "readonly": false,
+     "store": true,
+     "string": "Note",
+     "type": "Html"
+    },
+    "organizer_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$lambda": "self.env.company.partner_id"
+     },
+     "string": "Organizer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "question_ids": {
+     "comodel": "event.question",
+     "compute": "_compute_question_ids",
+     "copy": true,
+     "inverse_name": "event_id",
+     "readonly": false,
+     "store": true,
+     "string": "Questions",
+     "type": "One2many"
+    },
+    "registration_ids": {
+     "comodel": "event.registration",
+     "inverse_name": "event_id",
+     "string": "Attendees",
+     "type": "One2many"
+    },
+    "registration_properties_definition": {
+     "string": "Registration Properties",
+     "type": "PropertiesDefinition"
+    },
+    "seats_available": {
+     "compute": "_compute_seats",
+     "readonly": true,
+     "store": false,
+     "string": "Available Seats",
+     "type": "Integer"
+    },
+    "seats_limited": {
+     "compute": "_compute_seats_limited",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Limit Attendees",
+     "type": "Boolean"
+    },
+    "seats_max": {
+     "compute": "_compute_seats_max",
+     "help": "For each event you can define a maximum registration of seats(number of attendees), above this numbers the registrations are not accepted.",
+     "readonly": false,
+     "store": true,
+     "string": "Maximum Attendees",
+     "type": "Integer"
+    },
+    "seats_reserved": {
+     "compute": "_compute_seats",
+     "readonly": true,
+     "store": false,
+     "string": "Number of Registrations",
+     "type": "Integer"
+    },
+    "seats_taken": {
+     "compute": "_compute_seats",
+     "readonly": true,
+     "store": false,
+     "string": "Number of Taken Seats",
+     "type": "Integer"
+    },
+    "seats_used": {
+     "compute": "_compute_seats",
+     "readonly": true,
+     "store": false,
+     "string": "Number of Attendees",
+     "type": "Integer"
+    },
+    "specific_question_ids": {
+     "comodel": "event.question",
+     "domain": [
+      [
+       "once_per_order",
+       "=",
+       false
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "Specific Questions",
+     "type": "One2many"
+    },
+    "stage_id": {
+     "comodel": "event.stage",
+     "copy": false,
+     "default": {
+      "$ref": "_get_default_stage_id"
+     },
+     "ondelete": "restrict",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "start_sale_datetime": {
+     "compute": "_compute_start_sale_date",
+     "help": "If ticketing is used, contains the earliest starting sale date of tickets.",
+     "string": "Start sale date",
+     "type": "Datetime"
+    },
+    "tag_ids": {
+     "comodel": "event.tag",
+     "compute": "_compute_tag_ids",
+     "readonly": false,
+     "store": true,
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "ticket_instructions": {
+     "compute": "_compute_ticket_instructions",
+     "help": "This information will be printed on your tickets.",
+     "readonly": false,
+     "store": true,
+     "string": "Ticket Instructions",
+     "translate": true,
+     "type": "Html"
+    },
+    "use_barcode": {
+     "compute": "_compute_use_barcode",
+     "type": "Boolean"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_kiosk_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_stage_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_default_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_event_mail_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_lang_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_question_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_use_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 34,
+     "name": "_compute_question_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('stage_id', 'kanban_state')"
+     ],
+     "lines": 8,
+     "name": "_compute_kanban_state_label"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('seats_max', 'registration_ids.state', 'registration_ids.active')"
+     ],
+     "lines": 31,
+     "name": "_compute_seats"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_tz', 'start_sale_datetime')"
+     ],
+     "lines": 9,
+     "name": "_compute_event_registrations_started"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_tz', 'event_registrations_started', 'date_end', 'seats_available', 'seats_limited', 'seats_max', 'event_ticket_ids.sale_available')"
+     ],
+     "lines": 17,
+     "name": "_compute_event_registrations_open"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_ticket_ids.start_sale_datetime')"
+     ],
+     "lines": 6,
+     "name": "_compute_start_sale_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_ticket_ids.sale_available', 'seats_available', 'seats_limited')"
+     ],
+     "lines": 12,
+     "name": "_compute_event_registrations_sold_out"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_tz', 'date_begin')"
+     ],
+     "lines": 7,
+     "name": "_compute_date_begin_tz"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_tz', 'date_end')"
+     ],
+     "lines": 7,
+     "name": "_compute_date_end_tz"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_begin', 'date_end')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_ongoing"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_search_is_ongoing"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_begin', 'date_end', 'date_tz')"
+     ],
+     "lines": 8,
+     "name": "_compute_field_is_one_day"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_end')"
+     ],
+     "lines": 9,
+     "name": "_compute_is_finished"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_search_is_finished"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_date_tz"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('address_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_address_search"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_search_address_search"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_seats_max"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_seats_limited"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 31,
+     "name": "_compute_event_mail_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_tag_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 30,
+     "name": "_compute_event_ticket_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_note"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_ticket_instructions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('address_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_address_inline"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('seats_max', 'seats_limited', 'registration_ids')"
+     ],
+     "lines": 12,
+     "name": "_check_seats_availability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_begin', 'date_end')"
+     ],
+     "lines": 4,
+     "name": "_check_closing_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_registrations_sold_out', 'seats_limited', 'seats_max', 'seats_available')",
+      "api.depends_context('name_with_seats_availability')"
+     ],
+     "lines": 17,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_mail_message_access"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_tz_context"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_set_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "mail_attendees"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_date_range_str"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_external_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_external_description_url_encoded"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_ics_file"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_tickets_access_hash"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 8,
+     "name": "_gc_mark_events_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_event_timeframe_string"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_event_print_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_printing_sponsor_text"
+    }
+   ],
+   "name": "event.event",
+   "order": "date_begin, id",
+   "sel_methods": {
+    "_get_mail_message_access": [],
+    "_search_is_finished": [
+     [
+      "date_end",
+      "<="
+     ],
+     [
+      "date_end",
+      ">"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "event.event.ticket": {
+   "abstract": false,
+   "description": "Event Ticket",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": "#875A7B",
+     "string": "Color",
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "related": "event_id.company_id",
+     "type": "Many2one"
+    },
+    "end_sale_datetime": {
+     "string": "Registration End",
+     "type": "Datetime"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_type_id": {
+     "ondelete": "set null",
+     "required": false,
+     "type": "Many2one"
+    },
+    "is_expired": {
+     "compute": "_compute_is_expired",
+     "string": "Is Expired",
+     "type": "Boolean"
+    },
+    "is_launched": {
+     "compute": "_compute_is_launched",
+     "string": "Are sales launched",
+     "type": "Boolean"
+    },
+    "is_sold_out": {
+     "compute": "_compute_is_sold_out",
+     "help": "Whether seats are not available for this ticket.",
+     "string": "Sold Out",
+     "type": "Boolean"
+    },
+    "registration_ids": {
+     "comodel": "event.registration",
+     "inverse_name": "event_ticket_id",
+     "string": "Registrations",
+     "type": "One2many"
+    },
+    "sale_available": {
+     "compute": "_compute_sale_available",
+     "help": "Whether it is possible to sell these tickets",
+     "string": "Is Available",
+     "type": "Boolean"
+    },
+    "seats_available": {
+     "compute": "_compute_seats",
+     "store": false,
+     "string": "Available Seats",
+     "type": "Integer"
+    },
+    "seats_reserved": {
+     "compute": "_compute_seats",
+     "store": false,
+     "string": "Reserved Seats",
+     "type": "Integer"
+    },
+    "seats_taken": {
+     "compute": "_compute_seats",
+     "store": false,
+     "string": "Taken Seats",
+     "type": "Integer"
+    },
+    "seats_used": {
+     "compute": "_compute_seats",
+     "store": false,
+     "string": "Used Seats",
+     "type": "Integer"
+    },
+    "start_sale_datetime": {
+     "string": "Registration Start",
+     "type": "Datetime"
+    }
+   },
+   "inherit": [
+    "event.type.ticket"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('end_sale_datetime', 'event_id.date_tz')"
+     ],
+     "lines": 9,
+     "name": "_compute_is_expired"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('start_sale_datetime', 'event_id.date_tz')"
+     ],
+     "lines": 10,
+     "name": "_compute_is_launched"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_expired', 'start_sale_datetime', 'event_id.date_tz', 'seats_available', 'seats_max')"
+     ],
+     "lines": 3,
+     "name": "_compute_sale_available"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('seats_max', 'registration_ids.state', 'registration_ids.active')"
+     ],
+     "lines": 28,
+     "name": "_compute_seats"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('seats_limited', 'seats_available', 'event_id.event_registrations_sold_out')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_sold_out"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('start_sale_datetime', 'end_sale_datetime')"
+     ],
+     "lines": 5,
+     "name": "_constrains_dates_coherency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('registration_ids', 'seats_max')"
+     ],
+     "lines": 13,
+     "name": "_check_seats_availability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('seats_max', 'seats_available')",
+      "api.depends_context('name_with_seats_availability')"
+     ],
+     "lines": 16,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_ticket_multiline_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_tz_context"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 5,
+     "name": "_unlink_except_if_registrations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_ticket_printing_color"
+    }
+   ],
+   "name": "event.event.ticket",
+   "order": "event_id, sequence, name, id",
+   "transient": false
+  },
+  "event.mail": {
+   "abstract": false,
+   "description": "Event Automated Mailing",
+   "extension": false,
+   "fields": {
+    "event_id": {
+     "comodel": "event.event",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "interval_nbr": {
+     "default": 1,
+     "string": "Interval",
+     "type": "Integer"
+    },
+    "interval_type": {
+     "default": "before_event",
+     "required": true,
+     "selection": [
+      [
+       "after_sub",
+       "After each registration"
+      ],
+      [
+       "before_event",
+       "Before the event"
+      ],
+      [
+       "after_event",
+       "After the event"
+      ]
+     ],
+     "string": "Trigger ",
+     "type": "Selection"
+    },
+    "interval_unit": {
+     "default": "hours",
+     "required": true,
+     "selection": [
+      [
+       "now",
+       "Immediately"
+      ],
+      [
+       "hours",
+       "Hours"
+      ],
+      [
+       "days",
+       "Days"
+      ],
+      [
+       "weeks",
+       "Weeks"
+      ],
+      [
+       "months",
+       "Months"
+      ]
+     ],
+     "string": "Unit",
+     "type": "Selection"
+    },
+    "last_registration_id": {
+     "comodel": "event.registration",
+     "string": "Last Attendee",
+     "type": "Many2one"
+    },
+    "mail_count_done": {
+     "copy": false,
+     "readonly": true,
+     "string": "# Sent",
+     "type": "Integer"
+    },
+    "mail_done": {
+     "copy": false,
+     "readonly": true,
+     "string": "Sent",
+     "type": "Boolean"
+    },
+    "mail_registration_ids": {
+     "comodel": "event.mail.registration",
+     "help": "Communication related to event registrations",
+     "inverse_name": "scheduler_id",
+     "type": "One2many"
+    },
+    "mail_state": {
+     "compute": "_compute_mail_state",
+     "selection": [
+      [
+       "running",
+       "Running"
+      ],
+      [
+       "scheduled",
+       "Scheduled"
+      ],
+      [
+       "sent",
+       "Sent"
+      ]
+     ],
+     "string": "Global communication Status",
+     "type": "Selection"
+    },
+    "notification_type": {
+     "compute": "_compute_notification_type",
+     "selection": [
+      [
+       "mail",
+       "Mail"
+      ]
+     ],
+     "string": "Send",
+     "type": "Selection"
+    },
+    "scheduled_date": {
+     "compute": "_compute_scheduled_date",
+     "store": true,
+     "string": "Schedule Date",
+     "type": "Datetime"
+    },
+    "sequence": {
+     "string": "Display order",
+     "type": "Integer"
+    },
+    "template_ref": {
+     "ondelete": {
+      "mail.template": "cascade"
+     },
+     "required": true,
+     "selection": [
+      [
+       "mail.template",
+       "Mail"
+      ]
+     ],
+     "string": "Template",
+     "type": "Reference"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_id.date_begin', 'event_id.date_end', 'interval_type', 'interval_unit', 'interval_nbr')"
+     ],
+     "lines": 10,
+     "name": "_compute_scheduled_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('interval_type', 'mail_done')"
+     ],
+     "lines": 10,
+     "name": "_compute_mail_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('template_ref')"
+     ],
+     "lines": 3,
+     "name": "_compute_notification_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "execute"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_execute_event_based"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_execute_event_based_for_registrations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 76,
+     "name": "_execute_attendee_based"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_create_missing_mail_registrations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_refresh_mail_count_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_filter_template_ref"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_send_mail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_template_model_by_notification_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_event_mail_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 36,
+     "name": "_warn_template_error"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "run"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "schedule_communications"
+    }
+   ],
+   "name": "event.mail",
+   "rec_name": "event_id",
+   "transient": false
+  },
+  "event.mail.registration": {
+   "abstract": false,
+   "description": "Registration Mail Scheduler",
+   "extension": false,
+   "fields": {
+    "mail_sent": {
+     "string": "Mail Sent",
+     "type": "Boolean"
+    },
+    "registration_id": {
+     "comodel": "event.registration",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Attendee",
+     "type": "Many2one"
+    },
+    "scheduled_date": {
+     "compute": "_compute_scheduled_date",
+     "store": true,
+     "string": "Scheduled Time",
+     "type": "Datetime"
+    },
+    "scheduler_id": {
+     "comodel": "event.mail",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Mail Scheduler",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('registration_id', 'scheduler_id.interval_unit', 'scheduler_id.interval_type')"
+     ],
+     "lines": 6,
+     "name": "_compute_scheduled_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "execute"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_execute_on_registrations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_skip_domain"
+    }
+   ],
+   "name": "event.mail.registration",
+   "order": "scheduled_date DESC, id ASC",
+   "rec_name": "scheduler_id",
+   "sel_methods": {
+    "_get_skip_domain": [
+     [
+      "mail_sent",
+      "="
+     ],
+     [
+      "scheduled_date",
+      "!="
+     ],
+     [
+      "scheduled_date",
+      "<="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "event.question": {
+   "abstract": false,
+   "description": "Event Question",
+   "extension": false,
+   "fields": {
+    "answer_ids": {
+     "comodel": "event.question.answer",
+     "copy": true,
+     "inverse_name": "question_id",
+     "string": "Answers",
+     "type": "One2many"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "ondelete": "cascade",
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_type_id": {
+     "comodel": "event.type",
+     "ondelete": "cascade",
+     "string": "Event Type",
+     "type": "Many2one"
+    },
+    "is_mandatory_answer": {
+     "string": "Mandatory Answer",
+     "type": "Boolean"
+    },
+    "once_per_order": {
+     "help": "If True, this question will be asked only once and its value will be propagated to every attendees.If not it will be asked for every attendee of a reservation.",
+     "string": "Ask once per order",
+     "type": "Boolean"
+    },
+    "question_type": {
+     "default": "simple_choice",
+     "required": true,
+     "selection": [
+      [
+       "simple_choice",
+       "Selection"
+      ],
+      [
+       "text_box",
+       "Text Input"
+      ],
+      [
+       "name",
+       "Name"
+      ],
+      [
+       "email",
+       "Email"
+      ],
+      [
+       "phone",
+       "Phone"
+      ],
+      [
+       "company_name",
+       "Company"
+      ]
+     ],
+     "string": "Question Type",
+     "type": "Selection"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "title": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('event_type_id', 'event_id')"
+     ],
+     "lines": 3,
+     "name": "_constrains_event"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_answered_question"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_view_question_answers"
+    }
+   ],
+   "name": "event.question",
+   "order": "sequence,id",
+   "rec_name": "title",
+   "transient": false
+  },
+  "event.question.answer": {
+   "abstract": false,
+   "description": "Event Question Answer",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Answer",
+     "translate": true,
+     "type": "Char"
+    },
+    "question_id": {
+     "comodel": "event.question",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_selected_answer"
+    }
+   ],
+   "name": "event.question.answer",
+   "order": "sequence,id",
+   "transient": false
+  },
+  "event.registration": {
+   "abstract": false,
+   "description": "Event Registration",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "barcode": {
+     "copy": false,
+     "default": {
+      "$lambda": "self._get_random_barcode()"
+     },
+     "readonly": true,
+     "string": "Barcode",
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": false,
+     "related": "event_id.company_id",
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "company_name": {
+     "compute": "_compute_company_name",
+     "readonly": false,
+     "store": true,
+     "string": "Company Name",
+     "tracking": 5,
+     "type": "Char"
+    },
+    "date_closed": {
+     "compute": "_compute_date_closed",
+     "readonly": false,
+     "store": true,
+     "string": "Attended Date",
+     "type": "Datetime"
+    },
+    "email": {
+     "compute": "_compute_email",
+     "readonly": false,
+     "store": true,
+     "string": "Email",
+     "tracking": 3,
+     "type": "Char"
+    },
+    "event_begin_date": {
+     "readonly": true,
+     "related": "event_id.date_begin",
+     "string": "Event Start Date",
+     "type": "Datetime"
+    },
+    "event_date_range": {
+     "compute": "_compute_date_range",
+     "string": "Date Range",
+     "type": "Char"
+    },
+    "event_end_date": {
+     "readonly": true,
+     "related": "event_id.date_end",
+     "string": "Event End Date",
+     "type": "Datetime"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_organizer_id": {
+     "readonly": true,
+     "related": "event_id.organizer_id",
+     "string": "Event Organizer",
+     "type": "Many2one"
+    },
+    "event_ticket_id": {
+     "comodel": "event.event.ticket",
+     "ondelete": "restrict",
+     "string": "Ticket Type",
+     "type": "Many2one"
+    },
+    "event_user_id": {
+     "readonly": true,
+     "related": "event_id.user_id",
+     "string": "Event Responsible",
+     "type": "Many2one"
+    },
+    "mail_registration_ids": {
+     "comodel": "event.mail.registration",
+     "inverse_name": "registration_id",
+     "readonly": true,
+     "string": "Scheduler Emails",
+     "type": "One2many"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "index": "trigram",
+     "readonly": false,
+     "store": true,
+     "string": "Attendee Name",
+     "tracking": 2,
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Booked by",
+     "tracking": 1,
+     "type": "Many2one"
+    },
+    "phone": {
+     "compute": "_compute_phone",
+     "readonly": false,
+     "store": true,
+     "string": "Phone",
+     "tracking": 4,
+     "type": "Char"
+    },
+    "registration_answer_choice_ids": {
+     "comodel": "event.registration.answer",
+     "domain": [
+      [
+       "question_type",
+       "=",
+       "simple_choice"
+      ]
+     ],
+     "inverse_name": "registration_id",
+     "string": "Attendee Selection Answers",
+     "type": "One2many"
+    },
+    "registration_answer_ids": {
+     "comodel": "event.registration.answer",
+     "inverse_name": "registration_id",
+     "string": "Attendee Answers",
+     "type": "One2many"
+    },
+    "registration_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "state": {
+     "copy": false,
+     "default": "open",
+     "help": "Unconfirmed: registrations in a pending state waiting for an action (specific case, notably with sale status)\nRegistered: registrations considered taken by a client\nAttended: registrations for which the attendee attended the event\nCancelled: registrations cancelled manually",
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "Unconfirmed"
+      ],
+      [
+       "open",
+       "Registered"
+      ],
+      [
+       "done",
+       "Attended"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "tracking": 6,
+     "type": "Selection"
+    },
+    "utm_campaign_id": {
+     "comodel": "utm.campaign",
+     "index": true,
+     "ondelete": "set null",
+     "string": "Campaign",
+     "type": "Many2one"
+    },
+    "utm_medium_id": {
+     "comodel": "utm.medium",
+     "index": true,
+     "ondelete": "set null",
+     "string": "Medium",
+     "type": "Many2one"
+    },
+    "utm_source_id": {
+     "comodel": "utm.source",
+     "index": true,
+     "ondelete": "set null",
+     "string": "Source",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_random_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('state', 'event_id', 'event_ticket_id')"
+     ],
+     "lines": 4,
+     "name": "_check_seats_availability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_phone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_company_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 7,
+     "name": "_compute_date_closed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_id', 'partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_date_range"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('event_id', 'event_ticket_id')"
+     ],
+     "lines": 3,
+     "name": "_check_event_ticket"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_synchronize_partner_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('phone', 'event_id', 'partner_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_phone_validation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "register_attendee"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 20,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "toggle_active"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_set_draft"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_set_done"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 23,
+     "name": "action_send_badge_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_update_mail_schedulers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_message_compute_subject"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_message_get_suggested_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_message_get_default_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_message_post_after_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_registration_summary"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_registration_print_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_generate_esc_label_badges"
+    }
+   ],
+   "name": "event.registration",
+   "order": "id desc",
+   "sel_methods": {
+    "_message_post_after_hook": []
+   },
+   "sql_constraints": [
+    [
+     "barcode_event_uniq",
+     "unique(barcode)",
+     "Barcode should be unique"
+    ]
+   ],
+   "transient": false
+  },
+  "event.registration.answer": {
+   "abstract": false,
+   "description": "Event Registration Answer",
+   "extension": false,
+   "fields": {
+    "event_id": {
+     "comodel": "event.event",
+     "related": "registration_id.event_id",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "related": "registration_id.partner_id",
+     "type": "Many2one"
+    },
+    "question_id": {
+     "comodel": "event.question",
+     "domain": "[('event_id', '=', event_id)]",
+     "ondelete": "restrict",
+     "required": true,
+     "type": "Many2one"
+    },
+    "question_type": {
+     "related": "question_id.question_type",
+     "type": "Selection"
+    },
+    "registration_id": {
+     "comodel": "event.registration",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "value_answer_id": {
+     "comodel": "event.question.answer",
+     "string": "Suggested answer",
+     "type": "Many2one"
+    },
+    "value_text_box": {
+     "string": "Text answer",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('value_answer_id', 'question_type', 'value_text_box')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "event.registration.answer",
+   "sql_constraints": [
+    [
+     "value_check",
+     "CHECK(value_answer_id IS NOT NULL OR COALESCE(value_text_box, '') <> '')",
+     "There must be a suggested value or a text value."
+    ]
+   ],
+   "transient": false
+  },
+  "event.stage": {
+   "abstract": false,
+   "description": "Event Stage",
+   "extension": false,
+   "fields": {
+    "description": {
+     "string": "Stage description",
+     "translate": true,
+     "type": "Text"
+    },
+    "fold": {
+     "default": false,
+     "string": "Folded in Kanban",
+     "type": "Boolean"
+    },
+    "legend_blocked": {
+     "default": {
+      "$lambda": "s.env._('Blocked')"
+     },
+     "help": "Override the default value displayed for the blocked state for kanban selection.",
+     "required": true,
+     "string": "Red Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "legend_done": {
+     "default": {
+      "$lambda": "s.env._('Ready for Next Stage')"
+     },
+     "help": "Override the default value displayed for the done state for kanban selection.",
+     "required": true,
+     "string": "Green Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "legend_normal": {
+     "default": {
+      "$lambda": "s.env._('In Progress')"
+     },
+     "help": "Override the default value displayed for the normal state for kanban selection.",
+     "required": true,
+     "string": "Grey Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Stage Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "pipe_end": {
+     "default": false,
+     "help": "Events will automatically be moved into this stage when they are finished. The event moved into this stage will automatically be set as green.",
+     "string": "End Stage",
+     "type": "Boolean"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "event.stage",
+   "order": "sequence, name",
+   "transient": false
+  },
+  "event.tag": {
+   "abstract": false,
+   "description": "Event Tag",
+   "extension": false,
+   "fields": {
+    "category_id": {
+     "comodel": "event.tag.category",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Category",
+     "type": "Many2one"
+    },
+    "category_sequence": {
+     "related": "category_id.sequence",
+     "store": true,
+     "string": "Category Sequence",
+     "type": "Integer"
+    },
+    "color": {
+     "default": {
+      "$lambda": "self._default_color()"
+     },
+     "help": "Tag color. No color means no display in kanban or front-end, to distinguish internal tags from public categorization tags.",
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 0,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_color"
+    }
+   ],
+   "name": "event.tag",
+   "order": "category_sequence, sequence, id",
+   "transient": false
+  },
+  "event.tag.category": {
+   "abstract": false,
+   "description": "Event Tag Category",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": {
+      "$ref": "_default_sequence"
+     },
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "tag_ids": {
+     "comodel": "event.tag",
+     "inverse_name": "category_id",
+     "string": "Tags",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_default_sequence"
+    }
+   ],
+   "name": "event.tag.category",
+   "order": "sequence",
+   "transient": false
+  },
+  "event.type": {
+   "abstract": false,
+   "description": "Event Template",
+   "extension": false,
+   "fields": {
+    "default_timezone": {
+     "default": {
+      "$lambda": "self.env.user.tz or 'UTC'"
+     },
+     "selection": {
+      "$ref": "_tz_get"
+     },
+     "string": "Timezone",
+     "type": "Selection"
+    },
+    "event_type_mail_ids": {
+     "comodel": "event.type.mail",
+     "default": {
+      "$ref": "_default_event_mail_type_ids"
+     },
+     "inverse_name": "event_type_id",
+     "string": "Mail Schedule",
+     "type": "One2many"
+    },
+    "event_type_ticket_ids": {
+     "comodel": "event.type.ticket",
+     "inverse_name": "event_type_id",
+     "string": "Tickets",
+     "type": "One2many"
+    },
+    "has_seats_limitation": {
+     "string": "Limited Seats",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Event Template",
+     "translate": true,
+     "type": "Char"
+    },
+    "note": {
+     "string": "Note",
+     "type": "Html"
+    },
+    "question_ids": {
+     "comodel": "event.question",
+     "copy": true,
+     "default": {
+      "$ref": "_default_question_ids"
+     },
+     "inverse_name": "event_type_id",
+     "string": "Questions",
+     "type": "One2many"
+    },
+    "seats_max": {
+     "compute": "_compute_seats_max",
+     "help": "It will select this default maximum value when you choose this event",
+     "readonly": false,
+     "store": true,
+     "string": "Maximum Registrations",
+     "type": "Integer"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    },
+    "tag_ids": {
+     "comodel": "event.tag",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "ticket_instructions": {
+     "help": "This information will be printed on your tickets.",
+     "string": "Ticket Instructions",
+     "translate": true,
+     "type": "Html"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_default_event_mail_type_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_default_question_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('has_seats_limitation')"
+     ],
+     "lines": 4,
+     "name": "_compute_seats_max"
+    }
+   ],
+   "name": "event.type",
+   "order": "sequence, id",
+   "sel_methods": {
+    "_default_event_mail_type_ids": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ]
+    ],
+    "_default_question_ids": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "event.type.mail": {
+   "abstract": false,
+   "description": "Mail Scheduling on Event Category",
+   "extension": false,
+   "fields": {
+    "event_type_id": {
+     "comodel": "event.type",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Event Type",
+     "type": "Many2one"
+    },
+    "interval_nbr": {
+     "default": 1,
+     "string": "Interval",
+     "type": "Integer"
+    },
+    "interval_type": {
+     "default": "before_event",
+     "required": true,
+     "selection": [
+      [
+       "after_sub",
+       "After each registration"
+      ],
+      [
+       "before_event",
+       "Before the event"
+      ],
+      [
+       "after_event",
+       "After the event"
+      ]
+     ],
+     "string": "Trigger",
+     "type": "Selection"
+    },
+    "interval_unit": {
+     "default": "hours",
+     "required": true,
+     "selection": [
+      [
+       "now",
+       "Immediately"
+      ],
+      [
+       "hours",
+       "Hours"
+      ],
+      [
+       "days",
+       "Days"
+      ],
+      [
+       "weeks",
+       "Weeks"
+      ],
+      [
+       "months",
+       "Months"
+      ]
+     ],
+     "string": "Unit",
+     "type": "Selection"
+    },
+    "notification_type": {
+     "compute": "_compute_notification_type",
+     "selection": [
+      [
+       "mail",
+       "Mail"
+      ]
+     ],
+     "string": "Send",
+     "type": "Selection"
+    },
+    "template_ref": {
+     "ondelete": {
+      "mail.template": "cascade"
+     },
+     "required": true,
+     "selection": [
+      [
+       "mail.template",
+       "Mail"
+      ]
+     ],
+     "string": "Template",
+     "type": "Reference"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('template_ref')"
+     ],
+     "lines": 3,
+     "name": "_compute_notification_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_event_mail_values"
+    }
+   ],
+   "name": "event.type.mail",
+   "transient": false
+  },
+  "event.type.ticket": {
+   "abstract": false,
+   "description": "Event Template Ticket",
+   "extension": false,
+   "fields": {
+    "description": {
+     "help": "A description of the ticket that you want to communicate to your customers.",
+     "string": "Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "event_type_id": {
+     "comodel": "event.type",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Event Category",
+     "type": "Many2one"
+    },
+    "name": {
+     "default": {
+      "$lambda": "_('Registration')"
+     },
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "seats_limited": {
+     "compute": "_compute_seats_limited",
+     "readonly": true,
+     "store": true,
+     "string": "Limit Attendees",
+     "type": "Boolean"
+    },
+    "seats_max": {
+     "help": "Define the number of available tickets. If you have too many registrations you will not be able to sell tickets anymore. Set 0 to ignore this rule set as unlimited.",
+     "string": "Maximum Attendees",
+     "type": "Integer"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('seats_max')"
+     ],
+     "lines": 3,
+     "name": "_compute_seats_limited"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_event_ticket_fields_whitelist"
+    }
+   ],
+   "name": "event.type.ticket",
+   "order": "sequence, name, id",
+   "transient": false
+  },
+  "mail.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_search"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    }
+   ],
+   "name": "mail.template",
+   "sel_methods": {
+    "_search": []
+   },
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "barcode_nomenclature_id": {
+     "comodel": "barcode.nomenclature",
+     "readonly": false,
+     "related": "company_id.nomenclature_id",
+     "type": "Many2one"
+    },
+    "google_maps_static_api_key": {
+     "compute": "_compute_maps_static_api_key",
+     "readonly": false,
+     "store": true,
+     "string": "Google Maps API key",
+     "type": "Char"
+    },
+    "google_maps_static_api_secret": {
+     "compute": "_compute_maps_static_api_secret",
+     "readonly": false,
+     "store": true,
+     "string": "Google Maps API secret",
+     "type": "Char"
+    },
+    "module_event_booth": {
+     "string": "Booth Management",
+     "type": "Boolean"
+    },
+    "module_event_sale": {
+     "string": "Tickets with Sale",
+     "type": "Boolean"
+    },
+    "module_pos_event": {
+     "string": "Tickets with PoS",
+     "type": "Boolean"
+    },
+    "module_website_event_exhibitor": {
+     "string": "Advanced Sponsors",
+     "type": "Boolean"
+    },
+    "module_website_event_meet": {
+     "string": "Discussion Rooms",
+     "type": "Boolean"
+    },
+    "module_website_event_sale": {
+     "string": "Online Ticketing",
+     "type": "Boolean"
+    },
+    "module_website_event_track": {
+     "string": "Tracks and Agenda",
+     "type": "Boolean"
+    },
+    "module_website_event_track_live": {
+     "string": "Live Mode",
+     "type": "Boolean"
+    },
+    "module_website_event_track_quiz": {
+     "string": "Quiz on Tracks",
+     "type": "Boolean"
+    },
+    "use_event_barcode": {
+     "help": "Enable or Disable Event Barcode functionality.",
+     "string": "Use Event Barcode",
+     "type": "Boolean"
+    },
+    "use_google_maps_static_api": {
+     "default": {
+      "$ref": "_default_use_google_maps_static_api"
+     },
+     "string": "Google Maps static API",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_default_use_google_maps_static_api"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('use_google_maps_static_api')"
+     ],
+     "lines": 5,
+     "name": "_compute_maps_static_api_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('use_google_maps_static_api')"
+     ],
+     "lines": 5,
+     "name": "_compute_maps_static_api_secret"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('module_website_event_track')"
+     ],
+     "lines": 8,
+     "name": "_onchange_module_website_event_track"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_google_maps_static_api_secret"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_count": {
+     "compute": "_compute_event_count",
+     "groups": "event.group_event_registration_desk",
+     "string": "# Events",
+     "type": "Integer"
+    },
+    "static_map_url": {
+     "compute": "_compute_static_map_url",
+     "type": "Char"
+    },
+    "static_map_url_is_valid": {
+     "compute": "_compute_static_map_url_is_valid",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_event_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('zip', 'city', 'country_id', 'street')"
+     ],
+     "lines": 3,
+     "name": "_compute_static_map_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('static_map_url')"
+     ],
+     "lines": 23,
+     "name": "_compute_static_map_url_is_valid"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_event_view"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_google_map_signed_img"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "event",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/event",
+ "stats": {
+  "fields": 179,
+  "methods": 144,
+  "models": 17,
+  "py_lines": 3056
+ },
+ "summary": "Trainings, Conferences, Meetings, Exhibitions, Registrations",
+ "title": "Events Organization",
+ "version": "1.9"
+}

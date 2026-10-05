@@ -1,0 +1,462 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources",
+ "data_files": [
+  "views/res_config_settings_views.xml",
+  "views/hr_holidays_views.xml",
+  "views/project_task_views.xml",
+  "security/ir.model.access.csv",
+  "data/holiday_timesheets_demo.xml"
+ ],
+ "depends": [
+  "hr_timesheet",
+  "hr_holidays"
+ ],
+ "models": {
+  "account.analytic.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "global_leave_id": {
+     "comodel": "resource.calendar.leaves",
+     "index": "btree_not_null",
+     "ondelete": "cascade",
+     "string": "Global Time Off",
+     "type": "Many2one"
+    },
+    "holiday_id": {
+     "comodel": "hr.leave",
+     "copy": false,
+     "index": "btree_not_null",
+     "string": "Time Off Request",
+     "type": "Many2one"
+    },
+    "task_id": {
+     "domain": "[('allow_timesheets', '=', True), ('project_id', '=?', project_id), ('is_timeoff_task', '=', False)]",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_redirect_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 9,
+     "name": "_unlink_except_linked_leave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_can_write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_can_create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_favorite_project_id_domain"
+    }
+   ],
+   "name": "account.analytic.line",
+   "sel_methods": {
+    "_check_can_create": [],
+    "_check_can_write": []
+   },
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_delete_future_public_holidays_timesheets"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_create_future_public_holidays_timesheets"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.leave": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "timesheet_ids": {
+     "comodel": "account.analytic.line",
+     "inverse_name": "holiday_id",
+     "string": "Analytic Lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_validate_leave_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_generate_timesheets"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_timesheet_prepare_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_check_missing_global_leave_timesheets"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_refuse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_action_user_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_force_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    }
+   ],
+   "name": "hr.leave",
+   "sel_methods": {
+    "_validate_leave_request": []
+   },
+   "transient": false
+  },
+  "hr.leave.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "timesheet_generate": {
+     "compute": "_compute_timesheet_generate",
+     "help": "If checked, when validating a time off, timesheet will be generated in the Vacation Project of the company.",
+     "readonly": false,
+     "store": true,
+     "string": "Generate Timesheets",
+     "type": "Boolean"
+    },
+    "timesheet_project_id": {
+     "comodel": "project.project",
+     "compute": "_compute_timesheet_project_id",
+     "domain": "[('company_id', 'in', [False, company_id])]",
+     "readonly": false,
+     "store": true,
+     "string": "Project",
+     "type": "Many2one"
+    },
+    "timesheet_task_id": {
+     "comodel": "project.task",
+     "compute": "_compute_timesheet_task_id",
+     "domain": "[('project_id', '=', timesheet_project_id),('project_id', '!=', False),('company_id', 'in', [False, company_id])]",
+     "readonly": false,
+     "store": true,
+     "string": "Task",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_task_id', 'timesheet_project_id', 'time_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_timesheet_generate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_timesheet_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_project_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_timesheet_task_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('timesheet_generate', 'timesheet_project_id', 'timesheet_task_id')"
+     ],
+     "lines": 7,
+     "name": "_check_timesheet_generate"
+    }
+   ],
+   "name": "hr.leave.type",
+   "transient": false
+  },
+  "project.task": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_timeoff_task": {
+     "compute": "_compute_is_timeoff_task",
+     "string": "Is Time off Task",
+     "type": "Boolean"
+    },
+    "leave_types_count": {
+     "compute": "_compute_leave_types_count",
+     "string": "Time Off Types Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_leave_types_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_is_timeoff_task"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_search_is_timeoff_task"
+    }
+   ],
+   "name": "project.task",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "leave_timesheet_task_id": {
+     "comodel": "project.task",
+     "domain": "[('project_id', '=', internal_project_id)]",
+     "string": "Time Off Task",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_create_internal_project_task"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "internal_project_id": {
+     "domain": "[('company_id', '=', company_id)]",
+     "help": "The default project used when automatically generating timesheets via time off requests. You can specify another project on each time off type individually.",
+     "readonly": false,
+     "related": "company_id.internal_project_id",
+     "required": true,
+     "string": "Internal Project",
+     "type": "Many2one"
+    },
+    "leave_timesheet_task_id": {
+     "domain": "[('company_id', '=', company_id), ('project_id', '=?', internal_project_id)]",
+     "help": "The default task used when automatically generating timesheets via time off requests. You can specify another task on each time off type individually.",
+     "readonly": false,
+     "related": "company_id.leave_timesheet_task_id",
+     "string": "Time Off Task",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('internal_project_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_timesheet_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('leave_timesheet_task_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_timesheet_task_id"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "resource.calendar.leaves": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "timesheet_ids": {
+     "comodel": "account.analytic.line",
+     "inverse_name": "global_leave_id",
+     "string": "Analytic Lines",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_resource_calendars"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 92,
+     "name": "_work_time_per_day"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_timesheet_create_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_timesheet_prepare_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_generate_timesheeets"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_generate_public_time_off_timesheets"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_overlapping_hr_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 8,
+     "name": "_regenerate_hr_leave_timesheets_on_gto_unlinked"
+    }
+   ],
+   "name": "resource.calendar.leaves",
+   "transient": false
+  }
+ },
+ "module": "project_timesheet_holidays",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/project_timesheet_holidays",
+ "stats": {
+  "fields": 13,
+  "methods": 37,
+  "models": 8,
+  "py_lines": 779
+ },
+ "summary": "Schedule timesheet when on time off",
+ "title": "Timesheet when on Time Off",
+ "version": "1.0"
+}

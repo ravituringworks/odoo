@@ -1,0 +1,466 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/utm_medium_data.xml",
+  "data/utm_source_data.xml",
+  "data/utm_stage_data.xml",
+  "data/utm_tag_data.xml",
+  "views/utm_campaign_views.xml",
+  "views/utm_medium_views.xml",
+  "views/utm_source_views.xml",
+  "views/utm_stage_views.xml",
+  "views/utm_tag_views.xml",
+  "views/utm_menus.xml",
+  "security/ir.model.access.csv",
+  "data/utm_campaign_demo.xml",
+  "data/utm_stage_demo.xml"
+ ],
+ "depends": [
+  "base",
+  "web"
+ ],
+ "models": {
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_utm_domain_cookies"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_set_utm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_post_dispatch"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "utm.campaign": {
+   "abstract": false,
+   "description": "UTM Campaign",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "is_auto_campaign": {
+     "default": false,
+     "help": "Allows us to filter relevant Campaigns",
+     "string": "Automatically Generated Campaign",
+     "type": "Boolean"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Campaign Identifier",
+     "translate": false,
+     "type": "Char"
+    },
+    "stage_id": {
+     "comodel": "utm.stage",
+     "copy": false,
+     "default": {
+      "$lambda": "self.env['utm.stage'].search([], limit=1)"
+     },
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Stage",
+     "type": "Many2one"
+    },
+    "tag_ids": {
+     "column1": "tag_id",
+     "column2": "campaign_id",
+     "comodel": "utm.tag",
+     "relation_table": "utm_tag_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "title": {
+     "required": true,
+     "string": "Campaign Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.uid"
+     },
+     "required": true,
+     "string": "Responsible",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('title')"
+     ],
+     "lines": 6,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_group_expand_stage_ids"
+    }
+   ],
+   "name": "utm.campaign",
+   "rec_name": "title",
+   "sql_constraints": [
+    [
+     "unique_name",
+     "UNIQUE(name)",
+     "The name must be unique"
+    ]
+   ],
+   "transient": false
+  },
+  "utm.medium": {
+   "abstract": false,
+   "description": "UTM Medium",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Medium Name",
+     "translate": false,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "SELF_REQUIRED_UTM_MEDIUMS_REF"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 9,
+     "name": "_unlink_except_utm_medium_record"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_fetch_or_create_utm_medium"
+    }
+   ],
+   "name": "utm.medium",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "unique_name",
+     "UNIQUE(name)",
+     "The name must be unique"
+    ]
+   ],
+   "transient": false
+  },
+  "utm.mixin": {
+   "abstract": true,
+   "description": "UTM Mixin",
+   "extension": false,
+   "fields": {
+    "campaign_id": {
+     "comodel": "utm.campaign",
+     "help": "This is a name that helps you keep track of your different campaign efforts, e.g. Fall_Drive, Christmas_Special",
+     "index": "btree_not_null",
+     "string": "Campaign",
+     "type": "Many2one"
+    },
+    "medium_id": {
+     "comodel": "utm.medium",
+     "help": "This is the method of delivery, e.g. Postcard, Email, or Banner Ad",
+     "index": "btree_not_null",
+     "string": "Medium",
+     "type": "Many2one"
+    },
+    "source_id": {
+     "comodel": "utm.source",
+     "help": "This is the source of the link, e.g. Search Engine, another domain, or name of email list",
+     "index": "btree_not_null",
+     "string": "Source",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "tracking_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_tracking_models"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "find_or_create_record"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_find_or_create_record"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 62,
+     "name": "_get_unique_names"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_split_name_and_count"
+    }
+   ],
+   "name": "utm.mixin",
+   "transient": false
+  },
+  "utm.source": {
+   "abstract": false,
+   "description": "UTM Source",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Source Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_generate_name"
+    }
+   ],
+   "name": "utm.source",
+   "sql_constraints": [
+    [
+     "unique_name",
+     "UNIQUE(name)",
+     "The name must be unique"
+    ]
+   ],
+   "transient": false
+  },
+  "utm.source.mixin": {
+   "abstract": true,
+   "description": "UTM Source Mixin",
+   "extension": false,
+   "fields": {
+    "name": {
+     "readonly": false,
+     "related": "source_id.name",
+     "string": "Name",
+     "type": "Char"
+    },
+    "source_id": {
+     "comodel": "utm.source",
+     "copy": false,
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Source",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 23,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "copy_data"
+    }
+   ],
+   "name": "utm.source.mixin",
+   "transient": false
+  },
+  "utm.stage": {
+   "abstract": false,
+   "description": "Campaign Stage",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 1,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "utm.stage",
+   "order": "sequence",
+   "transient": false
+  },
+  "utm.tag": {
+   "abstract": false,
+   "description": "UTM Tag",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": {
+      "$lambda": "self._default_color()"
+     },
+     "help": "Tag color. No color means no display in kanban to distinguish internal tags from public categorization tags.",
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_color"
+    }
+   ],
+   "name": "utm.tag",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "utm",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/utm",
+ "stats": {
+  "fields": 20,
+  "methods": 24,
+  "models": 8,
+  "py_lines": 492
+ },
+ "summary": "Enable management of UTM trackers: campaign, medium, source.",
+ "title": "UTM Trackers",
+ "version": "1.1"
+}

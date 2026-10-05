@@ -1,0 +1,4421 @@
+{
+ "module": "stock",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_inventory_inventory",
+   "values": {
+    "description": "Helps you manage your inventory and main stock operations: delivery orders, receptions, etc.",
+    "sequence": "4"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_stock_multi_locations",
+   "values": {
+    "name": "Manage Multiple Stock Locations",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_stock_multi_warehouses",
+   "values": {
+    "name": "Manage Multiple Warehouses",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_stock_user",
+   "values": {
+    "name": "User",
+    "category_id": {
+     "$ref": "base.module_category_inventory_inventory"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_stock_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_inventory_inventory"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_stock_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_production_lot",
+   "values": {
+    "name": "Manage Lots / Serial Numbers",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_stock_lot_print_gs1",
+   "values": {
+    "name": "Print GS1 Barcodes for Lot & Serial Numbers",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_lot_on_delivery_slip",
+   "values": {
+    "name": "Display Serial & Lot Number in Delivery Slips",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_tracking_lot",
+   "values": {
+    "name": "Manage Packages",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_adv_location",
+   "values": {
+    "name": "Manage Push and Pull inventory flows",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_tracking_owner",
+   "values": {
+    "name": "Manage Different Stock Owners",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_warning_stock",
+   "values": {
+    "name": "A warning can be set on a partner (Stock)",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_stock_sign_delivery",
+   "values": {
+    "name": "Require a signature on your delivery orders",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_reception_report",
+   "values": {
+    "name": "Use Reception Report",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_picking_rule",
+   "values": {
+    "name": "stock_picking multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_picking_type_rule",
+   "values": {
+    "name": "Stock Operation Type multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id','in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_putaway_rule_rule",
+   "values": {
+    "name": "Stock Operation Type multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id','in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_production_lot_rule",
+   "values": {
+    "name": "Stock Production Lot multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_warehouse_comp_rule",
+   "values": {
+    "name": "Warehouse multi-company",
+    "model_id": {
+     "$ref": "model_stock_warehouse"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_location_comp_rule",
+   "values": {
+    "name": "Location multi-company",
+    "model_id": {
+     "$ref": "model_stock_location"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_move_rule",
+   "values": {
+    "name": "stock_move multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_move_line_rule",
+   "values": {
+    "name": "stock_move_line multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_quant_rule",
+   "values": {
+    "name": "stock_quant multi-company",
+    "model_id": {
+     "$ref": "model_stock_quant"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_warehouse_orderpoint_rule",
+   "values": {
+    "name": "stock_warehouse.orderpoint multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_pulled_flow_comp_rule",
+   "values": {
+    "name": "product_pulled_flow multi-company",
+    "model_id": {
+     "$ref": "model_stock_rule"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_location_route_comp_rule",
+   "values": {
+    "name": "stock_route multi-company",
+    "model_id": {
+     "$ref": "model_stock_route"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_quant_package_comp_rule",
+   "values": {
+    "name": "stock_quant_package multi-company",
+    "model_id": {
+     "$ref": "model_stock_quant_package"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_scrap_company_rule",
+   "values": {
+    "name": "stock_scrap_company multi-company",
+    "model_id": {
+     "$ref": "model_stock_scrap"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "report_stock_quantity_flow_comp_rule",
+   "values": {
+    "name": "report_stock_quantity_flow multi-company",
+    "model_id": {
+     "$ref": "model_report_stock_quantity"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "stock_storage_category_rule",
+   "values": {
+    "name": "stock_storage_category multi-company",
+    "model_id": {
+     "$ref": "model_stock_storage_category"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_stock_0",
+   "values": {
+    "name": "Tip: Speed up inventory operations with barcodes",
+    "sequence": "1000",
+    "group_id": {
+     "$ref": "stock.group_stock_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_stock_1",
+   "values": {
+    "name": "Tip: Monitor Lot details",
+    "sequence": "4000",
+    "group_id": {
+     "$ref": "stock.group_stock_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_weight_three_dec",
+   "values": {
+    "name": "Weight Barcodes 3 Decimals",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "36",
+    "type": "weight",
+    "encoding": "ean13",
+    "pattern": "21.....{NNDDD}"
+   }
+  },
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_package",
+   "values": {
+    "name": "Package barcodes",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "70",
+    "type": "package",
+    "encoding": "any",
+    "pattern": "PACK"
+   }
+  },
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_lot",
+   "values": {
+    "name": "Lot barcodes",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "80",
+    "type": "lot",
+    "encoding": "any",
+    "pattern": "10"
+   }
+  },
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_location",
+   "values": {
+    "name": "Location barcodes",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "60",
+    "type": "location",
+    "encoding": "any",
+    "pattern": "414"
+   }
+  },
+  {
+   "model": "product.removal",
+   "id": "removal_fifo",
+   "values": {
+    "name": "First In First Out (FIFO)",
+    "method": "fifo"
+   }
+  },
+  {
+   "model": "product.removal",
+   "id": "removal_lifo",
+   "values": {
+    "name": "Last In First Out (LIFO)",
+    "method": "lifo"
+   }
+  },
+  {
+   "model": "product.removal",
+   "id": "removal_closest",
+   "values": {
+    "name": "Closest Location",
+    "method": "closest"
+   }
+  },
+  {
+   "model": "product.removal",
+   "id": "removal_least_packages",
+   "values": {
+    "name": "Least Packages",
+    "method": "least_packages"
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "stock_location_locations",
+   "values": {
+    "name": "Physical Locations",
+    "usage": "view",
+    "company_id": ""
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "stock_location_locations_partner",
+   "values": {
+    "name": "Partners",
+    "usage": "view",
+    "posz": "1",
+    "company_id": ""
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "stock_location_locations_virtual",
+   "values": {
+    "name": "Virtual Locations",
+    "usage": "view",
+    "posz": "1",
+    "company_id": ""
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "stock_location_suppliers",
+   "values": {
+    "name": "Vendors",
+    "location_id": {
+     "$ref": "stock_location_locations_partner"
+    },
+    "usage": "supplier",
+    "company_id": ""
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "stock_location_customers",
+   "values": {
+    "name": "Customers",
+    "location_id": {
+     "$ref": "stock_location_locations_partner"
+    },
+    "usage": "customer",
+    "company_id": ""
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "stock_location_inter_company",
+   "values": {
+    "name": "Inter-company transit",
+    "location_id": {
+     "$ref": "stock_location_locations_virtual"
+    },
+    "usage": "transit",
+    "company_id": "",
+    "active": false
+   }
+  },
+  {
+   "model": "stock.route",
+   "id": "route_warehouse0_mto",
+   "values": {
+    "name": "Replenish on Order (MTO)",
+    "company_id": "",
+    "active": "False",
+    "sequence": "5"
+   }
+  },
+  {
+   "model": "stock.warehouse",
+   "id": "warehouse0",
+   "values": {
+    "partner_id": {
+     "$ref": "base.main_partner"
+    },
+    "code": "WH"
+   }
+  },
+  {
+   "model": "ir.config_parameter",
+   "id": "barcode_separator",
+   "values": {
+    "key": "stock.barcode_separator",
+    "value": ","
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "sequence_mrp_op",
+   "values": {
+    "name": "Stock orderpoint",
+    "code": "stock.orderpoint",
+    "prefix": "OP/",
+    "padding": "5",
+    "number_next": "1",
+    "number_increment": "1",
+    "company_id": ""
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "sequence_proc_group",
+   "values": {
+    "name": "Procurement Group",
+    "code": "procurement.group",
+    "prefix": "PG/",
+    "padding": "6",
+    "number_next": "1",
+    "number_increment": "1"
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_picking_internal",
+   "values": {
+    "name": "Picking INT",
+    "code": "stock.picking",
+    "prefix": "INT/",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "sequence_production_lots",
+   "values": {
+    "name": "Serial Numbers",
+    "code": "stock.lot.serial",
+    "prefix": "",
+    "padding": "7",
+    "number_next": "1",
+    "number_increment": "1",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_quant_package",
+   "values": {
+    "name": "Packages",
+    "code": "stock.quant.package",
+    "prefix": "PACK",
+    "padding": "7",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_stock_report",
+   "values": {
+    "name": "Traceability Report",
+    "tag": "stock_report_generic",
+    "context": {
+     "url": "/stock/output_format/stock?active_id=:active_id&active_model=:active_model",
+     "model": "stock.traceability.report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "stock_reception_action",
+   "values": {
+    "name": "Reception Report",
+    "tag": "reception_report",
+    "res_model": "report.stock.report_reception"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_lot_report",
+   "values": {
+    "name": "Customer lots",
+    "res_model": "stock.lot.report",
+    "view_mode": "list",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_change_product_quantity",
+   "values": {
+    "name": "Change Product Quantity",
+    "res_model": "stock.change.product.qty",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_stock_return_picking",
+   "values": {
+    "name": "Return",
+    "res_model": "stock.return.picking",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_stock_request_count",
+   "values": {
+    "name": "Request a Count",
+    "res_model": "stock.request.count",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "stock_inventory_request_count_form_view"
+    },
+    "context": {
+     "$unevaluated": "{\n            'default_quant_ids': active_ids\n        }"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_stock_replenishment_info",
+   "values": {
+    "name": "Replenishment Information",
+    "res_model": "stock.replenishment.info",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_stock_replenishment_info"
+    },
+    "context": {
+     "$unevaluated": "{'default_orderpoint_id': active_id}"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_stock_rules_report",
+   "values": {
+    "name": "Stock Rules Report",
+    "res_model": "stock.rules.report",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_stock_rules_report"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_product_replenish",
+   "values": {
+    "name": "Low on stock? Let's replenish.",
+    "res_model": "product.replenish",
+    "binding_model_id": false,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_product_replenish"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_orderpoint_snooze",
+   "values": {
+    "name": "Snooze",
+    "res_model": "stock.orderpoint.snooze",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_stock_inventory_adjustement_name",
+   "values": {
+    "name": "Inventory Adjustment",
+    "res_model": "stock.inventory.adjustment.name",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "stock_inventory_adjustment_name_form_view"
+    },
+    "context": {
+     "$unevaluated": "{\n            'default_quant_ids': active_ids\n        }"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_putaway_tree",
+   "values": {
+    "name": "Putaways Rules",
+    "res_model": "stock.putaway.rule",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "stock_putaway_list"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "category_open_putaway",
+   "values": {
+    "name": "Putaway Rules",
+    "res_model": "stock.putaway.rule",
+    "context": {
+     "$unevaluated": "{\n            'search_default_category_id': [active_id],\n            'fixed_category': True,\n        }"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "location_open_putaway",
+   "values": {
+    "name": "Putaway Rules",
+    "res_model": "stock.putaway.rule",
+    "context": {
+     "fixed_location": true
+    },
+    "domain": {
+     "$unevaluated": "['|', ('location_out_id', '=', active_id), ('location_in_id', '=', active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_production_lot_form",
+   "values": {
+    "name": "Lots / Serial Numbers",
+    "res_model": "stock.lot",
+    "path": "lots",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "view_production_lot_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "view_production_lot_kanban"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "view_production_lot_form"
+       }
+      }
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "search_product_lot_filter"
+    },
+    "context": {
+     "search_default_group_by_location": true,
+     "display_complete": true
+    },
+    "domain": {
+     "$unevaluated": "['|', ('location_id', '=', False), ('location_id.company_id', 'in', allowed_company_ids + [False])]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_product_production_lot_form",
+   "values": {
+    "name": "Lots/Serial Numbers",
+    "res_model": "stock.lot",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "view_production_lot_kanban"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "view_production_lot_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "view_production_lot_form"
+       }
+      }
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "search_product_lot_filter"
+    },
+    "context": {
+     "$unevaluated": "{'search_default_group_by_product': 1, 'display_complete': True, 'default_company_id': allowed_company_ids[0]}"
+    },
+    "domain": {
+     "$unevaluated": "['|', ('location_id', '=', False), ('location_id.company_id', 'in', allowed_company_ids + [False])]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_stock_scrap",
+   "values": {
+    "name": "Scrap Orders",
+    "res_model": "stock.scrap",
+    "view_mode": "list,form,kanban,pivot,graph",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_view_inventory_tree",
+   "values": {
+    "name": "Inventory",
+    "model_id": {
+     "$ref": "model_stock_quant"
+    },
+    "path": "physical-inventory",
+    "state": "code",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_user"
+      }
+     ]
+    ],
+    "code": "action = model.action_view_inventory()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_view_quants",
+   "values": {
+    "name": "Inventory",
+    "model_id": {
+     "$ref": "model_stock_quant"
+    },
+    "state": "code",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_user"
+      }
+     ]
+    ],
+    "code": "action = model.with_context(\n                search_default_internal_loc=1,\n                always_show_loc=1,\n            ).action_view_quants()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "dashboard_open_quants",
+   "values": {
+    "name": "Update Quantity",
+    "context": {
+     "search_default_internal_loc": 1,
+     "search_default_productgroup": 1,
+     "search_default_locationgroup": 1,
+     "inventory_mode": true
+    },
+    "res_model": "stock.quant",
+    "view_id": {
+     "$ref": "view_stock_quant_tree_editable"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "location_open_quants",
+   "values": {
+    "context": {
+     "search_default_productgroup": 1
+    },
+    "domain": {
+     "$unevaluated": "[('location_id', 'child_of', active_ids)]"
+    },
+    "name": "Current Stock",
+    "res_model": "stock.quant",
+    "view_id": {
+     "$ref": "view_stock_quant_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_package_view",
+   "values": {
+    "name": "Packages",
+    "res_model": "stock.quant.package",
+    "view_mode": "kanban,list,form",
+    "context": {
+     "search_default_location": true,
+     "search_default_internal": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_view_set_quants_tree",
+   "values": {
+    "name": "Set to quantity on hand",
+    "model_id": {
+     "$ref": "model_stock_quant"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_quant"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_user"
+      }
+     ]
+    ],
+    "code": "action = records.action_set_inventory_quantity()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_view_set_to_zero_quants_tree",
+   "values": {
+    "name": "Set to 0",
+    "model_id": {
+     "$ref": "model_stock_quant"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_quant"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_manager"
+      }
+     ]
+    ],
+    "code": "action = records.action_set_inventory_quantity_zero()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_warehouse_form",
+   "values": {
+    "name": "Warehouses",
+    "res_model": "stock.warehouse",
+    "view_id": {
+     "$ref": "view_warehouse_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_revert_inventory_adjustment",
+   "values": {
+    "name": "Revert Inventory Adjustment",
+    "model_id": {
+     "$ref": "stock.model_stock_move_line"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_move_line"
+    },
+    "state": "code",
+    "code": "action = records.action_revert_inventory()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_move_line_action",
+   "values": {
+    "name": "Moves History",
+    "res_model": "stock.move.line",
+    "view_mode": "list,kanban,pivot,form",
+    "view_id": {
+     "$ref": "view_move_line_tree"
+    },
+    "context": {
+     "search_default_done": 1,
+     "create": 0,
+     "pivot_measures": [
+      "quantity_product_uom",
+      "__count__"
+     ]
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_move_action",
+   "values": {
+    "name": "Moves Analysis",
+    "res_model": "stock.move",
+    "view_id": {
+     "$ref": "view_move_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_move_search"
+    },
+    "context": {
+     "search_default_done": 1,
+     "pivot_measures": [
+      "quantity",
+      "__count__"
+     ]
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_stock_move_tree_all",
+   "values": {
+    "sequence": 3,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_move_tree"
+    },
+    "act_window_id": {
+     "$ref": "stock_move_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_stock_move_form_all",
+   "values": {
+    "sequence": 3,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "view_move_form"
+    },
+    "act_window_id": {
+     "$ref": "stock_move_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_stock_move_pivot_all",
+   "values": {
+    "sequence": 1,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "view_move_pivot"
+    },
+    "act_window_id": {
+     "$ref": "stock_move_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_stock_move_graph_all",
+   "values": {
+    "sequence": 3,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "view_move_graph"
+    },
+    "act_window_id": {
+     "$ref": "stock_move_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_stock_move_kanban_all",
+   "values": {
+    "sequence": 4,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "view_move_kandan"
+    },
+    "act_window_id": {
+     "$ref": "stock_move_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_all",
+   "values": {
+    "name": "Transfers",
+    "res_model": "stock.picking",
+    "view_mode": "list,kanban,form,calendar",
+    "domain": "",
+    "context": {
+     "$unevaluated": "{'contact_display': 'partner_address', 'default_company_id': allowed_company_ids[0]}"
+    },
+    "search_view_id": {
+     "$ref": "view_picking_internal_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_incoming",
+   "values": {
+    "name": "Receipts",
+    "res_model": "stock.picking",
+    "path": "receipts",
+    "view_mode": "list,kanban,form,calendar,activity",
+    "domain": "",
+    "context": {
+     "contact_display": "partner_address",
+     "restricted_picking_type_code": "incoming",
+     "search_default_reception": 1
+    },
+    "search_view_id": {
+     "$ref": "view_picking_internal_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_outgoing",
+   "values": {
+    "name": "Deliveries",
+    "res_model": "stock.picking",
+    "path": "deliveries",
+    "view_mode": "list,kanban,form,calendar,activity",
+    "domain": "",
+    "context": {
+     "contact_display": "partner_address",
+     "restricted_picking_type_code": "outgoing",
+     "search_default_delivery": 1
+    },
+    "search_view_id": {
+     "$ref": "view_picking_internal_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_internal",
+   "values": {
+    "name": "Internal Transfers",
+    "res_model": "stock.picking",
+    "view_mode": "list,kanban,form,calendar",
+    "domain": "",
+    "context": {
+     "contact_display": "partner_address",
+     "restricted_picking_type_code": "internal",
+     "search_default_internal": 1
+    },
+    "search_view_id": {
+     "$ref": "view_picking_internal_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_validate_picking",
+   "values": {
+    "name": "Validate",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "if records:\n                res = records.button_validate()\n                if isinstance(res, dict):\n                    action = res"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_unreserve_picking",
+   "values": {
+    "name": "Unreserve",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_view_types": "list,form",
+    "state": "code",
+    "code": "if records:\n                records.do_unreserve()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_print_labels",
+   "values": {
+    "name": "Labels",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_view_types": "list,form",
+    "binding_type": "report",
+    "state": "code",
+    "code": "if records:\n                action = records.action_open_label_type()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_toggle_is_locked",
+   "values": {
+    "name": "Lock/Unlock",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_manager"
+      }
+     ]
+    ],
+    "code": "if records:\n                records.action_toggle_is_locked()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_scrap",
+   "values": {
+    "name": "Scrap",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "if records:\n                action = records.button_scrap()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_lead_mass_mail",
+   "values": {
+    "name": "Send email",
+    "res_model": "mail.compose.message",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "default_composition_mode": "mass_mail"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "click_dashboard_graph",
+   "values": {
+    "name": "stock.click_dashboard_graph",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "state": "code",
+    "code": "action = model.get_action_click_graph()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "method_action_picking_tree_incoming",
+   "values": {
+    "name": "stock.method_action_picking_tree_incoming",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "state": "code",
+    "code": "action = model.get_action_picking_tree_incoming()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "method_action_picking_tree_outgoing",
+   "values": {
+    "name": "stock.method_action_picking_tree_outgoing",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "state": "code",
+    "code": "action = model.get_action_picking_tree_outgoing()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "method_action_picking_tree_internal",
+   "values": {
+    "name": "stock.method_action_picking_tree_internal",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "state": "code",
+    "code": "action = model.get_action_picking_tree_internal()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_picking_action_picking_type",
+   "values": {
+    "name": "All Transfers",
+    "res_model": "stock.picking",
+    "context": {
+     "contact_display": "partner_address"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_ready",
+   "values": {
+    "name": "To Do",
+    "res_model": "stock.picking",
+    "view_mode": "list,kanban,form,calendar",
+    "domain": "",
+    "context": {
+     "contact_display": "partner_address",
+     "search_default_available": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_graph",
+   "values": {
+    "name": "To Do",
+    "res_model": "stock.picking",
+    "view_mode": "list,kanban,form,calendar",
+    "domain": "",
+    "context": {
+     "contact_display": "partner_address",
+     "search_default_available": 1,
+     "search_default_waiting": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_waiting",
+   "values": {
+    "name": "Waiting Transfers",
+    "res_model": "stock.picking",
+    "view_mode": "list,kanban,form,calendar",
+    "domain": "",
+    "context": {
+     "contact_display": "partner_address",
+     "search_default_waiting": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_late",
+   "values": {
+    "name": "Late Transfers",
+    "res_model": "stock.picking",
+    "view_mode": "list,kanban,form,calendar",
+    "domain": "",
+    "context": {
+     "contact_display": "partner_address",
+     "search_default_late": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_backorder",
+   "values": {
+    "name": "Backorders",
+    "res_model": "stock.picking",
+    "view_mode": "list,kanban,form,calendar",
+    "domain": "",
+    "context": {
+     "contact_display": "partner_address",
+     "search_default_backorder": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_get_picking_type_ready_moves",
+   "values": {
+    "name": "Ready Moves",
+    "res_model": "stock.move",
+    "view_id": {
+     "$ref": "view_move_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_move_search"
+    },
+    "domain": {
+     "$unevaluated": "[('picking_type_id', '=', active_id)]"
+    },
+    "context": {
+     "search_default_ready": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_install_barcode",
+   "values": {
+    "name": "Install Barcode",
+    "model_id": {
+     "$ref": "stock.model_stock_picking_type"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking_type"
+    },
+    "state": "code",
+    "code": "action = model.action_redirect_to_barcode_installation()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_get_picking_type_operations",
+   "values": {
+    "name": "Operations",
+    "res_model": "stock.move.line",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "stock.view_move_line_tree_detailed"
+       }
+      }
+     ]
+    ],
+    "domain": {
+     "$unevaluated": "[('picking_type_id', '=', active_id), ('picking_id', '!=', False)]"
+    },
+    "context": {
+     "search_default_todo": "1"
+    },
+    "search_view_id": {
+     "$ref": "stock_move_line_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_form",
+   "values": {
+    "name": "New Transfer",
+    "res_model": "stock.picking",
+    "view_mode": "form",
+    "domain": "",
+    "context": {
+     "$unevaluated": "{\n                    'search_default_picking_type_id': [active_id],\n                    'default_picking_type_id': active_id,\n                    'contact_disp"
+    },
+    "search_view_id": {
+     "$ref": "view_picking_internal_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "do_view_pickings",
+   "values": {
+    "name": "Transfers for Groups",
+    "res_model": "stock.picking",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "[('group_id','=',active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "stock_split_picking",
+   "values": {
+    "name": "Split",
+    "model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_model_id": {
+     "$ref": "stock.model_stock_picking"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "action = records.action_split_transfer()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_type_list",
+   "values": {
+    "name": "Operations Types",
+    "res_model": "stock.picking.type",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_picking_type_action",
+   "values": {
+    "name": "Inventory Overview",
+    "path": "inventory",
+    "res_model": "stock.picking.type",
+    "view_mode": "kanban,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_open_routes",
+   "values": {
+    "name": "Routes",
+    "model_id": {
+     "$ref": "product.model_product_template"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_user"
+      }
+     ]
+    ],
+    "state": "code",
+    "code": "action = model.action_open_routes_diagram()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_inventory_at_date",
+   "values": {
+    "name": "Inventory at Date",
+    "res_model": "stock.quantity.history",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_product_stock_view",
+   "values": {
+    "name": "Stock",
+    "res_model": "product.product",
+    "path": "stock-report",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "product_product_stock_tree"
+    },
+    "search_view_id": {
+     "$ref": "product_search_form_view_stock_report"
+    },
+    "context": {
+     "default_is_storable": true
+    },
+    "domain": [
+     [
+      "is_storable",
+      "=",
+      true
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_template_action_product",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "view_mode": "kanban,list,form",
+    "search_view_id": {
+     "$ref": "product_template_search_form_view_stock"
+    },
+    "context": {
+     "search_default_goods": 1,
+     "default_is_storable": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "stock_product_normal_action",
+   "values": {
+    "name": "Product Variants",
+    "res_model": "product.product",
+    "view_mode": "list,form,kanban",
+    "search_view_id": {
+     "$ref": "stock_product_search_form_view"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_product_location_open",
+   "values": {
+    "name": "Products",
+    "res_model": "product.product",
+    "context": {
+     "$unevaluated": "{'location': active_id, 'search_default_real_stock_available': 1, 'search_default_virtual_stock_available': 1,\n                    'search_default_virtual_stock"
+    },
+    "search_view_id": {
+     "$ref": "stock.stock_product_search_form_view"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_storage_category_locations",
+   "values": {
+    "name": "Locations",
+    "res_model": "stock.location",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "[('storage_category_id', '=', active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_location_form",
+   "values": {
+    "name": "Locations",
+    "res_model": "stock.location",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "view_location_tree2"
+    },
+    "search_view_id": {
+     "$ref": "view_location_search"
+    },
+    "context": {
+     "search_default_in_location": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_prod_inv_location_form",
+   "values": {
+    "name": "Locations",
+    "res_model": "stock.location",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "view_location_tree2"
+    },
+    "search_view_id": {
+     "$ref": "view_location_search"
+    },
+    "context": {
+     "search_default_prod_inv_location": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_routes_form",
+   "values": {
+    "name": "Routes",
+    "res_model": "stock.route",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "stock_location_route_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_orderpoint_replenish",
+   "values": {
+    "name": "Replenishment",
+    "res_model": "stock.warehouse.orderpoint",
+    "view_mode": "list,kanban,form",
+    "view_id": {
+     "$ref": "view_warehouse_orderpoint_tree_editable"
+    },
+    "search_view_id": {
+     "$ref": "stock_reorder_report_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_orderpoint",
+   "values": {
+    "name": "Reordering Rules",
+    "res_model": "stock.warehouse.orderpoint",
+    "view_mode": "list,kanban,form",
+    "view_id": {
+     "$ref": "view_warehouse_orderpoint_tree_editable"
+    },
+    "search_view_id": {
+     "$ref": "warehouse_orderpoint_search"
+    },
+    "context": {
+     "search_default_trigger": "auto"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_replenishment",
+   "values": {
+    "name": "Replenishment",
+    "model_id": {
+     "$ref": "model_stock_warehouse_orderpoint"
+    },
+    "state": "code",
+    "path": "replenishment",
+    "code": "action = model.with_context(\n                search_default_filter_not_snoozed=True,\n                default_trigger='manual',\n                searchpanel_default_trigger='manual'\n            ).action_open_orderpoints()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_storage_category",
+   "values": {
+    "name": "Storage Categories",
+    "res_model": "stock.storage.category",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "stock_storage_category_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_storage_category_capacity",
+   "values": {
+    "name": "Storage Category Capacity",
+    "res_model": "stock.storage.category.capacity",
+    "view_mode": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_stock_config_settings",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "stock",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_rules_form",
+   "values": {
+    "name": "Rules",
+    "res_model": "stock.rule",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_package_type_view",
+   "values": {
+    "name": "Package Types",
+    "res_model": "stock.package.type",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "stock.stock_package_type_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "stock.stock_package_type_form"
+       }
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "stock_forecasted_product_product_action",
+   "values": {
+    "name": "Forecasted Report",
+    "tag": "stock_forecasted",
+    "res_model": "product.product"
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "stock_forecasted_product_template_action",
+   "values": {
+    "name": "Forecasted Report",
+    "tag": "stock_forecasted",
+    "res_model": "product.template"
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "stock_location_14",
+   "values": {
+    "name": "Shelf 2",
+    "posx": "0",
+    "barcode": "SHELF2",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "stock_location_components",
+   "values": {
+    "name": "Shelf 1",
+    "posx": "0",
+    "barcode": "SHELF1",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "location_order",
+   "values": {
+    "name": "Order Processing",
+    "usage": "internal",
+    "location_id": {
+     "$ref": "stock.stock_location_company"
+    }
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "location_dispatch_zone",
+   "values": {
+    "name": "Dispatch Zone",
+    "usage": "internal",
+    "location_id": {
+     "$ref": "stock.location_order"
+    }
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "location_gate_a",
+   "values": {
+    "name": "Gate A",
+    "usage": "internal",
+    "location_id": {
+     "$ref": "stock.location_dispatch_zone"
+    }
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "location_gate_b",
+   "values": {
+    "name": "Gate B",
+    "usage": "internal",
+    "location_id": {
+     "$ref": "stock.location_dispatch_zone"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_3",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_4",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_5",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_6",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_7",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_8",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_9",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_10",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_11",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_12",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_13",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_16",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_20",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_22",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_24",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_25",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_27",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_delivery_02",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_delivery_01",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.consu_delivery_03",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.consu_delivery_02",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.consu_delivery_01",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_order_01",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.desk_organizer",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.desk_pad",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.monitor_stand",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "group_stock_manager"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "group_stock_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_27",
+   "values": {
+    "tracking": "lot"
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_27",
+   "values": {
+    "name": "0000000000029",
+    "product_id": {
+     "$ref": "product.product_product_27"
+    }
+   }
+  },
+  {
+   "model": "stock.package.type",
+   "id": "package_type_01",
+   "values": {
+    "name": "Pallet",
+    "barcode": "PAL",
+    "max_weight": "4000",
+    "width": "800",
+    "height": "130",
+    "packaging_length": "1200"
+   }
+  },
+  {
+   "model": "stock.package.type",
+   "id": "package_type_02",
+   "values": {
+    "name": "Box",
+    "barcode": "BOX",
+    "max_weight": "30",
+    "width": "362",
+    "height": "374",
+    "packaging_length": "562"
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_1",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_24"
+    },
+    "inventory_quantity": "16.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_2",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_7"
+    },
+    "inventory_quantity": "18.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_3",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_6"
+    },
+    "inventory_quantity": "500.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_4",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_9"
+    },
+    "inventory_quantity": "22.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_5",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_10"
+    },
+    "inventory_quantity": "33.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_6",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_11"
+    },
+    "inventory_quantity": "26.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_6b",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_11b"
+    },
+    "inventory_quantity": "30.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_7",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_4"
+    },
+    "inventory_quantity": "45.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_7b",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_4b"
+    },
+    "inventory_quantity": "50.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_7c",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_4c"
+    },
+    "inventory_quantity": "55.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_11",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "inventory_quantity": "10.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_12",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_13"
+    },
+    "inventory_quantity": "2.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_13",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_27"
+    },
+    "inventory_quantity": "80.0",
+    "lot_id": {
+     "$ref": "lot_product_27"
+    },
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_14",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_3"
+    },
+    "inventory_quantity": "60.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_15",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_25"
+    },
+    "inventory_quantity": "16.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "res_partner_company_1",
+   "values": {
+    "name": "My Company, Chicago",
+    "is_company": "1",
+    "active": 1,
+    "street": "90 Streets Avenue",
+    "country_id": {
+     "$unevaluated": "search"
+    },
+    "state_id": {
+     "$unevaluated": "search"
+    },
+    "zip": "60610",
+    "city": "Chicago",
+    "email": "chicago@yourcompany.com",
+    "phone": "+1 312 349 3030",
+    "website": "www.example.com",
+    "company_id": false
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "res_partner_address_41",
+   "values": {
+    "name": "Jeff Lawson",
+    "parent_id": {
+     "$ref": "res_partner_company_1"
+    },
+    "email": "jeff.lawson52@example.com",
+    "phone": "(461)-417-6587",
+    "image_1920": "",
+    "company_id": false
+   }
+  },
+  {
+   "model": "res.company",
+   "id": "res_company_1",
+   "values": {
+    "currency_id": {
+     "$ref": "base.USD"
+    },
+    "partner_id": {
+     "$ref": "res_partner_company_1"
+    },
+    "name": "My Company (Chicago)",
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_multi_company",
+   "values": {
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.company",
+   "id": "base.main_company",
+   "values": {
+    "name": "My Company (San Francisco)"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_user",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "stock.group_production_lot"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_portal",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "stock.group_production_lot"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "stock.location",
+   "id": "location_refrigerator_small",
+   "values": {
+    "name": "Small Refrigerator",
+    "usage": "internal",
+    "location_id": {
+     "$ref": "stock.stock_location_14"
+    },
+    "barcode": "REFRIG"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_cable_management_box",
+   "values": {
+    "default_code": "FURN_5555",
+    "name": "Cable Management Box",
+    "is_storable": true,
+    "weight": "1.0",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "lst_price": "100.0",
+    "standard_price": "70.0",
+    "tracking": "lot",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_cable_management",
+   "values": {
+    "name": "LOT-000001",
+    "product_id": {
+     "$ref": "stock.product_cable_management_box"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_cable_management_box_0",
+   "values": {
+    "name": "CM-BOX-00001",
+    "product_id": {
+     "$ref": "stock.product_cable_management_box"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_cable_management_box_1",
+   "values": {
+    "name": "CM-BOX-00002",
+    "product_id": {
+     "$ref": "stock.product_cable_management_box"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_icecream_lot_0",
+   "values": {
+    "product_id": {
+     "$ref": "stock.product_cable_management_box"
+    },
+    "inventory_quantity": "50.0",
+    "location_id": {
+     "$ref": "stock.stock_location_14"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_cable_management_box_0"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_icecream_lot_1",
+   "values": {
+    "product_id": {
+     "$ref": "stock.product_cable_management_box"
+    },
+    "inventory_quantity": "40.0",
+    "location_id": {
+     "$ref": "stock.stock_location_14"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_cable_management_box_1"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "outgoing_shipment_main_warehouse",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "origin": "outgoing shipment",
+    "user_id": "",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "scheduled_date": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_product_27').name,                 'product_id': ref('p"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "outgoing_shipment_main_warehouse1",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "origin": "outgoing shipment",
+    "user_id": "",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "scheduled_date": {
+     "$unevaluated": "DateTime.today() - timedelta(days=15)"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_product_6').name,                 'product_id': ref('pr"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "outgoing_shipment_main_warehouse2",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "origin": "outgoing shipment",
+    "user_id": "",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "scheduled_date": {
+     "$unevaluated": "DateTime.today() - timedelta(days=5)"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_delivery_02').name,                 'product_id': ref('"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "outgoing_shipment_main_warehouse3",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "user_id": "",
+    "origin": "your company warehouse",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "scheduled_date": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_product_5').name,                 'product_id': ref('pr"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "outgoing_shipment_main_warehouse4",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "origin": "outgoing shipment",
+    "user_id": "",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "scheduled_date": {
+     "$unevaluated": "DateTime.today() - timedelta(days=7)"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_product_3').name,                 'product_id': ref('pr"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "outgoing_shipment_main_warehouse5",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "origin": "outgoing shipment",
+    "user_id": "",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "scheduled_date": {
+     "$unevaluated": "DateTime.today() - timedelta(days=12)"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_product_3').name,                 'product_id': ref('pr"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "outgoing_shipment_main_warehouse6",
+   "values": {
+    "picking_type_id": {
+     "$ref": "stock.picking_type_out"
+    },
+    "origin": "outgoing shipment",
+    "user_id": "",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "scheduled_date": {
+     "$unevaluated": "DateTime.today() - timedelta(days=20)"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_customers"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_product_6').name,                 'product_id': ref('pr"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "incomming_shipment",
+   "values": {
+    "user_id": "",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_in"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_suppliers"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('stock.product_cable_management_box').name,                 'product_id'"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "incomming_shipment1",
+   "values": {
+    "user_id": "",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_in"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "scheduled_date": {
+     "$unevaluated": "DateTime.today() - timedelta(days=5)"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_suppliers"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_delivery_01').name,                 'product_id': ref('"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "incomming_shipment2",
+   "values": {
+    "user_id": "",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_in"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_suppliers"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_product_22').name,                 'product_id': ref('p"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "incomming_shipment3",
+   "values": {
+    "user_id": "",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_in"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_suppliers"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_product_10').name,                 'product_id': ref('p"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "incomming_shipment4",
+   "values": {
+    "user_id": "",
+    "picking_type_id": {
+     "$ref": "stock.picking_type_in"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "location_id": {
+     "$ref": "stock.stock_location_suppliers"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "state": "draft",
+    "move_ids": {
+     "$unevaluated": "[(0, 0, {                 'name': obj().env.ref('product.product_delivery_02').name,                 'product_id': ref('"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "stock.outgoing_shipment_main_warehouse5",
+   "values": {
+    "date_done": {
+     "$unevaluated": "DateTime.today() - timedelta(days=17)"
+    }
+   }
+  },
+  {
+   "model": "stock.picking",
+   "id": "stock.outgoing_shipment_main_warehouse6",
+   "values": {
+    "date_done": {
+     "$unevaluated": "DateTime.today() - timedelta(days=7)"
+    }
+   }
+  },
+  {
+   "model": "stock.warehouse.orderpoint",
+   "id": "stock_warehouse_orderpoint_1",
+   "values": {
+    "product_max_qty": "10.0",
+    "product_min_qty": "5.0",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "warehouse_id": {
+     "$unevaluated": "search"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_02"
+    },
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.warehouse.orderpoint",
+   "id": "stock_warehouse_orderpoint_2",
+   "values": {
+    "product_max_qty": "12.0",
+    "product_min_qty": "5.0",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "warehouse_id": {
+     "$unevaluated": "search"
+    },
+    "product_id": {
+     "$ref": "product.product_product_20"
+    },
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.warehouse.orderpoint",
+   "id": "stock_warehouse_orderpoint_5",
+   "values": {
+    "product_max_qty": "5.0",
+    "product_min_qty": "3.0",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "warehouse_id": {
+     "$unevaluated": "search"
+    },
+    "product_id": {
+     "$ref": "product.product_delivery_01"
+    },
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.storage.category",
+   "id": "stock_storage_category_high_small",
+   "values": {
+    "name": "High frequency - Small",
+    "max_weight": "200"
+   }
+  },
+  {
+   "model": "stock.storage.category",
+   "id": "stock_storage_category_high_big",
+   "values": {
+    "name": "High frequency - Big",
+    "max_weight": "3000"
+   }
+  },
+  {
+   "model": "stock.storage.category",
+   "id": "stock_storage_category_medium_small",
+   "values": {
+    "name": "Medium frequency - Small",
+    "max_weight": "200"
+   }
+  },
+  {
+   "model": "stock.storage.category",
+   "id": "stock_storage_category_medium_big",
+   "values": {
+    "name": "Medium frequency - Big",
+    "max_weight": "3000"
+   }
+  },
+  {
+   "model": "stock.storage.category",
+   "id": "stock_storage_category_low_small",
+   "values": {
+    "name": "Low frequency - Small",
+    "max_weight": "200"
+   }
+  },
+  {
+   "model": "stock.storage.category",
+   "id": "stock_storage_category_low_big",
+   "values": {
+    "name": "Low frequency - Big",
+    "max_weight": "3000"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_stock_root",
+   "name": "Inventory",
+   "sequence": "140",
+   "groups": "group_stock_manager,group_stock_user",
+   "web_icon": "stock,static/description/icon.png"
+  },
+  {
+   "id": "menu_stock_warehouse_mgmt",
+   "name": "Operations",
+   "parent": "menu_stock_root",
+   "sequence": "2"
+  },
+  {
+   "id": "menu_stock_transfers",
+   "name": "Transfers",
+   "parent": "menu_stock_warehouse_mgmt",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_stock_adjustments",
+   "name": "Adjustments",
+   "parent": "menu_stock_warehouse_mgmt",
+   "sequence": "3"
+  },
+  {
+   "id": "menu_stock_procurement",
+   "name": "Procurement",
+   "parent": "menu_stock_warehouse_mgmt",
+   "sequence": "4"
+  },
+  {
+   "id": "menu_stock_config_settings",
+   "name": "Configuration",
+   "parent": "menu_stock_root",
+   "sequence": "100",
+   "groups": "group_stock_manager"
+  },
+  {
+   "id": "menu_warehouse_config",
+   "name": "Warehouse Management",
+   "parent": "menu_stock_config_settings",
+   "sequence": "1",
+   "groups": "stock.group_stock_manager"
+  },
+  {
+   "id": "menu_product_in_config_stock",
+   "name": "Products",
+   "parent": "stock.menu_stock_config_settings",
+   "sequence": "4"
+  },
+  {
+   "id": "menu_wms_barcode_nomenclature_all",
+   "parent": "menu_product_in_config_stock",
+   "action": "barcodes.action_barcode_nomenclature_form",
+   "sequence": "50",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "product_uom_menu",
+   "name": "Units of Measures",
+   "parent": "menu_stock_config_settings",
+   "sequence": "5",
+   "groups": "uom.group_uom"
+  },
+  {
+   "id": "menu_product_category_config_stock",
+   "parent": "stock.menu_product_in_config_stock",
+   "action": "product.product_category_action_form",
+   "sequence": "2"
+  },
+  {
+   "id": "menu_attribute_action",
+   "parent": "stock.menu_product_in_config_stock",
+   "action": "product.attribute_action",
+   "sequence": "4",
+   "groups": "product.group_product_variant"
+  },
+  {
+   "id": "menu_stock_uom_categ_form_action",
+   "name": "UoM Categories",
+   "parent": "product_uom_menu",
+   "action": "uom.product_uom_categ_form_action",
+   "sequence": "5"
+  },
+  {
+   "id": "menu_stock_unit_measure_stock",
+   "name": "Units of Measure",
+   "parent": "stock.menu_product_in_config_stock",
+   "sequence": "35",
+   "groups": "uom.group_uom"
+  },
+  {
+   "id": "menu_stock_uom_form_action",
+   "name": "UoM",
+   "parent": "product_uom_menu",
+   "action": "uom.product_uom_form_action",
+   "sequence": "35",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_stock_inventory_control",
+   "name": "Products",
+   "parent": "menu_stock_root",
+   "sequence": "4"
+  },
+  {
+   "id": "stock.menu_warehouse_report",
+   "name": "Reporting",
+   "parent": "stock.menu_stock_root",
+   "sequence": "99",
+   "groups": "group_stock_manager"
+  },
+  {
+   "id": "menu_putaway",
+   "name": "Putaway Rules",
+   "parent": "stock.menu_warehouse_config",
+   "action": "action_putaway_tree",
+   "sequence": "8",
+   "groups": "stock.group_stock_multi_locations"
+  },
+  {
+   "id": "menu_action_production_lot_form",
+   "parent": "menu_stock_inventory_control",
+   "action": "action_production_lot_form",
+   "sequence": "101",
+   "groups": "stock.group_production_lot"
+  },
+  {
+   "id": "menu_stock_scrap",
+   "name": "Scrap",
+   "parent": "menu_stock_adjustments",
+   "action": "action_stock_scrap",
+   "sequence": "99"
+  },
+  {
+   "id": "menu_action_inventory_tree",
+   "name": "Physical Inventory",
+   "parent": "menu_stock_adjustments",
+   "action": "action_view_inventory_tree",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_package",
+   "name": "Packages",
+   "parent": "menu_stock_inventory_control",
+   "action": "action_package_view",
+   "sequence": "102",
+   "groups": "stock.group_tracking_lot"
+  },
+  {
+   "id": "menu_valuation",
+   "name": "Locations",
+   "parent": "stock.menu_warehouse_report",
+   "action": "action_view_quants",
+   "sequence": "150",
+   "groups": "stock.group_stock_multi_locations,stock.group_tracking_owner,base.group_no_one"
+  },
+  {
+   "id": "menu_action_warehouse_form",
+   "parent": "menu_warehouse_config",
+   "action": "action_warehouse_form",
+   "sequence": "1"
+  },
+  {
+   "id": "stock_move_line_menu",
+   "parent": "stock.menu_warehouse_report",
+   "action": "stock_move_line_action",
+   "sequence": "200"
+  },
+  {
+   "id": "stock_move_menu",
+   "name": "Moves Analysis",
+   "parent": "stock.menu_warehouse_report",
+   "action": "stock_move_action",
+   "sequence": "230"
+  },
+  {
+   "id": "in_picking",
+   "name": "Receipts",
+   "parent": "menu_stock_transfers",
+   "action": "stock.method_action_picking_tree_incoming",
+   "sequence": "20",
+   "groups": "stock.group_stock_manager,stock.group_stock_user"
+  },
+  {
+   "id": "out_picking",
+   "name": "Deliveries",
+   "parent": "menu_stock_transfers",
+   "action": "stock.method_action_picking_tree_outgoing",
+   "sequence": "21",
+   "groups": "stock.group_stock_manager,stock.group_stock_user"
+  },
+  {
+   "id": "int_picking",
+   "name": "Internal",
+   "parent": "menu_stock_transfers",
+   "action": "stock.method_action_picking_tree_internal",
+   "sequence": "22",
+   "groups": "stock.group_stock_multi_locations"
+  },
+  {
+   "id": "menu_pickingtype",
+   "name": "Operations Types",
+   "parent": "stock.menu_warehouse_config",
+   "action": "action_picking_type_list",
+   "sequence": "2"
+  },
+  {
+   "id": "stock_picking_type_menu",
+   "name": "Overview",
+   "parent": "menu_stock_root",
+   "action": "stock_picking_type_action",
+   "sequence": "0"
+  },
+  {
+   "id": "menu_product_variant_config_stock",
+   "name": "Products",
+   "parent": "stock.menu_stock_inventory_control",
+   "action": "product_template_action_product",
+   "sequence": "1"
+  },
+  {
+   "id": "product_product_menu",
+   "name": "Product Variants",
+   "parent": "menu_stock_inventory_control",
+   "action": "stock_product_normal_action",
+   "sequence": "2",
+   "groups": "product.group_product_variant"
+  },
+  {
+   "id": "menu_product_packagings",
+   "name": "Product Packagings",
+   "parent": "stock.menu_product_in_config_stock",
+   "action": "product.action_packaging_view",
+   "groups": "product.group_stock_packaging"
+  },
+  {
+   "id": "menu_product_stock",
+   "name": "Stock",
+   "parent": "stock.menu_warehouse_report",
+   "action": "stock.action_product_stock_view",
+   "sequence": "5"
+  },
+  {
+   "id": "menu_action_location_form",
+   "parent": "menu_warehouse_config",
+   "action": "action_location_form",
+   "sequence": "3",
+   "groups": "stock.group_stock_multi_locations"
+  },
+  {
+   "id": "menu_routes_config",
+   "name": "Routes",
+   "parent": "menu_warehouse_config",
+   "action": "action_routes_form",
+   "sequence": "4",
+   "groups": "stock.group_adv_location"
+  },
+  {
+   "id": "menu_reordering_rules_replenish",
+   "name": "Replenishment",
+   "parent": "menu_stock_procurement",
+   "action": "action_replenishment",
+   "sequence": "5",
+   "groups": "stock.group_stock_manager"
+  },
+  {
+   "id": "menu_storage_categoty_config",
+   "name": "Storage Categories",
+   "parent": "menu_warehouse_config",
+   "action": "action_storage_category",
+   "sequence": "6",
+   "groups": "stock.group_stock_multi_locations"
+  },
+  {
+   "id": "menu_stock_config_settings",
+   "name": "Configuration",
+   "parent": "menu_stock_root",
+   "sequence": "100",
+   "groups": "group_stock_manager"
+  },
+  {
+   "id": "menu_stock_general_settings",
+   "name": "Settings",
+   "parent": "menu_stock_config_settings",
+   "action": "action_stock_config_settings",
+   "sequence": "0",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "menu_action_rules_form",
+   "parent": "menu_warehouse_config",
+   "action": "action_rules_form",
+   "sequence": "5",
+   "groups": "stock.group_adv_location"
+  },
+  {
+   "id": "stock.menu_procurement_compute",
+   "parent": "menu_stock_warehouse_mgmt",
+   "action": "ir_cron_scheduler_action_ir_actions_server",
+   "sequence": "135",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_delivery",
+   "name": "Delivery",
+   "parent": "stock.menu_stock_config_settings",
+   "sequence": "50",
+   "groups": "stock.group_stock_manager"
+  },
+  {
+   "id": "menu_packaging_types",
+   "name": "Package Types",
+   "parent": "menu_delivery",
+   "action": "action_package_type_view",
+   "groups": "stock.group_tracking_lot"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_procurement_group",
+   "model": "procurement.group",
+   "model_xmlid": "model_procurement_group",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_warehouse_manager",
+   "model": "stock.warehouse",
+   "model_xmlid": "model_stock_warehouse",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_warehouse_user",
+   "model": "stock.warehouse",
+   "model_xmlid": "model_stock_warehouse",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_location_partner_manager",
+   "model": "stock.location",
+   "model_xmlid": "model_stock_location",
+   "group": "base.group_partner_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_location_manager",
+   "model": "stock.location",
+   "model_xmlid": "model_stock_location",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_location_all_user",
+   "model": "stock.location",
+   "model_xmlid": "model_stock_location",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_location_user",
+   "model": "stock.location",
+   "model_xmlid": "model_stock_location",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_picking_user",
+   "model": "stock.picking",
+   "model_xmlid": "model_stock_picking",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_picking_manager",
+   "model": "stock.picking",
+   "model_xmlid": "model_stock_picking",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_picking_type_all",
+   "model": "stock.picking.type",
+   "model_xmlid": "model_stock_picking_type",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_picking_type_user",
+   "model": "stock.picking.type",
+   "model_xmlid": "model_stock_picking_type",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_picking_type_manager",
+   "model": "stock.picking.type",
+   "model_xmlid": "model_stock_picking_type",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_lot_user",
+   "model": "stock.lot",
+   "model_xmlid": "model_stock_lot",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_move_manager",
+   "model": "stock.move",
+   "model_xmlid": "model_stock_move",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_move_user",
+   "model": "stock.move",
+   "model_xmlid": "model_stock_move",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_stock_user",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_template_stock_user",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_uom_category_stock_manager",
+   "model": "uom.uom.category",
+   "model_xmlid": "uom.model_uom_category",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_uom_uom_stock_manager",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_category_stock_manager",
+   "model": "product.product.category",
+   "model_xmlid": "product.model_product_category",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_stock_manager",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_stock_manager",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_packaging_stock_manager",
+   "model": "product.product.packaging",
+   "model_xmlid": "product.model_product_packaging",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_supplierinfo_stock_manager",
+   "model": "product.product.supplierinfo",
+   "model_xmlid": "product.model_product_supplierinfo",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_stock_manager",
+   "model": "product.product.pricelist",
+   "model_xmlid": "product.model_product_pricelist",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_group_res_partner_stock_manager",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_product_pricelist_item_stock_manager",
+   "model": "product.product.pricelist.item",
+   "model_xmlid": "product.model_product_pricelist_item",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_tag_stock_manager",
+   "model": "product.product.tag",
+   "model_xmlid": "product.model_product_tag",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_warehouse_orderpoint",
+   "model": "stock.warehouse.orderpoint",
+   "model_xmlid": "model_stock_warehouse_orderpoint",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_warehouse_orderpoint_system",
+   "model": "stock.warehouse.orderpoint",
+   "model_xmlid": "model_stock_warehouse_orderpoint",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_quant_user",
+   "model": "stock.quant",
+   "model_xmlid": "model_stock_quant",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_quant_all",
+   "model": "stock.quant",
+   "model_xmlid": "model_stock_quant",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_quant_package_all",
+   "model": "stock.quant.package",
+   "model_xmlid": "model_stock_quant_package",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_quant_package_stock_manager",
+   "model": "stock.quant.package",
+   "model_xmlid": "model_stock_quant_package",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_quant_package_stock_user",
+   "model": "stock.quant.package",
+   "model_xmlid": "model_stock_quant_package",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_package_level_all",
+   "model": "stock.package.level",
+   "model_xmlid": "model_stock_package_level",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_package_level_stock_manager",
+   "model": "stock.package.level",
+   "model_xmlid": "model_stock_package_level",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_package_level_stock_user",
+   "model": "stock.package.level",
+   "model_xmlid": "model_stock_package_level",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_rule_user",
+   "model": "stock.rule",
+   "model_xmlid": "model_stock_rule",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_rule_stock_manager",
+   "model": "stock.rule",
+   "model_xmlid": "model_stock_rule",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_location_route_stock_manager",
+   "model": "stock.route",
+   "model_xmlid": "model_stock_route",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_location_route",
+   "model": "stock.route",
+   "model_xmlid": "model_stock_route",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_rule_internal",
+   "model": "stock.rule",
+   "model_xmlid": "model_stock_rule",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_move_line_manager",
+   "model": "stock.move.line",
+   "model_xmlid": "model_stock_move_line",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_move_line_user",
+   "model": "stock.move.line",
+   "model_xmlid": "model_stock_move_line",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_move_line_all",
+   "model": "stock.move.line",
+   "model_xmlid": "model_stock_move_line",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_putaway_all",
+   "model": "stock.putaway.rule",
+   "model_xmlid": "model_stock_putaway_rule",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_putaway_manager",
+   "model": "stock.putaway.rule",
+   "model_xmlid": "model_stock_putaway_rule",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_removal_all",
+   "model": "product.removal",
+   "model_xmlid": "model_product_removal",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_barcode_nomenclature_stock_user",
+   "model": "barcodes.barcode.nomenclature",
+   "model_xmlid": "barcodes.model_barcode_nomenclature",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_barcode_nomenclature_stock_manager",
+   "model": "barcodes.barcode.nomenclature",
+   "model_xmlid": "barcodes.model_barcode_nomenclature",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_barcode_rule_stock_user",
+   "model": "barcodes.barcode.rule",
+   "model_xmlid": "barcodes.model_barcode_rule",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_barcode_rule_stock_manager",
+   "model": "barcodes.barcode.rule",
+   "model_xmlid": "barcodes.model_barcode_rule",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_scrap_user",
+   "model": "stock.scrap",
+   "model_xmlid": "model_stock_scrap",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_scrap_manager",
+   "model": "stock.scrap",
+   "model_xmlid": "model_stock_scrap",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_scrap_reason_tag_user",
+   "model": "stock.scrap.reason.tag",
+   "model_xmlid": "model_stock_scrap_reason_tag",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_scrap_reason_tag_manager",
+   "model": "stock.scrap.reason.tag",
+   "model_xmlid": "model_stock_scrap_reason_tag",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_manager",
+   "model": "product.product.attribute",
+   "model_xmlid": "product.model_product_attribute",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_value_manager",
+   "model": "product.product.attribute.value",
+   "model_xmlid": "product.model_product_attribute_value",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_update_product_attribute_value_stock_manager",
+   "model": "product.update.product.attribute.value",
+   "model_xmlid": "product.model_update_product_attribute_value",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_attribute_manager",
+   "model": "product.product.template.attribute.value",
+   "model_xmlid": "product.model_product_template_attribute_value",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_attribute_exclusion_manager",
+   "model": "product.product.template.attribute.exclusion",
+   "model_xmlid": "product.model_product_template_attribute_exclusion",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_attribute_line_manager",
+   "model": "product.product.template.attribute.line",
+   "model_xmlid": "product.model_product_template_attribute_line",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_report_stock_quantity",
+   "model": "report.stock.quantity",
+   "model_xmlid": "model_report_stock_quantity",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_traceability_report",
+   "model": "stock.traceability.report",
+   "model_xmlid": "model_stock_traceability_report",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_return_picking_line",
+   "model": "stock.return.picking.line",
+   "model_xmlid": "model_stock_return_picking_line",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_return_picking",
+   "model": "stock.return.picking",
+   "model_xmlid": "model_stock_return_picking",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_change_product_qty",
+   "model": "stock.change.product.qty",
+   "model_xmlid": "model_stock_change_product_qty",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_backorder_confirmation_line",
+   "model": "stock.backorder.confirmation.line",
+   "model_xmlid": "model_stock_backorder_confirmation_line",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_backorder_confirmation",
+   "model": "stock.backorder.confirmation",
+   "model_xmlid": "model_stock_backorder_confirmation",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_quantity_history",
+   "model": "stock.quantity.history",
+   "model_xmlid": "model_stock_quantity_history",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_rules_report",
+   "model": "stock.rules.report",
+   "model_xmlid": "model_stock_rules_report",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_warn_insufficient_qty_scrap",
+   "model": "stock.warn.insufficient.qty.scrap",
+   "model_xmlid": "model_stock_warn_insufficient_qty_scrap",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_product_replenish",
+   "model": "product.replenish",
+   "model_xmlid": "model_product_replenish",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_track_confirmation",
+   "model": "stock.track.confirmation",
+   "model_xmlid": "model_stock_track_confirmation",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_track_line",
+   "model": "stock.track.line",
+   "model_xmlid": "model_stock_track_line",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_package_destination",
+   "model": "stock.package.destination",
+   "model_xmlid": "model_stock_package_destination",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_orderpoint_snooze",
+   "model": "stock.orderpoint.snooze",
+   "model_xmlid": "model_stock_orderpoint_snooze",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_package_type_user",
+   "model": "stock.package.type",
+   "model_xmlid": "model_stock_package_type",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_package_type_manager",
+   "model": "stock.package.type",
+   "model_xmlid": "model_stock_package_type",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_storage_category_user",
+   "model": "stock.storage.category",
+   "model_xmlid": "model_stock_storage_category",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_storage_category_manager",
+   "model": "stock.storage.category",
+   "model_xmlid": "model_stock_storage_category",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_storage_category_capacity_user",
+   "model": "stock.storage.category.capacity",
+   "model_xmlid": "model_stock_storage_category_capacity",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_storage_category_capacity_manager",
+   "model": "stock.storage.category.capacity",
+   "model_xmlid": "model_stock_storage_category_capacity",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_inventory_conflict",
+   "model": "stock.inventory.conflict",
+   "model_xmlid": "model_stock_inventory_conflict",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_inventory_warning",
+   "model": "stock.inventory.warning",
+   "model_xmlid": "model_stock_inventory_warning",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_inventory_adjustment_name_manager",
+   "model": "stock.inventory.adjustment.name",
+   "model_xmlid": "model_stock_inventory_adjustment_name",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_inventory_adjustment_name_user",
+   "model": "stock.inventory.adjustment.name",
+   "model_xmlid": "model_stock_inventory_adjustment_name",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_request_count",
+   "model": "stock.request.count",
+   "model_xmlid": "model_stock_request_count",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_replenishment_info",
+   "model": "stock.replenishment.info",
+   "model_xmlid": "model_stock_replenishment_info",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_picking_label_type_user",
+   "model": "picking.label.type",
+   "model_xmlid": "model_picking_label_type",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_lot_label_layout_user",
+   "model": "lot.label.layout",
+   "model_xmlid": "model_lot_label_layout",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_replenish_option",
+   "model": "stock.replenishment.option",
+   "model_xmlid": "model_stock_replenishment_option",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_quant_relocate",
+   "model": "stock.quant.relocate",
+   "model_xmlid": "model_stock_quant_relocate",
+   "group": "stock.group_stock_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_lot_report",
+   "model": "stock.lot.report",
+   "model_xmlid": "model_stock_lot_report",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

@@ -1,0 +1,198 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/Website",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/crm_lead_merge_template.xml",
+  "data/ir_actions_data.xml",
+  "data/ir_model_data.xml",
+  "views/crm_lead_views.xml",
+  "views/website_visitor_views.xml",
+  "views/website_templates_contactus.xml"
+ ],
+ "depends": [
+  "website",
+  "crm"
+ ],
+ "models": {
+  "crm.lead": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "visitor_ids": {
+     "comodel": "website.visitor",
+     "string": "Web Visitors",
+     "type": "Many2many"
+    },
+    "visitor_page_count": {
+     "compute": "_compute_visitor_page_count",
+     "string": "# Page Views",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('visitor_ids.page_ids')"
+     ],
+     "lines": 17,
+     "name": "_compute_visitor_page_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_redirect_to_page_views"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_merge_get_fields_specific"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "website_form_input_filter"
+    }
+   ],
+   "name": "crm.lead",
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "crm_default_team_id": {
+     "comodel": "crm.team",
+     "default": {
+      "$lambda": "self.env['crm.team'].search([], limit=1)"
+     },
+     "domain": {
+      "$lambda": "self._get_crm_default_team_domain()"
+     },
+     "help": "Default Sales Team for new leads created through the Contact Us form.",
+     "string": "Default Sales Teams",
+     "type": "Many2one"
+    },
+    "crm_default_user_id": {
+     "comodel": "res.users",
+     "domain": [
+      [
+       "share",
+       "=",
+       false
+      ]
+     ],
+     "help": "Default salesperson for new leads created through the Contact Us form.",
+     "string": "Default Salesperson",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_crm_default_team_domain"
+    }
+   ],
+   "name": "website",
+   "sel_methods": {
+    "_get_crm_default_team_domain": [
+     [
+      "use_leads",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "website.visitor": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "lead_count": {
+     "compute": "_compute_lead_count",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "# Leads",
+     "type": "Integer"
+    },
+    "lead_ids": {
+     "comodel": "crm.lead",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Leads",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_lead_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id.email_normalized', 'partner_id.mobile', 'lead_ids.email_normalized', 'lead_ids.mobile')"
+     ],
+     "lines": 13,
+     "name": "_compute_email_phone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_check_for_message_composer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inactive_visitors_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_merge_visitor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_message_composer_context"
+    }
+   ],
+   "name": "website.visitor",
+   "sel_methods": {
+    "_merge_visitor": [],
+    "_prepare_message_composer_context": []
+   },
+   "transient": false
+  }
+ },
+ "module": "website_crm",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_crm",
+ "stats": {
+  "fields": 6,
+  "methods": 11,
+  "models": 3,
+  "py_lines": 264
+ },
+ "summary": "Generate leads from a contact form",
+ "title": "Contact Form",
+ "version": "2.1"
+}

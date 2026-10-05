@@ -1,0 +1,381 @@
+{
+ "module": "repair",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "repair_order_rule",
+   "values": {
+    "name": "repair order multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_repair_move_lines",
+   "values": {
+    "name": "Inventory Moves",
+    "res_model": "stock.move.line",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "[('move_id.repair_id', '=', active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_repair_order_form",
+   "values": {
+    "name": "Repair Orders",
+    "type": "ir.actions.act_window",
+    "res_model": "repair.order",
+    "view_mode": "form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_repair_order_tree",
+   "values": {
+    "name": "Repair Orders",
+    "path": "repairs",
+    "res_model": "repair.order",
+    "view_mode": "list,kanban,graph,pivot,form,activity",
+    "search_view_id": {
+     "$ref": "view_repair_order_form_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_repair_order_graph",
+   "values": {
+    "name": "Repair Orders",
+    "context": {
+     "search_default_product": 1,
+     "search_default_createDate": 1
+    },
+    "res_model": "repair.order",
+    "view_mode": "list,kanban,graph,pivot,form",
+    "view_id": {
+     "$ref": "view_repair_graph"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_repair",
+   "values": {
+    "name": "Repair Orders",
+    "type": "ir.actions.act_window",
+    "res_model": "repair.order",
+    "view_mode": "list,kanban,form",
+    "view_id": false,
+    "search_view_id": {
+     "$ref": "view_repair_order_form_filter"
+    },
+    "domain": {
+     "$unevaluated": "[('picking_type_id', '=', active_id)]"
+    },
+    "context": {
+     "$unevaluated": "{'default_picking_type_id': active_id}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_repair_graph",
+   "values": {
+    "name": "Repair Orders",
+    "type": "ir.actions.act_window",
+    "res_model": "repair.order",
+    "view_mode": "list,kanban,form",
+    "view_id": false,
+    "search_view_id": {
+     "$ref": "view_repair_order_form_filter"
+    },
+    "domain": [],
+    "context": {
+     "search_default_filter_confirmed": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_repair_order_tag",
+   "values": {
+    "name": "Tags",
+    "res_model": "repair.tags",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_repair_picking_type_kanban",
+   "values": {
+    "name": "Repair Overview",
+    "path": "repair-types",
+    "res_model": "stock.picking.type",
+    "view_mode": "kanban,form",
+    "domain": [
+     [
+      "code",
+      "=",
+      "repair_operation"
+     ]
+    ],
+    "view_id": {
+     "$ref": "stock.stock_picking_type_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_repair_overview",
+   "values": {
+    "name": "stock.repair.type.overview",
+    "model_id": {
+     "$ref": "model_stock_picking_type"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_user"
+      }
+     ]
+    ],
+    "state": "code",
+    "code": "action = model.action_repair_overview()"
+   }
+  },
+  {
+   "model": "stock.picking.type",
+   "id": "picking_type_warehouse0_repair",
+   "values": {
+    "name": "Repairs",
+    "code": "repair_operation",
+    "company_id": {
+     "$ref": "base.main_company"
+    },
+    "default_location_src_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "default_location_dest_id": {
+     "$unevaluated": "search"
+    },
+    "default_remove_location_dest_id": {
+     "$unevaluated": "search"
+    },
+    "default_recycle_location_dest_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "sequence_code": "RO",
+    "warehouse_id": {
+     "$ref": "stock.warehouse0"
+    }
+   }
+  },
+  {
+   "model": "stock.warehouse",
+   "id": "stock.warehouse0",
+   "values": {
+    "repair_type_id": {
+     "$ref": "repair.picking_type_warehouse0_repair"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_order_repair",
+   "values": {
+    "name": "Repair Services",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "standard_price": "20.5",
+    "list_price": "30.75",
+    "type": "service",
+    "create_repair": "True"
+   }
+  },
+  {
+   "model": "repair.order",
+   "id": "repair_r1",
+   "values": {
+    "schedule_date": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "user_id": "",
+    "product_id": {
+     "$ref": "product.product_product_3"
+    },
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "picking_type_id": {
+     "$ref": "picking_type_warehouse0_repair"
+    },
+    "move_ids": {
+     "$unevaluated": "[(5, 0, 0), (0, 0, {             'location_dest_id': obj().env.ref('product.product_product_11').property_stock_producti"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    }
+   }
+  },
+  {
+   "model": "repair.order",
+   "id": "repair_r0",
+   "values": {
+    "schedule_date": {
+     "$unevaluated": "DateTime.today()"
+    },
+    "product_id": {
+     "$ref": "product.product_product_5"
+    },
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "user_id": "",
+    "picking_type_id": {
+     "$ref": "picking_type_warehouse0_repair"
+    },
+    "move_ids": {
+     "$unevaluated": "[(5, 0, 0), (0, 0, {             'location_dest_id': obj().env.ref('product.product_product_12').property_stock_producti"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    }
+   }
+  },
+  {
+   "model": "repair.order",
+   "id": "repair_r2",
+   "values": {
+    "priority": "1",
+    "schedule_date": {
+     "$unevaluated": "DateTime.today() + relativedelta(days=-5)"
+    },
+    "product_id": {
+     "$ref": "product.product_product_6"
+    },
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "user_id": "",
+    "picking_type_id": {
+     "$ref": "picking_type_warehouse0_repair"
+    },
+    "move_ids": {
+     "$unevaluated": "[(5, 0, 0), (0, 0, {             'location_dest_id': obj().env.ref('product.product_product_13').property_stock_producti"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_repair_order",
+   "name": "Repairs",
+   "sequence": "165",
+   "groups": "stock.group_stock_user",
+   "web_icon": "repair,static/description/icon.png"
+  },
+  {
+   "id": "repair_picking_type_menu",
+   "name": "Overview",
+   "parent": "menu_repair_order",
+   "action": "action_repair_overview",
+   "sequence": "0",
+   "groups": "stock.group_stock_user"
+  },
+  {
+   "id": "repair_order_menu",
+   "name": "Orders",
+   "parent": "menu_repair_order",
+   "action": "action_repair_order_tree",
+   "groups": "stock.group_stock_user"
+  },
+  {
+   "id": "repair_menu_reporting",
+   "name": "Reporting",
+   "parent": "menu_repair_order",
+   "groups": "stock.group_stock_manager"
+  },
+  {
+   "id": "repair_menu",
+   "name": "Repairs",
+   "parent": "repair_menu_reporting",
+   "action": "action_repair_order_graph"
+  },
+  {
+   "id": "repair_menu_config",
+   "name": "Configuration",
+   "parent": "menu_repair_order",
+   "groups": "stock.group_stock_manager"
+  },
+  {
+   "id": "repair_menu_tag",
+   "name": "Repair Orders Tags",
+   "parent": "repair_menu_config",
+   "action": "action_repair_order_tag",
+   "sequence": "1"
+  },
+  {
+   "id": "repair_menu_product_template",
+   "name": "Products",
+   "parent": "repair_menu_config",
+   "action": "stock.product_template_action_product",
+   "sequence": "2"
+  },
+  {
+   "id": "repair_menu_product_product",
+   "name": "Product Variants",
+   "parent": "repair_menu_config",
+   "action": "stock.stock_product_normal_action",
+   "sequence": "3",
+   "groups": "product.group_product_variant"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_repair_user",
+   "model": "repair.order",
+   "model_xmlid": "model_repair_order",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_repair_tag_user",
+   "model": "repair.tags",
+   "model_xmlid": "model_repair_tags",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_warn_insufficient_qty_repair",
+   "model": "stock.warn.insufficient.qty.repair",
+   "model_xmlid": "model_stock_warn_insufficient_qty_repair",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

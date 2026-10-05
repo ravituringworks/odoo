@@ -1,0 +1,400 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "data/cron.xml",
+  "data/peppol_clarification_data.xml",
+  "security/ir.model.access.csv",
+  "views/account_move_views.xml",
+  "views/account_peppol_response_views.xml",
+  "views/res_partner_views.xml",
+  "wizard/peppol_rejection_wizard_view.xml"
+ ],
+ "depends": [
+  "account_peppol"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "peppol_can_send_response": {
+     "compute": "_compute_peppol_can_send_response",
+     "type": "Boolean"
+    },
+    "peppol_move_state": {
+     "selection_add": [
+      [
+       "AB",
+       "Received"
+      ],
+      [
+       "AP",
+       "Approved"
+      ],
+      [
+       "RE",
+       "Rejected"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "peppol_response_ids": {
+     "comodel": "account.peppol.response",
+     "inverse_name": "move_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'peppol_response_ids.peppol_state')"
+     ],
+     "lines": 12,
+     "name": "_compute_peppol_move_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('peppol_response_ids.peppol_state')"
+     ],
+     "lines": 10,
+     "name": "_compute_peppol_can_send_response"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "button_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_peppol_send_approval_response"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_peppol_open_rejection_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_peppol_reponses"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.peppol.clarification": {
+   "abstract": false,
+   "description": "Peppol clarifications used for rejection",
+   "extension": false,
+   "fields": {
+    "code": {
+     "type": "Char"
+    },
+    "description": {
+     "type": "Char"
+    },
+    "list_identifier": {
+     "selection": [
+      [
+       "OPStatusReason",
+       "OPStatusReason"
+      ],
+      [
+       "OPStatusAction",
+       "OPStatusAction"
+      ]
+     ],
+     "string": "List identifier",
+     "type": "Selection"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.peppol.clarification",
+   "transient": false
+  },
+  "account.peppol.rejection.wizard": {
+   "abstract": false,
+   "description": "Peppol Rejection wizard",
+   "extension": false,
+   "fields": {
+    "action_ids": {
+     "comodel": "account.peppol.clarification",
+     "domain": "[('list_identifier', '=', 'OPStatusAction')]",
+     "help": "The actions to be suggested to the document's sender in order for the document to be accepted when sent again (eventually). These will be sent to the document's sender. Not mandatory.",
+     "relation_table": "account_peppol_rejection_action_rel",
+     "string": "Rejection actions",
+     "type": "Many2many"
+    },
+    "move_ids": {
+     "comodel": "account.move",
+     "required": true,
+     "type": "Many2many"
+    },
+    "reason_ids": {
+     "comodel": "account.peppol.clarification",
+     "default": {
+      "$lambda": "self.env.ref('account_peppol_response.peppol_clarification_reason_unr', raise_if_not_found=False)"
+     },
+     "domain": "[('list_identifier', '=', 'OPStatusReason')]",
+     "help": "The reasons to reject the received PEPPOL document. These will be sent to the document's sender.",
+     "relation_table": "account_peppol_rejection_reason_rel",
+     "required": true,
+     "string": "Rejection reasons",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "button_send"
+    }
+   ],
+   "name": "account.peppol.rejection.wizard",
+   "transient": true
+  },
+  "account.peppol.response": {
+   "abstract": false,
+   "description": "Business Level Responses for Peppol",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "related": "move_id.company_id",
+     "type": "Many2one"
+    },
+    "move_id": {
+     "comodel": "account.move",
+     "ondelete": "cascade",
+     "type": "Many2one"
+    },
+    "peppol_message_uuid": {
+     "index": "btree_not_null",
+     "string": "Peppol UUID",
+     "type": "Char"
+    },
+    "peppol_state": {
+     "selection": [
+      [
+       "processing",
+       "Pending Reception"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "error",
+       "Error"
+      ],
+      [
+       "not_serviced",
+       "Not Serviced"
+      ]
+     ],
+     "string": "Peppol status",
+     "type": "Selection"
+    },
+    "response_code": {
+     "required": true,
+     "selection": [
+      [
+       "AB",
+       "Acknowledgement"
+      ],
+      [
+       "IP",
+       "In Process"
+      ],
+      [
+       "UQ",
+       "Under query"
+      ],
+      [
+       "CA",
+       "Conditionally accepted"
+      ],
+      [
+       "RE",
+       "Rejection"
+      ],
+      [
+       "AP",
+       "Approval"
+      ],
+      [
+       "PD",
+       "Paid"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.peppol.response",
+   "transient": false
+  },
+  "account_edi_proxy_client.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_peppol_get_duplicate_message_uuids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 66,
+     "name": "_peppol_send_response"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 39,
+     "name": "_peppol_extract_response_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_peppol_process_new_messages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_peppol_post_process_new_messages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_peppol_get_documents_for_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_peppol_process_messages_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_cron_peppol_auto_register_services"
+    }
+   ],
+   "name": "account_edi_proxy_client.user",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_inverse_peppol_purchase_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_peppol_modules_document_types"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "peppol_response_support": {
+     "compute": "_compute_response_support",
+     "string": "Peppol Response Service",
+     "type": "Boolean"
+    },
+    "peppol_supported_documents": {
+     "string": "Supported Peppol Documents",
+     "type": "Json"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('peppol_supported_documents', 'peppol_verification_state')"
+     ],
+     "lines": 7,
+     "name": "_compute_response_support"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_peppol_fill_participant_supported_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "button_account_peppol_check_partner_endpoint"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "account_peppol_response",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/account_peppol_response",
+ "stats": {
+  "fields": 17,
+  "methods": 21,
+  "models": 7,
+  "py_lines": 523
+ },
+ "summary": "This module is used to send/receive responses to documents received/sent with PEPPOL",
+ "title": "Peppol Business Response",
+ "version": "1.0"
+}

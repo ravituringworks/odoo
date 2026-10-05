@@ -1,0 +1,312 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/barcodes_data.xml",
+  "views/barcodes_view.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "web"
+ ],
+ "models": {
+  "barcode.nomenclature": {
+   "abstract": false,
+   "description": "Barcode Nomenclature",
+   "extension": false,
+   "fields": {
+    "name": {
+     "help": "An internal identification of the barcode nomenclature",
+     "required": true,
+     "string": "Barcode Nomenclature",
+     "type": "Char"
+    },
+    "rule_ids": {
+     "comodel": "barcode.rule",
+     "help": "The list of barcode rules",
+     "inverse_name": "barcode_nomenclature_id",
+     "string": "Rules",
+     "type": "One2many"
+    },
+    "upc_ean_conv": {
+     "default": "always",
+     "help": "UPC Codes can be converted to EAN by prefixing them with a zero. This setting determines if a UPC/EAN barcode should be automatically converted in one way or another when trying to match a rule with the other encoding.",
+     "required": true,
+     "selection": [
+      [
+       "none",
+       "Never"
+      ],
+      [
+       "ean2upc",
+       "EAN-13 to UPC-A"
+      ],
+      [
+       "upc2ean",
+       "UPC-A to EAN-13"
+      ],
+      [
+       "always",
+       "Always"
+      ]
+     ],
+     "string": "UPC/EAN Conversion",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "sanitize_ean"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "sanitize_upc"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "match_pattern"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "parse_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "parse_nomenclature_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "parse_uri"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_convert_uri_gtin_data_into_tracking_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_convert_uri_sscc_data_into_package"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 7,
+     "name": "_unlink_except_default"
+    }
+   ],
+   "name": "barcode.nomenclature",
+   "transient": false
+  },
+  "barcode.rule": {
+   "abstract": false,
+   "description": "Barcode Rule",
+   "extension": false,
+   "fields": {
+    "alias": {
+     "default": "0",
+     "help": "The matched pattern will alias to this barcode",
+     "required": true,
+     "string": "Alias",
+     "type": "Char"
+    },
+    "barcode_nomenclature_id": {
+     "comodel": "barcode.nomenclature",
+     "string": "Barcode Nomenclature",
+     "type": "Many2one"
+    },
+    "encoding": {
+     "default": "any",
+     "help": "This rule will apply only if the barcode is encoded with the specified encoding",
+     "required": true,
+     "selection": [
+      [
+       "any",
+       "Any"
+      ],
+      [
+       "ean13",
+       "EAN-13"
+      ],
+      [
+       "ean8",
+       "EAN-8"
+      ],
+      [
+       "upca",
+       "UPC-A"
+      ]
+     ],
+     "string": "Encoding",
+     "type": "Selection"
+    },
+    "name": {
+     "help": "An internal identification for this barcode nomenclature rule",
+     "required": true,
+     "string": "Rule Name",
+     "type": "Char"
+    },
+    "pattern": {
+     "default": ".*",
+     "help": "The barcode matching pattern",
+     "required": true,
+     "string": "Barcode Pattern",
+     "type": "Char"
+    },
+    "sequence": {
+     "help": "Used to order rules such that rules with a smaller sequence match first",
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "type": {
+     "default": "product",
+     "required": true,
+     "selection": [
+      [
+       "alias",
+       "Alias"
+      ],
+      [
+       "product",
+       "Unit Product"
+      ]
+     ],
+     "string": "Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('pattern')"
+     ],
+     "lines": 17,
+     "name": "_check_pattern"
+    }
+   ],
+   "name": "barcode.rule",
+   "order": "sequence asc, id",
+   "transient": false
+  },
+  "barcodes.barcode_events_mixin": {
+   "abstract": true,
+   "description": "Barcode Event Mixin",
+   "extension": false,
+   "fields": {
+    "_barcode_scanned": {
+     "help": "Value of the last barcode scanned.",
+     "store": false,
+     "string": "Barcode Scanned",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('_barcode_scanned')"
+     ],
+     "lines": 5,
+     "name": "_on_barcode_scanned"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "on_barcode_scanned"
+    }
+   ],
+   "name": "barcodes.barcode_events_mixin",
+   "transient": false
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "session_info"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "nomenclature_id": {
+     "comodel": "barcode.nomenclature",
+     "default": {
+      "$ref": "_get_default_nomenclature"
+     },
+     "string": "Nomenclature",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_nomenclature"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  }
+ },
+ "module": "barcodes",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/barcodes",
+ "stats": {
+  "fields": 12,
+  "methods": 14,
+  "models": 5,
+  "py_lines": 336
+ },
+ "summary": "Scan and Parse Barcodes",
+ "title": "Barcode",
+ "version": "2.0"
+}

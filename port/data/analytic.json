@@ -1,0 +1,574 @@
+{
+ "module": "analytic",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "analytic_comp_rule",
+   "values": {
+    "name": "Analytic multi company rule",
+    "model_id": {
+     "$ref": "model_account_analytic_account"
+    },
+    "global": true,
+    "domain_force": "['|',('company_id','=',False),('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "analytic_line_comp_rule",
+   "values": {
+    "name": "Analytic line multi company rule",
+    "model_id": {
+     "$ref": "model_account_analytic_line"
+    },
+    "global": true,
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "analytic_applicability_comp_rule",
+   "values": {
+    "name": "Analytic applicability multi company rule",
+    "model_id": {
+     "$ref": "model_account_analytic_applicability"
+    },
+    "global": true,
+    "domain_force": "['|',('company_id','=',False),('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "analytic_distribution_model_comp_rule",
+   "values": {
+    "name": "Analytic distribution model multi company rule",
+    "model_id": {
+     "$ref": "model_account_analytic_distribution_model"
+    },
+    "global": true,
+    "domain_force": "['|',('company_id','=',False),('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_analytic_accounting",
+   "values": {
+    "name": "Analytic Accounting",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "account_analytic_line_action",
+   "values": {
+    "context": {
+     "$unevaluated": "{'search_default_group_date': 1, 'default_auto_account_id': active_id}"
+    },
+    "domain": {
+     "$unevaluated": "[('auto_account_id','=', active_id)]"
+    },
+    "name": "Gross Margin",
+    "res_model": "account.analytic.line",
+    "view_mode": "list,form,graph,pivot",
+    "view_id": {
+     "$ref": "view_account_analytic_line_tree"
+    },
+    "search_view_id": {
+     "$ref": "view_account_analytic_line_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "account_analytic_line_action_entries",
+   "values": {
+    "name": "Analytic Items",
+    "res_model": "account.analytic.line",
+    "view_mode": "list,kanban,form,graph,pivot",
+    "view_id": {
+     "$ref": "view_account_analytic_line_tree"
+    },
+    "search_view_id": {
+     "$ref": "analytic.view_account_analytic_line_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_analytic_account_form",
+   "values": {
+    "name": "Chart of Analytic Accounts",
+    "res_model": "account.analytic.account",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "view_account_analytic_account_search"
+    },
+    "context": {
+     "search_default_active": 1
+    },
+    "view_id": {
+     "$ref": "view_account_analytic_account_list"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_account_analytic_account_form",
+   "values": {
+    "name": "Analytic Accounts",
+    "res_model": "account.analytic.account",
+    "search_view_id": {
+     "$ref": "view_account_analytic_account_search"
+    },
+    "context": {
+     "search_default_active": 1
+    },
+    "view_mode": "list,kanban,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "account_analytic_plan_action",
+   "values": {
+    "name": "Analytic Plans",
+    "res_model": "account.analytic.plan",
+    "view_mode": "list,form",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list"
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "account_analytic_plan_form_view"
+       }
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "parent_id",
+      "=",
+      false
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_analytic_distribution_model",
+   "values": {
+    "name": "Analytic Distribution Models",
+    "res_model": "account.analytic.distribution.model",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "decimal.precision",
+   "id": "decimal_percentage_analytic",
+   "values": {
+    "name": "Percentage Analytic",
+    "digits": 2
+   }
+  },
+  {
+   "model": "account.analytic.plan",
+   "id": "analytic_plan_projects",
+   "values": {
+    "name": "Project",
+    "default_applicability": "optional"
+   }
+  },
+  {
+   "model": "account.analytic.plan",
+   "id": "analytic_plan_departments",
+   "values": {
+    "name": "Departments",
+    "default_applicability": "optional"
+   }
+  },
+  {
+   "model": "account.analytic.plan",
+   "id": "analytic_plan_internal",
+   "values": {
+    "name": "Internal",
+    "default_applicability": "unavailable"
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_absences",
+   "values": {
+    "name": "Time Off",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_internal"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_internal",
+   "values": {
+    "name": "Operating Costs",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_internal"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_our_super_product",
+   "values": {
+    "name": "Our Super Product",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_seagate_p2",
+   "values": {
+    "name": "Seagate P2",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_millennium_industries",
+   "values": {
+    "name": "Millennium Industries",
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_integration_c2c",
+   "values": {
+    "name": "CampToCamp",
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_agrolait",
+   "values": {
+    "name": "Acme Corporation",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_asustek",
+   "values": {
+    "name": "Asustek",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_deltapc",
+   "values": {
+    "name": "Delta PC",
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_spark",
+   "values": {
+    "name": "Spark Systems",
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_nebula",
+   "values": {
+    "name": "Nebula",
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_luminous_technologies",
+   "values": {
+    "name": "Luminous Technologies",
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_desertic_hispafuentes",
+   "values": {
+    "name": "Desertic - Hispafuentes",
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_think_big_systems",
+   "values": {
+    "name": "Lumber Inc",
+    "partner_id": {
+     "$ref": "base.res_partner_18"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_partners_camp_to_camp",
+   "values": {
+    "name": "Camp to Camp",
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_active_account",
+   "values": {
+    "name": "Active account",
+    "active": true,
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_administratif",
+   "values": {
+    "name": "Administrative",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_departments"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_commercial_marketing",
+   "values": {
+    "name": "Commercial & Marketing",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_departments"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_rd_department",
+   "values": {
+    "name": "Research & Development",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_departments"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_rd_hr",
+   "values": {
+    "name": "Human Resources",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_departments"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_rd_legal",
+   "values": {
+    "name": "Legal",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_departments"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_rd_finance",
+   "values": {
+    "name": "Finance",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_departments"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_rd_production",
+   "values": {
+    "name": "Production",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_departments"
+    },
+    "company_id": false
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_account_analytic_account",
+   "model": "account.analytic.account",
+   "model_xmlid": "model_account_analytic_account",
+   "group": "group_analytic_accounting",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_line",
+   "model": "account.analytic.line",
+   "model_xmlid": "model_account_analytic_line",
+   "group": "group_analytic_accounting",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_plan",
+   "model": "account.analytic.plan",
+   "model_xmlid": "model_account_analytic_plan",
+   "group": "group_analytic_accounting",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_applicability",
+   "model": "account.analytic.applicability",
+   "model_xmlid": "model_account_analytic_applicability",
+   "group": "group_analytic_accounting",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_distribution_model",
+   "model": "account.analytic.distribution.model",
+   "model_xmlid": "model_account_analytic_distribution_model",
+   "group": "group_analytic_accounting",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

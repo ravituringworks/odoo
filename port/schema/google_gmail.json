@@ -1,0 +1,255 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/fetchmail_server_views.xml",
+  "views/ir_mail_server_views.xml",
+  "views/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "fetchmail.server": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "server_type": {
+     "ondelete": {
+      "gmail": "set default"
+     },
+     "selection_add": [
+      [
+       "gmail",
+       "Gmail OAuth Authentication"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "google.gmail.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_server_type_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('server_type', 'is_ssl', 'object_id')"
+     ],
+     "lines": 12,
+     "name": "onchange_server_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_imap_login"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_connection_type"
+    }
+   ],
+   "name": "fetchmail.server",
+   "transient": false
+  },
+  "google.gmail.mixin": {
+   "abstract": true,
+   "description": "Google Gmail Mixin",
+   "extension": false,
+   "fields": {
+    "google_gmail_access_token": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Access Token",
+     "type": "Char"
+    },
+    "google_gmail_access_token_expiration": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Access Token Expiration Timestamp",
+     "type": "Integer"
+    },
+    "google_gmail_authorization_code": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Authorization Code",
+     "type": "Char"
+    },
+    "google_gmail_refresh_token": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Refresh Token",
+     "type": "Char"
+    },
+    "google_gmail_uri": {
+     "compute": "_compute_gmail_uri",
+     "groups": "base.group_system",
+     "help": "The URL to generate the authorization code from Google",
+     "string": "URI",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('google_gmail_authorization_code')"
+     ],
+     "lines": 27,
+     "name": "_compute_gmail_uri"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "open_google_gmail_uri"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_fetch_gmail_refresh_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_fetch_gmail_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_fetch_gmail_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_generate_oauth2_string"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_gmail_csrf_token"
+    }
+   ],
+   "name": "google.gmail.mixin",
+   "transient": false
+  },
+  "ir.mail_server": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "smtp_authentication": {
+     "ondelete": {
+      "gmail": "set default"
+     },
+     "selection_add": [
+      [
+       "gmail",
+       "Gmail OAuth Authentication"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "google.gmail.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_smtp_authentication_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('smtp_encryption')"
+     ],
+     "lines": 5,
+     "name": "_onchange_encryption"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('smtp_authentication')"
+     ],
+     "lines": 10,
+     "name": "_onchange_smtp_authentication_gmail"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('smtp_user', 'smtp_authentication')"
+     ],
+     "lines": 4,
+     "name": "_on_change_smtp_user_gmail"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('smtp_authentication', 'smtp_pass', 'smtp_encryption', 'from_filter', 'smtp_user')"
+     ],
+     "lines": 17,
+     "name": "_check_use_google_gmail_service"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_smtp_login"
+    }
+   ],
+   "name": "ir.mail_server",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "google_gmail_client_identifier": {
+     "string": "Gmail Client Id",
+     "type": "Char"
+    },
+    "google_gmail_client_secret": {
+     "string": "Gmail Client Secret",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "google_gmail",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/google_gmail",
+ "stats": {
+  "fields": 9,
+  "methods": 17,
+  "models": 4,
+  "py_lines": 414
+ },
+ "summary": "Gmail support for incoming / outgoing mail servers",
+ "title": "Google Gmail",
+ "version": "1.2"
+}

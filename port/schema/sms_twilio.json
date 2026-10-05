@@ -1,0 +1,408 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden/Tools",
+ "data_files": [
+  "views/res_config_settings_views.xml",
+  "views/sms_sms_views.xml",
+  "wizard/sms_twilio_account_manage_views.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "sms"
+ ],
+ "models": {
+  "mail.notification": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "failure_type": {
+     "selection_add": [
+      [
+       "twilio_authentication",
+       "Authentication Error\""
+      ],
+      [
+       "twilio_callback",
+       "Incorrect callback URL"
+      ],
+      [
+       "twilio_from_missing",
+       "Missing From Number"
+      ],
+      [
+       "twilio_from_to",
+       "From / To identic"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "fields_get"
+    }
+   ],
+   "name": "mail.notification",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sms_provider": {
+     "default": "iap",
+     "selection": [
+      [
+       "iap",
+       "Send via Odoo"
+      ],
+      [
+       "twilio",
+       "Send via Twilio"
+      ]
+     ],
+     "string": "SMS Provider",
+     "type": "Selection"
+    },
+    "sms_twilio_account_sid": {
+     "groups": "base.group_system",
+     "string": "Account SID",
+     "type": "Char"
+    },
+    "sms_twilio_auth_token": {
+     "groups": "base.group_system",
+     "string": "Auth Token",
+     "type": "Char"
+    },
+    "sms_twilio_number_ids": {
+     "comodel": "sms.twilio.number",
+     "inverse_name": "company_id",
+     "string": "Numbers",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_sms_api_class"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_assert_twilio_sid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_action_open_sms_twilio_account_manage"
+    }
+   ],
+   "name": "res.company",
+   "sel_methods": {
+    "_get_sms_api_class": []
+   },
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sms_provider": {
+     "readonly": false,
+     "related": "company_id.sms_provider",
+     "required": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_open_sms_twilio_account_manage"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "sms.composer": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_prepare_mass_sms_values"
+    }
+   ],
+   "name": "sms.composer",
+   "transient": false
+  },
+  "sms.sms": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "failure_type": {
+     "selection_add": [
+      [
+       "twilio_authentication",
+       "Authentication Error\""
+      ],
+      [
+       "twilio_callback",
+       "Incorrect callback URL"
+      ],
+      [
+       "twilio_from_missing",
+       "Missing From Number"
+      ],
+      [
+       "twilio_from_to",
+       "From / To identic"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "record_company_id": {
+     "comodel": "res.company",
+     "ondelete": "set null",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "sms_twilio_sid": {
+     "related": "sms_tracker_id.sms_twilio_sid",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "fields_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_split_by_api"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_sms_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_batch_size"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_handle_call_result_hook"
+    }
+   ],
+   "name": "sms.sms",
+   "sel_methods": {
+    "_get_batch_size": []
+   },
+   "transient": false
+  },
+  "sms.tracker": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sms_twilio_sid": {
+     "readonly": true,
+     "string": "Twilio SMS SID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_action_update_from_twilio_error"
+    }
+   ],
+   "name": "sms.tracker",
+   "transient": false
+  },
+  "sms.twilio.account.manage": {
+   "abstract": false,
+   "description": "SMS Twilio Connection Wizard",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "sms_provider": {
+     "readonly": false,
+     "related": "company_id.sms_provider",
+     "type": "Selection"
+    },
+    "sms_twilio_account_sid": {
+     "readonly": false,
+     "related": "company_id.sms_twilio_account_sid",
+     "type": "Char"
+    },
+    "sms_twilio_auth_token": {
+     "readonly": false,
+     "related": "company_id.sms_twilio_auth_token",
+     "type": "Char"
+    },
+    "sms_twilio_number_ids": {
+     "readonly": false,
+     "related": "company_id.sms_twilio_number_ids",
+     "type": "One2many"
+    },
+    "test_number": {
+     "string": "Test Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 50,
+     "name": "action_reload_numbers"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 26,
+     "name": "action_send_test"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_save"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_display_notification"
+    }
+   ],
+   "name": "sms.twilio.account.manage",
+   "transient": true
+  },
+  "sms.twilio.number": {
+   "abstract": false,
+   "description": "Twilio Number",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "country_code": {
+     "related": "country_id.code",
+     "string": "Country Code",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "required": true,
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "number": {
+     "required": true,
+     "string": "Twilio Number",
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 1,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_unlink"
+    }
+   ],
+   "name": "sms.twilio.number",
+   "order": "sequence, id",
+   "transient": false
+  }
+ },
+ "module": "sms_twilio",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sms_twilio",
+ "stats": {
+  "fields": 21,
+  "methods": 19,
+  "models": 8,
+  "py_lines": 629
+ },
+ "summary": "Send SMS messages using Twilio",
+ "title": "Twilio SMS",
+ "version": "1.0"
+}

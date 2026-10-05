@@ -1,0 +1,232 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources/Recruitment",
+ "data_files": [
+  "security/hr_recruitment_skills_security.xml",
+  "views/hr_applicant_views.xml",
+  "views/hr_candidate_views.xml",
+  "views/hr_candidate_skill_views.xml",
+  "views/hr_job_views.xml",
+  "security/ir.model.access.csv",
+  "data/hr_recruitment_skills_demo.xml"
+ ],
+ "depends": [
+  "hr_skills",
+  "hr_recruitment"
+ ],
+ "models": {
+  "hr.applicant": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "candidate_skill_ids": {
+     "readonly": false,
+     "related": "candidate_id.candidate_skill_ids",
+     "type": "One2many"
+    },
+    "skill_ids": {
+     "readonly": false,
+     "related": "candidate_id.skill_ids",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.applicant",
+   "transient": false
+  },
+  "hr.candidate": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "candidate_skill_ids": {
+     "comodel": "hr.candidate.skill",
+     "inverse_name": "candidate_id",
+     "string": "Skills",
+     "type": "One2many"
+    },
+    "matching_score": {
+     "compute": "_compute_matching_skill_ids",
+     "string": "Matching Score(%)",
+     "type": "Float"
+    },
+    "matching_skill_ids": {
+     "comodel": "hr.skill",
+     "compute": "_compute_matching_skill_ids",
+     "string": "Matching Skills",
+     "type": "Many2many"
+    },
+    "missing_skill_ids": {
+     "comodel": "hr.skill",
+     "compute": "_compute_matching_skill_ids",
+     "string": "Missing Skills",
+     "type": "Many2many"
+    },
+    "skill_ids": {
+     "comodel": "hr.skill",
+     "compute": "_compute_skill_ids",
+     "store": true,
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('active_id')",
+      "api.depends('skill_ids')"
+     ],
+     "lines": 12,
+     "name": "_compute_matching_skill_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('candidate_skill_ids.skill_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_skill_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_employee_create_vals"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_create_application"
+    }
+   ],
+   "name": "hr.candidate",
+   "transient": false
+  },
+  "hr.candidate.skill": {
+   "abstract": false,
+   "description": "Skill level for a candidate",
+   "extension": false,
+   "fields": {
+    "candidate_id": {
+     "comodel": "hr.candidate",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "level_progress": {
+     "related": "skill_level_id.level_progress",
+     "type": "Integer"
+    },
+    "skill_id": {
+     "comodel": "hr.skill",
+     "compute": "_compute_skill_id",
+     "domain": "[('skill_type_id', '=', skill_type_id)]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "skill_level_id": {
+     "comodel": "hr.skill.level",
+     "compute": "_compute_skill_level_id",
+     "domain": "[('skill_type_id', '=', skill_type_id)]",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "skill_type_id": {
+     "comodel": "hr.skill.type",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('skill_id', 'skill_type_id')"
+     ],
+     "lines": 4,
+     "name": "_check_skill_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('skill_type_id', 'skill_level_id')"
+     ],
+     "lines": 4,
+     "name": "_check_skill_level"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('skill_type_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_skill_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('skill_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_skill_level_id"
+    }
+   ],
+   "name": "hr.candidate.skill",
+   "order": "skill_level_id",
+   "rec_name": "skill_id",
+   "sql_constraints": [
+    [
+     "_unique_skill",
+     "unique (candidate_id, skill_id)",
+     "Two levels for the same skill is not allowed"
+    ]
+   ],
+   "transient": false
+  },
+  "hr.job": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "skill_ids": {
+     "comodel": "hr.skill",
+     "string": "Expected Skills",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_search_matching_candidates"
+    }
+   ],
+   "name": "hr.job",
+   "transient": false
+  }
+ },
+ "module": "hr_recruitment_skills",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_recruitment_skills",
+ "stats": {
+  "fields": 13,
+  "methods": 9,
+  "models": 4,
+  "py_lines": 171
+ },
+ "summary": "Manage skills of your employees",
+ "title": "Recruitment - Skills Management",
+ "version": "1.0"
+}

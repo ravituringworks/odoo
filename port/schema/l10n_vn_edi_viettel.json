@@ -1,0 +1,780 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/account_move_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml",
+  "views/sinvoice_views.xml",
+  "wizard/account_move_reversal_view.xml",
+  "wizard/l10n_vn_edi_cancellation_request_views.xml"
+ ],
+ "depends": [
+  "l10n_vn"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_vn_edi_adjustment_type": {
+     "copy": false,
+     "selection": [
+      [
+       "1",
+       "Money adjustment"
+      ],
+      [
+       "2",
+       "Information adjustment"
+      ]
+     ],
+     "string": "Adjustment type",
+     "type": "Selection"
+    },
+    "l10n_vn_edi_agreement_document_date": {
+     "copy": false,
+     "string": "Agreement Date",
+     "type": "Datetime"
+    },
+    "l10n_vn_edi_agreement_document_name": {
+     "copy": false,
+     "string": "Agreement Name",
+     "type": "Char"
+    },
+    "l10n_vn_edi_invoice_number": {
+     "copy": false,
+     "help": "Invoice Number as appearing on SInvoice.",
+     "readonly": true,
+     "string": "SInvoice Number",
+     "type": "Char"
+    },
+    "l10n_vn_edi_invoice_state": {
+     "compute": "_compute_l10n_vn_edi_invoice_state",
+     "copy": false,
+     "readonly": false,
+     "selection": [
+      [
+       "ready_to_send",
+       "Ready to send"
+      ],
+      [
+       "sent",
+       "Sent"
+      ],
+      [
+       "payment_state_to_update",
+       "Payment status to update"
+      ],
+      [
+       "canceled",
+       "Canceled"
+      ],
+      [
+       "adjusted",
+       "Adjusted"
+      ],
+      [
+       "replaced",
+       "Replaced"
+      ]
+     ],
+     "store": true,
+     "string": "Sinvoice Status",
+     "type": "Selection"
+    },
+    "l10n_vn_edi_invoice_symbol": {
+     "comodel": "l10n_vn_edi_viettel.sinvoice.symbol",
+     "compute": "_compute_l10n_vn_edi_invoice_symbol",
+     "readonly": false,
+     "store": true,
+     "string": "Invoice Symbol",
+     "type": "Many2one"
+    },
+    "l10n_vn_edi_invoice_transaction_id": {
+     "copy": false,
+     "help": "Technical field to store the transaction ID if needed",
+     "string": "SInvoice Transaction ID",
+     "type": "Char"
+    },
+    "l10n_vn_edi_issue_date": {
+     "copy": false,
+     "help": "Date of issue of the invoice on the e-invoicing system.",
+     "readonly": true,
+     "string": "Issue Date",
+     "type": "Datetime"
+    },
+    "l10n_vn_edi_replacement_origin_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "readonly": true,
+     "string": "Replacement of",
+     "type": "Many2one"
+    },
+    "l10n_vn_edi_reservation_code": {
+     "copy": false,
+     "help": "Secret code that can be used by a customer to lookup an invoice on SInvoice.",
+     "readonly": true,
+     "string": "Secret Code",
+     "type": "Char"
+    },
+    "l10n_vn_edi_reversed_entry_invoice_number": {
+     "related": "reversed_entry_id.l10n_vn_edi_invoice_number",
+     "string": "Revered Entry SInvoice Number",
+     "type": "Char"
+    },
+    "l10n_vn_edi_sinvoice_file": {
+     "copy": false,
+     "readonly": true,
+     "string": "SInvoice json File",
+     "type": "Binary"
+    },
+    "l10n_vn_edi_sinvoice_file_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('l10n_vn_edi_sinvoice_file_id', 'l10n_vn_edi_sinvoice_file')"
+     },
+     "copy": false,
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "l10n_vn_edi_sinvoice_pdf_file": {
+     "copy": false,
+     "readonly": true,
+     "string": "SInvoice pdf File",
+     "type": "Binary"
+    },
+    "l10n_vn_edi_sinvoice_pdf_file_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('l10n_vn_edi_sinvoice_pdf_file_id', 'l10n_vn_edi_sinvoice_pdf_file')"
+     },
+     "copy": false,
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "l10n_vn_edi_sinvoice_xml_file": {
+     "copy": false,
+     "readonly": true,
+     "string": "SInvoice xml File",
+     "type": "Binary"
+    },
+    "l10n_vn_edi_sinvoice_xml_file_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('l10n_vn_edi_sinvoice_xml_file_id', 'l10n_vn_edi_sinvoice_xml_file')"
+     },
+     "copy": false,
+     "readonly": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_vn_edi_invoice_state')"
+     ],
+     "lines": 4,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_vn_edi_invoice_state')"
+     ],
+     "lines": 3,
+     "name": "_compute_need_cancel_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_state')"
+     ],
+     "lines": 11,
+     "name": "_compute_l10n_vn_edi_invoice_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'partner_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_l10n_vn_edi_invoice_symbol"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_request_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_fields_to_detach"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_l10n_vn_edi_fetch_invoice_file_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_l10n_vn_edi_try_fetch_invoice_file_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_l10n_vn_edi_fetch_invoice_xml_file_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_l10n_vn_edi_fetch_invoice_pdf_file_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_l10n_vn_edi_fetch_invoice_files"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 65,
+     "name": "action_l10n_vn_edi_update_payment_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_l10n_vn_need_cancel_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_need_cancel_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_l10n_vn_edi_check_invoice_configuration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 51,
+     "name": "_l10n_vn_edi_send_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_l10n_vn_edi_cancel_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_vn_edi_generate_invoice_json"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_l10n_vn_edi_add_general_invoice_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_l10n_vn_edi_add_buyer_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_l10n_vn_edi_add_seller_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_l10n_vn_edi_add_payment_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_l10n_vn_edi_add_item_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_l10n_vn_edi_add_tax_breakdowns"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_l10n_vn_edi_lookup_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_l10n_vn_edi_get_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_l10n_vn_edi_get_credentials_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_l10n_vn_edi_format_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_l10n_vn_edi_format_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_l10n_vn_edi_is_sent"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_mail_thread_data_attachments"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_compute_need_cancel_request": []
+   },
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_vn_edi_adjustment_type": {
+     "default": "1",
+     "required": true,
+     "selection": [
+      [
+       "1",
+       "Money adjustment"
+      ],
+      [
+       "2",
+       "Information adjustment"
+      ]
+     ],
+     "string": "Adjustment type",
+     "type": "Selection"
+    },
+    "l10n_vn_edi_agreement_document_date": {
+     "string": "Agreement Date",
+     "type": "Datetime"
+    },
+    "l10n_vn_edi_agreement_document_name": {
+     "string": "Agreement Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_default_reversal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_modify_default_reverse_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "reverse_moves"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_vn_edi_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_invoice_extra_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_placeholder_mail_attachments_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "_generate_sinvoice_file_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_hook_invoice_document_before_pdf_report_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_call_web_service_before_invoice_pdf_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_call_web_service_after_invoice_pdf_render"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "l10n_vn_edi_viettel.cancellation": {
+   "abstract": false,
+   "description": "E-invoice cancellation wizard",
+   "extension": false,
+   "fields": {
+    "agreement_document_date": {
+     "string": "Agreement Date",
+     "type": "Datetime"
+    },
+    "agreement_document_name": {
+     "string": "Agreement Name",
+     "type": "Char"
+    },
+    "invoice_id": {
+     "comodel": "account.move",
+     "string": "Invoice to cancel",
+     "type": "Many2one"
+    },
+    "reason": {
+     "required": true,
+     "string": "Reason",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "button_request_cancel"
+    }
+   ],
+   "name": "l10n_vn_edi_viettel.cancellation",
+   "transient": true
+  },
+  "l10n_vn_edi_viettel.sinvoice.symbol": {
+   "abstract": false,
+   "description": "SInvoice symbol",
+   "extension": false,
+   "fields": {
+    "invoice_template_id": {
+     "comodel": "l10n_vn_edi_viettel.sinvoice.template",
+     "required": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Symbol",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('name', 'invoice_template_id')"
+     ],
+     "lines": 21,
+     "name": "_constrains_changes"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'invoice_template_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "l10n_vn_edi_viettel.sinvoice.symbol",
+   "sql_constraints": [
+    [
+     "name_template_uniq",
+     "unique (name, invoice_template_id)",
+     "The combination symbol/template must be unique!"
+    ]
+   ],
+   "transient": false
+  },
+  "l10n_vn_edi_viettel.sinvoice.template": {
+   "abstract": false,
+   "description": "SInvoice template",
+   "extension": false,
+   "fields": {
+    "invoice_symbols_ids": {
+     "comodel": "l10n_vn_edi_viettel.sinvoice.symbol",
+     "inverse_name": "invoice_template_id",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Template Code",
+     "type": "Char"
+    },
+    "template_invoice_type": {
+     "required": true,
+     "selection": [
+      [
+       "1",
+       "1 - Value-added invoice"
+      ],
+      [
+       "2",
+       "2 - Sales invoice"
+      ],
+      [
+       "3",
+       "3 - Public assets sales"
+      ],
+      [
+       "4",
+       "4 - National reserve sales"
+      ],
+      [
+       "5",
+       "5 - Invoice for national reserve sales"
+      ],
+      [
+       "6",
+       "6 - Warehouse release note"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('name', 'template_invoice_type')"
+     ],
+     "lines": 7,
+     "name": "_constrains_changes"
+    }
+   ],
+   "name": "l10n_vn_edi_viettel.sinvoice.template",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "The template code must be unique!"
+    ]
+   ],
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_vn_edi_password": {
+     "groups": "base.group_system",
+     "string": "Sinvoice Password",
+     "type": "Char"
+    },
+    "l10n_vn_edi_token": {
+     "groups": "base.group_system",
+     "readonly": true,
+     "string": "Sinvoice Access Token",
+     "type": "Char"
+    },
+    "l10n_vn_edi_token_expiry": {
+     "groups": "base.group_system",
+     "readonly": true,
+     "string": "Sinvoice Access Token Expiration Date",
+     "type": "Datetime"
+    },
+    "l10n_vn_edi_username": {
+     "groups": "base.group_system",
+     "string": "SInvoice Username",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_vn_edi_default_symbol": {
+     "comodel": "l10n_vn_edi_viettel.sinvoice.symbol",
+     "compute": "_compute_l10n_vn_edi_default_symbol",
+     "groups": "base.group_system",
+     "help": "This is the symbol that will be used on partners that do not have a specific symbol on them.",
+     "string": "Default Symbol",
+     "type": "Many2one"
+    },
+    "l10n_vn_edi_password": {
+     "readonly": false,
+     "related": "company_id.l10n_vn_edi_password",
+     "type": "Char"
+    },
+    "l10n_vn_edi_username": {
+     "readonly": false,
+     "related": "company_id.l10n_vn_edi_username",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_vn_edi_default_symbol"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_inverse_l10n_vn_edi_default_symbol"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_edi_format": {
+     "selection_add": [
+      [
+       "vn_sinvoice",
+       "Vietnam (SInvoice)"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "l10n_vn_edi_symbol": {
+     "comodel": "l10n_vn_edi_viettel.sinvoice.symbol",
+     "copy": false,
+     "help": "If set, this symbol will be used as the default symbol for all invoices of this customer.",
+     "string": "Default Symbol",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_vn_edi_viettel",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_vn_edi_viettel",
+ "stats": {
+  "fields": 38,
+  "methods": 50,
+  "models": 9,
+  "py_lines": 1390
+ },
+ "summary": "E-invoicing using SInvoice by Viettel",
+ "title": "Vietnam - E-invoicing",
+ "version": "1.0"
+}

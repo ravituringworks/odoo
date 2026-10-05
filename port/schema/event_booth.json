@@ -1,0 +1,386 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/event_booth_category_views.xml",
+  "views/event_type_booth_views.xml",
+  "views/event_booth_views.xml",
+  "views/event_type_views.xml",
+  "views/event_event_views.xml",
+  "views/event_menus.xml",
+  "data/event_booth_category_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/mail_templates.xml",
+  "data/event_booth_demo.xml",
+  "data/event_type_demo.xml"
+ ],
+ "depends": [
+  "event"
+ ],
+ "models": {
+  "event.booth": {
+   "abstract": false,
+   "description": "Event Booth",
+   "extension": false,
+   "fields": {
+    "contact_email": {
+     "compute": "_compute_contact_email",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Renter Email",
+     "type": "Char"
+    },
+    "contact_name": {
+     "compute": "_compute_contact_name",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Renter Name",
+     "type": "Char"
+    },
+    "contact_phone": {
+     "compute": "_compute_contact_phone",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Renter Phone",
+     "type": "Char"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_type_id": {
+     "ondelete": "set null",
+     "required": false,
+     "type": "Many2one"
+    },
+    "is_available": {
+     "compute": "_compute_is_available",
+     "type": "Boolean"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "string": "Renter",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "state": {
+     "default": "available",
+     "required": true,
+     "selection": [
+      [
+       "available",
+       "Available"
+      ],
+      [
+       "unavailable",
+       "Unavailable"
+      ]
+     ],
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "event.type.booth",
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_phone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_available"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_search_is_available"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_post_confirmation_message"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_action_post_confirm"
+    }
+   ],
+   "name": "event.booth",
+   "sel_methods": {
+    "_search_is_available": [
+     [
+      "state",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "event.booth.category": {
+   "abstract": false,
+   "description": "Event Booth Category",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "booth_ids": {
+     "comodel": "event.booth",
+     "groups": "event.group_event_registration_desk",
+     "inverse_name": "booth_category_id",
+     "string": "Booths",
+     "type": "One2many"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Html"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "image.mixin"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "event.booth.category",
+   "order": "sequence ASC",
+   "transient": false
+  },
+  "event.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_booth_category_available_ids": {
+     "comodel": "event.booth.category",
+     "compute": "_compute_event_booth_category_available_ids",
+     "help": "Booth Category for which booths are still available. Used in frontend",
+     "type": "Many2many"
+    },
+    "event_booth_category_ids": {
+     "comodel": "event.booth.category",
+     "compute": "_compute_event_booth_category_ids",
+     "type": "Many2many"
+    },
+    "event_booth_count": {
+     "compute": "_compute_event_booth_count",
+     "string": "Total Booths",
+     "type": "Integer"
+    },
+    "event_booth_count_available": {
+     "compute": "_compute_event_booth_count",
+     "string": "Available Booths",
+     "type": "Integer"
+    },
+    "event_booth_ids": {
+     "comodel": "event.booth",
+     "compute": "_compute_event_booth_ids",
+     "copy": true,
+     "inverse_name": "event_id",
+     "readonly": false,
+     "store": true,
+     "string": "Booths",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 27,
+     "name": "_compute_event_booth_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_booth_stat_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_booth_ids', 'event_booth_ids.state')"
+     ],
+     "lines": 10,
+     "name": "_compute_event_booth_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_booth_ids.booth_category_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_event_booth_category_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_booth_ids.is_available')"
+     ],
+     "lines": 3,
+     "name": "_compute_event_booth_category_available_ids"
+    }
+   ],
+   "name": "event.event",
+   "transient": false
+  },
+  "event.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_type_booth_ids": {
+     "comodel": "event.type.booth",
+     "inverse_name": "event_type_id",
+     "readonly": false,
+     "store": true,
+     "string": "Booths",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "event.type",
+   "transient": false
+  },
+  "event.type.booth": {
+   "abstract": false,
+   "description": "Event Booth Template",
+   "extension": false,
+   "fields": {
+    "booth_category_id": {
+     "comodel": "event.booth.category",
+     "default": {
+      "$ref": "_get_default_booth_category"
+     },
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Booth Category",
+     "type": "Many2one"
+    },
+    "event_type_id": {
+     "comodel": "event.type",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Event Category",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_default_booth_category"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_event_booth_fields_whitelist"
+    }
+   ],
+   "name": "event.type.booth",
+   "transient": false
+  }
+ },
+ "module": "event_booth",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/event_booth",
+ "stats": {
+  "fields": 22,
+  "methods": 17,
+  "models": 5,
+  "py_lines": 264
+ },
+ "summary": "Manage event booths",
+ "title": "Events Booths",
+ "version": "1.1"
+}

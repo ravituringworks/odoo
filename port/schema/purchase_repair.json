@@ -1,0 +1,102 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Repair/Purchase",
+ "data_files": [
+  "views/purchase_views.xml",
+  "views/repair_views.xml"
+ ],
+ "depends": [
+  "repair",
+  "purchase_stock"
+ ],
+ "models": {
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "repair_count": {
+     "compute": "_compute_repair_count",
+     "groups": "stock.group_stock_user",
+     "string": "Count of source repairs",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line.move_dest_ids.repair_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_repair_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_linked_repair_orders"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_view_repair_orders"
+    }
+   ],
+   "name": "purchase.order",
+   "transient": false
+  },
+  "repair.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchase_count": {
+     "compute": "_compute_purchase_count",
+     "groups": "purchase.group_purchase_user",
+     "string": "Count of generated POs",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids.created_purchase_line_ids.order_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_purchase_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_linked_purchase_orders"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_view_purchase_orders"
+    }
+   ],
+   "name": "repair.order",
+   "transient": false
+  }
+ },
+ "module": "purchase_repair",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/purchase_repair",
+ "stats": {
+  "fields": 2,
+  "methods": 6,
+  "models": 2,
+  "py_lines": 77
+ },
+ "summary": "Keep track of linked purchase and repair orders",
+ "title": "Purchase Repair",
+ "version": "1.0"
+}

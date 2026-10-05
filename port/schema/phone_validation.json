@@ -1,0 +1,369 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/phone_blacklist_views.xml",
+  "wizard/phone_blacklist_remove_view.xml"
+ ],
+ "depends": [
+  "base",
+  "mail"
+ ],
+ "models": {
+  "base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_phone_get_number_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_phone_get_country"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_phone_get_country_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_phone_format"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_phone_format_number"
+    }
+   ],
+   "name": "base",
+   "transient": false
+  },
+  "mail.thread.phone": {
+   "abstract": true,
+   "description": "Phone Blacklist Mixin",
+   "extension": false,
+   "fields": {
+    "mobile_blacklisted": {
+     "compute": "_compute_blacklisted",
+     "groups": "base.group_user",
+     "help": "Indicates if a blacklisted sanitized phone number is a mobile number. Helps distinguish which number is blacklisted             when there is both a mobile and phone field in a model.",
+     "store": false,
+     "string": "Blacklisted Phone Is Mobile",
+     "type": "Boolean"
+    },
+    "phone_blacklisted": {
+     "compute": "_compute_blacklisted",
+     "groups": "base.group_user",
+     "help": "Indicates if a blacklisted sanitized phone number is a phone number. Helps distinguish which number is blacklisted             when there is both a mobile and phone field in a model.",
+     "store": false,
+     "string": "Blacklisted Phone is Phone",
+     "type": "Boolean"
+    },
+    "phone_mobile_search": {
+     "store": false,
+     "string": "Phone/Mobile",
+     "type": "Char"
+    },
+    "phone_sanitized": {
+     "compute": "_compute_phone_sanitized",
+     "help": "Field used to store sanitized phone number. Helps speeding up searches and comparisons.",
+     "store": true,
+     "string": "Sanitized Number",
+     "type": "Char"
+    },
+    "phone_sanitized_blacklisted": {
+     "compute": "_compute_blacklisted",
+     "groups": "base.group_user",
+     "help": "If the sanitized phone number is on the blacklist, the contact won't receive mass mailing sms anymore, from any list",
+     "store": false,
+     "string": "Phone Blacklisted",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 71,
+     "name": "_search_phone_mobile_search"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends(lambda self: self._phone_get_sanitize_triggers())"
+     ],
+     "lines": 9,
+     "name": "_compute_phone_sanitized"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('phone_sanitized')"
+     ],
+     "lines": 20,
+     "name": "_compute_blacklisted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "_search_phone_sanitized_blacklisted"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_assert_phone_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_phone_get_sanitize_triggers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_phone_set_blacklisted"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_phone_reset_blacklisted"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "phone_action_blacklist_remove"
+    }
+   ],
+   "name": "mail.thread.phone",
+   "sel_methods": {
+    "_search_phone_mobile_search": [
+     [
+      "id",
+      "in"
+     ]
+    ],
+    "_search_phone_sanitized_blacklisted": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "phone.blacklist": {
+   "abstract": false,
+   "description": "Phone Blacklist",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "number": {
+     "help": "Number should be E164 formatted",
+     "required": true,
+     "string": "Phone Number",
+     "tracking": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 36,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_condition_to_sql"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "add"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_add"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "remove"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_remove"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "phone_action_blacklist_remove"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_add"
+    }
+   ],
+   "name": "phone.blacklist",
+   "rec_name": "number",
+   "sel_methods": {
+    "_condition_to_sql": []
+   },
+   "sql_constraints": [
+    [
+     "unique_number",
+     "unique (number)",
+     "Number already exists"
+    ]
+   ],
+   "transient": false
+  },
+  "phone.blacklist.remove": {
+   "abstract": false,
+   "description": "Remove phone from blacklist",
+   "extension": false,
+   "fields": {
+    "phone": {
+     "readonly": true,
+     "required": true,
+     "string": "Phone Number",
+     "type": "Char"
+    },
+    "reason": {
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_unblacklist_apply"
+    }
+   ],
+   "name": "phone.blacklist.remove",
+   "transient": true
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('phone', 'country_id', 'company_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_phone_validation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('mobile', 'country_id', 'company_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_mobile_validation"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_deactivate_portal_user"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "phone_validation",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/phone_validation",
+ "stats": {
+  "fields": 9,
+  "methods": 28,
+  "models": 6,
+  "py_lines": 1005
+ },
+ "summary": "Validate and format phone numbers",
+ "title": "Phone Numbers Validation",
+ "version": "2.1"
+}

@@ -1,0 +1,762 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Inventory",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/stock_landed_cost_security.xml",
+  "data/stock_landed_cost_data.xml",
+  "views/account_move_views.xml",
+  "views/product_views.xml",
+  "views/stock_landed_cost_views.xml",
+  "views/stock_valuation_layer_views.xml",
+  "views/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "stock_account",
+  "purchase_stock"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "landed_costs_ids": {
+     "comodel": "stock.landed.cost",
+     "inverse_name": "vendor_bill_id",
+     "string": "Landed Costs",
+     "type": "One2many"
+    },
+    "landed_costs_visible": {
+     "compute": "_compute_landed_costs_visible",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids', 'line_ids.is_landed_costs_line')"
+     ],
+     "lines": 6,
+     "name": "_compute_landed_costs_visible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "button_create_landed_costs"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_view_landed_costs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_update_order_line_info"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_landed_costs_line": {
+     "type": "Boolean"
+    },
+    "product_type": {
+     "readonly": true,
+     "related": "product_id.type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 5,
+     "name": "_onchange_product_id_landed_costs"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('is_landed_costs_line')"
+     ],
+     "lines": 3,
+     "name": "_onchange_is_landed_costs_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_stock_valuation_layers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_eligible_for_cogs"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "landed_cost_ok": {
+     "help": "Indicates whether the product is a landed cost: when receiving a vendor bill, you can allocate this cost on preceding receipts.",
+     "string": "Is a Landed Cost",
+     "type": "Boolean"
+    },
+    "split_method_landed_cost": {
+     "help": "Default Split Method when used for Landed Cost",
+     "selection": [
+      [
+       "equal",
+       "Equal"
+      ],
+      [
+       "by_quantity",
+       "By Quantity"
+      ],
+      [
+       "by_current_cost_price",
+       "By Current Cost"
+      ],
+      [
+       "by_weight",
+       "By Weight"
+      ],
+      [
+       "by_volume",
+       "By Volume"
+      ]
+     ],
+     "string": "Default Split Method",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "purchase.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_account_move_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_po_line_invoice_lines_su"
+    }
+   ],
+   "name": "purchase.order.line",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "lc_journal_id": {
+     "comodel": "account.journal",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "lc_journal_id": {
+     "comodel": "account.journal",
+     "readonly": false,
+     "related": "company_id.lc_journal_id",
+     "string": "Default Journal",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "stock.landed.cost": {
+   "abstract": false,
+   "description": "Stock Landed Cost",
+   "extension": false,
+   "fields": {
+    "account_journal_id": {
+     "comodel": "account.journal",
+     "default": {
+      "$lambda": "self._default_account_journal_id()"
+     },
+     "required": true,
+     "string": "Account Journal",
+     "type": "Many2one"
+    },
+    "account_move_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Journal Entry",
+     "type": "Many2one"
+    },
+    "amount_total": {
+     "compute": "_compute_total_amount",
+     "store": true,
+     "string": "Total",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "cost_lines": {
+     "comodel": "stock.landed.cost.lines",
+     "copy": true,
+     "inverse_name": "cost_id",
+     "string": "Cost Lines",
+     "type": "One2many"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "date": {
+     "copy": false,
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "required": true,
+     "string": "Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "description": {
+     "string": "Item Description",
+     "type": "Text"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "_('New')"
+     },
+     "readonly": true,
+     "string": "Name",
+     "tracking": true,
+     "type": "Char"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "copy": false,
+     "string": "Transfers",
+     "type": "Many2many"
+    },
+    "state": {
+     "copy": false,
+     "default": "draft",
+     "readonly": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "done",
+       "Posted"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "stock_valuation_layer_ids": {
+     "comodel": "stock.valuation.layer",
+     "inverse_name": "stock_landed_cost_id",
+     "type": "One2many"
+    },
+    "target_model": {
+     "copy": false,
+     "default": "picking",
+     "required": true,
+     "selection": [
+      [
+       "picking",
+       "Transfers"
+      ]
+     ],
+     "string": "Apply On",
+     "type": "Selection"
+    },
+    "valuation_adjustment_lines": {
+     "comodel": "stock.valuation.adjustment.lines",
+     "inverse_name": "cost_id",
+     "string": "Valuation Adjustments",
+     "type": "One2many"
+    },
+    "vendor_bill_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "domain": [
+      [
+       "move_type",
+       "=",
+       "in_invoice"
+      ]
+     ],
+     "string": "Vendor Bill",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_default_account_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('cost_lines.price_unit')"
+     ],
+     "lines": 3,
+     "name": "_compute_total_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('target_model')"
+     ],
+     "lines": 3,
+     "name": "_onchange_target_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "button_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 109,
+     "name": "button_validate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "reconcile_landed_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "get_valuation_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 64,
+     "name": "compute_landed_cost"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_view_stock_valuation_layers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_targeted_move_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_can_validate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_check_sum"
+    }
+   ],
+   "name": "stock.landed.cost",
+   "order": "date desc, id desc",
+   "sel_methods": {
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "stock.landed.cost.lines": {
+   "abstract": false,
+   "description": "Stock Landed Cost Line",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "account.account",
+     "domain": [
+      [
+       "deprecated",
+       "=",
+       false
+      ]
+     ],
+     "string": "Account",
+     "type": "Many2one"
+    },
+    "cost_id": {
+     "comodel": "stock.landed.cost",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Landed Cost",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "cost_id.currency_id",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Description",
+     "type": "Char"
+    },
+    "price_unit": {
+     "required": true,
+     "string": "Cost",
+     "type": "Monetary"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "split_method": {
+     "help": "Equal: Cost will be equally divided.\nBy Quantity: Cost will be divided according to product's quantity.\nBy Current cost: Cost will be divided according to product's current cost.\nBy Weight: Cost will be divided depending on its weight.\nBy Volume: Cost will be divided depending on its volume.",
+     "required": true,
+     "selection": [
+      [
+       "equal",
+       "Equal"
+      ],
+      [
+       "by_quantity",
+       "By Quantity"
+      ],
+      [
+       "by_current_cost_price",
+       "By Current Cost"
+      ],
+      [
+       "by_weight",
+       "By Weight"
+      ],
+      [
+       "by_volume",
+       "By Volume"
+      ]
+     ],
+     "string": "Split Method",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 6,
+     "name": "onchange_product_id"
+    }
+   ],
+   "name": "stock.landed.cost.lines",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_stock_valuation_layer_ids"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.valuation.adjustment.lines": {
+   "abstract": false,
+   "description": "Valuation Adjustment Lines",
+   "extension": false,
+   "fields": {
+    "additional_landed_cost": {
+     "string": "Additional Landed Cost",
+     "type": "Monetary"
+    },
+    "cost_id": {
+     "comodel": "stock.landed.cost",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Landed Cost",
+     "type": "Many2one"
+    },
+    "cost_line_id": {
+     "comodel": "stock.landed.cost.lines",
+     "readonly": true,
+     "string": "Cost Line",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "cost_id.company_id.currency_id",
+     "type": "Many2one"
+    },
+    "final_cost": {
+     "compute": "_compute_final_cost",
+     "store": true,
+     "string": "New Value",
+     "type": "Monetary"
+    },
+    "former_cost": {
+     "string": "Original Value",
+     "type": "Monetary"
+    },
+    "move_id": {
+     "comodel": "stock.move",
+     "readonly": true,
+     "string": "Stock Move",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "store": true,
+     "string": "Description",
+     "type": "Char"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "quantity": {
+     "default": 1.0,
+     "digits": 0,
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "volume": {
+     "default": 1.0,
+     "digits": "Volume",
+     "string": "Volume",
+     "type": "Float"
+    },
+    "weight": {
+     "default": 1.0,
+     "digits": "Stock Weight",
+     "string": "Weight",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('cost_line_id.name', 'product_id.code', 'product_id.name')"
+     ],
+     "lines": 4,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('former_cost', 'additional_landed_cost')"
+     ],
+     "lines": 3,
+     "name": "_compute_final_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_create_accounting_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_account_move_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_create_account_move_line"
+    }
+   ],
+   "name": "stock.valuation.adjustment.lines",
+   "sel_methods": {
+    "_create_account_move_line": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      0
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "stock.valuation.layer": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "stock_landed_cost_id": {
+     "comodel": "stock.landed.cost",
+     "string": "Landed Cost",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_should_impact_price_unit_receipt_value"
+    }
+   ],
+   "name": "stock.valuation.layer",
+   "transient": false
+  }
+ },
+ "module": "stock_landed_costs",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/stock_landed_costs",
+ "stats": {
+  "fields": 43,
+  "methods": 35,
+  "models": 11,
+  "py_lines": 696
+ },
+ "summary": "Landed Costs",
+ "title": "WMS Landed Costs",
+ "version": "1.1"
+}

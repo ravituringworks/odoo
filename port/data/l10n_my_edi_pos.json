@@ -1,0 +1,136 @@
+{
+ "module": "l10n_my_edi_pos",
+ "records": [
+  {
+   "model": "res.partner",
+   "id": "general_public",
+   "values": {
+    "name": "General Public",
+    "vat": "EI00000000010",
+    "country_id": {
+     "$ref": "base.my"
+    },
+    "state_id": {
+     "$ref": "base.state_my_jhr"
+    },
+    "phone": "NA",
+    "street": "NA",
+    "city": "NA",
+    "l10n_my_identification_type": "BRN",
+    "l10n_my_identification_number": "NA"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "myinvois_document_comp_rule",
+   "values": {
+    "name": "MyInvois Document",
+    "model_id": {
+     "$ref": "model_myinvois_document"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_generate_myinvois_document_file",
+   "values": {
+    "name": "Generate Document File",
+    "model_id": {
+     "$ref": "l10n_my_edi_pos.model_myinvois_document"
+    },
+    "binding_model_id": {
+     "$ref": "l10n_my_edi_pos.model_myinvois_document"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "action = records.action_generate_xml_file()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_consolidated_invoices",
+   "values": {
+    "name": "Consolidated Invoices",
+    "type": "ir.actions.act_window",
+    "res_model": "myinvois.document",
+    "view_mode": "list,form",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "myinvois_document_pos_list_view"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "myinvois_document_pos_form_view"
+       }
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "pos_config_id",
+      "!=",
+      false
+     ]
+    ]
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "l10n_my_edi_pos.menu_consolidated_invoices",
+   "name": "Consolidated Invoice",
+   "parent": "point_of_sale.menu_point_of_sale",
+   "action": "l10n_my_edi_pos.action_consolidated_invoices",
+   "sequence": "50"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_myinvois_document_user",
+   "model": "myinvois.document",
+   "model_xmlid": "model_myinvois_document",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_myinvois_consolidate_invoice_wizard_user",
+   "model": "myinvois.consolidate.invoice.wizard",
+   "model_xmlid": "model_myinvois_consolidate_invoice_wizard",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_myinvois_document_status_update_wizard_user",
+   "model": "myinvois.document.status.update.wizard",
+   "model_xmlid": "model_myinvois_document_status_update_wizard",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

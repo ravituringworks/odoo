@@ -1,0 +1,242 @@
+{
+ "application": false,
+ "author": "Odoo S.A., Grzegorz Grzelak (OpenGLOBE) (http://www.openglobe.pl)",
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/l10n_pl.l10n_pl_tax_office.csv",
+  "data/res.country.state.csv",
+  "data/account.account.tag.csv",
+  "data/account_tax_report_data.xml",
+  "views/account_move_views.xml",
+  "views/product_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "base_iban",
+  "base_vat",
+  "account"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_pl_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_pl_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_vat_b_mpv_prowizja": {
+     "help": "Supply of agency and other services pertaining to the transfer of a single-purpose voucher",
+     "string": "B_MPV_Prowizja",
+     "type": "Boolean"
+    },
+    "l10n_pl_vat_b_spv": {
+     "help": "Transfer of a single-purpose voucher effected by a taxable person acting on his/its own behalf",
+     "string": "B_SPV",
+     "type": "Boolean"
+    },
+    "l10n_pl_vat_b_spv_dostawa": {
+     "help": "Supply of goods and/or services covered by a single-purpose voucher to a taxpayer",
+     "string": "B_SPV_Dostawa",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.move",
+   "transient": false
+  },
+  "l10n_pl.l10n_pl_tax_office": {
+   "abstract": false,
+   "description": "Tax Office in Poland",
+   "extension": false,
+   "fields": {
+    "code": {
+     "required": true,
+     "string": "Code",
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Description",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'code')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "l10n_pl.l10n_pl_tax_office",
+   "order": "code",
+   "sql_constraints": [
+    [
+     "code_company_uniq",
+     "unique (code)",
+     "The code of the tax office must be unique !"
+    ]
+   ],
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_vat_gtu": {
+     "help": "Codes for specific types of products, needed for VAT declaration",
+     "selection": [
+      [
+       "GTU_01",
+       "GTU_01 - Alcoholic beverages"
+      ],
+      [
+       "GTU_02",
+       "GTU_02 - Goods referred to under Art. 103 sec 5aa"
+      ],
+      [
+       "GTU_03",
+       "GTU_03 - Fuel oil for excise duty, lubricating oils and other oils"
+      ],
+      [
+       "GTU_04",
+       "GTU_04 - Tobacco products, tobacco, e-liquid"
+      ],
+      [
+       "GTU_05",
+       "GTU_05 - Wastes"
+      ],
+      [
+       "GTU_06",
+       "GTU_06 - Electronic devices, their parts and materials"
+      ],
+      [
+       "GTU_07",
+       "GTU_07 - Vehicles and vehicle parts"
+      ],
+      [
+       "GTU_08",
+       "GTU_08 - Precious metals and base metals"
+      ],
+      [
+       "GTU_09",
+       "GTU_09 - Medicament and medical devices, medicinal products"
+      ],
+      [
+       "GTU_10",
+       "GTU_10 - Buildings, structures and land"
+      ],
+      [
+       "GTU_11",
+       "GTU_11 - Services related to the greenhouse gas emission allowance trading"
+      ],
+      [
+       "GTU_12",
+       "GTU_12 - Intangible services"
+      ],
+      [
+       "GTU_13",
+       "GTU_13 - Transport services and warehouse management services"
+      ]
+     ],
+     "string": "GTU Codes",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_reports_tax_office_id": {
+     "comodel": "l10n_pl.l10n_pl_tax_office",
+     "groups": "account.group_account_user",
+     "string": "Tax Office",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_reports_tax_office_id": {
+     "readonly": false,
+     "related": "company_id.l10n_pl_reports_tax_office_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_pl_links_with_customer": {
+     "help": "TP: Existing connection or influence between the customer and the supplier",
+     "string": "Links With Company",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_pl",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_pl",
+ "stats": {
+  "fields": 9,
+  "methods": 3,
+  "models": 7,
+  "py_lines": 147
+ },
+ "summary": "This is the module to manage the accounting chart and taxes for Poland in Odoo.",
+ "title": "Poland - Accounting",
+ "version": "2.1"
+}

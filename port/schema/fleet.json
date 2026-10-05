@@ -1,0 +1,1864 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Human Resources/Fleet",
+ "data_files": [
+  "security/fleet_security.xml",
+  "security/ir.model.access.csv",
+  "views/fleet_vehicle_model_views.xml",
+  "views/fleet_vehicle_views.xml",
+  "views/fleet_vehicle_cost_views.xml",
+  "views/fleet_board_view.xml",
+  "views/mail_activity_views.xml",
+  "views/res_config_settings_views.xml",
+  "data/fleet_cars_data.xml",
+  "data/fleet_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/mail_activity_type_data.xml",
+  "wizard/fleet_vehicle_send_mail_views.xml",
+  "data/fleet_demo.xml"
+ ],
+ "depends": [
+  "base",
+  "mail"
+ ],
+ "models": {
+  "fleet.service.type": {
+   "abstract": false,
+   "description": "Fleet Service Type",
+   "extension": false,
+   "fields": {
+    "category": {
+     "help": "Choose whether the service refer to contracts, vehicle services or both",
+     "required": true,
+     "selection": [
+      [
+       "contract",
+       "Contract"
+      ],
+      [
+       "service",
+       "Service"
+      ]
+     ],
+     "string": "Category",
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "fleet.service.type",
+   "order": "name",
+   "transient": false
+  },
+  "fleet.vehicle": {
+   "abstract": false,
+   "description": "Vehicle",
+   "extension": false,
+   "fields": {
+    "acquisition_date": {
+     "default": {
+      "$ref": "fields.Date.today"
+     },
+     "help": "Date of vehicle registration",
+     "required": false,
+     "string": "Registration Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "active": {
+     "default": true,
+     "string": "Active",
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "brand_id": {
+     "comodel": "fleet.vehicle.model.brand",
+     "readonly": false,
+     "related": "model_id.brand_id",
+     "store": true,
+     "string": "Brand",
+     "type": "Many2one"
+    },
+    "car_value": {
+     "string": "Catalog Value (VAT Incl.)",
+     "tracking": true,
+     "type": "Float"
+    },
+    "category_id": {
+     "comodel": "fleet.vehicle.model.category",
+     "compute": "_compute_model_fields",
+     "readonly": false,
+     "store": true,
+     "string": "Category",
+     "type": "Many2one"
+    },
+    "co2": {
+     "compute": "_compute_model_fields",
+     "help": "CO2 emissions of the vehicle",
+     "readonly": false,
+     "store": true,
+     "string": "CO2 Emissions",
+     "tracking": true,
+     "type": "Float"
+    },
+    "co2_standard": {
+     "compute": "_compute_model_fields",
+     "readonly": false,
+     "store": true,
+     "string": "CO2 Standard",
+     "type": "Char"
+    },
+    "color": {
+     "compute": "_compute_model_fields",
+     "help": "Color of the vehicle",
+     "readonly": false,
+     "store": true,
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "contract_count": {
+     "compute": "_compute_count_all",
+     "string": "Contract Count",
+     "type": "Integer"
+    },
+    "contract_renewal_due_soon": {
+     "compute": "_compute_contract_reminder",
+     "string": "Has Contracts to renew",
+     "type": "Boolean"
+    },
+    "contract_renewal_overdue": {
+     "compute": "_compute_contract_reminder",
+     "string": "Has Contracts Overdue",
+     "type": "Boolean"
+    },
+    "contract_state": {
+     "compute": "_compute_contract_reminder",
+     "required": false,
+     "selection": [
+      [
+       "futur",
+       "Incoming"
+      ],
+      [
+       "open",
+       "In Progress"
+      ],
+      [
+       "expired",
+       "Expired"
+      ],
+      [
+       "closed",
+       "Closed"
+      ]
+     ],
+     "string": "Last Contract State",
+     "type": "Selection"
+    },
+    "country_code": {
+     "related": "country_id.code",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "related": "company_id.country_id",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "description": {
+     "string": "Vehicle Description",
+     "type": "Html"
+    },
+    "doors": {
+     "compute": "_compute_model_fields",
+     "help": "Number of doors of the vehicle",
+     "readonly": false,
+     "store": true,
+     "string": "Doors Number",
+     "type": "Integer"
+    },
+    "driver_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "help": "Driver address of the vehicle",
+     "string": "Driver",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "electric_assistance": {
+     "compute": "_compute_model_fields",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    },
+    "first_contract_date": {
+     "default": {
+      "$ref": "fields.Date.today"
+     },
+     "string": "First Contract Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "frame_size": {
+     "type": "Float"
+    },
+    "frame_type": {
+     "selection": [
+      [
+       "diamant",
+       "Diamant"
+      ],
+      [
+       "trapez",
+       "Trapez"
+      ],
+      [
+       "wave",
+       "Wave"
+      ]
+     ],
+     "string": "Bike Frame Type",
+     "type": "Selection"
+    },
+    "fuel_type": {
+     "compute": "_compute_model_fields",
+     "readonly": false,
+     "selection": [
+      [
+       "diesel",
+       "Diesel"
+      ],
+      [
+       "gasoline",
+       "Gasoline"
+      ],
+      [
+       "full_hybrid",
+       "Full Hybrid"
+      ],
+      [
+       "plug_in_hybrid_diesel",
+       "Plug-in Hybrid Diesel"
+      ],
+      [
+       "plug_in_hybrid_gasoline",
+       "Plug-in Hybrid Gasoline"
+      ],
+      [
+       "cng",
+       "CNG"
+      ],
+      [
+       "lpg",
+       "LPG"
+      ],
+      [
+       "hydrogen",
+       "Hydrogen"
+      ],
+      [
+       "electric",
+       "Electric"
+      ]
+     ],
+     "store": true,
+     "string": "Fuel Type",
+     "type": "Selection"
+    },
+    "future_driver_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "help": "Next Driver Address of the vehicle",
+     "string": "Future Driver",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "history_count": {
+     "compute": "_compute_count_all",
+     "string": "Drivers History Count",
+     "type": "Integer"
+    },
+    "horsepower": {
+     "compute": "_compute_model_fields",
+     "readonly": false,
+     "store": true,
+     "type": "Integer"
+    },
+    "horsepower_tax": {
+     "compute": "_compute_model_fields",
+     "readonly": false,
+     "store": true,
+     "string": "Horsepower Taxation",
+     "type": "Float"
+    },
+    "image_128": {
+     "readonly": true,
+     "related": "model_id.image_128",
+     "type": "Image"
+    },
+    "license_plate": {
+     "help": "License plate number of the vehicle (i = plate number for a car)",
+     "tracking": true,
+     "type": "Char"
+    },
+    "location": {
+     "help": "Location of the vehicle (garage, ...)",
+     "type": "Char"
+    },
+    "log_contracts": {
+     "comodel": "fleet.vehicle.log.contract",
+     "inverse_name": "vehicle_id",
+     "string": "Contracts",
+     "type": "One2many"
+    },
+    "log_drivers": {
+     "comodel": "fleet.vehicle.assignation.log",
+     "inverse_name": "vehicle_id",
+     "string": "Assignment Logs",
+     "type": "One2many"
+    },
+    "log_services": {
+     "comodel": "fleet.vehicle.log.services",
+     "inverse_name": "vehicle_id",
+     "string": "Services Logs",
+     "type": "One2many"
+    },
+    "manager_id": {
+     "comodel": "res.users",
+     "domain": {
+      "$lambda": "[('groups_id', 'in', self.env.ref('fleet.fleet_group_manager').id), ('company_id', 'in', self.env.companies.ids)]"
+     },
+     "string": "Fleet Manager",
+     "type": "Many2one"
+    },
+    "model_id": {
+     "comodel": "fleet.vehicle.model",
+     "required": true,
+     "string": "Model",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "model_year": {
+     "compute": "_compute_model_fields",
+     "help": "Year of the model",
+     "readonly": false,
+     "store": true,
+     "string": "Model Year",
+     "type": "Char"
+    },
+    "name": {
+     "compute": "_compute_vehicle_name",
+     "store": true,
+     "type": "Char"
+    },
+    "net_car_value": {
+     "string": "Purchase Value",
+     "type": "Float"
+    },
+    "next_assignation_date": {
+     "help": "This is the date at which the car will be available, if not set it means available instantly",
+     "string": "Assignment Date",
+     "type": "Date"
+    },
+    "odometer": {
+     "compute": "_get_odometer",
+     "help": "Odometer measure of the vehicle at the moment of this log",
+     "string": "Last Odometer",
+     "type": "Float"
+    },
+    "odometer_count": {
+     "compute": "_compute_count_all",
+     "string": "Odometer",
+     "type": "Integer"
+    },
+    "odometer_unit": {
+     "default": "kilometers",
+     "required": true,
+     "selection": [
+      [
+       "kilometers",
+       "km"
+      ],
+      [
+       "miles",
+       "mi"
+      ]
+     ],
+     "string": "Odometer Unit",
+     "type": "Selection"
+    },
+    "order_date": {
+     "string": "Order Date",
+     "type": "Date"
+    },
+    "plan_to_change_bike": {
+     "readonly": false,
+     "related": "driver_id.plan_to_change_bike",
+     "store": true,
+     "type": "Boolean"
+    },
+    "plan_to_change_car": {
+     "readonly": false,
+     "related": "driver_id.plan_to_change_car",
+     "store": true,
+     "type": "Boolean"
+    },
+    "power": {
+     "compute": "_compute_model_fields",
+     "help": "Power in kW of the vehicle",
+     "readonly": false,
+     "store": true,
+     "string": "Power",
+     "type": "Integer"
+    },
+    "power_unit": {
+     "default": "power",
+     "required": true,
+     "selection": [
+      [
+       "power",
+       "kW"
+      ],
+      [
+       "horsepower",
+       "Horsepower"
+      ]
+     ],
+     "string": "Power Unit",
+     "type": "Selection"
+    },
+    "residual_value": {
+     "type": "Float"
+    },
+    "seats": {
+     "compute": "_compute_model_fields",
+     "help": "Number of seats of the vehicle",
+     "readonly": false,
+     "store": true,
+     "string": "Seats Number",
+     "type": "Integer"
+    },
+    "service_activity": {
+     "compute": "_compute_service_activity",
+     "selection": [
+      [
+       "none",
+       "None"
+      ],
+      [
+       "overdue",
+       "Overdue"
+      ],
+      [
+       "today",
+       "Today"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "service_count": {
+     "compute": "_compute_count_all",
+     "string": "Services",
+     "type": "Integer"
+    },
+    "state_id": {
+     "comodel": "fleet.vehicle.state",
+     "default": {
+      "$ref": "_get_default_state"
+     },
+     "help": "Current state of the vehicle",
+     "ondelete": "set null",
+     "string": "State",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "tag_ids": {
+     "column1": "vehicle_tag_id",
+     "column2": "tag_id",
+     "comodel": "fleet.vehicle.tag",
+     "copy": false,
+     "relation_table": "fleet_vehicle_vehicle_tag_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "trailer_hook": {
+     "compute": "_compute_model_fields",
+     "default": false,
+     "readonly": false,
+     "store": true,
+     "string": "Trailer Hitch",
+     "type": "Boolean"
+    },
+    "transmission": {
+     "compute": "_compute_model_fields",
+     "readonly": false,
+     "selection": [
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "automatic",
+       "Automatic"
+      ]
+     ],
+     "store": true,
+     "string": "Transmission",
+     "type": "Selection"
+    },
+    "vehicle_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "vehicle_range": {
+     "string": "Range",
+     "type": "Integer"
+    },
+    "vehicle_type": {
+     "related": "model_id.vehicle_type",
+     "type": "Selection"
+    },
+    "vin_sn": {
+     "copy": false,
+     "help": "Unique number written on the vehicle motor (VIN/SN number)",
+     "string": "Chassis Number",
+     "tracking": true,
+     "type": "Char"
+    },
+    "write_off_date": {
+     "help": "Date when the vehicle's license plate has been cancelled/removed.",
+     "string": "Cancellation Date",
+     "tracking": true,
+     "type": "Date"
+    }
+   },
+   "inherit": [
+    "avatar.mixin",
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_default_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('log_services')"
+     ],
+     "lines": 4,
+     "name": "_compute_service_activity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_model_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_id.brand_id.name', 'model_id.name', 'license_plate')"
+     ],
+     "lines": 3,
+     "name": "_compute_vehicle_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_odometer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_set_odometer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_compute_count_all"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('log_contracts')"
+     ],
+     "lines": 32,
+     "name": "_compute_contract_reminder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_analytic_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_search_contract_renewal_due_soon"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_search_get_overdue_contract_reminder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_clean_vals_internal_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 18,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_driver_history_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "create_driver_history"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_accept_driver_change"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "return_action_to_open"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "act_show_log_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "open_assignation_logs"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_send_email"
+    }
+   ],
+   "name": "fleet.vehicle",
+   "order": "license_plate asc, acquisition_date asc",
+   "sel_methods": {
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "fleet.vehicle.assignation.log": {
+   "abstract": false,
+   "description": "Drivers history on a vehicle",
+   "extension": false,
+   "fields": {
+    "date_end": {
+     "string": "End Date",
+     "type": "Date"
+    },
+    "date_start": {
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "driver_id": {
+     "comodel": "res.partner",
+     "required": true,
+     "string": "Driver",
+     "type": "Many2one"
+    },
+    "vehicle_id": {
+     "comodel": "fleet.vehicle",
+     "required": true,
+     "string": "Vehicle",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('driver_id', 'vehicle_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "fleet.vehicle.assignation.log",
+   "order": "create_date desc, date_start desc",
+   "transient": false
+  },
+  "fleet.vehicle.cost.report": {
+   "abstract": false,
+   "description": "Fleet Analysis Report",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "cost": {
+     "readonly": true,
+     "string": "Cost",
+     "type": "Float"
+    },
+    "cost_type": {
+     "readonly": true,
+     "selection": [
+      [
+       "contract",
+       "Contract"
+      ],
+      [
+       "service",
+       "Service"
+      ]
+     ],
+     "string": "Cost Type",
+     "type": "Selection"
+    },
+    "date_start": {
+     "readonly": true,
+     "string": "Date",
+     "type": "Date"
+    },
+    "driver_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Driver",
+     "type": "Many2one"
+    },
+    "fuel_type": {
+     "readonly": true,
+     "string": "Fuel",
+     "type": "Char"
+    },
+    "name": {
+     "readonly": true,
+     "string": "Vehicle Name",
+     "type": "Char"
+    },
+    "vehicle_id": {
+     "comodel": "fleet.vehicle",
+     "readonly": true,
+     "string": "Vehicle",
+     "type": "Many2one"
+    },
+    "vehicle_type": {
+     "readonly": true,
+     "selection": [
+      [
+       "car",
+       "Car"
+      ],
+      [
+       "bike",
+       "Bike"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 124,
+     "name": "init"
+    }
+   ],
+   "name": "fleet.vehicle.cost.report",
+   "order": "date_start desc",
+   "transient": false
+  },
+  "fleet.vehicle.log.contract": {
+   "abstract": false,
+   "description": "Vehicle Contract",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "amount": {
+     "string": "Cost",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "cost_frequency": {
+     "default": "monthly",
+     "required": true,
+     "selection": [
+      [
+       "no",
+       "No"
+      ],
+      [
+       "daily",
+       "Daily"
+      ],
+      [
+       "weekly",
+       "Weekly"
+      ],
+      [
+       "monthly",
+       "Monthly"
+      ],
+      [
+       "yearly",
+       "Yearly"
+      ]
+     ],
+     "string": "Recurring Cost Frequency",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "cost_generated": {
+     "string": "Recurring Cost",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "cost_subtype_id": {
+     "comodel": "fleet.service.type",
+     "domain": [
+      [
+       "category",
+       "=",
+       "contract"
+      ]
+     ],
+     "help": "Cost type purchased with this cost",
+     "string": "Type",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "date": {
+     "help": "Date when the cost has been executed",
+     "type": "Date"
+    },
+    "days_left": {
+     "compute": "_compute_days_left",
+     "string": "Warning Date",
+     "type": "Integer"
+    },
+    "expiration_date": {
+     "default": {
+      "$lambda": "self.compute_next_year_date(fields.Date.context_today(self))"
+     },
+     "help": "Date when the coverage of the contract expirates (by default, one year after begin date)",
+     "string": "Contract Expiration Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "expires_today": {
+     "compute": "_compute_days_left",
+     "type": "Boolean"
+    },
+    "has_open_contract": {
+     "compute": "_compute_has_open_contract",
+     "type": "Boolean"
+    },
+    "ins_ref": {
+     "copy": false,
+     "size": 64,
+     "string": "Reference",
+     "type": "Char"
+    },
+    "insurer_id": {
+     "comodel": "res.partner",
+     "string": "Vendor",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_contract_name",
+     "readonly": false,
+     "store": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "notes": {
+     "copy": false,
+     "string": "Terms and Conditions",
+     "type": "Html"
+    },
+    "purchaser_id": {
+     "related": "vehicle_id.driver_id",
+     "string": "Driver",
+     "type": "Many2one"
+    },
+    "service_ids": {
+     "comodel": "fleet.service.type",
+     "string": "Included Services",
+     "type": "Many2many"
+    },
+    "start_date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "help": "Date when the coverage of the contract begins",
+     "string": "Contract Start Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "state": {
+     "copy": false,
+     "default": "open",
+     "help": "Choose whether the contract is still valid or not",
+     "selection": [
+      [
+       "futur",
+       "New"
+      ],
+      [
+       "open",
+       "Running"
+      ],
+      [
+       "expired",
+       "Expired"
+      ],
+      [
+       "closed",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env['fleet.vehicle'].browse(self._context.get('active_id')).manager_id"
+     },
+     "index": true,
+     "string": "Responsible",
+     "type": "Many2one"
+    },
+    "vehicle_id": {
+     "comodel": "fleet.vehicle",
+     "required": true,
+     "string": "Vehicle",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "compute_next_year_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vehicle_id.name', 'cost_subtype_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_contract_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vehicle_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_has_open_contract"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expiration_date', 'state')"
+     ],
+     "lines": 16,
+     "name": "_compute_days_left"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_close"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_draft"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_open"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_expire"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 30,
+     "name": "scheduler_manage_contract_expiration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "run_scheduler"
+    }
+   ],
+   "name": "fleet.vehicle.log.contract",
+   "order": "state desc,expiration_date",
+   "transient": false
+  },
+  "fleet.vehicle.log.services": {
+   "abstract": false,
+   "description": "Services for vehicles",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "amount": {
+     "string": "Cost",
+     "type": "Monetary"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "help": "Date when the cost has been executed",
+     "type": "Date"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Char"
+    },
+    "inv_ref": {
+     "string": "Vendor Reference",
+     "type": "Char"
+    },
+    "manager_id": {
+     "comodel": "res.users",
+     "related": "vehicle_id.manager_id",
+     "store": true,
+     "string": "Fleet Manager",
+     "type": "Many2one"
+    },
+    "notes": {
+     "type": "Text"
+    },
+    "odometer": {
+     "compute": "_get_odometer",
+     "help": "Odometer measure of the vehicle at the moment of this log",
+     "string": "Odometer Value",
+     "type": "Float"
+    },
+    "odometer_id": {
+     "comodel": "fleet.vehicle.odometer",
+     "help": "Odometer measure of the vehicle at the moment of this log",
+     "string": "Odometer",
+     "type": "Many2one"
+    },
+    "odometer_unit": {
+     "readonly": true,
+     "related": "vehicle_id.odometer_unit",
+     "string": "Unit",
+     "type": "Selection"
+    },
+    "purchaser_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_purchaser_id",
+     "readonly": false,
+     "store": true,
+     "string": "Driver",
+     "type": "Many2one"
+    },
+    "service_type_id": {
+     "comodel": "fleet.service.type",
+     "default": {
+      "$lambda": "self.env.ref('fleet.type_service_service_7', raise_if_not_found=False)"
+     },
+     "required": true,
+     "string": "Service Type",
+     "type": "Many2one"
+    },
+    "state": {
+     "default": "new",
+     "selection": [
+      [
+       "new",
+       "New"
+      ],
+      [
+       "running",
+       "Running"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "cancelled",
+       "Cancelled"
+      ]
+     ],
+     "string": "Stage",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "vehicle_id": {
+     "comodel": "fleet.vehicle",
+     "required": true,
+     "string": "Vehicle",
+     "type": "Many2one"
+    },
+    "vendor_id": {
+     "comodel": "res.partner",
+     "string": "Vendor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_odometer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_set_odometer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vehicle_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_purchaser_id"
+    }
+   ],
+   "name": "fleet.vehicle.log.services",
+   "rec_name": "service_type_id",
+   "transient": false
+  },
+  "fleet.vehicle.model": {
+   "abstract": false,
+   "description": "Model of a vehicle",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "brand_id": {
+     "comodel": "fleet.vehicle.model.brand",
+     "required": true,
+     "string": "Manufacturer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "category_id": {
+     "comodel": "fleet.vehicle.model.category",
+     "string": "Category",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "co2_standard": {
+     "tracking": true,
+     "type": "Char"
+    },
+    "color": {
+     "tracking": true,
+     "type": "Char"
+    },
+    "default_co2": {
+     "string": "CO2 Emissions",
+     "tracking": true,
+     "type": "Float"
+    },
+    "default_fuel_type": {
+     "default": "electric",
+     "selection": [
+      [
+       "diesel",
+       "Diesel"
+      ],
+      [
+       "gasoline",
+       "Gasoline"
+      ],
+      [
+       "full_hybrid",
+       "Full Hybrid"
+      ],
+      [
+       "plug_in_hybrid_diesel",
+       "Plug-in Hybrid Diesel"
+      ],
+      [
+       "plug_in_hybrid_gasoline",
+       "Plug-in Hybrid Gasoline"
+      ],
+      [
+       "cng",
+       "CNG"
+      ],
+      [
+       "lpg",
+       "LPG"
+      ],
+      [
+       "hydrogen",
+       "Hydrogen"
+      ],
+      [
+       "electric",
+       "Electric"
+      ]
+     ],
+     "string": "Fuel Type",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "doors": {
+     "string": "Doors Number",
+     "tracking": true,
+     "type": "Integer"
+    },
+    "electric_assistance": {
+     "default": false,
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "horsepower": {
+     "tracking": true,
+     "type": "Integer"
+    },
+    "horsepower_tax": {
+     "string": "Horsepower Taxation",
+     "tracking": true,
+     "type": "Float"
+    },
+    "image_128": {
+     "readonly": true,
+     "related": "brand_id.image_128",
+     "type": "Image"
+    },
+    "model_year": {
+     "tracking": true,
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Model name",
+     "tracking": true,
+     "type": "Char"
+    },
+    "power": {
+     "string": "Power",
+     "tracking": true,
+     "type": "Integer"
+    },
+    "power_unit": {
+     "default": "power",
+     "required": true,
+     "selection": [
+      [
+       "power",
+       "kW"
+      ],
+      [
+       "horsepower",
+       "Horsepower"
+      ]
+     ],
+     "string": "Power Unit",
+     "type": "Selection"
+    },
+    "seats": {
+     "string": "Seats Number",
+     "tracking": true,
+     "type": "Integer"
+    },
+    "trailer_hook": {
+     "default": false,
+     "string": "Trailer Hitch",
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "transmission": {
+     "selection": [
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "automatic",
+       "Automatic"
+      ]
+     ],
+     "string": "Transmission",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "vehicle_count": {
+     "compute": "_compute_vehicle_count",
+     "type": "Integer"
+    },
+    "vehicle_properties_definition": {
+     "string": "Vehicle Properties",
+     "type": "PropertiesDefinition"
+    },
+    "vehicle_range": {
+     "string": "Range",
+     "type": "Integer"
+    },
+    "vehicle_type": {
+     "default": "car",
+     "required": true,
+     "selection": [
+      [
+       "car",
+       "Car"
+      ],
+      [
+       "bike",
+       "Bike"
+      ]
+     ],
+     "tracking": true,
+     "type": "Selection"
+    },
+    "vendors": {
+     "column1": "model_id",
+     "column2": "partner_id",
+     "comodel": "res.partner",
+     "relation_table": "fleet_vehicle_model_vendors",
+     "string": "Vendors",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "avatar.mixin",
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_search_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('brand_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_vehicle_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_search_vehicle_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_model_vehicle"
+    }
+   ],
+   "name": "fleet.vehicle.model",
+   "order": "name asc",
+   "sel_methods": {
+    "_search_vehicle_count": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "fleet.vehicle.model.brand": {
+   "abstract": false,
+   "description": "Brand of the vehicle",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "image_128": {
+     "string": "Logo",
+     "type": "Image"
+    },
+    "model_count": {
+     "compute": "_compute_model_count",
+     "store": true,
+     "string": "",
+     "type": "Integer"
+    },
+    "model_ids": {
+     "comodel": "fleet.vehicle.model",
+     "inverse_name": "brand_id",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model_ids.active')"
+     ],
+     "lines": 8,
+     "name": "_compute_model_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_brand_model"
+    }
+   ],
+   "name": "fleet.vehicle.model.brand",
+   "order": "name asc",
+   "transient": false
+  },
+  "fleet.vehicle.model.category": {
+   "abstract": false,
+   "description": "Category of the model",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "fleet.vehicle.model.category",
+   "order": "sequence asc, id asc",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "UNIQUE (name)",
+     "Category name must be unique"
+    ]
+   ],
+   "transient": false
+  },
+  "fleet.vehicle.odometer": {
+   "abstract": false,
+   "description": "Odometer log for a vehicle",
+   "extension": false,
+   "fields": {
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "type": "Date"
+    },
+    "driver_id": {
+     "readonly": false,
+     "related": "vehicle_id.driver_id",
+     "string": "Driver",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_vehicle_log_name",
+     "store": true,
+     "type": "Char"
+    },
+    "unit": {
+     "readonly": true,
+     "related": "vehicle_id.odometer_unit",
+     "string": "Unit",
+     "type": "Selection"
+    },
+    "value": {
+     "string": "Odometer Value",
+     "type": "Float"
+    },
+    "vehicle_id": {
+     "comodel": "fleet.vehicle",
+     "required": true,
+     "string": "Vehicle",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vehicle_id', 'date')"
+     ],
+     "lines": 8,
+     "name": "_compute_vehicle_log_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('vehicle_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_vehicle"
+    }
+   ],
+   "name": "fleet.vehicle.odometer",
+   "order": "date desc",
+   "transient": false
+  },
+  "fleet.vehicle.send.mail": {
+   "abstract": false,
+   "description": "Send mails to Drivers",
+   "extension": false,
+   "fields": {
+    "attachment_ids": {
+     "column1": "wizard_id",
+     "column2": "attachment_id",
+     "comodel": "ir.attachment",
+     "relation_table": "fleet_vehicle_mail_compose_message_ir_attachments_rel",
+     "string": "Attachments",
+     "type": "Many2many"
+    },
+    "author_id": {
+     "comodel": "res.partner",
+     "default": {
+      "$lambda": "self.env.user.partner_id.id"
+     },
+     "required": true,
+     "string": "Author",
+     "type": "Many2one"
+    },
+    "template_id": {
+     "domain": {
+      "$lambda": "[('model_id', '=', self.env['ir.model']._get('fleet.vehicle').id)]"
+     },
+     "type": "Many2one"
+    },
+    "vehicle_ids": {
+     "comodel": "fleet.vehicle",
+     "required": true,
+     "string": "Vehicles",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "mail.composer.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('subject')"
+     ],
+     "lines": 2,
+     "name": "_compute_render_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('template_id')"
+     ],
+     "lines": 2,
+     "name": "_onchange_template_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 29,
+     "name": "action_send"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 26,
+     "name": "action_save_as_template"
+    }
+   ],
+   "name": "fleet.vehicle.send.mail",
+   "transient": true
+  },
+  "fleet.vehicle.state": {
+   "abstract": false,
+   "description": "Vehicle Status",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "fleet.vehicle.state",
+   "order": "sequence asc",
+   "sql_constraints": [
+    [
+     "fleet_state_name_unique",
+     "unique(name)",
+     "State name already exists"
+    ]
+   ],
+   "transient": false
+  },
+  "fleet.vehicle.tag": {
+   "abstract": false,
+   "description": "Vehicle Tag",
+   "extension": false,
+   "fields": {
+    "color": {
+     "string": "Color",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Tag Name",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "fleet.vehicle.tag",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "mail.activity.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_model_info_by_xmlid"
+    }
+   ],
+   "name": "mail.activity.type",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "delay_alert_contract": {
+     "default": 30,
+     "string": "Delay alert contract outdated",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "plan_to_change_bike": {
+     "default": false,
+     "string": "Plan To Change Bike",
+     "type": "Boolean"
+    },
+    "plan_to_change_car": {
+     "default": false,
+     "string": "Plan To Change Car",
+     "tracking": true,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "fleet",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/fleet",
+ "stats": {
+  "fields": 163,
+  "methods": 53,
+  "models": 16,
+  "py_lines": 1235
+ },
+ "summary": "Manage your fleet and track car costs",
+ "title": "Fleet",
+ "version": "0.1"
+}

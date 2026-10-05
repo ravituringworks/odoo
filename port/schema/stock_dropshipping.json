@@ -1,0 +1,474 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Inventory",
+ "data_files": [
+  "data/stock_data.xml",
+  "views/sale_order_views.xml",
+  "views/stock_picking_views.xml",
+  "views/purchase_order_views.xml",
+  "data/stock_dropshipping_demo.xml"
+ ],
+ "depends": [
+  "sale_purchase_stock"
+ ],
+ "models": {
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_should_use_related_analytic_distribution"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "procurement.group": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_rule_domain"
+    }
+   ],
+   "name": "procurement.group",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_description"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "dropship_picking_count": {
+     "compute": "_compute_incoming_picking_count",
+     "string": "Dropship Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids.is_dropship')"
+     ],
+     "lines": 6,
+     "name": "_compute_incoming_picking_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_view_picking"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_view_dropship"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_group_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_create_picking"
+    }
+   ],
+   "name": "purchase.order",
+   "transient": false
+  },
+  "purchase.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_stock_moves"
+    }
+   ],
+   "name": "purchase.order.line",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_create_dropship_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "create_missing_dropship_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_per_company_sequences"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_create_dropship_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "create_missing_dropship_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_per_company_picking_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_create_dropship_rule"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "create_missing_dropship_rule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_per_company_rules"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "dropship_picking_count": {
+     "compute": "_compute_picking_ids",
+     "string": "Dropship Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids.is_dropship')"
+     ],
+     "lines": 6,
+     "name": "_compute_picking_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_view_delivery"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_view_dropship"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_is_mto"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_qty_procurement"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('purchase_line_count')"
+     ],
+     "lines": 6,
+     "name": "_compute_product_updatable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_purchase_service_prepare_order_values"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  },
+  "stock.lot": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_last_delivery_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_outgoing_domain"
+    }
+   ],
+   "name": "stock.lot",
+   "transient": false
+  },
+  "stock.lot.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_join_on_picking_type_and_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_outgoing_operation_types"
+    }
+   ],
+   "name": "stock.lot.report",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_layer_candidates"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_dropship": {
+     "compute": "_compute_is_dropship",
+     "string": "Is a Dropship",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('location_dest_id.usage', 'location_dest_id.company_id', 'location_id.usage', 'location_id.company_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_is_dropship"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_to_external_location"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.picking.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "code": {
+     "ondelete": {
+      "$expr": "{'dropship': lambda recs: recs.write({'code': 'outgoing', 'active': False})}"
+     },
+     "selection_add": [
+      [
+       "dropship",
+       "Dropship"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_default_location_src_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_default_location_dest_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('default_location_src_id', 'default_location_dest_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_warehouse_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code')"
+     ],
+     "lines": 5,
+     "name": "_compute_show_picking_type"
+    }
+   ],
+   "name": "stock.picking.type",
+   "transient": false
+  },
+  "stock.replenish.mixin": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_allowed_route_domain"
+    }
+   ],
+   "name": "stock.replenish.mixin",
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_procurements_to_merge_groupby"
+    }
+   ],
+   "name": "stock.rule",
+   "transient": false
+  }
+ },
+ "module": "stock_dropshipping",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/stock_dropshipping",
+ "stats": {
+  "fields": 4,
+  "methods": 38,
+  "models": 15,
+  "py_lines": 459
+ },
+ "summary": "Drop Shipping",
+ "title": "Drop Shipping",
+ "version": "1.0"
+}

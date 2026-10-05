@@ -1,0 +1,733 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Productivity",
+ "data_files": [
+  "views/rating_rating_views.xml",
+  "views/rating_templates.xml",
+  "views/mail_message_views.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "mail.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "rating_id": {
+     "comodel": "rating.rating",
+     "compute": "_compute_rating_id",
+     "type": "Many2one"
+    },
+    "rating_ids": {
+     "comodel": "rating.rating",
+     "inverse_name": "message_id",
+     "string": "Related ratings",
+     "type": "One2many"
+    },
+    "rating_value": {
+     "compute": "_compute_rating_value",
+     "store": false,
+     "string": "Rating Value",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating_ids.consumed')"
+     ],
+     "lines": 5,
+     "name": "_compute_rating_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating_ids', 'rating_ids.rating')"
+     ],
+     "lines": 3,
+     "name": "_compute_rating_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_rating_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_to_store"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_empty"
+    }
+   ],
+   "name": "mail.message",
+   "sel_methods": {
+    "_search_rating_value": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "mail.thread": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "rating_ids": {
+     "comodel": "rating.rating",
+     "domain": {
+      "$lambda": "[('res_model', '=', self._name)]"
+     },
+     "groups": "base.group_user",
+     "inverse_name": "res_id",
+     "string": "Ratings",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_message_create_ignore_field_names"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_rating_apply_get_default_subtype_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_rating_get_operator"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_rating_get_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_rating_get_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "rating_send_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 64,
+     "name": "rating_apply"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('mail.message', lambda value: value.id)"
+     ],
+     "lines": 18,
+     "name": "message_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_message_post_after_hook"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_allowed_message_update_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_message_update_content"
+    }
+   ],
+   "name": "mail.thread",
+   "sel_methods": {
+    "_message_update_content": []
+   },
+   "transient": false
+  },
+  "rating.mixin": {
+   "abstract": true,
+   "description": "Rating Mixin",
+   "extension": false,
+   "fields": {
+    "rating_avg": {
+     "compute": "_compute_rating_stats",
+     "groups": "base.group_user",
+     "string": "Average Rating",
+     "type": "Float"
+    },
+    "rating_avg_text": {
+     "compute": "_compute_rating_avg_text",
+     "groups": "base.group_user",
+     "selection": [
+      [
+       "top",
+       "Satisfied"
+      ],
+      [
+       "ok",
+       "Okay"
+      ],
+      [
+       "ko",
+       "Dissatisfied"
+      ],
+      [
+       "none",
+       "No Rating yet"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "rating_count": {
+     "compute": "_compute_rating_stats",
+     "string": "Rating count",
+     "type": "Integer"
+    },
+    "rating_last_feedback": {
+     "groups": "base.group_user",
+     "related": "rating_ids.feedback",
+     "string": "Rating Last Feedback",
+     "type": "Text"
+    },
+    "rating_last_image": {
+     "groups": "base.group_user",
+     "related": "rating_ids.rating_image",
+     "string": "Rating Last Image",
+     "type": "Binary"
+    },
+    "rating_last_text": {
+     "groups": "base.group_user",
+     "related": "rating_ids.rating_text",
+     "string": "Rating Text",
+     "type": "Selection"
+    },
+    "rating_last_value": {
+     "compute": "_compute_rating_last_value",
+     "groups": "base.group_user",
+     "store": true,
+     "string": "Rating Last Value",
+     "type": "Float"
+    },
+    "rating_percentage_satisfaction": {
+     "compute": "_compute_rating_satisfaction",
+     "string": "Rating Satisfaction",
+     "type": "Float"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating_ids', 'rating_ids.rating', 'rating_ids.consumed')"
+     ],
+     "lines": 21,
+     "name": "_compute_rating_last_value"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating_ids.res_id', 'rating_ids.rating')"
+     ],
+     "lines": 8,
+     "name": "_compute_rating_stats"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_search_rating_avg"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating_avg')"
+     ],
+     "lines": 3,
+     "name": "_compute_rating_avg_text"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating_ids.res_id', 'rating_ids.rating')"
+     ],
+     "lines": 17,
+     "name": "_compute_rating_satisfaction"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_rating_get_parent_field_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_rating_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_rating_get_repartition"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "rating_get_grades"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "rating_get_stats"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_allow_publish_rating_stats"
+    }
+   ],
+   "name": "rating.mixin",
+   "sel_methods": {
+    "_search_rating_avg": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "rating.parent.mixin": {
+   "abstract": true,
+   "description": "Rating Parent Mixin",
+   "extension": false,
+   "fields": {
+    "rating_avg": {
+     "compute": "_compute_rating_percentage_satisfaction",
+     "groups": "base.group_user",
+     "string": "Average Rating",
+     "type": "Float"
+    },
+    "rating_avg_percentage": {
+     "compute": "_compute_rating_percentage_satisfaction",
+     "groups": "base.group_user",
+     "string": "Average Rating (%)",
+     "type": "Float"
+    },
+    "rating_count": {
+     "compute": "_compute_rating_percentage_satisfaction",
+     "string": "# Ratings",
+     "type": "Integer"
+    },
+    "rating_ids": {
+     "comodel": "rating.rating",
+     "domain": {
+      "$lambda": "[('parent_res_model', '=', self._name)]"
+     },
+     "groups": "base.group_user",
+     "inverse_name": "parent_res_id",
+     "string": "Ratings",
+     "type": "One2many"
+    },
+    "rating_percentage_satisfaction": {
+     "compute": "_compute_rating_percentage_satisfaction",
+     "help": "Percentage of happy ratings",
+     "store": false,
+     "string": "Rating Satisfaction",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating_ids.rating', 'rating_ids.consumed')"
+     ],
+     "lines": 24,
+     "name": "_compute_rating_percentage_satisfaction"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_search_rating_avg"
+    }
+   ],
+   "name": "rating.parent.mixin",
+   "sel_methods": {
+    "_search_rating_avg": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "rating.rating": {
+   "abstract": false,
+   "description": "Rating",
+   "extension": false,
+   "fields": {
+    "access_token": {
+     "default": {
+      "$ref": "_default_access_token"
+     },
+     "string": "Security Token",
+     "type": "Char"
+    },
+    "consumed": {
+     "string": "Filled Rating",
+     "type": "Boolean"
+    },
+    "create_date": {
+     "string": "Submitted on",
+     "type": "Datetime"
+    },
+    "feedback": {
+     "string": "Comment",
+     "type": "Text"
+    },
+    "is_internal": {
+     "readonly": false,
+     "related": "message_id.is_internal",
+     "store": true,
+     "string": "Visible Internally Only",
+     "type": "Boolean"
+    },
+    "message_id": {
+     "comodel": "mail.message",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Message",
+     "type": "Many2one"
+    },
+    "parent_ref": {
+     "compute": "_compute_parent_ref",
+     "readonly": true,
+     "selection_method": "_selection_target_model",
+     "string": "Parent Ref",
+     "type": "Reference"
+    },
+    "parent_res_id": {
+     "index": true,
+     "string": "Parent Document",
+     "type": "Integer"
+    },
+    "parent_res_model": {
+     "index": true,
+     "readonly": false,
+     "related": "parent_res_model_id.model",
+     "store": true,
+     "string": "Parent Document Model",
+     "type": "Char"
+    },
+    "parent_res_model_id": {
+     "comodel": "ir.model",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Parent Related Document Model",
+     "type": "Many2one"
+    },
+    "parent_res_name": {
+     "compute": "_compute_parent_res_name",
+     "store": true,
+     "string": "Parent Document Name",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "rated_partner_id": {
+     "comodel": "res.partner",
+     "string": "Rated Operator",
+     "type": "Many2one"
+    },
+    "rated_partner_name": {
+     "related": "rated_partner_id.name",
+     "type": "Char"
+    },
+    "rating": {
+     "default": 0,
+     "string": "Rating Value",
+     "type": "Float"
+    },
+    "rating_image": {
+     "compute": "_compute_rating_image",
+     "string": "Image",
+     "type": "Binary"
+    },
+    "rating_image_url": {
+     "compute": "_compute_rating_image",
+     "string": "Image URL",
+     "type": "Char"
+    },
+    "rating_text": {
+     "compute": "_compute_rating_text",
+     "readonly": true,
+     "selection": [
+      [
+       "top",
+       "Satisfied"
+      ],
+      [
+       "ok",
+       "Okay"
+      ],
+      [
+       "ko",
+       "Dissatisfied"
+      ],
+      [
+       "none",
+       "No Rating yet"
+      ]
+     ],
+     "store": true,
+     "string": "Rating",
+     "type": "Selection"
+    },
+    "res_id": {
+     "index": true,
+     "required": true,
+     "string": "Document",
+     "type": "Many2oneReference"
+    },
+    "res_model": {
+     "index": true,
+     "readonly": true,
+     "related": "res_model_id.model",
+     "store": true,
+     "string": "Document Model",
+     "type": "Char"
+    },
+    "res_model_id": {
+     "comodel": "ir.model",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Related Document Model",
+     "type": "Many2one"
+    },
+    "res_name": {
+     "compute": "_compute_res_name",
+     "store": true,
+     "string": "Resource name",
+     "type": "Char"
+    },
+    "resource_ref": {
+     "compute": "_compute_resource_ref",
+     "readonly": true,
+     "selection_method": "_selection_target_model",
+     "string": "Resource Ref",
+     "type": "Reference"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_default_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_selection_target_model"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_res_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model', 'res_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_resource_ref"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_res_model', 'parent_res_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_parent_ref"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('parent_res_model', 'parent_res_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_parent_res_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_rating_image_filename"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating')"
+     ],
+     "lines": 11,
+     "name": "_compute_rating_image"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('rating')"
+     ],
+     "lines": 3,
+     "name": "_compute_rating_text"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_find_parent_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "reset"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_rated_object"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_classify_by_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_to_store"
+    }
+   ],
+   "name": "rating.rating",
+   "order": "write_date desc, id desc",
+   "rec_name": "res_name",
+   "sql_constraints": [
+    [
+     "rating_range",
+     "check(rating >= 0 and rating <= 5)",
+     "Rating should be between 0 and 5"
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "rating",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/rating",
+ "stats": {
+  "fields": 40,
+  "methods": 48,
+  "models": 5,
+  "py_lines": 907
+ },
+ "summary": "This module allows a customer to give rating.",
+ "title": "Customer Rating",
+ "version": "1.1"
+}

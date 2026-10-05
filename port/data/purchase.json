@@ -1,0 +1,1582 @@
+{
+ "module": "purchase",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_inventory_purchase",
+   "values": {
+    "description": "Helps you manage your purchase-related processes such as requests for quotations, supplier bills, etc...",
+    "sequence": "8"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_purchase_user",
+   "values": {
+    "name": "User",
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "category_id": {
+     "$ref": "base.module_category_inventory_purchase"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_purchase_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_inventory_purchase"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_purchase_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_warning_purchase",
+   "values": {
+    "name": "A warning can be set on a product or a customer (Purchase)",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_send_reminder",
+   "values": {
+    "name": "Send an automatic reminder email to confirm delivery",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_user",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "purchase.group_send_reminder"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "purchase.group_purchase_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "purchase_order_comp_rule",
+   "values": {
+    "name": "Purchase Order multi-company",
+    "model_id": {
+     "$ref": "model_purchase_order"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "purchase_order_line_comp_rule",
+   "values": {
+    "name": "Purchase Order Line multi-company",
+    "model_id": {
+     "$ref": "model_purchase_order_line"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "portal_purchase_order_user_rule",
+   "values": {
+    "name": "Portal Purchase Orders",
+    "model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "domain_force": "['|', ('message_partner_ids','child_of',[user.commercial_partner_id.id]),('partner_id', 'child_of', [user.commercial_partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_unlink": 1,
+    "perm_write": 1,
+    "perm_read": 1,
+    "perm_create": 0
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "purchase_user_account_move_line_rule",
+   "values": {
+    "name": "Purchase User Account Move Line",
+    "model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "domain_force": "[('move_id.move_type', 'in', ('in_invoice', 'in_refund', 'in_receipt'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "purchase.group_purchase_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "purchase_user_account_move_rule",
+   "values": {
+    "name": "Purchase User Account Move",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "domain_force": "[('move_type', 'in', ('in_invoice', 'in_refund', 'in_receipt'))]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "purchase.group_purchase_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "portal_purchase_order_line_rule",
+   "values": {
+    "name": "Portal Purchase Order Lines",
+    "model_id": {
+     "$ref": "purchase.model_purchase_order_line"
+    },
+    "domain_force": "['|',('order_id.message_partner_ids','child_of',[user.commercial_partner_id.id]),('order_id.partner_id','child_of',[user.commercial_partner_id.id])]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "purchase_bill_union_comp_rule",
+   "values": {
+    "name": "Purchases & Bills Union multi-company",
+    "model_id": {
+     "$ref": "model_purchase_bill_union"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "purchase_order_report_comp_rule",
+   "values": {
+    "name": "Purchase Order Report multi-company",
+    "model_id": {
+     "$ref": "model_purchase_report"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_purchase_0",
+   "values": {
+    "name": "Tip: How to keep late receipts under control?",
+    "sequence": "100",
+    "group_id": {
+     "$ref": "purchase.group_purchase_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_purchase_1",
+   "values": {
+    "name": "Tip: Never miss a purchase order",
+    "sequence": "2000",
+    "group_id": {
+     "$ref": "purchase.group_purchase_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_rfq_confirmed",
+   "values": {
+    "name": "RFQ Confirmed",
+    "default": false,
+    "res_model": "purchase.order"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_rfq_approved",
+   "values": {
+    "name": "RFQ Approved",
+    "default": false,
+    "res_model": "purchase.order"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_rfq_done",
+   "values": {
+    "name": "RFQ Done",
+    "default": false,
+    "res_model": "purchase.order"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_rfq_sent",
+   "values": {
+    "name": "RFQ Sent",
+    "default": false,
+    "res_model": "purchase.order"
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_purchase_order",
+   "values": {
+    "name": "Purchase Order",
+    "code": "purchase.order",
+    "prefix": "P",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "model_purchase_order_action_share",
+   "values": {
+    "name": "Share",
+    "model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "binding_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "action = records.action_share()"
+   }
+  },
+  {
+   "model": "ir.ui.menu",
+   "id": "menu_product_in_config_purchase",
+   "values": {
+    "groups_id": false
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_normal_action_puchased",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "view_mode": "kanban,list,form,activity",
+    "context": {
+     "search_default_filter_to_purchase": 1,
+     "purchase_product_template": 1
+    },
+    "search_view_id": {
+     "$ref": "product.product_template_search_view"
+    },
+    "view_id": false,
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_product_action",
+   "values": {
+    "name": "Product Variants",
+    "res_model": "product.product",
+    "view_mode": "list,kanban,form,activity",
+    "search_view_id": {
+     "$ref": "product.product_search_form_view"
+    },
+    "context": {
+     "search_default_filter_to_purchase": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "purchase_rfq",
+   "values": {
+    "name": "Requests for Quotation",
+    "path": "purchase",
+    "res_model": "purchase.order",
+    "view_mode": "list,kanban,form,pivot,graph,calendar,activity",
+    "view_id": {
+     "$ref": "purchase_order_kpis_tree"
+    },
+    "domain": [],
+    "search_view_id": {
+     "$ref": "view_purchase_order_filter"
+    },
+    "context": {
+     "quotation_only": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "purchase_form_action",
+   "values": {
+    "name": "Purchase Orders",
+    "res_model": "purchase.order",
+    "path": "purchase-orders",
+    "view_mode": "list,kanban,form,pivot,graph,calendar,activity",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "purchase.purchase_order_view_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "purchase.purchase_order_view_kanban_without_dashboard"
+       }
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "state",
+      "in",
+      [
+       "purchase",
+       "done"
+      ]
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "purchase_order_view_search"
+    },
+    "context": {},
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_purchase_history",
+   "values": {
+    "res_model": "purchase.order.line",
+    "view_mode": "list,pivot,graph",
+    "view_id": {
+     "$ref": "purchase.purchase_history_tree"
+    },
+    "context": {
+     "search_default_purchase_state": 1,
+     "search_default_order_date_last_year": 1,
+     "search_default_groupby_supplier": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_purchase_batch_bills",
+   "values": {
+    "name": "Create Vendor Bills",
+    "model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "binding_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "state": "code",
+    "code": "if records:\n                action = records.action_create_invoice()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_purchase_send_reminder",
+   "values": {
+    "name": "Send Reminder",
+    "model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "binding_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "purchase.group_send_reminder"
+      }
+     ]
+    ],
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "if records:\n                action = records._send_reminder_mail(send_single=True)"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_accrued_expense_entry",
+   "values": {
+    "name": "Accrued Expense Entry",
+    "res_model": "account.accrued.orders.wizard",
+    "view_mode": "form",
+    "binding_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_user"
+      }
+     ]
+    ],
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_merger",
+   "values": {
+    "name": "Merge",
+    "model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "binding_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "state": "code",
+    "sequence": "1",
+    "code": "if records:\n                action = records.action_merge()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_rfq_form",
+   "values": {
+    "name": "Requests for Quotation",
+    "res_model": "purchase.order",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "purchase.purchase_order_form"
+    },
+    "search_view_id": {
+     "$ref": "view_purchase_order_filter"
+    },
+    "target": "main"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_confirm_rfqs",
+   "values": {
+    "name": "Confirm RFQ",
+    "model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "binding_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "if records:\n    res = records.button_confirm()\nif isinstance(res, dict):\n    action = res"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_purchase_configuration",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "purchase",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_res_partner_2_purchase_order",
+   "values": {
+    "name": "RFQs and Purchases",
+    "res_model": "purchase.order",
+    "view_mode": "list,kanban,form,graph",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "purchase.purchase_order_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "purchase.purchase_order_view_kanban_without_dashboard"
+       }
+      }
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{'search_default_partner_id': active_id, 'default_partner_id': active_id}"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "purchase.group_purchase_user"
+      }
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_res_partner_2_supplier_invoices",
+   "values": {
+    "name": "Vendor Bills",
+    "res_model": "account.move",
+    "view_mode": "list,form,graph",
+    "domain": [
+     [
+      "move_type",
+      "in",
+      [
+       "in_invoice",
+       "in_refund"
+      ]
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{'search_default_partner_id': active_id, 'default_move_type': 'in_invoice', 'default_partner_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_purchase_order_report_all",
+   "values": {
+    "name": "Purchase Analysis",
+    "res_model": "purchase.report",
+    "view_mode": "graph,pivot",
+    "view_id": "",
+    "context": {
+     "search_default_orders": 1,
+     "search_default_filter_date_approve": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    },
+    "target": "current"
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "purchase_tour",
+   "values": {
+    "name": "purchase_tour",
+    "sequence": "40"
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "purchase.group_purchase_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_1",
+   "values": {
+    "receipt_reminder_email": "True"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_2",
+   "values": {
+    "receipt_reminder_email": "True"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_12",
+   "values": {
+    "receipt_reminder_email": "True"
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_1",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "draft",
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_delivery_01'),              "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_2",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "draft",
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_delivery_02'),              "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_3",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "draft",
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_product_2'),                "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_4",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "draft",
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_delivery_02'),              "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_5",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "draft",
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_product_22'),               "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_6",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "draft",
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_delivery_02'),              "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_7",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "draft",
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_product_12'),               "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_8",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "purchase",
+    "create_date": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=20)"
+    },
+    "date_order": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=5)"
+    },
+    "date_approve": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=9)"
+    },
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_product_16'),               "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_9",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_3"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "purchase",
+    "create_date": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=20)"
+    },
+    "date_order": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=15)"
+    },
+    "date_approve": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=5)"
+    },
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_product_8'),                "
+    }
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "purchase_order_10",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_12"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "state": "purchase",
+    "create_date": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=20)"
+    },
+    "date_order": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=15)"
+    },
+    "date_approve": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=18)"
+    },
+    "order_line": {
+     "$unevaluated": "[(5, 0, 0),                 (0, 0, {                     'product_id': ref('product.product_product_12'),               "
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "purchase_activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "purchase.purchase_order_2"
+    },
+    "res_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Send specifications",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "purchase_activity_2",
+   "values": {
+    "res_id": {
+     "$ref": "purchase.purchase_order_5"
+    },
+    "res_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_todo"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.today().strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Get approval",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "purchase_activity_3",
+   "values": {
+    "res_id": {
+     "$ref": "purchase.purchase_order_6"
+    },
+    "res_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_todo"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Check optional products",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "purchase_activity_4",
+   "values": {
+    "res_id": {
+     "$ref": "purchase.purchase_order_7"
+    },
+    "res_model_id": {
+     "$ref": "purchase.model_purchase_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_todo"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Check competitors",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_purchase_root",
+   "name": "Purchase",
+   "sequence": "135",
+   "groups": "group_purchase_manager,group_purchase_user",
+   "web_icon": "purchase,static/description/icon.png"
+  },
+  {
+   "id": "menu_procurement_management",
+   "name": "Orders",
+   "parent": "menu_purchase_root",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_procurement_management_supplier_name",
+   "name": "Vendors",
+   "parent": "menu_procurement_management",
+   "action": "account.res_partner_action_supplier",
+   "sequence": "15"
+  },
+  {
+   "id": "menu_purchase_config",
+   "name": "Configuration",
+   "parent": "menu_purchase_root",
+   "sequence": "100",
+   "groups": "group_purchase_manager"
+  },
+  {
+   "id": "menu_product_pricelist_action2_purchase",
+   "parent": "menu_purchase_config",
+   "action": "product.product_supplierinfo_type_action",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_product_in_config_purchase",
+   "name": "Products",
+   "parent": "menu_purchase_config",
+   "sequence": "30"
+  },
+  {
+   "id": "menu_product_attribute_action",
+   "name": "Attributes",
+   "parent": "purchase.menu_product_in_config_purchase",
+   "action": "product.attribute_action",
+   "sequence": "1",
+   "groups": "product.group_product_variant"
+  },
+  {
+   "id": "menu_product_category_config_purchase",
+   "parent": "purchase.menu_product_in_config_purchase",
+   "action": "product.product_category_action_form",
+   "sequence": "3"
+  },
+  {
+   "id": "menu_unit_of_measure_in_config_purchase",
+   "name": "Units of Measures",
+   "parent": "menu_purchase_config",
+   "sequence": "40",
+   "groups": "uom.group_uom"
+  },
+  {
+   "id": "menu_purchase_uom_form_action",
+   "parent": "purchase.menu_unit_of_measure_in_config_purchase",
+   "action": "uom.product_uom_form_action",
+   "sequence": "5",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_purchase_uom_categ_form_action",
+   "parent": "purchase.menu_unit_of_measure_in_config_purchase",
+   "action": "uom.product_uom_categ_form_action",
+   "sequence": "10",
+   "groups": "uom.group_uom"
+  },
+  {
+   "id": "menu_purchase_products",
+   "name": "Products",
+   "parent": "purchase.menu_purchase_root",
+   "sequence": "5"
+  },
+  {
+   "id": "menu_procurement_partner_contact_form",
+   "name": "Products",
+   "parent": "menu_purchase_products",
+   "action": "product_normal_action_puchased",
+   "sequence": "20"
+  },
+  {
+   "id": "product_product_menu",
+   "name": "Product Variants",
+   "parent": "menu_purchase_products",
+   "action": "product_product_action",
+   "sequence": "21",
+   "groups": "product.group_product_variant"
+  },
+  {
+   "id": "menu_purchase_rfq",
+   "parent": "menu_procurement_management",
+   "action": "purchase_rfq",
+   "sequence": "0"
+  },
+  {
+   "id": "menu_purchase_form_action",
+   "parent": "menu_procurement_management",
+   "action": "purchase_form_action",
+   "sequence": "6"
+  },
+  {
+   "id": "menu_purchase_general_settings",
+   "name": "Settings",
+   "parent": "menu_purchase_config",
+   "action": "action_purchase_configuration",
+   "sequence": "0",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "purchase_report_main",
+   "name": "Reporting",
+   "parent": "purchase.menu_purchase_root",
+   "sequence": "99",
+   "groups": "purchase.group_purchase_manager"
+  },
+  {
+   "id": "purchase_report",
+   "name": "Purchase",
+   "parent": "purchase.purchase_report_main",
+   "action": "action_purchase_order_report_all",
+   "sequence": "99",
+   "groups": "purchase.group_purchase_manager"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_purchase_order",
+   "model": "purchase.order",
+   "model_xmlid": "model_purchase_order",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_purchase_order_manager",
+   "model": "purchase.order",
+   "model_xmlid": "model_purchase_order",
+   "group": "group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_purchase_order_invoicing_payments_readonly",
+   "model": "purchase.order",
+   "model_xmlid": "model_purchase_order",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_order_invoicing_payments",
+   "model": "purchase.order",
+   "model_xmlid": "model_purchase_order",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_order_portal",
+   "model": "purchase.purchase.order",
+   "model_xmlid": "purchase.model_purchase_order",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_order_line",
+   "model": "purchase.order.line",
+   "model_xmlid": "model_purchase_order_line",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_purchase_order_line_manager",
+   "model": "purchase.order.line",
+   "model_xmlid": "model_purchase_order_line",
+   "group": "group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_purchase_order_line_invoicing_payments_readonly",
+   "model": "purchase.order.line",
+   "model_xmlid": "model_purchase_order_line",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_order_line_invoicing_payments",
+   "model": "purchase.order.line",
+   "model_xmlid": "model_purchase_order_line",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_bill_line_match",
+   "model": "purchase.bill.line.match",
+   "model_xmlid": "model_purchase_bill_line_match",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_bill_line_match_readonly",
+   "model": "purchase.bill.line.match",
+   "model_xmlid": "model_purchase_bill_line_match",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_bill_line_match_invoicing_payments",
+   "model": "purchase.bill.line.match",
+   "model_xmlid": "model_purchase_bill_line_match",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_bill_to_po_wizard",
+   "model": "bill.to.po.wizard",
+   "model_xmlid": "model_bill_to_po_wizard",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_order_line_portal",
+   "model": "purchase.purchase.order.line",
+   "model_xmlid": "purchase.model_purchase_order_line",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_purchase_user",
+   "model": "account.account.tax",
+   "model_xmlid": "account.model_account_tax",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tag_purchase_user",
+   "model": "account.account.account.tag",
+   "model_xmlid": "account.model_account_account_tag",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_tax_purchase_user_manager",
+   "model": "account.account.tax",
+   "model_xmlid": "account.model_account_tax",
+   "group": "group_purchase_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_purchase_user",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_purchase_manager",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_purchase_user",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_fiscal_position_purchase_user",
+   "model": "account.account.fiscal.position",
+   "model_xmlid": "account.model_account_fiscal_position",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_purchase_user",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal",
+   "model": "account.account.journal",
+   "model_xmlid": "account.model_account_journal",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_manager",
+   "model": "account.account.journal",
+   "model_xmlid": "account.model_account_journal",
+   "group": "group_purchase_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_move",
+   "model": "account.account.move",
+   "model_xmlid": "account.model_account_move",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_move_line_manager",
+   "model": "account.account.move.line",
+   "model_xmlid": "account.model_account_move_line",
+   "group": "group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_move_line",
+   "model": "account.account.move.line",
+   "model_xmlid": "account.model_account_move_line",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_line",
+   "model": "account.account.analytic.line",
+   "model_xmlid": "account.model_account_analytic_line",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "account_partial_reconcile",
+   "model": "account.account.partial.reconcile",
+   "model_xmlid": "account.model_account_partial_reconcile",
+   "group": "group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_purchase_manager",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_uom_category_purchase_manager",
+   "model": "uom.uom.category",
+   "model_xmlid": "uom.model_uom_category",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_uom_uom_purchase_manager",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_category_purchase_manager",
+   "model": "product.product.category",
+   "model_xmlid": "product.model_product_category",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_purchase_manager",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_packaging_purchase_manager",
+   "model": "product.product.packaging",
+   "model_xmlid": "product.model_product_packaging",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_supplierinfo_purchase_manager",
+   "model": "product.product.supplierinfo",
+   "model_xmlid": "product.model_product_supplierinfo",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_item_purchase_manager",
+   "model": "product.product.pricelist.item",
+   "model_xmlid": "product.model_product_pricelist_item",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_tag_purchase_manager",
+   "model": "product.product.tag",
+   "model_xmlid": "product.model_product_tag",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_account_purchase_manager",
+   "model": "account.account.account",
+   "model_xmlid": "account.model_account_account",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_bill_union",
+   "model": "purchase.bill.union",
+   "model_xmlid": "model_purchase_bill_union",
+   "group": "purchase.group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_report_purchase_order",
+   "model": "purchase.report",
+   "model_xmlid": "model_purchase_report",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_report_purchase_order_user",
+   "model": "purchase.report",
+   "model_xmlid": "model_purchase_report",
+   "group": "purchase.group_purchase_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

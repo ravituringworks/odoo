@@ -1,0 +1,795 @@
+{
+ "module": "sale_project",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "sale_order_line_rule_project_manager",
+   "values": {
+    "name": "Project Manager Sales Orders Line",
+    "model_id": {
+     "$ref": "sale.model_sale_order_line"
+    },
+    "domain_force": "[('state', '=', 'sale'), ('is_service', '=', True), '|', ('project_id','!=', False), ('task_id','!=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ],
+    "perm_create": 0,
+    "perm_write": 0,
+    "perm_unlink": 0,
+    "perm_read": 1
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.action_view_task",
+   "values": {
+    "context": {
+     "sale_show_partner_name": true,
+     "search_default_my_tasks": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.action_view_my_task",
+   "values": {
+    "context": {
+     "$unevaluated": "{'search_default_open_tasks': 1, 'all_task': 0, 'default_user_ids': [(4, uid)], 'sale_show_partner_name': True}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.action_view_all_task",
+   "values": {
+    "context": {
+     "$unevaluated": "{'search_default_open_tasks': 1, 'default_user_ids': [(4, uid)], 'sale_show_partner_name': True}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.action_project_task_user_tree",
+   "values": {
+    "context": {
+     "group_by": [],
+     "graph_measure": "__count__",
+     "sale_show_partner_name": true
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "model_sale_order_action_create_project",
+   "values": {
+    "name": "Create Project",
+    "model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "binding_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "action = records.action_create_project()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.project_sharing_project_task_action",
+   "values": {
+    "context": {
+     "$unevaluated": "{\n            'default_project_id': active_id,\n            'active_id_chatter': active_id,\n            'delete': false,\n            'sale_show_partner_name': tr"
+    }
+   }
+  },
+  {
+   "model": "ir.embedded.actions",
+   "id": "project_embedded_action_invoices",
+   "values": {
+    "parent_res_model": "project.project",
+    "sequence": "60",
+    "name": "Invoices",
+    "parent_action_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    },
+    "python_method": "action_open_project_invoices",
+    "context": {
+     "$unevaluated": "{\"from_embedded_action\": true}"
+    },
+    "groups_ids": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "allow_billable",
+      "=",
+      true
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.embedded.actions",
+   "id": "project_embedded_action_sales_orders",
+   "values": {
+    "parent_res_model": "project.project",
+    "sequence": "50",
+    "name": "Sales Orders",
+    "parent_action_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    },
+    "python_method": "action_view_sos",
+    "context": {
+     "$unevaluated": "{\"from_embedded_action\": true}"
+    },
+    "groups_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "allow_billable",
+      "=",
+      true
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.embedded.actions",
+   "id": "project_embedded_action_invoices_dashboard",
+   "values": {
+    "parent_res_model": "project.project",
+    "sequence": "70",
+    "name": "Invoices",
+    "parent_action_id": {
+     "$ref": "project.project_update_all_action"
+    },
+    "python_method": "action_open_project_invoices",
+    "context": {
+     "$unevaluated": "{\"from_embedded_action\": true}"
+    },
+    "groups_ids": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "allow_billable",
+      "=",
+      true
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.embedded.actions",
+   "id": "project_embedded_action_sales_orders_dashboard",
+   "values": {
+    "parent_res_model": "project.project",
+    "sequence": "50",
+    "name": "Sales Orders",
+    "parent_action_id": {
+     "$ref": "project.project_update_all_action"
+    },
+    "python_method": "action_view_sos",
+    "context": {
+     "$unevaluated": "{\"from_embedded_action\": true}"
+    },
+    "groups_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "allow_billable",
+      "=",
+      true
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.embedded.actions",
+   "id": "project_embedded_action_vendor_bills",
+   "values": {
+    "parent_res_model": "project.project",
+    "sequence": "75",
+    "name": "Vendor Bills",
+    "parent_action_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    },
+    "python_method": "action_open_project_vendor_bills",
+    "context": {
+     "$unevaluated": "{\"from_embedded_action\": true}"
+    },
+    "groups_ids": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ],
+    "domain": [
+     [
+      "allow_billable",
+      "=",
+      true
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.open_view_project_all_config",
+   "values": {
+    "context": {
+     "default_allow_billable": true,
+     "sale_show_partner_name": true,
+     "display_milestone_deadline": true
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.open_view_project_all_config_group_stage",
+   "values": {
+    "context": {
+     "default_allow_billable": true,
+     "sale_show_partner_name": true,
+     "display_milestone_deadline": true
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.open_view_project_all",
+   "values": {
+    "context": {
+     "default_allow_billable": true,
+     "sale_show_partner_name": true,
+     "display_milestone_deadline": true
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project.open_view_project_all_group_stage",
+   "values": {
+    "context": {
+     "default_allow_billable": true,
+     "sale_show_partner_name": true,
+     "display_milestone_deadline": true
+    }
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "project_task_export_template_line_sale_line_id",
+   "values": {
+    "export_id": {
+     "$ref": "project.project_task_export_template"
+    },
+    "name": "sale_line_id"
+   }
+  },
+  {
+   "model": "ir.exports",
+   "id": "services_template_export_template",
+   "values": {
+    "name": "Services",
+    "resource": "product.template"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_line_id",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_line_name",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "name"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_line_product_tag_ids",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "product_tag_ids"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_line_list_price",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "list_price"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_line_type",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "type"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_line_uom_id",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "uom_id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_invoice_policy",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "service_policy"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_service_tracking",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "service_tracking"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_project_id",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "project_id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "services_template_export_template_project_template_id",
+   "values": {
+    "export_id": {
+     "$ref": "services_template_export_template"
+    },
+    "name": "project_template_id"
+   }
+  },
+  {
+   "model": "project.project",
+   "id": "so_template_project",
+   "values": {
+    "name": "Sales Order",
+    "active": "False",
+    "type_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_stage_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project.project_stage_1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project.project_stage_2"
+      }
+     ]
+    ],
+    "description": "This project is used as a template for projects created from sales orders."
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_create_project_and_task",
+   "values": {
+    "name": "Website Redesign Service (project & task)",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "type": "service",
+    "list_price": "66.60",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_in_project",
+    "project_template_id": {
+     "$ref": "so_template_project"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_create_project_only",
+   "values": {
+    "name": "Digital Marketing Campaign (project)",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "type": "service",
+    "list_price": "123.00",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "project_only",
+    "project_template_id": {
+     "$ref": "so_template_project"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_create_task_only",
+   "values": {
+    "name": "Office Furniture Set (task)",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "type": "service",
+    "list_price": "42.42",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_painting",
+   "values": {
+    "name": "Painting",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "1000.00",
+    "standard_price": "1500.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_furniture",
+   "values": {
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_flooring",
+   "values": {
+    "name": "Flooring Services",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "700.00",
+    "standard_price": "1000.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_plumbing",
+   "values": {
+    "name": "Plumbing Services",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "500.00",
+    "standard_price": "700.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_wiring",
+   "values": {
+    "name": "Wiring Services",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "1500.00",
+    "standard_price": "2000.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_screw_driver",
+   "values": {
+    "name": "Screw Driver",
+    "categ_id": {
+     "$ref": "product.product_category_consumable"
+    },
+    "standard_price": "100.00",
+    "list_price": "150.00",
+    "type": "consu",
+    "weight": "0.75",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_construction_material",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_material_1",
+   "values": {
+    "order_id": {
+     "$ref": "sale_project.sale_order_construction_material"
+    },
+    "sequence": 1,
+    "product_id": {
+     "$ref": "sale_project.product_product_wiring"
+    },
+    "product_uom_qty": "5"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_material_2",
+   "values": {
+    "order_id": {
+     "$ref": "sale_project.sale_order_construction_material"
+    },
+    "sequence": 2,
+    "product_id": {
+     "$ref": "sale_project.product_product_screw_driver"
+    },
+    "product_uom_qty": "50"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_construction",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "client_order_ref": "MANUAL",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor6"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_1",
+   "values": {
+    "order_id": {
+     "$ref": "sale_project.sale_order_construction"
+    },
+    "sequence": 2,
+    "product_id": {
+     "$ref": "product_product_painting"
+    },
+    "product_uom_qty": "7"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_2",
+   "values": {
+    "order_id": {
+     "$ref": "sale_project.sale_order_construction"
+    },
+    "sequence": 2,
+    "product_id": {
+     "$ref": "product.product_product_furniture"
+    },
+    "product_uom_qty": "15",
+    "qty_delivered": "12"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_3",
+   "values": {
+    "order_id": {
+     "$ref": "sale_project.sale_order_construction"
+    },
+    "sequence": 2,
+    "product_id": {
+     "$ref": "product_product_flooring"
+    },
+    "product_uom_qty": "10",
+    "qty_delivered": "8"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_4",
+   "values": {
+    "order_id": {
+     "$ref": "sale_project.sale_order_construction"
+    },
+    "sequence": 2,
+    "product_id": {
+     "$ref": "product_product_plumbing"
+    },
+    "product_uom_qty": "12",
+    "qty_delivered": "10"
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_sale_order_line_project_manager",
+   "model": "sale.sale.order.line",
+   "model_xmlid": "sale.model_sale_order_line",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_sale_order_project_manager",
+   "model": "sale.sale.order",
+   "model_xmlid": "sale.model_sale_order",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

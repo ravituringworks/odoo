@@ -1,0 +1,437 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/account_check_printing_data.xml",
+  "views/account_journal_views.xml",
+  "views/account_payment_views.xml",
+  "views/res_config_settings_views.xml",
+  "wizard/print_prenumbered_checks_views.xml"
+ ],
+ "depends": [
+  "account"
+ ],
+ "models": {
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "bank_check_printing_layout": {
+     "selection_method": "_get_check_printing_layouts",
+     "string": "Check Layout",
+     "type": "Selection"
+    },
+    "check_manual_sequencing": {
+     "default": false,
+     "help": "Check this option if your pre-printed checks are not numbered.",
+     "string": "Manual Numbering",
+     "type": "Boolean"
+    },
+    "check_next_number": {
+     "compute": "_compute_check_next_number",
+     "help": "Sequence number of the next printed check.",
+     "string": "Next Check Number",
+     "type": "Char"
+    },
+    "check_sequence_id": {
+     "comodel": "ir.sequence",
+     "copy": false,
+     "help": "Checks numbering sequence.",
+     "readonly": true,
+     "string": "Check Sequence",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_outbound_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_check_printing_layouts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('check_manual_sequencing')"
+     ],
+     "lines": 7,
+     "name": "_compute_check_next_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_inverse_check_next_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_create_check_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_journal_dashboard_data_batched"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_checks_to_print"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "check_amount_in_words": {
+     "compute": "_compute_check_amount_in_words",
+     "store": true,
+     "string": "Amount in Words",
+     "type": "Char"
+    },
+    "check_manual_sequencing": {
+     "related": "journal_id.check_manual_sequencing",
+     "type": "Boolean"
+    },
+    "check_number": {
+     "compute": "_compute_check_number",
+     "copy": false,
+     "help": "The selected journal is configured to print check numbers. If your pre-printed check paper already has numbers or if the current numbering is wrong, you can change it in the journal configuration page.",
+     "store": true,
+     "string": "Check Number",
+     "type": "Char"
+    },
+    "payment_method_line_id": {
+     "index": true,
+     "type": "Many2one"
+    },
+    "show_check_number": {
+     "compute": "_compute_show_check_number",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id.code', 'check_number')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_check_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('check_number')"
+     ],
+     "lines": 4,
+     "name": "_constrains_check_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('check_number', 'journal_id')"
+     ],
+     "lines": 33,
+     "name": "_constrains_check_number_unique"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id', 'currency_id', 'amount')"
+     ],
+     "lines": 6,
+     "name": "_compute_check_amount_in_words"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('journal_id', 'payment_method_code')"
+     ],
+     "lines": 7,
+     "name": "_compute_check_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inverse_check_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "fields_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_trigger_fields_to_synchronize"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_aml_default_display_name_list"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "print_checks"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_void_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "do_print_checks"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_check_fill_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_check_build_page_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_check_get_pages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 95,
+     "name": "_check_make_stub_pages"
+    }
+   ],
+   "name": "account.payment",
+   "sel_methods": {
+    "_auto_init": []
+   },
+   "transient": false
+  },
+  "account.payment.method": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_payment_method_information"
+    }
+   ],
+   "name": "account.payment.method",
+   "transient": false
+  },
+  "print.prenumbered.checks": {
+   "abstract": false,
+   "description": "Print Pre-numbered Checks",
+   "extension": false,
+   "fields": {
+    "next_check_number": {
+     "required": true,
+     "string": "Next Check Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('next_check_number')"
+     ],
+     "lines": 4,
+     "name": "_check_next_check_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "print_checks"
+    }
+   ],
+   "name": "print.prenumbered.checks",
+   "transient": true
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_check_printing_date_label": {
+     "default": true,
+     "help": "This option allows you to print the date label on the check as per CPA.\nDisable this if your pre-printed check includes the date label.",
+     "string": "Print Date Label",
+     "type": "Boolean"
+    },
+    "account_check_printing_layout": {
+     "default": "disabled",
+     "help": "Select the format corresponding to the check paper you will be printing your checks on.\nIn order to disable the printing feature, select 'None'.",
+     "selection": [
+      [
+       "disabled",
+       "None"
+      ]
+     ],
+     "string": "Check Layout",
+     "type": "Selection"
+    },
+    "account_check_printing_margin_left": {
+     "default": 0.25,
+     "help": "Adjust the margins of generated checks to make it fit your printer's settings.",
+     "string": "Check Left Margin",
+     "type": "Float"
+    },
+    "account_check_printing_margin_right": {
+     "default": 0.25,
+     "help": "Adjust the margins of generated checks to make it fit your printer's settings.",
+     "string": "Right Margin",
+     "type": "Float"
+    },
+    "account_check_printing_margin_top": {
+     "default": 0.25,
+     "help": "Adjust the margins of generated checks to make it fit your printer's settings.",
+     "string": "Check Top Margin",
+     "type": "Float"
+    },
+    "account_check_printing_multi_stub": {
+     "help": "This option allows you to print check details (stub) on multiple pages if they don't fit on a single page.",
+     "string": "Multi-Pages Check Stub",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_check_printing_date_label": {
+     "help": "This option allows you to print the date label on the check as per CPA.\nDisable this if your pre-printed check includes the date label.",
+     "readonly": false,
+     "related": "company_id.account_check_printing_date_label",
+     "string": "Print Date Label",
+     "type": "Boolean"
+    },
+    "account_check_printing_layout": {
+     "help": "Select the format corresponding to the check paper you will be printing your checks on.\nIn order to disable the printing feature, select 'None'.",
+     "readonly": false,
+     "related": "company_id.account_check_printing_layout",
+     "string": "Check Layout",
+     "type": "Selection"
+    },
+    "account_check_printing_margin_left": {
+     "help": "Adjust the margins of generated checks to make it fit your printer's settings.",
+     "readonly": false,
+     "related": "company_id.account_check_printing_margin_left",
+     "string": "Check Left Margin",
+     "type": "Float"
+    },
+    "account_check_printing_margin_right": {
+     "help": "Adjust the margins of generated checks to make it fit your printer's settings.",
+     "readonly": false,
+     "related": "company_id.account_check_printing_margin_right",
+     "string": "Check Right Margin",
+     "type": "Float"
+    },
+    "account_check_printing_margin_top": {
+     "help": "Adjust the margins of generated checks to make it fit your printer's settings.",
+     "readonly": false,
+     "related": "company_id.account_check_printing_margin_top",
+     "string": "Check Top Margin",
+     "type": "Float"
+    },
+    "account_check_printing_multi_stub": {
+     "help": "This option allows you to print check details (stub) on multiple pages if they don't fit on a single page.",
+     "readonly": false,
+     "related": "company_id.account_check_printing_multi_stub",
+     "string": "Multi-Pages Check Stub",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "account_check_printing",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/account_check_printing",
+ "stats": {
+  "fields": 22,
+  "methods": 29,
+  "models": 6,
+  "py_lines": 621
+ },
+ "summary": "Check printing basic features",
+ "title": "Check Printing Base",
+ "version": "1.0"
+}

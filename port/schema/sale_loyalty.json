@@ -1,0 +1,785 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/sale_loyalty_data.xml",
+  "wizard/sale_loyalty_coupon_wizard_views.xml",
+  "wizard/sale_loyalty_reward_wizard_views.xml",
+  "views/loyalty_card_views.xml",
+  "views/loyalty_program_views.xml",
+  "views/sale_order_views.xml",
+  "views/sale_portal_templates.xml",
+  "views/res_partner_views.xml",
+  "views/sale_loyalty_menus.xml"
+ ],
+ "depends": [
+  "sale",
+  "loyalty"
+ ],
+ "models": {
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_discount_lines"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "loyalty.card": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "order_id": {
+     "comodel": "sale.order",
+     "help": "The sales order from which coupon is generated",
+     "readonly": true,
+     "string": "Order Reference",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_default_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_mail_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_mail_author"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_signature"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_use_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_has_source_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_archive"
+    }
+   ],
+   "name": "loyalty.card",
+   "transient": false
+  },
+  "loyalty.history": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_order_portal_url"
+    }
+   ],
+   "name": "loyalty.history",
+   "sel_methods": {
+    "_get_order_portal_url": []
+   },
+   "transient": false
+  },
+  "loyalty.program": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "order_count": {
+     "compute": "_compute_order_count",
+     "type": "Integer"
+    },
+    "sale_ok": {
+     "default": true,
+     "string": "Sales",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_total_order_count"
+    }
+   ],
+   "name": "loyalty.program",
+   "transient": false
+  },
+  "loyalty.reward": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_discount_product_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    }
+   ],
+   "name": "loyalty.reward",
+   "transient": false
+  },
+  "sale.loyalty.coupon.wizard": {
+   "abstract": false,
+   "description": "Sale Loyalty - Apply Coupon Wizard",
+   "extension": false,
+   "fields": {
+    "coupon_code": {
+     "required": true,
+     "type": "Char"
+    },
+    "order_id": {
+     "comodel": "sale.order",
+     "default": {
+      "$lambda": "self.env.context.get('active_id')"
+     },
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_apply"
+    }
+   ],
+   "name": "sale.loyalty.coupon.wizard",
+   "transient": true
+  },
+  "sale.loyalty.reward.wizard": {
+   "abstract": false,
+   "description": "Sale Loyalty - Reward Selection Wizard",
+   "extension": false,
+   "fields": {
+    "multi_product_reward": {
+     "related": "selected_reward_id.multi_product",
+     "type": "Boolean"
+    },
+    "order_id": {
+     "comodel": "sale.order",
+     "default": {
+      "$lambda": "self.env.context.get('active_id')"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "reward_ids": {
+     "comodel": "loyalty.reward",
+     "compute": "_compute_claimable_reward_ids",
+     "type": "Many2many"
+    },
+    "reward_product_ids": {
+     "related": "selected_reward_id.reward_product_ids",
+     "type": "Many2many"
+    },
+    "selected_product_id": {
+     "comodel": "product.product",
+     "compute": "_compute_selected_product_id",
+     "domain": "[('id', 'in', reward_product_ids)]",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "selected_reward_id": {
+     "comodel": "loyalty.reward",
+     "domain": "[('id', 'in', reward_ids)]",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_claimable_reward_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('reward_product_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_selected_product_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_apply"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_unlink_unused_coupon_ids"
+    }
+   ],
+   "name": "sale.loyalty.reward.wizard",
+   "transient": true
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "applied_coupon_ids": {
+     "comodel": "loyalty.card",
+     "copy": false,
+     "string": "Manually Applied Coupons",
+     "type": "Many2many"
+    },
+    "code_enabled_rule_ids": {
+     "comodel": "loyalty.rule",
+     "copy": false,
+     "string": "Manually Triggered Rules",
+     "type": "Many2many"
+    },
+    "coupon_point_ids": {
+     "comodel": "sale.order.coupon.points",
+     "copy": false,
+     "inverse_name": "order_id",
+     "type": "One2many"
+    },
+    "loyalty_data": {
+     "compute": "_compute_loyalty_data",
+     "type": "Json"
+    },
+    "reward_amount": {
+     "compute": "_compute_reward_total",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_line')"
+     ],
+     "lines": 12,
+     "name": "_compute_reward_total"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_compute_loyalty_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_add_loyalty_history_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_no_effect_on_threshold_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "copy"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_open_reward_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_send_reward_coupon_mail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_applied_global_discount_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_applied_global_discount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_reward_values_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_discountable_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 79,
+     "name": "_discountable_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_cheapest_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_discountable_cheapest"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_specific_discountable_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 78,
+     "name": "_discountable_specific"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 129,
+     "name": "_get_reward_values_discount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_program_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_trigger_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_program_timezone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_confirmed_tx_create_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_applicable_program_points"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_points_programs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_reward_programs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_reward_coupons"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_applied_programs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_recompute_prices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_point_changes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_real_points_for_coupon"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_add_points_for_coupon"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_update_loyalty_history"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_remove_program_from_points"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_reward_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_write_vals_from_reward_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_best_global_discount_already_applied"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_discount_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_apply_program_reward"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "_get_claimable_rewards"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_allow_nominative_programs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 186,
+     "name": "_update_programs_and_rewards"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_not_rewarded_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_order_line_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 138,
+     "name": "_program_check_compute_points"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_try_apply_program"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 78,
+     "name": "_try_apply_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_validate_order"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.coupon.points": {
+   "abstract": false,
+   "description": "Sale Order Coupon Points - Keeps track of how a sale order impacts a coupon",
+   "extension": false,
+   "fields": {
+    "coupon_id": {
+     "comodel": "loyalty.card",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "order_id": {
+     "comodel": "sale.order",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "points": {
+     "required": true,
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "sale.order.coupon.points",
+   "sql_constraints": [
+    [
+     "order_coupon_unique",
+     "UNIQUE (order_id, coupon_id)",
+     "The coupon points entry already exists."
+    ]
+   ],
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "coupon_id": {
+     "comodel": "loyalty.card",
+     "ondelete": "restrict",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "is_reward_line": {
+     "compute": "_compute_is_reward_line",
+     "string": "Is a program reward line",
+     "type": "Boolean"
+    },
+    "points_cost": {
+     "help": "How much point this reward costs on the loyalty card.",
+     "type": "Float"
+    },
+    "reward_id": {
+     "comodel": "loyalty.reward",
+     "ondelete": "restrict",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "reward_identifier_code": {
+     "help": "Technical field used to link multiple reward lines from the same reward together.",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('reward_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_reward_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_tax_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_display_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_can_be_invoiced_alone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_not_sellable_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_discount_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_reset_loyalty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_sellable_lines_domain"
+    }
+   ],
+   "name": "sale.order.line",
+   "sel_methods": {
+    "_get_display_price": [],
+    "_sellable_lines_domain": [
+     [
+      "reward_id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  }
+ },
+ "module": "sale_loyalty",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_loyalty",
+ "stats": {
+  "fields": 24,
+  "methods": 79,
+  "models": 10,
+  "py_lines": 1897
+ },
+ "summary": "Use discounts and loyalty programs in sales orders",
+ "title": "Sale Loyalty",
+ "version": "1.0"
+}

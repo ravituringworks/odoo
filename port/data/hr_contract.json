@@ -1,0 +1,846 @@
+{
+ "module": "hr_contract",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_human_resources_contracts",
+   "values": {
+    "description": "Enable the user to see and manage the contracts from Employee application.",
+    "sequence": "10"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "hr_contract.group_hr_contract_employee_manager",
+   "values": {
+    "name": "Employee Manager",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_contracts"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "hr_contract.group_hr_contract_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_contracts"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "hr_contract.group_hr_contract_employee_manager"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "hr.group_hr_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "hr_contract.group_hr_contract_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_contract_history_multi_company",
+   "values": {
+    "name": "HR Contract History: Multi Company",
+    "model_id": {
+     "$ref": "model_hr_contract_history"
+    },
+    "domain_force": "['|', ('employee_id.company_id', '=', False), ('employee_id.company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_contract_employee_manager",
+   "values": {
+    "name": "HR Contract: Employee Manager",
+    "model_id": {
+     "$ref": "model_hr_contract"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_contract.group_hr_contract_employee_manager"
+      }
+     ]
+    ],
+    "domain_force": "['|', ('employee_id.parent_id.user_id', '=', user.id), ('employee_id.user_id', '=', user.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_contract_manager",
+   "values": {
+    "name": "HR Contract: Contract Manager",
+    "model_id": {
+     "$ref": "model_hr_contract"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_contract.group_hr_contract_manager"
+      }
+     ]
+    ],
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_contract_multi_company",
+   "values": {
+    "name": "HR Contract: Multi Company",
+    "model_id": {
+     "$ref": "model_hr_contract"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_payroll_structure_type_multi_company",
+   "values": {
+    "name": "HR Payroll Structure Type: Multi Company",
+    "model_id": {
+     "$ref": "model_hr_payroll_structure_type"
+    },
+    "global": true,
+    "domain_force": "['|', ('country_id', '=', False), ('country_id', 'in', user.env.companies.mapped('country_id').ids)]"
+   }
+  },
+  {
+   "model": "hr.payroll.structure.type",
+   "id": "structure_type_employee",
+   "values": {
+    "name": "Employee",
+    "country_id": false
+   }
+  },
+  {
+   "model": "hr.payroll.structure.type",
+   "id": "structure_type_worker",
+   "values": {
+    "name": "Worker",
+    "country_id": false
+   }
+  },
+  {
+   "model": "hr.payroll.structure.type",
+   "id": "structure_type_employee_cp200_pfi",
+   "values": {
+    "name": "CP200 PFI: Belgian Employee",
+    "default_resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std"
+    },
+    "country_id": {
+     "$ref": "base.be"
+    }
+   }
+  },
+  {
+   "model": "hr.payroll.structure.type",
+   "id": "structure_type_employee_cp200",
+   "values": {
+    "name": "CP200: Belgian Employee",
+    "default_resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std"
+    },
+    "country_id": {
+     "$ref": "base.be"
+    }
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_contract_pending",
+   "values": {
+    "name": "To Renew",
+    "res_model": "hr.contract",
+    "default": true,
+    "description": "Contract about to expire"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_contract_close",
+   "values": {
+    "name": "Expired",
+    "res_model": "hr.contract",
+    "default": false,
+    "description": "Contract expired"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_department_contract_pending",
+   "values": {
+    "name": "Contract to Renew",
+    "res_model": "hr.department",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_contract_pending"
+    },
+    "relation_field": "department_id",
+    "description": "Contract about to expire"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_contract_history_view_form_action",
+   "values": {
+    "name": "Contracts",
+    "res_model": "hr.contract.history",
+    "view_mode": "form",
+    "context": {
+     "search_default_active_employees": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_contract_history_view_list_action",
+   "values": {
+    "name": "Employees",
+    "res_model": "hr.contract.history",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "hr_contract_history_view_search"
+    },
+    "context": {
+     "search_default_active_employees": 1,
+     "search_default_group_by_state": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_contract_history_to_review_view_list_action",
+   "values": {
+    "name": "Contracts to Review",
+    "res_model": "hr.contract.history",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "hr_contract_history_view_search"
+    },
+    "context": {
+     "search_default_to_review": 1,
+     "search_default_active_employees": 1
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_contract",
+   "values": {
+    "name": "Contracts",
+    "res_model": "hr.contract",
+    "path": "employee-contracts",
+    "view_mode": "list,kanban,form,activity",
+    "domain": [
+     [
+      "employee_id",
+      "!=",
+      false
+     ]
+    ],
+    "context": {
+     "search_default_group_by_state": 1
+    },
+    "search_view_id": {
+     "$ref": "hr_contract_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.ui.menu",
+   "id": "hr.menu_resource_calendar_view",
+   "values": {
+    "parent_id": {
+     "$ref": "menu_human_resources_configuration_contract"
+    }
+   }
+  },
+  {
+   "model": "hr.payroll.structure.type",
+   "id": "structure_type_employee_cp200_pfi",
+   "values": {
+    "default_resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std_38h"
+    }
+   }
+  },
+  {
+   "model": "hr.payroll.structure.type",
+   "id": "structure_type_employee_cp200",
+   "values": {
+    "default_resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std_38h"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "hr_contract.group_hr_contract_manager"
+      }
+     ],
+     [
+      3,
+      {
+       "$ref": "hr_contract.group_hr_contract_employee_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_admin",
+   "values": {
+    "name": "Mitchell Admin Contract",
+    "date_start": {
+     "$unevaluated": "time.strftime('%Y')+'-1-1'"
+    },
+    "date_end": {
+     "$unevaluated": "time.strftime('%Y-%m-15')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_admin').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_admin').department_id.id"
+    },
+    "wage": 7540.0,
+    "state": "close",
+    "kanban_state": "normal",
+    "resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std_38h"
+    },
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_admin_new",
+   "values": {
+    "name": "Contract For Mitchell Admin",
+    "date_start": {
+     "$unevaluated": "time.strftime('%Y-%m-16')"
+    },
+    "date_end": {
+     "$unevaluated": "time.strftime('%Y')+'-12-31'"
+    },
+    "structure_type_id": {
+     "$ref": "hr_contract.structure_type_employee"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "notes": "This is Mitchell Admin's contract",
+    "wage": 5500.0,
+    "state": "open",
+    "resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std"
+    },
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_al",
+   "values": {
+    "name": "Ronnie Hart Contract",
+    "date_start": {
+     "$unevaluated": "time.strftime('%Y')+'-1-1'"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_al"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_al').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_al').department_id.id"
+    },
+    "wage": 4000.0,
+    "state": "open",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_mit",
+   "values": {
+    "name": "R&D Dev Contract",
+    "date_start": {
+     "$unevaluated": "time.strftime('%Y')+'-3-1'"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_mit').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_mit').department_id.id"
+    },
+    "wage": 4500.0,
+    "state": "open",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_stw",
+   "values": {
+    "name": "Randall Lewis Contract",
+    "date_start": {
+     "$unevaluated": "time.strftime('%Y')+'-2-1'"
+    },
+    "date_end": {
+     "$unevaluated": "time.strftime('%Y')+'-12-1'"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_stw').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_stw').department_id.id"
+    },
+    "wage": 4500.0,
+    "state": "open",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_qdp",
+   "values": {
+    "name": "Demo Contract",
+    "date_start": {
+     "$unevaluated": "(DateTime.today() + relativedelta(years=-1, month=9))"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_qdp').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_qdp').department_id.id"
+    },
+    "wage": 3750.0,
+    "state": "draft",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "hr.employee_qdp",
+   "values": {
+    "contract_id": {
+     "$ref": "hr_contract.hr_contract_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_han",
+   "values": {
+    "name": "Walter Horton Contract",
+    "date_start": {
+     "$unevaluated": "time.strftime('%Y')+'-3-1'"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_han').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_han').department_id.id"
+    },
+    "wage": 4600.0,
+    "state": "open",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_niv",
+   "values": {
+    "name": "Sharlene Rhodes Contract",
+    "date_start": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m')+'-1'"
+    },
+    "date_end": {
+     "$unevaluated": "time.strftime('%Y')+'-12-1'"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_niv"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_niv').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_niv').department_id.id"
+    },
+    "wage": 4000.0,
+    "state": "draft",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_jth",
+   "values": {
+    "name": "Toni Jimenez",
+    "date_start": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m')+'-1'"
+    },
+    "date_end": {
+     "$unevaluated": "time.strftime('%Y')+'-12-1'"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_jth').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_jth').department_id.id"
+    },
+    "wage": 4200.0,
+    "state": "draft",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_chs",
+   "values": {
+    "name": "Jennie Fletcher Contract",
+    "date_start": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m')+'-1'"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_chs"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_chs').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_chs').department_id.id"
+    },
+    "wage": 3750.0,
+    "state": "cancel",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_jve",
+   "values": {
+    "name": "Paul Williams Contract",
+    "date_start": {
+     "$unevaluated": "(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m')+'-1'"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_jve').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_jve').department_id.id"
+    },
+    "wage": 3950.0,
+    "state": "cancel",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_fme",
+   "values": {
+    "name": "Keith Byrd Contract",
+    "date_start": "2015-1-1",
+    "date_end": {
+     "$unevaluated": "time.strftime('%Y-%m-%d')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_fme').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_fme').department_id.id"
+    },
+    "wage": 3650.0,
+    "state": "open",
+    "kanban_state": "blocked",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_fpi_previous",
+   "values": {
+    "name": "Audrey Peterson Contract",
+    "date_start": "2014-1-1",
+    "date_end": "2014-12-31",
+    "employee_id": {
+     "$ref": "hr.employee_fpi"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_fpi').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_fpi').department_id.id"
+    },
+    "wage": 3700.0,
+    "state": "close",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_fpi",
+   "values": {
+    "name": "Audrey Peterson Contract",
+    "date_start": "2015-1-1",
+    "date_end": "2017-12-1",
+    "employee_id": {
+     "$ref": "hr.employee_fpi"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_fpi').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_fpi').department_id.id"
+    },
+    "wage": 3750.0,
+    "state": "close",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.contract",
+   "id": "hr_contract_vad",
+   "values": {
+    "name": "Tina Williamson Contract",
+    "date_start": "2015-1-1",
+    "date_end": "2018-2-1",
+    "employee_id": {
+     "$ref": "hr.employee_vad"
+    },
+    "job_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_vad').job_id.id"
+    },
+    "department_id": {
+     "$unevaluated": "obj().env.ref('hr.employee_vad').department_id.id"
+    },
+    "wage": 3750.0,
+    "state": "close",
+    "kanban_state": "normal",
+    "hr_responsible_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_human_resources_configuration_contract",
+   "name": "Contracts",
+   "parent": "hr.menu_human_resources_configuration",
+   "sequence": "25"
+  },
+  {
+   "id": "hr_menu_contract",
+   "name": "Contracts",
+   "parent": "hr.menu_hr_employee_payroll",
+   "action": "hr_contract.action_hr_contract",
+   "sequence": "6",
+   "groups": "hr_contract.group_hr_contract_manager"
+  },
+  {
+   "id": "menu_hr_employee_contracts",
+   "name": "Contracts",
+   "parent": "hr.menu_hr_root",
+   "action": "hr_contract.action_hr_contract",
+   "sequence": "5"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_hr_resource_manager",
+   "model": "resource.resource.resource",
+   "model_xmlid": "resource.model_resource_resource",
+   "group": "hr.group_hr_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_resource_calendar_user",
+   "model": "resource.resource.calendar",
+   "model_xmlid": "resource.model_resource_calendar",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_resource_calendar_attendance_user",
+   "model": "resource.resource.calendar.attendance",
+   "model_xmlid": "resource.model_resource_calendar_attendance",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_contract_manager",
+   "model": "hr.contract",
+   "model_xmlid": "model_hr_contract",
+   "group": "hr_contract.group_hr_contract_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_contract_history_manager",
+   "model": "hr.contract.history",
+   "model_xmlid": "model_hr_contract_history",
+   "group": "hr_contract.group_hr_contract_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_payroll_structure_type_hr_contract_manager",
+   "model": "hr.payroll.structure.type",
+   "model_xmlid": "model_hr_payroll_structure_type",
+   "group": "hr_contract.group_hr_contract_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_contract_hr_employee_manager",
+   "model": "hr.contract",
+   "model_xmlid": "model_hr_contract",
+   "group": "hr_contract.group_hr_contract_employee_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

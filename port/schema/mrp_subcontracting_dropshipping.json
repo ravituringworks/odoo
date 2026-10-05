@@ -1,0 +1,333 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Purchase",
+ "data_files": [
+  "data/mrp_subcontracting_dropshipping_data.xml",
+  "views/stock_warehouse_views.xml",
+  "views/purchase_order_views.xml"
+ ],
+ "depends": [
+  "mrp_subcontracting",
+  "stock_dropshipping"
+ ],
+ "models": {
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "default_location_dest_id_is_subcontracting_loc": {
+     "related": "picking_type_id.default_location_dest_id.is_subcontracting_location",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('default_location_dest_id_is_subcontracting_loc')"
+     ],
+     "lines": 6,
+     "name": "_compute_dest_address_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('picking_type_id')"
+     ],
+     "lines": 5,
+     "name": "onchange_picking_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_destination_location"
+    }
+   ],
+   "name": "purchase.order",
+   "sel_methods": {
+    "_get_destination_location": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "dropship_subcontractor_pick_type_id": {
+     "comodel": "stock.picking.type",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_create_subcontracting_dropshipping_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_create_subcontracting_dropshipping_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_create_subcontracting_dropshipping_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_create_missing_subcontracting_dropshipping_rules"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_create_missing_subcontracting_dropshipping_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_create_missing_subcontracting_dropshipping_picking_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_per_company_sequences"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_create_per_company_rules"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_create_per_company_picking_types"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_purchase_return"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_is_dropshipped"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_is_dropshipped_returned"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_is_dropship"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_warehouse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_action_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_prepare_subcontract_mo_vals"
+    }
+   ],
+   "name": "stock.picking",
+   "sel_methods": {
+    "_get_warehouse": []
+   },
+   "transient": false
+  },
+  "stock.replenish.mixin": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_allowed_route_domain"
+    }
+   ],
+   "name": "stock.replenish.mixin",
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_purchase_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_make_po_get_domain"
+    }
+   ],
+   "name": "stock.rule",
+   "sel_methods": {
+    "_prepare_purchase_order": []
+   },
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "subcontracting_dropshipping_pull_id": {
+     "comodel": "stock.rule",
+     "copy": false,
+     "string": "Subcontracting-Dropshipping MTS Rule",
+     "type": "Many2one"
+    },
+    "subcontracting_dropshipping_to_resupply": {
+     "default": true,
+     "help": "Dropship subcontractors with components",
+     "string": "Dropship Subcontractors",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_update_dropship_subcontract_rules"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "update_global_route_dropship_subcontractor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_generate_global_route_rules_values"
+    }
+   ],
+   "name": "stock.warehouse",
+   "transient": false
+  },
+  "stock.warehouse.orderpoint": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_procurement_values"
+    }
+   ],
+   "name": "stock.warehouse.orderpoint",
+   "transient": false
+  }
+ },
+ "module": "mrp_subcontracting_dropshipping",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/mrp_subcontracting_dropshipping",
+ "stats": {
+  "fields": 4,
+  "methods": 29,
+  "models": 8,
+  "py_lines": 411
+ },
+ "summary": "This bridge module allows to manage subcontracting with the dropshipping module.",
+ "title": "Dropship and Subcontracting Management",
+ "version": "0.1"
+}

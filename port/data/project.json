@@ -1,0 +1,7118 @@
+{
+ "module": "project",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_services_project",
+   "values": {
+    "description": "",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_project_user",
+   "values": {
+    "name": "User",
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "category_id": {
+     "$ref": "base.module_category_services_project"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_project_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_services_project"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_project_user"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "mail.group_mail_canned_response_admin"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_project_rating",
+   "values": {
+    "name": "Use Rating on Project",
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_project_stages",
+   "values": {
+    "name": "Use Stages on Project",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_project_recurring_tasks",
+   "values": {
+    "name": "Use Recurring Tasks",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_project_task_dependencies",
+   "values": {
+    "name": "Use Task Dependencies",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_project_milestone",
+   "values": {
+    "name": "Use Milestones",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_comp_rule",
+   "values": {
+    "name": "Project: multi-company",
+    "model_id": {
+     "$ref": "model_project_project"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_project_stage_rule",
+   "values": {
+    "name": "Project Stage: multi-company",
+    "model_id": {
+     "$ref": "model_project_project_stage"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_project_manager_rule",
+   "values": {
+    "name": "Project: project manager: see all",
+    "model_id": {
+     "$ref": "model_project_project"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_public_members_rule",
+   "values": {
+    "name": "Project: employees: following required for follower-only projects",
+    "model_id": {
+     "$ref": "model_project_project"
+    },
+    "domain_force": "['|',\n                                        ('privacy_visibility', '!=', 'followers'),\n                                        ('message_partner_ids', 'in', [user.partner_id.id])\n                                    ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "task_comp_rule",
+   "values": {
+    "name": "Project/Task: multi-company",
+    "model_id": {
+     "$ref": "model_project_task"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "task_visibility_rule",
+   "values": {
+    "name": "Project/Task: employees: follow required for follower-only projects",
+    "model_id": {
+     "$ref": "model_project_task"
+    },
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false,
+    "domain_force": "[\n            '|',\n                '&',\n                    ('project_id', '!=', False),\n                    '|',\n                        ('project_id.privacy_visibility', '!=', 'followers'),\n                        ('project_id.message_partner_ids', 'in', [user.partner_id.id]),\n                '|',\n                    ('message_partner_ids', 'in', [user.partner_id.id]),\n                    # to subscribe check access to the record, follower is not enough at creation\n                    ('user_ids', 'in', user.id)\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_manager_all_project_tasks_rule",
+   "values": {
+    "name": "Project/Task: project manager: see all tasks linked to a project or its own tasks",
+    "model_id": {
+     "$ref": "model_project_task"
+    },
+    "domain_force": "[\n            '|', ('project_id', '!=', False),\n                 ('user_ids', 'in', user.id),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "task_type_manager_rule",
+   "values": {
+    "name": "Project/Task Type: manager sees all",
+    "model_id": {
+     "$ref": "model_project_task_type"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "task_type_visibility_rule",
+   "values": {
+    "name": "Project/Task Type: see own or unowned stages",
+    "model_id": {
+     "$ref": "model_project_task_type"
+    },
+    "domain_force": "[('user_id', 'in', (False, user.id))]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "task_type_own_write_rule",
+   "values": {
+    "name": "Project/Task Type: write own stages",
+    "model_id": {
+     "$ref": "model_project_task_type"
+    },
+    "domain_force": "[('user_id', '=', user.id)]",
+    "perm_read": false,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "report_project_task_user_report_comp_rule",
+   "values": {
+    "name": "Task Analysis multi-company",
+    "model_id": {
+     "$ref": "model_report_project_task_user"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_project_personal_stage_my",
+   "values": {
+    "name": "Project: See my own personal stage",
+    "model_id": {
+     "$ref": "project.model_project_task_stage_personal"
+    },
+    "domain_force": "[('user_id', '=', user.id)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "task_visibility_rule_project_user",
+   "values": {
+    "name": "Project/Task: project users: follow required for follower-only projects",
+    "model_id": {
+     "$ref": "model_project_task"
+    },
+    "perm_read": false,
+    "domain_force": "[\n            '|',\n                '&',\n                    ('project_id', '!=', False),\n                    '|',\n                        ('project_id.privacy_visibility', '!=', 'followers'),\n                        ('project_id.message_partner_ids', 'in', [user.partner_id.id]),\n                '|',\n                    ('message_partner_ids', 'in', [user.partner_id.id]),\n                    # to subscribe check access to the record, follower is not enough at creation\n                    ('user_ids', 'in', user.id)\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_private_task",
+   "values": {
+    "name": "Project: See private tasks",
+    "model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "domain_force": "[\n            ('project_id.privacy_visibility', '!=', 'followers'),\n            '|', '|', ('project_id', '!=', False),\n                      ('parent_id', '!=', False),\n                 ('user_ids', 'in', user.id),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_project_rule_portal",
+   "values": {
+    "name": "Project: portal users: portal and following",
+    "model_id": {
+     "$ref": "project.model_project_project"
+    },
+    "domain_force": "[\n            '&',\n                ('privacy_visibility', '=', 'portal'),\n                ('message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id]),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_collaborator_rule_portal",
+   "values": {
+    "name": "Project/Collaborator: portal users: can only see his own collobaroration in shared projects",
+    "model_id": {
+     "$ref": "project.model_project_collaborator"
+    },
+    "domain_force": "[\n            ('project_id.privacy_visibility', '=', 'portal'),\n            ('partner_id', '=', user.partner_id.id),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_task_rule_portal",
+   "values": {
+    "name": "Project/Task: portal users: can only see a task if he's a collaborator of the project and a follower of the task",
+    "model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "domain_force": "[\n            ('project_id.privacy_visibility', '=', 'portal'),\n            ('active', '=', True),\n            '|',\n                ('message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id]),\n                ('project_id.collaborator_ids', 'any', [\n                    ('partner_id', '=', user.partner_id.id),\n                    ('limited_access', '=', False),\n                ]),\n        ]",
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_task_rule_portal_project_sharing",
+   "values": {
+    "name": "Project/Task: portal users: portal user can edit with project sharing feature",
+    "model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "active": "0",
+    "domain_force": "[\n            ('project_id.privacy_visibility', '=', 'portal'),\n            ('active', '=', True),\n            '|',\n                '&',\n                    ('message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id]),\n                    ('project_id.collaborator_ids.partner_id', 'in', [user.partner_id.id]),\n                ('project_id.collaborator_ids', 'any', [\n                    ('partner_id', '=', user.partner_id.id),\n                    ('limited_access', '=', False),\n                ]),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": false,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "update_comp_rule",
+   "values": {
+    "name": "Project/Updates: multi-company",
+    "model_id": {
+     "$ref": "model_project_update"
+    },
+    "domain_force": "['|', ('project_id.company_id', 'in', company_ids), ('project_id.company_id', '=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "update_visibility_rule",
+   "values": {
+    "name": "Project/Update: employees: follow required for follower-only projects",
+    "model_id": {
+     "$ref": "model_project_update"
+    },
+    "domain_force": "[\n        '|',\n            ('project_id.privacy_visibility', '!=', 'followers'),\n            '|',\n                ('project_id.message_partner_ids', 'in', [user.partner_id.id]),\n                '|',\n                    ('user_id', '=', user.id),\n                    ('project_id.user_id', '=', user.id)\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "report_project_task_user_rule",
+   "values": {
+    "name": "Tasks Analysis: project visibility User",
+    "model_id": {
+     "$ref": "model_report_project_task_user"
+    },
+    "domain_force": "[\n        '|',\n            ('project_id.privacy_visibility', '!=', 'followers'),\n            '|',\n                ('project_id.message_partner_ids', 'in', [user.partner_id.id]),\n                '|',\n                    ('task_id.message_partner_ids', 'in', [user.partner_id.id]),\n                    ('user_ids', 'in', user.id),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "report_project_task_manager_rule",
+   "values": {
+    "name": "Tasks Analysis: project visibility Manager",
+    "model_id": {
+     "$ref": "model_report_project_task_user"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "update_visibility_project_admin",
+   "values": {
+    "name": "Project updates : Project user can see all project updates",
+    "model_id": {
+     "$ref": "project.model_project_update"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "burndown_chart_project_user_rule",
+   "values": {
+    "name": "Burndown chart: project visibility User",
+    "model_id": {
+     "$ref": "model_project_task_burndown_chart_report"
+    },
+    "domain_force": "[\n        '|',\n            ('project_id.privacy_visibility', '!=', 'followers'),\n            '|',\n                ('project_id.message_partner_ids', 'in', [user.partner_id.id]),\n                ('user_ids', 'in', user.id),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "burndown_chart_project_manager_rule",
+   "values": {
+    "name": "Burndown chart: project visibility User",
+    "model_id": {
+     "$ref": "model_project_task_burndown_chart_report"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "milestone_comp_rule",
+   "values": {
+    "name": "Project/Milestone: multi-company",
+    "model_id": {
+     "$ref": "model_project_milestone"
+    },
+    "domain_force": "['|', ('project_id.company_id', 'in', company_ids), ('project_id.company_id', '=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "milestone_visibility_rule",
+   "values": {
+    "name": "Project/Milestone: employees: follow required for follower-only projects",
+    "model_id": {
+     "$ref": "model_project_milestone"
+    },
+    "domain_force": "[\n        '|',\n            ('project_id.privacy_visibility', '!=', 'followers'),\n            '|',\n                ('project_id.message_partner_ids', 'in', [user.partner_id.id]),\n                ('project_id.user_id', '=', user.id),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "milestone_visibility_project_admin",
+   "values": {
+    "name": "Project/Milestone: Project manager can see all project milestones",
+    "model_id": {
+     "$ref": "project.model_project_milestone"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "project_milestone_rule_portal_project_sharing",
+   "values": {
+    "name": "Project/milestone portal users: portal user can read with project sharing feature",
+    "model_id": {
+     "$ref": "project.model_project_milestone"
+    },
+    "domain_force": "[\n            ('project_id.privacy_visibility', '=', 'portal'),\n            ('project_id.collaborator_ids.partner_id', 'in', [user.partner_id.id]),\n        ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_plan_rule_group_project_manager_task",
+   "values": {
+    "name": "Manager can manage project/task plans",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_project_manager"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "mail.model_mail_activity_plan"
+    },
+    "domain_force": "[('res_model', 'in', ('project.project', 'project.task'))]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_plan_templates_rule_group_project_manager_task",
+   "values": {
+    "name": "Manager can manage project/task plan templates",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_project_manager"
+      }
+     ]
+    ],
+    "model_id": {
+     "$ref": "mail.model_mail_activity_plan_template"
+    },
+    "domain_force": "[('plan_id.res_model', 'in', ('project.project', 'project.task'))]",
+    "perm_read": false
+   }
+  },
+  {
+   "model": "ir.model.access",
+   "id": "access_project_sharing_task_portal",
+   "values": {
+    "name": "project_sharing_task_portal",
+    "model_id": {
+     "$ref": "model_project_task"
+    },
+    "group_id": {
+     "$ref": "base.group_portal"
+    },
+    "active": "0",
+    "perm_read": "0",
+    "perm_write": "1",
+    "perm_create": "1",
+    "perm_unlink": "0"
+   }
+  },
+  {
+   "model": "digest.digest",
+   "id": "digest.digest_digest_default",
+   "values": {
+    "kpi_project_task_opened": "True"
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_project_0",
+   "values": {
+    "name": "Tip: Use task states to keep track of your tasks' progression",
+    "sequence": "1200",
+    "group_id": {
+     "$ref": "project.group_project_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_project_1",
+   "values": {
+    "name": "Tip: Create tasks from incoming emails",
+    "sequence": "1300",
+    "group_id": {
+     "$ref": "project.group_project_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_project_2",
+   "values": {
+    "name": "Tip: Your Own Personal Kanban",
+    "sequence": "3200",
+    "group_id": {
+     "$ref": "project.group_project_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_project_3",
+   "values": {
+    "name": "Tip: Project-Specific Fields",
+    "sequence": "3900",
+    "group_id": {
+     "$ref": "project.group_project_manager"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_project_task_burndown_chart_report",
+   "values": {
+    "name": "Burndown Chart",
+    "res_model": "project.task.burndown.chart.report",
+    "path": "burndown-chart",
+    "view_mode": "graph",
+    "search_view_id": {
+     "$ref": "project_task_burndown_chart_report_view_search"
+    },
+    "context": {
+     "$unevaluated": "{'search_default_project_id': active_id, 'search_default_date': 1, 'search_default_stage': 1, 'search_default_filter_date': 1}"
+    },
+    "domain": [
+     [
+      "project_id",
+      "!=",
+      false
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "rating_rating_action_view_project_rating",
+   "values": {
+    "name": "Ratings",
+    "res_model": "rating.rating",
+    "view_mode": "kanban,list,graph,pivot,form",
+    "domain": {
+     "$unevaluated": "[('consumed','=',True), ('parent_res_model','=','project.project'), ('parent_res_id', '=', active_id)]"
+    },
+    "search_view_id": {
+     "$ref": "rating_rating_view_search_project"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_view_project_rating_kanban",
+   "values": {
+    "sequence": 5,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "rating_rating_action_view_project_rating"
+    },
+    "view_id": {
+     "$ref": "rating_rating_project_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_view_project_rating_tree",
+   "values": {
+    "sequence": 10,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "rating_rating_action_view_project_rating"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_tree_project"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_view_project_rating_form",
+   "values": {
+    "sequence": 40,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "rating_rating_action_view_project_rating"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_form_project"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_view_project_rating_pivot",
+   "values": {
+    "sequence": 40,
+    "view_mode": "pivot",
+    "act_window_id": {
+     "$ref": "rating_rating_action_view_project_rating"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_pivot"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_view_project_rating_graph",
+   "values": {
+    "sequence": 40,
+    "view_mode": "graph",
+    "act_window_id": {
+     "$ref": "rating_rating_action_view_project_rating"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_graph"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "rating_rating_action_task",
+   "values": {
+    "name": "Ratings",
+    "res_model": "rating.rating",
+    "view_mode": "kanban,list,pivot,graph,form",
+    "domain": {
+     "$unevaluated": "[('res_model', '=', 'project.task'), ('res_id', '=', active_id), ('consumed', '=', True)]"
+    },
+    "search_view_id": {
+     "$ref": "rating_rating_view_search_project"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_task_kanban",
+   "values": {
+    "sequence": 5,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "rating_rating_action_task"
+    },
+    "view_id": {
+     "$ref": "rating_rating_project_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_task_tree",
+   "values": {
+    "sequence": 10,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "rating_rating_action_task"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_tree_project"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_task_form",
+   "values": {
+    "sequence": 40,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "rating_rating_action_task"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_form_project"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_task_pivot",
+   "values": {
+    "sequence": 40,
+    "view_mode": "pivot",
+    "act_window_id": {
+     "$ref": "rating_rating_action_task"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_pivot"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_task_graph",
+   "values": {
+    "sequence": 40,
+    "view_mode": "graph",
+    "act_window_id": {
+     "$ref": "rating_rating_action_task"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_graph"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "rating_rating_action_project_report",
+   "values": {
+    "name": "Customer Ratings",
+    "res_model": "rating.rating",
+    "path": "task-ratings",
+    "view_mode": "kanban,list,pivot,graph,form",
+    "domain": [
+     [
+      "parent_res_model",
+      "=",
+      "project.project"
+     ],
+     [
+      "consumed",
+      "=",
+      true
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "rating_rating_view_search_project"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    },
+    "context": {
+     "search_default_filter_write_date": 1,
+     "graph_groupbys": [
+      "rated_partner_id"
+     ]
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_project_report_kanban",
+   "values": {
+    "sequence": 5,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "rating_rating_action_project_report"
+    },
+    "view_id": {
+     "$ref": "rating_rating_project_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_project_report_tree",
+   "values": {
+    "sequence": 10,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "rating_rating_action_project_report"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_tree_project"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_project_report_form",
+   "values": {
+    "sequence": 40,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "rating_rating_action_project_report"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_form_project"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_project_report_pivot",
+   "values": {
+    "sequence": 40,
+    "view_mode": "pivot",
+    "act_window_id": {
+     "$ref": "rating_rating_action_project_report"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_pivot"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "rating_rating_action_project_report_graph",
+   "values": {
+    "sequence": 40,
+    "view_mode": "graph",
+    "act_window_id": {
+     "$ref": "rating_rating_action_project_report"
+    },
+    "view_id": {
+     "$ref": "rating_rating_view_graph"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_update_all_action",
+   "values": {
+    "name": "Dashboard",
+    "res_model": "project.update",
+    "path": "project-dashboard",
+    "view_mode": "kanban,list,form",
+    "domain": {
+     "$unevaluated": "[('project_id', '=', active_id)]"
+    },
+    "search_view_id": {
+     "$ref": "project_update_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_project_stage_configure",
+   "values": {
+    "name": "Project Stages",
+    "res_model": "project.project.stage",
+    "path": "project-stages",
+    "view_mode": "list,kanban,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_project_stage_configure_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "project_project_stage_view_tree"
+    },
+    "act_window_id": {
+     "$ref": "project_project_stage_configure"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_project_stage_configure_view_kanban",
+   "values": {
+    "sequence": 2,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "project_project_stage_view_kanban"
+    },
+    "act_window_id": {
+     "$ref": "project_project_stage_configure"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_project_stage_configure_view_form",
+   "values": {
+    "sequence": 3,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "project_project_stage_view_form"
+    },
+    "act_window_id": {
+     "$ref": "project_project_stage_configure"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "unlink_project_stage_action",
+   "values": {
+    "name": "Delete",
+    "model_id": {
+     "$ref": "project.model_project_project_stage"
+    },
+    "binding_model_id": {
+     "$ref": "project.model_project_project_stage"
+    },
+    "binding_view_types": "form,list",
+    "state": "code",
+    "code": "action = records.unlink_wizard(stage_view=True)"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_share_wizard_action",
+   "values": {
+    "name": "Share Project",
+    "res_model": "project.share.wizard",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_task_type_form",
+   "values": {
+    "name": "Task Stages",
+    "res_model": "project.task.type",
+    "path": "task-stages",
+    "view_mode": "list,kanban,form",
+    "view_id": {
+     "$ref": "task_type_tree_inherited"
+    },
+    "domain": [
+     [
+      "user_id",
+      "=",
+      false
+     ]
+    ],
+    "context": {
+     "default_user_id": false
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_task_type_form_domain",
+   "values": {
+    "name": "Task Stages",
+    "res_model": "project.task.type",
+    "view_mode": "list,kanban,form",
+    "domain": {
+     "$unevaluated": "[('project_ids','=', project_id)]"
+    },
+    "view_id": {
+     "$ref": "task_type_tree_inherited"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "unlink_task_type_action",
+   "values": {
+    "name": "Delete",
+    "model_id": {
+     "$ref": "project.model_project_task_type"
+    },
+    "binding_model_id": {
+     "$ref": "project.model_project_task_type"
+    },
+    "binding_view_types": "form,list",
+    "state": "code",
+    "code": "action = records.unlink_wizard(stage_view=True)"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_send_mail_project_project",
+   "values": {
+    "name": "Send Email",
+    "res_model": "mail.compose.message",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "default_composition_mode": "mass_mail"
+    },
+    "binding_model_id": {
+     "$ref": "project.model_project_project"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_create_project",
+   "values": {
+    "name": "Create a Project",
+    "res_model": "project.project",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "project_project_view_form_simplified_footer"
+    },
+    "target": "new",
+    "context": {
+     "default_allow_billable": 0
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_view_project_all",
+   "values": {
+    "name": "Projects",
+    "path": "project",
+    "res_model": "project.project",
+    "domain": [],
+    "context": {
+     "display_milestone_deadline": true
+    },
+    "view_mode": "kanban,list,form",
+    "view_id": {
+     "$ref": "view_project_kanban"
+    },
+    "search_view_id": {
+     "$ref": "view_project_project_filter"
+    },
+    "target": "current",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_view_project_all_group_stage",
+   "values": {
+    "name": "Projects",
+    "res_model": "project.project",
+    "context": {
+     "display_milestone_deadline": true
+    },
+    "domain": [],
+    "view_mode": "kanban,list,form,calendar,activity",
+    "view_id": {
+     "$ref": "view_project_kanban"
+    },
+    "search_view_id": {
+     "$ref": "view_project_project_filter"
+    },
+    "target": "main",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_project_all_group_stage_kanban_view",
+   "values": {
+    "sequence": 10,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "open_view_project_all_group_stage"
+    },
+    "view_id": {
+     "$ref": "project_kanban_view_group_stage"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_project_all_group_stage_tree_view",
+   "values": {
+    "sequence": 20,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "open_view_project_all_group_stage"
+    },
+    "view_id": {
+     "$ref": "project_list_view_group_stage"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_view_project_all_config",
+   "values": {
+    "name": "Projects",
+    "res_model": "project.project",
+    "path": "project-configuration",
+    "domain": [],
+    "view_mode": "list,kanban,form",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "view_project_config"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "view_project_config_kanban"
+       }
+      }
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "view_project_project_filter"
+    },
+    "context": {
+     "display_milestone_deadline": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "open_view_project_all_config_group_stage",
+   "values": {
+    "name": "Projects",
+    "res_model": "project.project",
+    "domain": [],
+    "view_mode": "list,kanban,form,calendar,activity",
+    "search_view_id": {
+     "$ref": "view_project_project_filter"
+    },
+    "context": {
+     "display_milestone_deadline": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_project_all_config_group_stage_tree_action_view",
+   "values": {
+    "sequence": 10,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "project.open_view_project_all_config_group_stage"
+    },
+    "view_id": {
+     "$ref": "view_project_config_group_stage"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_project_all_config_group_stage_kanban_action_view",
+   "values": {
+    "sequence": 20,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "project.open_view_project_all_config_group_stage"
+    },
+    "view_id": {
+     "$ref": "view_project_config_kanban_group_stage"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_project_project_2_project_task_all",
+   "values": {
+    "name": "Tasks",
+    "path": "tasks",
+    "res_model": "project.task",
+    "view_mode": "kanban,list,form,calendar,pivot,graph,activity",
+    "domain": {
+     "$unevaluated": "[('project_id', '=', active_id), ('display_in_project', '=', True)]"
+    },
+    "context": {
+     "$unevaluated": "{\n                'active_model': 'project.project',\n                'default_project_id': active_id,\n                'show_project_update': True,\n             "
+    },
+    "search_view_id": {
+     "$ref": "view_task_search_form"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.embedded.actions",
+   "id": "project_embedded_action_project_updates",
+   "values": {
+    "parent_res_model": "project.project",
+    "sequence": "110",
+    "name": "Dashboard",
+    "parent_action_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    },
+    "action_id": {
+     "$ref": "project.project_update_all_action"
+    }
+   }
+  },
+  {
+   "model": "ir.embedded.actions",
+   "id": "project_embedded_action_all_tasks_dashboard",
+   "values": {
+    "parent_res_model": "project.project",
+    "sequence": "20",
+    "name": "Tasks",
+    "parent_action_id": {
+     "$ref": "project.project_update_all_action"
+    },
+    "action_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_kanban_action_view",
+   "values": {
+    "sequence": 10,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_tree_action_view",
+   "values": {
+    "sequence": 20,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_form_action_view",
+   "values": {
+    "sequence": 30,
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_all_task_calendar_action_view",
+   "values": {
+    "sequence": 40,
+    "view_mode": "calendar",
+    "act_window_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_all_task_pivot_action_view",
+   "values": {
+    "sequence": 70,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "view_project_task_pivot_inherit"
+    },
+    "act_window_id": {
+     "$ref": "act_project_project_2_project_task_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_all_task_graph_action_view",
+   "values": {
+    "sequence": 80,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "view_project_task_graph_inherit"
+    },
+    "act_window_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_all_task_activity_action_view",
+   "values": {
+    "sequence": 90,
+    "view_mode": "activity",
+    "act_window_id": {
+     "$ref": "project.act_project_project_2_project_task_all"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_task_action_sub_task",
+   "values": {
+    "name": "Sub-tasks",
+    "res_model": "project.task",
+    "view_mode": "list,kanban,form,calendar,pivot,graph,activity",
+    "search_view_id": {
+     "$ref": "project.view_task_search_form"
+    },
+    "domain": {
+     "$unevaluated": "[('id', 'child_of', active_id), ('id', '!=', active_id)]"
+    },
+    "context": {
+     "$unevaluated": "{'show_project_update': False, 'default_parent_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_send_mail_project_task",
+   "values": {
+    "name": "Send Email",
+    "res_model": "mail.compose.message",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "default_composition_mode": "mass_mail"
+    },
+    "binding_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "binding_view_types": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "portal_share_action",
+   "values": {
+    "name": "Share Task",
+    "res_model": "portal.share",
+    "view_mode": "form",
+    "context": {
+     "dialog_size": "medium"
+    },
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "model_project_task"
+    },
+    "binding_view_types": "form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_task",
+   "values": {
+    "name": "Tasks",
+    "res_model": "project.task",
+    "view_mode": "kanban,list,form,calendar,pivot,graph,activity",
+    "context": {
+     "search_default_my_tasks": 1
+    },
+    "domain": [
+     [
+      "project_id",
+      "!=",
+      false
+     ],
+     [
+      "display_in_project",
+      "=",
+      true
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "view_task_search_form"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_my_task",
+   "values": {
+    "name": "My Tasks",
+    "res_model": "project.task",
+    "path": "my-tasks",
+    "view_mode": "kanban,list,form,calendar,pivot,graph,activity",
+    "context": {
+     "$unevaluated": "{\n                'search_default_open_tasks': 1,\n                'all_task': 0,\n                'default_user_ids': [(4, uid)],\n            }"
+    },
+    "search_view_id": {
+     "$ref": "view_task_search_form"
+    },
+    "domain": {
+     "$unevaluated": "[('user_ids', 'in', uid)]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_task_list_kanban",
+   "values": {
+    "sequence": 0,
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "action_view_task"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_task_list_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "action_view_task"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_my_task_list_kanban",
+   "values": {
+    "sequence": 10,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "view_task_kanban_inherit_my_task"
+    },
+    "act_window_id": {
+     "$ref": "action_view_my_task"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_my_task_list_tree",
+   "values": {
+    "sequence": 20,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "open_view_my_tasks_list_view"
+    },
+    "act_window_id": {
+     "$ref": "action_view_my_task"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_my_task_list_calendar",
+   "values": {
+    "sequence": 40,
+    "view_mode": "calendar",
+    "act_window_id": {
+     "$ref": "action_view_my_task"
+    },
+    "view_id": {
+     "$ref": "view_task_all_calendar"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_all_task",
+   "values": {
+    "name": "All Tasks",
+    "res_model": "project.task",
+    "path": "all-tasks",
+    "view_mode": "list,kanban,form,calendar,pivot,graph,activity",
+    "domain": [
+     [
+      "display_in_project",
+      "=",
+      true
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{'search_default_open_tasks': 1, 'default_user_ids': [(4, uid)]}"
+    },
+    "search_view_id": {
+     "$ref": "view_task_search_form"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_all_task_list_tree",
+   "values": {
+    "sequence": 10,
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "action_view_all_task"
+    },
+    "view_id": {
+     "$ref": "open_view_all_tasks_list_view"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_all_task_list_kanban",
+   "values": {
+    "sequence": 20,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "view_task_kanban_inherit_all_task"
+    },
+    "act_window_id": {
+     "$ref": "action_view_all_task"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "open_view_all_task_list_calendar",
+   "values": {
+    "sequence": 40,
+    "view_mode": "calendar",
+    "act_window_id": {
+     "$ref": "action_view_all_task"
+    },
+    "view_id": {
+     "$ref": "view_task_all_calendar"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_server_view_my_task",
+   "values": {
+    "name": "menu view My Tasks",
+    "model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "state": "code",
+    "code": "model._ensure_personal_stages(); action = env[\"ir.actions.actions\"]._for_xml_id(\"project.action_view_my_task\")"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_server_convert_to_subtask",
+   "values": {
+    "name": "Convert to Task/Sub-Task",
+    "model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "binding_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "action = record.action_convert_to_subtask()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_task_action_from_partner",
+   "values": {
+    "name": "Partner's Tasks",
+    "res_model": "project.task",
+    "view_mode": "list,kanban,form,calendar,pivot,graph,activity",
+    "search_view_id": {
+     "$ref": "view_task_search_form"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_from_partner_tree_view",
+   "values": {
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "project_task_action_from_partner"
+    },
+    "view_id": {
+     "$ref": "open_view_all_tasks_list_view"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_from_partner_kanban_view",
+   "values": {
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "project_task_action_from_partner"
+    },
+    "view_id": {
+     "$ref": "view_task_kanban_res_partner"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_from_partner_form_view",
+   "values": {
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "project_task_action_from_partner"
+    },
+    "view_id": {
+     "$ref": "view_task_form_res_partner"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_task_action_from_partner_calendar_view",
+   "values": {
+    "view_mode": "calendar",
+    "act_window_id": {
+     "$ref": "project_task_action_from_partner"
+    },
+    "view_id": {
+     "$ref": "view_task_all_calendar"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_task_overpassed_draft",
+   "values": {
+    "name": "Overpassed Tasks",
+    "res_model": "project.task",
+    "view_mode": "list,form,calendar,graph,kanban",
+    "domain": {
+     "$unevaluated": "[('is_closed', '=', False), ('date_deadline','<',time.strftime('%Y-%m-%d')), ('project_id', '!=', False), ('display_in_project', '=', True)]"
+    },
+    "filter": true,
+    "search_view_id": {
+     "$ref": "view_task_search_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "dblc_proj",
+   "values": {
+    "res_model": "project.task",
+    "name": "Project's tasks",
+    "view_mode": "list,form,calendar,graph,kanban",
+    "domain": {
+     "$unevaluated": "[('project_id', '=', active_id), ('display_in_project', '=', True)]"
+    },
+    "context": {
+     "$unevaluated": "{'project_id':active_id}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_view_task_from_milestone",
+   "values": {
+    "name": "Tasks",
+    "res_model": "project.task",
+    "view_mode": "kanban,list,calendar,pivot,graph,activity,form",
+    "context": {
+     "$unevaluated": "{'default_milestone_id': active_id}"
+    },
+    "domain": {
+     "$unevaluated": "[('milestone_id', '=', active_id)]"
+    },
+    "search_view_id": {
+     "$ref": "view_task_search_form"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_tags_action",
+   "values": {
+    "name": "Tags",
+    "res_model": "project.tags",
+    "path": "task-tags",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_config_settings_action",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "project",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_plan_action_config_project_task_plan",
+   "values": {
+    "name": "Activity Plans",
+    "res_model": "mail.activity.plan",
+    "path": "project-activity-plans",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "mail.mail_activity_plan_view_search"
+    },
+    "context": {
+     "default_res_model": "project.task"
+    },
+    "domain": [
+     [
+      "res_model",
+      "in",
+      [
+       "project.project",
+       "project.task"
+      ]
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "mail_activity_plan_action_project_task_view_tree",
+   "values": {
+    "sequence": "1",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "mail.mail_activity_plan_view_tree"
+    },
+    "act_window_id": {
+     "$ref": "project.mail_activity_plan_action_config_project_task_plan"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "mail_activity_plan_action_project_task_view_form",
+   "values": {
+    "sequence": "2",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "project.mail_activity_plan_view_form_project_and_task"
+    },
+    "act_window_id": {
+     "$ref": "project.mail_activity_plan_action_config_project_task_plan"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_type_action_config_project_types",
+   "values": {
+    "name": "Activity Types",
+    "res_model": "mail.activity.type",
+    "path": "project-activity-types",
+    "view_mode": "list,kanban,form",
+    "domain": [
+     "|",
+     [
+      "res_model",
+      "=",
+      false
+     ],
+     [
+      "res_model",
+      "=",
+      "project.task"
+     ]
+    ],
+    "context": {
+     "default_res_model": "project.task"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_sharing_project_task_action",
+   "values": {
+    "name": "Project Sharing",
+    "res_model": "project.task",
+    "view_mode": "kanban,list,form",
+    "search_view_id": {
+     "$ref": "project.project_sharing_project_task_view_search"
+    },
+    "domain": {
+     "$unevaluated": "[('project_id', '=', active_id), ('display_in_project', '=', True)]"
+    },
+    "context": {
+     "$unevaluated": "{\n            'default_project_id': active_id,\n            'active_id_chatter': active_id,\n            'delete': false,\n        }"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_kanban_action_view",
+   "values": {
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_tree_action_view",
+   "values": {
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_form_action_view",
+   "values": {
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_sharing_project_task_action_blocking_tasks",
+   "values": {
+    "name": "Blocking",
+    "res_model": "project.task",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "project.project_sharing_project_task_view_search"
+    },
+    "domain": {
+     "$unevaluated": "[('depend_on_ids', '=', active_id), ('id', '!=', active_id)]"
+    },
+    "context": {
+     "$unevaluated": "{'default_dependent_ids': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_blocking_tree_action_view",
+   "values": {
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action_blocking_tasks"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_blocking_kanban_action_view",
+   "values": {
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action_blocking_tasks"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_blocking_form_action_view",
+   "values": {
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action_blocking_tasks"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_sharing_project_task_action_sub_task",
+   "values": {
+    "name": "Sub-tasks",
+    "res_model": "project.task",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "project.project_sharing_project_task_view_search"
+    },
+    "domain": {
+     "$unevaluated": "[('id', 'child_of', active_id), ('id', '!=', active_id)]"
+    },
+    "context": {
+     "$unevaluated": "{'default_parent_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_subtasks_tree_action_view",
+   "values": {
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action_sub_task"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_subtasks_kanban_action_view",
+   "values": {
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action_sub_task"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_subtasks_form_action_view",
+   "values": {
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_action_sub_task"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_sharing_project_task_recurring_tasks_action",
+   "values": {
+    "name": "Project Sharing Recurrence",
+    "res_model": "project.task",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "project.project_sharing_project_task_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_recurring_tasks_tree_action_view",
+   "values": {
+    "view_mode": "list",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_recurring_tasks_action"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_tree"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_recurring_tasks_kanban_action_view",
+   "values": {
+    "view_mode": "kanban",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_recurring_tasks_action"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_kanban"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "project_sharing_recurring_tasks_form_action_view",
+   "values": {
+    "view_mode": "form",
+    "act_window_id": {
+     "$ref": "project.project_sharing_project_task_recurring_tasks_action"
+    },
+    "view_id": {
+     "$ref": "project.project_sharing_project_task_view_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_project_task_user_tree",
+   "values": {
+    "name": "Tasks Analysis",
+    "res_model": "report.project.task.user",
+    "path": "tasks-analysis",
+    "view_mode": "graph,pivot",
+    "search_view_id": {
+     "$ref": "view_task_project_user_search"
+    },
+    "context": {
+     "group_by": [],
+     "graph_measure": "__count__"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_new",
+   "values": {
+    "name": "Task Created",
+    "res_model": "project.task",
+    "default": false,
+    "hidden": true,
+    "description": "Task Created"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_stage",
+   "values": {
+    "name": "Stage Changed",
+    "res_model": "project.task",
+    "default": false,
+    "description": "Stage changed"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_in_progress",
+   "values": {
+    "name": "Task In Progress",
+    "res_model": "project.task",
+    "default": false,
+    "sequence": 101,
+    "description": "Task In Progress"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_changes_requested",
+   "values": {
+    "name": "Changes Requested",
+    "res_model": "project.task",
+    "default": false,
+    "sequence": 102,
+    "description": "Changes Requested"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_approved",
+   "values": {
+    "name": "Task Approved",
+    "res_model": "project.task",
+    "default": false,
+    "sequence": 103,
+    "description": "Task approved"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_canceled",
+   "values": {
+    "name": "Task Cancelled",
+    "res_model": "project.task",
+    "default": false,
+    "sequence": 104,
+    "description": "Task cancelled"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_done",
+   "values": {
+    "name": "Task Done",
+    "res_model": "project.task",
+    "default": false,
+    "sequence": 105,
+    "description": "Task done"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_waiting",
+   "values": {
+    "name": "Task Waiting",
+    "res_model": "project.task",
+    "default": false,
+    "sequence": 106,
+    "description": "Task Waiting",
+    "hidden": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_task_rating",
+   "values": {
+    "name": "Task Rating",
+    "res_model": "project.task",
+    "sequence": 108,
+    "default": false,
+    "hidden": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_update_create",
+   "values": {
+    "name": "Update Created",
+    "res_model": "project.update",
+    "default": false,
+    "description": "Update Created",
+    "hidden": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_stage_change",
+   "values": {
+    "name": "Project Stage Changed",
+    "sequence": "9",
+    "res_model": "project.project",
+    "default": false,
+    "hidden": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_new",
+   "values": {
+    "name": "Task Created",
+    "sequence": "10",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_new"
+    },
+    "relation_field": "project_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_stage",
+   "values": {
+    "name": "Task Stage Changed",
+    "sequence": "16",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_stage"
+    },
+    "relation_field": "project_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_rating",
+   "values": {
+    "name": "Task Rating",
+    "sequence": "27",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_rating"
+    },
+    "relation_field": "project_id",
+    "hidden": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_update_create",
+   "values": {
+    "name": "Update Created",
+    "sequence": "19",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_update_create"
+    },
+    "relation_field": "project_id",
+    "hidden": true
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_in_progress",
+   "values": {
+    "name": "Task In Progress",
+    "sequence": "20",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_in_progress"
+    },
+    "relation_field": "project_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_changes_requested",
+   "values": {
+    "name": "Changes Requested",
+    "sequence": "21",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_changes_requested"
+    },
+    "relation_field": "project_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_approved",
+   "values": {
+    "name": "Task Approved",
+    "sequence": "22",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_approved"
+    },
+    "relation_field": "project_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_canceled",
+   "values": {
+    "name": "Task Canceled",
+    "sequence": "23",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_canceled"
+    },
+    "relation_field": "project_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_done",
+   "values": {
+    "name": "Task Done",
+    "sequence": "24",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_done"
+    },
+    "relation_field": "project_id"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_project_task_waiting",
+   "values": {
+    "name": "Task Waiting",
+    "sequence": "25",
+    "res_model": "project.project",
+    "default": false,
+    "parent_id": {
+     "$ref": "mt_task_waiting"
+    },
+    "relation_field": "project_id",
+    "hidden": true
+   }
+  },
+  {
+   "model": "project.project.stage",
+   "id": "project_project_stage_0",
+   "values": {
+    "sequence": "10",
+    "name": "To Do"
+   }
+  },
+  {
+   "model": "project.project.stage",
+   "id": "project_project_stage_1",
+   "values": {
+    "sequence": "15",
+    "name": "In Progress"
+   }
+  },
+  {
+   "model": "project.project.stage",
+   "id": "project_project_stage_2",
+   "values": {
+    "sequence": "20",
+    "name": "Done",
+    "fold": true
+   }
+  },
+  {
+   "model": "project.project.stage",
+   "id": "project_project_stage_3",
+   "values": {
+    "sequence": "25",
+    "name": "Cancelled",
+    "fold": true
+   }
+  },
+  {
+   "model": "ir.exports",
+   "id": "project_task_export_template",
+   "values": {
+    "name": "Tasks",
+    "resource": "project.task"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "project_task_export_template_line_id",
+   "values": {
+    "export_id": {
+     "$ref": "project_task_export_template"
+    },
+    "name": "id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "project_task_export_template_line_project_id",
+   "values": {
+    "export_id": {
+     "$ref": "project_task_export_template"
+    },
+    "name": "project_id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "project_task_export_template_line_name",
+   "values": {
+    "export_id": {
+     "$ref": "project_task_export_template"
+    },
+    "name": "name"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "project_task_export_template_line_user_ids",
+   "values": {
+    "export_id": {
+     "$ref": "project_task_export_template"
+    },
+    "name": "user_ids"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "project_task_export_template_line_stage_id",
+   "values": {
+    "export_id": {
+     "$ref": "project_task_export_template"
+    },
+    "name": "stage_id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "project_task_export_template_line_state",
+   "values": {
+    "export_id": {
+     "$ref": "project_task_export_template"
+    },
+    "name": "state"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "project_task_export_template_line_tag_ids",
+   "values": {
+    "export_id": {
+     "$ref": "project_task_export_template"
+    },
+    "name": "tag_ids"
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "project_tour",
+   "values": {
+    "name": "project_tour",
+    "sequence": "110",
+    "rainbow_man_message": "Congratulations, you are now a master of project management."
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "project.group_project_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_user",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_project_milestone"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_portal",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_project_milestone"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_00",
+   "values": {
+    "name": "Bug"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_01",
+   "values": {
+    "name": "New Feature"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_02",
+   "values": {
+    "name": "Experiment"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_03",
+   "values": {
+    "name": "Usability"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_04",
+   "values": {
+    "name": "Internal"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_05",
+   "values": {
+    "name": "External"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_06",
+   "values": {
+    "name": "Construction"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_07",
+   "values": {
+    "name": "Architecture"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_08",
+   "values": {
+    "name": "Design"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_09",
+   "values": {
+    "name": "Interior"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_10",
+   "values": {
+    "name": "Office"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_11",
+   "values": {
+    "name": "Finance"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_12",
+   "values": {
+    "name": "Social"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_13",
+   "values": {
+    "name": "Home"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_14",
+   "values": {
+    "name": "Work"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_15",
+   "values": {
+    "name": "Meeting"
+   }
+  },
+  {
+   "model": "project.tags",
+   "id": "project_tags_16",
+   "values": {
+    "name": "Priority"
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_office_design",
+   "values": {
+    "name": "Office Design",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_research_development",
+   "values": {
+    "name": "Research & Development",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_renovations",
+   "values": {
+    "name": "Renovations",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "analytic_construction",
+   "values": {
+    "name": "Home Construction",
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "project.project.stage",
+   "id": "project.project_project_stage_2",
+   "values": {
+    "mail_template_id": {
+     "$ref": "project.project_done_email_template"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_stage_0",
+   "values": {
+    "sequence": "1",
+    "name": "New",
+    "mail_template_id": {
+     "$ref": "project.mail_template_data_project_task"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_stage_1",
+   "values": {
+    "sequence": "10",
+    "name": "In Progress"
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_stage_2",
+   "values": {
+    "sequence": "20",
+    "name": "Done",
+    "fold": false
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_stage_3",
+   "values": {
+    "sequence": "30",
+    "name": "Cancelled",
+    "fold": true
+   }
+  },
+  {
+   "model": "project.project",
+   "id": "project_project_1",
+   "values": {
+    "date_start": {
+     "$unevaluated": "DateTime.today() - relativedelta(weeks=9)"
+    },
+    "date": {
+     "$unevaluated": "DateTime.today() + relativedelta(weekday=4,weeks=1)"
+    },
+    "name": "Office Design",
+    "color": "3",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "type_ids": [
+     [
+      4,
+      {
+       "$ref": "project_stage_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_2"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_3"
+      }
+     ]
+    ],
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "privacy_visibility": "portal",
+    "favorite_user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_tags_05"
+      }
+     ]
+    ],
+    "stage_id": {
+     "$ref": "project.project_project_stage_1"
+    },
+    "account_id": {
+     "$ref": "project.analytic_office_design"
+    }
+   }
+  },
+  {
+   "model": "mail.followers",
+   "id": "project_1_follower_admin",
+   "values": {
+    "res_model": "project.project",
+    "res_id": {
+     "$ref": "project_project_1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "project.project",
+   "id": "project_project_2",
+   "values": {
+    "name": "Research & Development",
+    "privacy_visibility": "followers",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "type_ids": [
+     [
+      4,
+      {
+       "$ref": "project_stage_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_2"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_3"
+      }
+     ]
+    ],
+    "favorite_user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_tags_04"
+      }
+     ]
+    ],
+    "stage_id": {
+     "$ref": "project.project_project_stage_1"
+    },
+    "account_id": {
+     "$ref": "project.analytic_research_development"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_2_activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "project_project_2"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_project"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_meeting"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=13)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Examine project status",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.project",
+   "id": "project_project_3",
+   "values": {
+    "date_start": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=-2)).strftime('%Y-%m-%d 10:00:00')"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=-5)).strftime('%Y-%m-%d 17:00:00')"
+    },
+    "name": "Renovations",
+    "description": "Renovation work at the YourCompany headquarters.",
+    "color": "4",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "type_ids": [
+     [
+      4,
+      {
+       "$ref": "project_stage_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_2"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_3"
+      }
+     ]
+    ],
+    "favorite_user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "project_tags_04"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_tags_02"
+      }
+     ]
+    ],
+    "stage_id": {
+     "$ref": "project.project_project_stage_2"
+    },
+    "account_id": {
+     "$ref": "project.analytic_renovations"
+    },
+    "privacy_visibility": "employees"
+   }
+  },
+  {
+   "model": "project.project",
+   "id": "project_project_4",
+   "values": {
+    "date_start": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=-1)).strftime('%Y-%m-%d 10:00:00')"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=-5)).strftime('%Y-%m-%d 17:00:00')"
+    },
+    "name": "Home Make Over",
+    "color": "4",
+    "active": "False",
+    "description": "Interior designing and refurnishing.",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "type_ids": [
+     [
+      4,
+      {
+       "$ref": "project_stage_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_2"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_3"
+      }
+     ]
+    ],
+    "favorite_user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "project_tags_04"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_tags_02"
+      }
+     ]
+    ],
+    "stage_id": {
+     "$ref": "project.project_project_stage_2"
+    }
+   }
+  },
+  {
+   "model": "project.project",
+   "id": "project_home_construction",
+   "values": {
+    "date_start": {
+     "$unevaluated": "(DateTime.today() + relativedelta(months=-2)).strftime('%Y-%m-%d 10:00:00')"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=-5)).strftime('%Y-%m-%d 17:00:00')"
+    },
+    "name": "Home Construction",
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "description": "Designing and construction of an appealing, comfortable, safe and well-built home that fits the needs and wants of you and your family.",
+    "color": "5",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "type_ids": [
+     [
+      4,
+      {
+       "$ref": "project_stage_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_2"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_stage_3"
+      }
+     ]
+    ],
+    "favorite_user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "project_tags_06"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_tags_07"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_tags_08"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_tags_09"
+      }
+     ]
+    ],
+    "stage_id": {
+     "$ref": "project.project_project_stage_2"
+    },
+    "account_id": {
+     "$ref": "project.analytic_construction"
+    },
+    "privacy_visibility": "portal"
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_admin_0",
+   "values": {
+    "sequence": "1",
+    "name": "Inbox",
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_admin_1",
+   "values": {
+    "sequence": "2",
+    "name": "Today",
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_admin_2",
+   "values": {
+    "sequence": "3",
+    "name": "This Week",
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_admin_3",
+   "values": {
+    "sequence": "4",
+    "name": "This Month",
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_admin_4",
+   "values": {
+    "sequence": "5",
+    "name": "Later",
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_admin_5",
+   "values": {
+    "sequence": "6",
+    "name": "Done",
+    "fold": true,
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_admin_6",
+   "values": {
+    "sequence": "7",
+    "name": "Cancelled",
+    "fold": true,
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_demo_0",
+   "values": {
+    "sequence": "1",
+    "name": "Inbox",
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_demo_1",
+   "values": {
+    "sequence": "2",
+    "name": "Today",
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_demo_2",
+   "values": {
+    "sequence": "3",
+    "name": "This Week",
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_demo_3",
+   "values": {
+    "sequence": "4",
+    "name": "This Month",
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_demo_4",
+   "values": {
+    "sequence": "5",
+    "name": "Later",
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_demo_5",
+   "values": {
+    "sequence": "6",
+    "name": "Done",
+    "fold": true,
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project_personal_stage_demo_6",
+   "values": {
+    "sequence": "7",
+    "name": "Cancelled",
+    "fold": true,
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.milestone",
+   "id": "project_1_milestone_1",
+   "values": {
+    "is_reached": true,
+    "deadline": {
+     "$unevaluated": "time.strftime('%Y-%m-10')"
+    },
+    "name": "First Phase",
+    "reached_date": {
+     "$unevaluated": "time.strftime('%Y-%m-10')"
+    },
+    "project_id": {
+     "$ref": "project.project_project_1"
+    }
+   }
+  },
+  {
+   "model": "project.milestone",
+   "id": "project_1_milestone_2",
+   "values": {
+    "is_reached": false,
+    "deadline": {
+     "$unevaluated": "(DateTime.now() + relativedelta(years=1)).strftime('%Y-%m-15')"
+    },
+    "name": "Second Phase",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    }
+   }
+  },
+  {
+   "model": "project.milestone",
+   "id": "project_1_milestone_3",
+   "values": {
+    "is_reached": false,
+    "deadline": {
+     "$unevaluated": "(DateTime.now() + relativedelta(years=2)).strftime('%Y-%m-%d')"
+    },
+    "name": "Final Phase",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    }
+   }
+  },
+  {
+   "model": "project.milestone",
+   "id": "project_home_construction_milestone_1",
+   "values": {
+    "is_reached": true,
+    "deadline": {
+     "$unevaluated": "time.strftime('%Y-%m-2')"
+    },
+    "name": "Piping Installation",
+    "reached_date": {
+     "$unevaluated": "time.strftime('%Y-%m-2')"
+    },
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "project.milestone",
+   "id": "project_home_construction_milestone_2",
+   "values": {
+    "is_reached": false,
+    "deadline": {
+     "$unevaluated": "time.strftime('%Y-%m-5')"
+    },
+    "name": "Door and Window Framing",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "project.milestone",
+   "id": "project_home_construction_milestone_3",
+   "values": {
+    "is_reached": false,
+    "deadline": {
+     "$unevaluated": "time.strftime('%Y-%m-10')"
+    },
+    "name": "Wiring",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_1",
+   "values": {
+    "sequence": "20",
+    "allocated_hours": "20.0",
+    "user_ids": false,
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Office planning",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "color": "7",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_2",
+   "values": {
+    "allocated_hours": 32.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Lunch Room: kitchen",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_1"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_2_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_2"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=2)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_2_mail_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_2"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=1)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_2_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_1_task_2_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_2_mail_message_2_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "In Progress",
+    "new_value_char": "Done",
+    "old_value_integer": "2",
+    "new_value_integer": "3",
+    "mail_message_id": {
+     "$ref": "project_1_task_2_mail_message_2"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_3",
+   "values": {
+    "allocated_hours": 10.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Noise Reduction",
+    "description": "Installation of acoustic ceiling clouds and wall panels.",
+    "date_deadline": {
+     "$unevaluated": "time.strftime('%Y-%m-24')"
+    },
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "color": "4",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_2"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_3_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_3"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=4)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_3_mail_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_3"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=4)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_3_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_1_task_3_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_3_mail_message_2_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "In Progress",
+    "new_value_char": "Done",
+    "old_value_integer": "2",
+    "new_value_integer": "3",
+    "mail_message_id": {
+     "$ref": "project_1_task_3_mail_message_2"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_4",
+   "values": {
+    "sequence": "17",
+    "allocated_hours": "8.0",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "user_ids": false,
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Modifications asked by the customer",
+    "description": "Modifications to the kitchen of the lunch room",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_00"
+       }
+      ]
+     ]
+    ],
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_2"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_4_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_4"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=4)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_4_mail_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_4"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=3)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_4_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_1_task_4_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_4_mail_message_2_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "In Progress",
+    "new_value_char": "Done",
+    "old_value_integer": "2",
+    "new_value_integer": "3",
+    "mail_message_id": {
+     "$ref": "project_1_task_4_mail_message_2"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_5",
+   "values": {
+    "allocated_hours": 15.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Energy Certificate",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "state": "01_in_progress",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=2)"
+    },
+    "color": "1",
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_3"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_5_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_5"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=4)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_5_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_1_task_5_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_1_task_5_activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "project_1_task_5"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(hours=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Follow-up email",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_6",
+   "values": {
+    "allocated_hours": 76.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Room 1: Decoration",
+    "state": "03_approved",
+    "date_deadline": {
+     "$unevaluated": "time.strftime('%Y-%m-%d')"
+    },
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_01"
+       }
+      ]
+     ]
+    ],
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "color": "11",
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_3"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_6_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_6"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=2)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_6_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_1_task_6_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_1_task_6_activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "project_1_task_6"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(hours=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Call Joel Willis",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_7",
+   "values": {
+    "allocated_hours": 24.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Room 2: Decoration",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=6)"
+    },
+    "color": "9",
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_3"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_7_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_7"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=3)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_7_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_1_task_7_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_8",
+   "values": {
+    "allocated_hours": 60.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Black Chairs for managers",
+    "description": "Use the account_budget module",
+    "date_deadline": {
+     "$unevaluated": "time.strftime('%Y-%m-19')"
+    },
+    "color": "5",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "state": "02_changes_requested",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_01"
+       }
+      ]
+     ]
+    ],
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_3"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_8_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_1_task_8"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=1)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_1_task_8_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_1_task_8_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_8_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_1_task_8"
+    },
+    "body": "Hello Admin,\n                Can we discuss this? Having nicer chairs for managers doesn't sit right with me.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(days=3)).strftime('%Y-%m-%d 09:43:27')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_1_task_8_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_1_task_8"
+    },
+    "parent_id": {
+     "$ref": "project_1_task_8_message_1"
+    },
+    "body": "We have already discussed, and I stand by my decision.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(days=3)).strftime('%Y-%m-%d 11:52:03')"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_9",
+   "values": {
+    "allocated_hours": 40.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Meeting Room Furnitures",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "color": "3",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_3"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_1_task_9_activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "project_1_task_9"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_todo"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() - relativedelta(days=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Check furniture",
+    "create_uid": {
+     "$ref": "base.user_demo"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_9_archive_1",
+   "values": {
+    "name": "Kitchen Assembly",
+    "active": "False",
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": {
+     "$ref": "project_project_4"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_task_furniture",
+   "values": {
+    "name": "Furniture Delivery",
+    "active": "False",
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": {
+     "$ref": "project_project_4"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_task_ceiling",
+   "values": {
+    "name": "Ceiling fan",
+    "active": "False",
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": {
+     "$ref": "project_project_4"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    }
+   }
+  },
+  {
+   "model": "project.task.recurrence",
+   "id": "project_task_recurrence_1",
+   "values": {
+    "repeat_unit": "month",
+    "repeat_type": "until",
+    "repeat_until": {
+     "$unevaluated": "DateTime.now() + relativedelta(months=4)"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-2)"
+    }
+   }
+  },
+  {
+   "model": "project.task.recurrence",
+   "id": "project_task_recurrence_2",
+   "values": {
+    "repeat_unit": "week",
+    "repeat_type": "forever"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_10",
+   "values": {
+    "sequence": "20",
+    "allocated_hours": "20.0",
+    "user_ids": false,
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Customer review",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "recurring_task": true,
+    "recurrence_id": {
+     "$ref": "project_task_recurrence_1"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-2)"
+    },
+    "milestone_id": {
+     "$ref": "project.project_1_milestone_3"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_11",
+   "values": {
+    "sequence": "20",
+    "allocated_hours": "0.25",
+    "user_ids": false,
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Daily stand-up meeting - Send minutes",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "recurring_task": true,
+    "recurrence_id": {
+     "$ref": "project_task_recurrence_2"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(weeks=-1)"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_12",
+   "values": {
+    "sequence": "20",
+    "allocated_hours": "8.0",
+    "user_ids": false,
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "parent_id": {
+     "$ref": "project.project_1_task_10"
+    },
+    "name": "Customer Meeting",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_13",
+   "values": {
+    "sequence": "10",
+    "allocated_hours": "2.0",
+    "user_ids": false,
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "parent_id": {
+     "$ref": "project.project_1_task_12"
+    },
+    "name": "Daily Meetings summary",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_14",
+   "values": {
+    "sequence": "20",
+    "allocated_hours": "2.0",
+    "user_ids": false,
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "parent_id": {
+     "$ref": "project.project_1_task_12"
+    },
+    "name": "Preparation",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_15",
+   "values": {
+    "sequence": "30",
+    "allocated_hours": "2.0",
+    "user_ids": false,
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "parent_id": {
+     "$ref": "project.project_1_task_12"
+    },
+    "name": "Minutes",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_16",
+   "values": {
+    "allocated_hours": 24.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "name": "Chair Cabinet",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_1_task_2"
+      }
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=6)"
+    },
+    "color": "9"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_1_task_17",
+   "values": {
+    "name": "Plywood requirement",
+    "sequence": "40",
+    "allocated_hours": "2.0",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "parent_id": {
+     "$ref": "project.project_1_task_16"
+    },
+    "stage_id": {
+     "$ref": "project_stage_2"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_1",
+   "values": {
+    "allocated_hours": "12.0",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Customer analysis + Architecture",
+    "state": "1_done",
+    "color": "7",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_1_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_1"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(weeks=16)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_1_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_2_task_1_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_1_mail_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_1"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-16, days=4)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_1_mail_message_2_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "In Progress",
+    "new_value_char": "Done",
+    "old_value_integer": "2",
+    "new_value_integer": "3",
+    "mail_message_id": {
+     "$ref": "project_2_task_1_mail_message_2"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_2",
+   "values": {
+    "allocated_hours": "24.0",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Basic outline",
+    "state": "1_done",
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_1"
+      }
+     ]
+    ],
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_02"
+       }
+      ]
+     ]
+    ],
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_2_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_2"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(weeks=15)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_2_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_2_task_2_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_2_mail_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_2"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(weeks=14)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_2_mail_message_2_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "In Progress",
+    "new_value_char": "Done",
+    "old_value_integer": "2",
+    "new_value_integer": "3",
+    "mail_message_id": {
+     "$ref": "project_2_task_2_mail_message_2"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_3",
+   "values": {
+    "allocated_hours": 40.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Planning and budget",
+    "state": "1_done",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "color": "6",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=4)"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_3_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_3"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-14, days=1)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_3_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_2_task_3_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_3_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_2_task_3"
+    },
+    "body": "Hello Demo,\nThere is a change in customer requirement.\nCan you check the document from customer again.\nThanks,",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_root"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weeks=-9, days=2)).strftime('%Y-%m-%d 11:23:17')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_3_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_2_task_3"
+    },
+    "parent_id": {
+     "$ref": "project_2_task_3_message_1"
+    },
+    "body": "Ok, I have checked the mail,\nI will update the document and let you know.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weeks=-9, days=2)).strftime('%Y-%m-%d 12:04:58')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_3_message_3",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_2_task_3"
+    },
+    "parent_id": {
+     "$ref": "project_2_task_3_message_2"
+    },
+    "body": "Fine!\nSend it ASAP, its urgent.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_root"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weeks=-9, days=2)).strftime('%Y-%m-%d 12:15:26')"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_4",
+   "values": {
+    "allocated_hours": 16.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "User interface improvements",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project.project_tags_01"
+       },
+       {
+        "$ref": "project.project_tags_03"
+       }
+      ]
+     ]
+    ],
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "state": "03_approved",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_3"
+      }
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=1)"
+    },
+    "color": "2"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_4_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_4"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-11)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_4_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_2_task_4_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_5",
+   "values": {
+    "allocated_hours": 38.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Social network integration",
+    "description": "Facebook and X integration",
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_3"
+      }
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=5)"
+    },
+    "color": "2"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_5_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_5"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-12, days=6)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_5_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_2_task_5_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_6",
+   "values": {
+    "allocated_hours": "42.0",
+    "user_ids": false,
+    "stage_id": {
+     "$ref": "project_stage_1"
+    },
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Create new components",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_3"
+      }
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=4)"
+    },
+    "color": "11"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_6_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_6"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-11, days=3)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_6_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_2_task_6_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_7",
+   "values": {
+    "allocated_hours": 22.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "New portal system",
+    "state": "1_done",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project.project_tags_02"
+       }
+      ]
+     ]
+    ],
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_3"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project_2_task_2"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_7_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_7"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-12, days=5)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_7_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_2_task_7_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_7_mail_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_7"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() + relativedelta(weeks=-9, days=3)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_7_mail_message_2_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "In Progress",
+    "new_value_char": "Done",
+    "old_value_integer": "2",
+    "new_value_integer": "3",
+    "mail_message_id": {
+     "$ref": "project_2_task_7_mail_message_2"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_8",
+   "values": {
+    "allocated_hours": "14.0",
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "stage_id": {
+     "$ref": "project_stage_0"
+    },
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Usability review",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_03"
+       }
+      ]
+     ]
+    ],
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_7"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_5"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_4"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_6"
+      }
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=9)"
+    },
+    "color": "7"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_2_task_8_mail_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project.project_2_task_8"
+    },
+    "message_type": "notification",
+    "subtype_id": {
+     "$ref": "mt_task_stage"
+    },
+    "date": {
+     "$unevaluated": "DateTime.now() - relativedelta(weeks=10)"
+    },
+    "author_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.tracking.value",
+   "id": "project_2_task_8_mail_message_1_track_1",
+   "values": {
+    "field_id": {
+     "$unevaluated": "obj().search([('model', '=', 'project.task'), ('name', '=', 'stage_id')])"
+    },
+    "old_value_char": "New",
+    "new_value_char": "In Progress",
+    "old_value_integer": "1",
+    "new_value_integer": "2",
+    "mail_message_id": {
+     "$ref": "project_2_task_8_mail_message_1"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_9",
+   "values": {
+    "allocated_hours": 18.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Document management",
+    "stage_id": {
+     "$ref": "project_stage_0"
+    },
+    "state": "1_canceled",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_8"
+      }
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=15)"
+    },
+    "color": "4"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_10",
+   "values": {
+    "sequence": "20",
+    "allocated_hours": "35.0",
+    "user_ids": false,
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Unit Testing",
+    "description": "The most important part!",
+    "stage_id": {
+     "$ref": "project_stage_0"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "depend_on_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_2_task_8"
+      }
+     ]
+    ],
+    "date_deadline": {
+     "$unevaluated": "DateTime.now() + relativedelta(days=15)"
+    },
+    "color": "5"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_2_task_11",
+   "values": {
+    "allocated_hours": 20.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "stage_id": {
+     "$ref": "project_stage_3"
+    },
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_2"
+    },
+    "name": "Code Documentation",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "active": false
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_3_task_1",
+   "values": {
+    "allocated_hours": 40.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_3"
+    },
+    "name": "Entry Hall",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "color": "3"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_3_task_2",
+   "values": {
+    "allocated_hours": 10.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_3"
+    },
+    "name": "Check Lift",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    },
+    "date_deadline": {
+     "$unevaluated": "DateTime.today() + relativedelta(days=-10)"
+    },
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "color": "4"
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_3_task_2_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_3_task_2"
+    },
+    "body": "The elevator's state leaves much to be desired on many levels, we might need to take steps to repair it.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(weeks=3)).strftime('%Y-%m-%d 09:42:13')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_3_task_2_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_3_task_2"
+    },
+    "parent_id": {
+     "$ref": "project_3_task_2_message_1"
+    },
+    "body": "This is not very uplifting, it would probably raise the expenses by a lot. \ud83d\ude15",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(weeks=3)).strftime('%Y-%m-%d 10:23:48')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_3_task_2_message_3",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_3_task_2"
+    },
+    "parent_id": {
+     "$ref": "project_3_task_2_message_2"
+    },
+    "body": "I know, it's driving me up the wall.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(weeks=3)).strftime('%Y-%m-%d 10:57:04')"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_3_task_3",
+   "values": {
+    "allocated_hours": 24.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "priority": "0",
+    "project_id": {
+     "$ref": "project.project_project_3"
+    },
+    "name": "Room 1: Paint",
+    "description": "Repaint the walls with the hex color #0FF1CE",
+    "state": "1_done",
+    "date_deadline": {
+     "$unevaluated": "DateTime.today() - relativedelta(days=5)"
+    },
+    "stage_id": {
+     "$ref": "project_stage_2"
+    },
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_01"
+       }
+      ]
+     ]
+    ],
+    "color": "9"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_3_task_4",
+   "values": {
+    "allocated_hours": 76.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_3"
+    },
+    "name": "Bathroom",
+    "stage_id": {
+     "$ref": "project_stage_2"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_3_task_5",
+   "values": {
+    "allocated_hours": 40.0,
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "priority": "1",
+    "project_id": {
+     "$ref": "project.project_project_3"
+    },
+    "name": "Room 2: Paint",
+    "stage_id": {
+     "$ref": "project_stage_3"
+    },
+    "active": "False"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_1",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Buy a gift for Marc Demo's birthday",
+    "description": "Select a thoughtful gift for Marc Demo's birthday .",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_16"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_2",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Change left screen cable",
+    "description": "Perform a replacement of the left screen cable to address any issues with connectivity or display quality.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_14"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_3",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Clean kitchen fridge",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_13"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_4",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Check employees lunch accounts",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_10"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_5",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Attend a project status meeting",
+    "description": "Join the scheduled project status meeting to provide updates, discuss progress, and align with team members.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_15"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_6",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Review and reply to emails",
+    "description": "Spend time going through inbox, reviewing and replying to important emails to stay organized and maintain communication.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_10"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_7",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Empty Trash Bins",
+    "description": "Take a few minutes to empty and replace the trash bins in the office. Keeping living space clean and odor-free.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_14"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_8",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Conduct a training session",
+    "description": "Conduct a training session to enhance team members proficiency and productivity.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_10"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_9",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Review Finances",
+    "description": "Take a comprehensive look at finances, including budgeting, savings, and investments.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_11"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_10",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Research Investment Options",
+    "description": "Conduct thorough research on various investment options to make informed decisions about growing your financial portfolio.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_11"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_11",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Explore Charitable Opportunities",
+    "description": "Explore various charitable organizations and opportunities to contribute to meaningful causes and make a positive impact on the community.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_12"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_12",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Attend a Local Event",
+    "description": "Participate in a local event to connect with the community",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_12"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_13",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Review Document",
+    "description": "Thoroughly review and provide feedback on an important document.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_10"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_14",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Lead a Team Discussion",
+    "description": "Facilitate a team discussion to encourage idea sharing and decision-making.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_16"
+       },
+       {
+        "$ref": "project_tags_15"
+       }
+      ]
+     ]
+    ],
+    "active": false
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_15",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Attend a Training or Workshop",
+    "description": "Participate in a training session or workshop to develop new skills or gain knowledge relevant to your work.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_14"
+       }
+      ]
+     ]
+    ],
+    "active": false
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_16",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Review and Provide Feedback",
+    "description": "Attend a meeting to review documents, proposals, or reports and provide constructive feedback.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_10"
+       }
+      ]
+     ]
+    ],
+    "active": false
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_17",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Participate in a Design Review",
+    "description": "Join a meeting where the team reviews and discusses the design or user experience aspects of a project.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_15"
+       }
+      ]
+     ]
+    ],
+    "state": "1_done"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_private_task_18",
+   "values": {
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": "",
+    "name": "Share Research Findings",
+    "description": "Present findings from research you conducted to inform a project or decision.",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "project_tags_14"
+       }
+      ]
+     ]
+    ],
+    "state": "1_done"
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_task_1",
+   "values": {
+    "access_token": "PROJECT_1",
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_root"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "res_id": {
+     "$ref": "project.project_1_task_3"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_task_2",
+   "values": {
+    "access_token": "PROJECT_2",
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "res_id": {
+     "$ref": "project.project_2_task_7"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_task_3",
+   "values": {
+    "access_token": "PROJECT_3",
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_root"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "res_id": {
+     "$ref": "project.project_1_task_4"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_task_4",
+   "values": {
+    "access_token": "PROJECT_4",
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_root"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "res_id": {
+     "$ref": "project.project_1_task_2"
+    }
+   }
+  },
+  {
+   "model": "project.task.type",
+   "id": "project.project_stage_2",
+   "values": {
+    "rating_template_id": {
+     "$ref": "rating_project_request_email_template"
+    }
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_1",
+   "values": {
+    "name": "Review of the situation",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "progress": 15,
+    "status": "at_risk"
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_2",
+   "values": {
+    "name": "Weekly review",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "progress": 35,
+    "status": "at_risk"
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_3",
+   "values": {
+    "name": "Status",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "progress": 100,
+    "status": "done"
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_construction_1",
+   "values": {
+    "name": "Design Approval",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "progress": 65,
+    "status": "on_track",
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m-5')"
+    }
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_construction_2",
+   "values": {
+    "name": "Construction",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "progress": 30,
+    "status": "on_track",
+    "date": {
+     "$unevaluated": "time.strftime('%Y-%m-1')"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_private_task_9_mail",
+   "values": {
+    "res_id": {
+     "$ref": "project_private_task_9"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=20)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Collect data regarding finances",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_private_task_6_mail",
+   "values": {
+    "res_id": {
+     "$ref": "project_private_task_6"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_email"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(hours=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Review Mark as Important Emails First",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_main_pm",
+   "name": "Project",
+   "sequence": "70",
+   "groups": "group_project_manager,group_project_user",
+   "web_icon": "project,static/description/icon.png"
+  },
+  {
+   "id": "menu_projects",
+   "name": "Projects",
+   "action": "open_view_project_all",
+   "sequence": "1",
+   "parent": "menu_main_pm"
+  },
+  {
+   "id": "menu_projects_group_stage",
+   "name": "Projects",
+   "action": "open_view_project_all_group_stage",
+   "sequence": "1",
+   "groups": "project.group_project_stages",
+   "parent": "menu_main_pm"
+  },
+  {
+   "id": "menu_project_management",
+   "name": "Tasks",
+   "sequence": "2",
+   "parent": "menu_main_pm"
+  },
+  {
+   "id": "menu_project_management_my_tasks",
+   "name": "My Tasks",
+   "action": "action_server_view_my_task",
+   "sequence": "1",
+   "parent": "menu_project_management"
+  },
+  {
+   "id": "menu_project_management_all_tasks",
+   "name": "All Tasks",
+   "action": "action_view_all_task",
+   "sequence": "2",
+   "parent": "menu_project_management"
+  },
+  {
+   "id": "menu_project_report",
+   "name": "Reporting",
+   "sequence": "99",
+   "parent": "menu_main_pm"
+  },
+  {
+   "id": "menu_project_report_task_analysis",
+   "name": "Tasks Analysis",
+   "action": "project.action_project_task_user_tree",
+   "sequence": "10",
+   "parent": "menu_project_report"
+  },
+  {
+   "id": "rating_rating_menu_project",
+   "name": "Customer Ratings",
+   "action": "rating_rating_action_project_report",
+   "sequence": "51",
+   "groups": "project.group_project_rating",
+   "parent": "menu_project_report"
+  },
+  {
+   "id": "menu_project_config",
+   "name": "Configuration",
+   "sequence": "100",
+   "groups": "project.group_project_manager",
+   "parent": "menu_main_pm"
+  },
+  {
+   "id": "project_config_settings_menu_action",
+   "name": "Settings",
+   "action": "project_config_settings_action",
+   "sequence": "0",
+   "groups": "base.group_system",
+   "parent": "menu_project_config"
+  },
+  {
+   "id": "menu_projects_config_group_stage",
+   "name": "Projects",
+   "action": "open_view_project_all_config_group_stage",
+   "sequence": "5",
+   "groups": "project.group_project_stages",
+   "parent": "menu_project_config"
+  },
+  {
+   "id": "menu_projects_config",
+   "name": "Projects",
+   "action": "open_view_project_all_config",
+   "sequence": "5",
+   "parent": "menu_project_config"
+  },
+  {
+   "id": "menu_project_config_project_stage",
+   "name": "Project Stages",
+   "action": "project_project_stage_configure",
+   "sequence": "9",
+   "groups": "project.group_project_stages",
+   "parent": "menu_project_config"
+  },
+  {
+   "id": "menu_project_config_project",
+   "name": "Task Stages",
+   "action": "open_task_type_form",
+   "sequence": "10",
+   "groups": "base.group_no_one",
+   "parent": "menu_project_config"
+  },
+  {
+   "id": "menu_project_tags_act",
+   "name": "Tags",
+   "action": "project_tags_action",
+   "parent": "menu_project_config"
+  },
+  {
+   "id": "project_menu_config_activity_type",
+   "name": "Activity Types",
+   "action": "mail_activity_type_action_config_project_types",
+   "parent": "menu_project_config"
+  },
+  {
+   "id": "mail_activity_plan_menu_config_project",
+   "name": "Activity Plans",
+   "action": "mail_activity_plan_action_config_project_task_plan",
+   "parent": "menu_project_config"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_project_project",
+   "model": "project.project",
+   "model_xmlid": "model_project_project",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_project_manager",
+   "model": "project.project",
+   "model_xmlid": "model_project_project",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_project_stage",
+   "model": "project.project.stage",
+   "model_xmlid": "model_project_project_stage",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_project_stage_manager",
+   "model": "project.project.stage",
+   "model_xmlid": "model_project_project_stage",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_task_type_user",
+   "model": "project.task.type",
+   "model_xmlid": "model_project_task_type",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_task_type_project_user",
+   "model": "project.task.type",
+   "model_xmlid": "model_project_task_type",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_task_type_manager",
+   "model": "project.task.type",
+   "model_xmlid": "model_project_task_type",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_task_type_portal",
+   "model": "project.project.task.type",
+   "model_xmlid": "project.model_project_task_type",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_task",
+   "model": "project.task",
+   "model_xmlid": "model_project_task",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_report_project_task_user",
+   "model": "report.project.task.user",
+   "model_xmlid": "model_report_project_task_user",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_report_project_task_user_project_user",
+   "model": "report.project.task.user",
+   "model_xmlid": "model_report_project_task_user",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_partner_task_user",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_task_on_partner",
+   "model": "project.task",
+   "model_xmlid": "model_project_task",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_task_portal",
+   "model": "project.project.task",
+   "model_xmlid": "project.model_project_task",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_user",
+   "model": "project.project",
+   "model_xmlid": "model_project_project",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_portal",
+   "model": "project.project.project",
+   "model_xmlid": "project.model_project_project",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_calendar",
+   "model": "resource.resource.calendar",
+   "model_xmlid": "resource.model_resource_calendar",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_calendar_attendance",
+   "model": "resource.resource.calendar.attendance",
+   "model_xmlid": "resource.model_resource_calendar_attendance",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_calendar_leaves_user",
+   "model": "resource.resource.calendar.leaves",
+   "model_xmlid": "resource.model_resource_calendar_leaves",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_tags_all",
+   "model": "project.tags",
+   "model_xmlid": "model_project_tags",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_tags_manager",
+   "model": "project.tags",
+   "model_xmlid": "model_project_tags",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_tags_portal",
+   "model": "project.project.tags",
+   "model_xmlid": "project.model_project_tags",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_activity_type_project_manager",
+   "model": "mail.mail.activity.type",
+   "model_xmlid": "mail.model_mail_activity_type",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_account_user",
+   "model": "analytic.account.analytic.account",
+   "model_xmlid": "analytic.model_account_analytic_account",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_analytic_account_manager",
+   "model": "analytic.account.analytic.account",
+   "model_xmlid": "analytic.model_account_analytic_account",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_analytic_line_project",
+   "model": "analytic.account.analytic.line",
+   "model_xmlid": "analytic.model_account_analytic_line",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_task_type_delete_wizard",
+   "model": "project.task.type.delete.wizard",
+   "model_xmlid": "model_project_task_type_delete_wizard",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_project_stage_delete_wizard",
+   "model": "project.project.stage.delete.wizard",
+   "model_xmlid": "model_project_project_stage_delete_wizard",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_task_recurrence",
+   "model": "project.task.recurrence",
+   "model_xmlid": "model_project_task_recurrence",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "project.access_project_task_burndown_chart_report",
+   "model": "project.project.task.burndown.chart.report",
+   "model_xmlid": "project.model_project_task_burndown_chart_report",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "project.access_project_task_burndown_chart_report_user",
+   "model": "project.project.task.burndown.chart.report",
+   "model_xmlid": "project.model_project_task_burndown_chart_report",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_update_user",
+   "model": "project.update",
+   "model_xmlid": "model_project_update",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_update_portal",
+   "model": "project.update",
+   "model_xmlid": "model_project_update",
+   "group": "base.group_portal",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_update_project_user",
+   "model": "project.update",
+   "model_xmlid": "model_project_update",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_update_project_manager",
+   "model": "project.update",
+   "model_xmlid": "model_project_update",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_milestone_user",
+   "model": "project.milestone",
+   "model_xmlid": "model_project_milestone",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_milestone_portal",
+   "model": "project.milestone",
+   "model_xmlid": "model_project_milestone",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_milestone_project_user",
+   "model": "project.milestone",
+   "model_xmlid": "model_project_milestone",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_milestone_project_manager",
+   "model": "project.milestone",
+   "model_xmlid": "model_project_milestone",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_collaborator_manager",
+   "model": "project.collaborator",
+   "model_xmlid": "model_project_collaborator",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_collaborator_user",
+   "model": "project.collaborator",
+   "model_xmlid": "model_project_collaborator",
+   "group": "project.group_project_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_collaborator_portal",
+   "model": "project.collaborator",
+   "model_xmlid": "model_project_collaborator",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_share_manager",
+   "model": "project.share.wizard",
+   "model_xmlid": "model_project_share_wizard",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_project_share_collaborator_manager",
+   "model": "project.share.collaborator.wizard",
+   "model_xmlid": "model_project_share_collaborator_wizard",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_personal_stage",
+   "model": "project.task.stage.personal",
+   "model_xmlid": "model_project_task_stage_personal",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_plan_project_manager",
+   "model": "mail.mail.activity.plan",
+   "model_xmlid": "mail.model_mail_activity_plan",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_activity_plan_template_project_manager",
+   "model": "mail.mail.activity.plan.template",
+   "model_xmlid": "mail.model_mail_activity_plan_template",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

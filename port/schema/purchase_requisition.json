@@ -1,0 +1,753 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Purchase",
+ "data_files": [
+  "security/purchase_requisition_security.xml",
+  "security/ir.model.access.csv",
+  "data/purchase_requisition_data.xml",
+  "views/product_views.xml",
+  "views/purchase_views.xml",
+  "views/purchase_requisition_views.xml",
+  "views/res_config_settings_views.xml",
+  "report/purchase_requisition_report.xml",
+  "report/report_purchaserequisition.xml",
+  "wizard/purchase_requisition_alternative_warning.xml",
+  "wizard/purchase_requisition_create_alternative.xml",
+  "data/purchase_requisition_demo.xml"
+ ],
+ "depends": [
+  "purchase"
+ ],
+ "models": {
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_sellers"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.supplierinfo": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchase_requisition_id": {
+     "comodel": "purchase.requisition",
+     "related": "purchase_requisition_line_id.requisition_id",
+     "string": "Agreement",
+     "type": "Many2one"
+    },
+    "purchase_requisition_line_id": {
+     "comodel": "purchase.requisition.line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.supplierinfo",
+   "transient": false
+  },
+  "purchase.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "alternative_po_ids": {
+     "comodel": "purchase.order",
+     "domain": "[('id', '!=', id), ('state', 'in', ['draft', 'sent', 'to approve'])]",
+     "help": "Other potential purchase orders for purchasing products",
+     "readonly": false,
+     "related": "purchase_group_id.order_ids",
+     "string": "Alternative POs",
+     "type": "One2many"
+    },
+    "has_alternatives": {
+     "compute": "_compute_has_alternatives",
+     "help": "Whether or not this purchase order is linked to another purchase order as an alternative.",
+     "string": "Has Alternatives",
+     "type": "Boolean"
+    },
+    "purchase_group_id": {
+     "comodel": "purchase.order.group",
+     "type": "Many2one"
+    },
+    "requisition_id": {
+     "comodel": "purchase.requisition",
+     "copy": false,
+     "string": "Agreement",
+     "type": "Many2one"
+    },
+    "requisition_type": {
+     "related": "requisition_id.requisition_type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('purchase_group_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_has_alternatives"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('requisition_id')"
+     ],
+     "lines": 64,
+     "name": "_onchange_requisition_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "button_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 17,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_create_alternative"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_compare_alternative_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "get_tender_best_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_prepare_grouped_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_merge_alternative_po"
+    }
+   ],
+   "name": "purchase.order",
+   "transient": false
+  },
+  "purchase.order.group": {
+   "abstract": false,
+   "description": "Technical model to group PO for call to tenders",
+   "extension": false,
+   "fields": {
+    "order_ids": {
+     "comodel": "purchase.order",
+     "inverse_name": "purchase_group_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    }
+   ],
+   "name": "purchase.order.group",
+   "transient": false
+  },
+  "purchase.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "company_currency_id": {
+     "related": "company_id.currency_id",
+     "string": "Company Currency",
+     "type": "Many2one"
+    },
+    "price_total_cc": {
+     "compute": "_compute_price_total_cc",
+     "currency_field": "company_currency_id",
+     "store": true,
+     "string": "Company Subtotal",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('price_subtotal', 'order_id.currency_rate')"
+     ],
+     "lines": 3,
+     "name": "_compute_price_total_cc"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_compute_price_unit_and_date_planned_and_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_clear_quantities"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_choose"
+    }
+   ],
+   "name": "purchase.order.line",
+   "transient": false
+  },
+  "purchase.requisition": {
+   "abstract": false,
+   "description": "Purchase Requisition",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date_end": {
+     "string": "End Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "date_start": {
+     "string": "Start Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "description": {
+     "type": "Html"
+    },
+    "line_ids": {
+     "comodel": "purchase.requisition.line",
+     "copy": true,
+     "inverse_name": "requisition_id",
+     "string": "Products to Purchase",
+     "type": "One2many"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "_('New')"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Agreement",
+     "type": "Char"
+    },
+    "order_count": {
+     "compute": "_compute_orders_number",
+     "string": "Number of Orders",
+     "type": "Integer"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "related": "line_ids.product_id",
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "purchase_ids": {
+     "comodel": "purchase.order",
+     "inverse_name": "requisition_id",
+     "string": "Purchase Orders",
+     "type": "One2many"
+    },
+    "reference": {
+     "string": "Reference",
+     "type": "Char"
+    },
+    "requisition_type": {
+     "default": "blanket_order",
+     "required": true,
+     "selection": [
+      [
+       "blanket_order",
+       "Blanket Order"
+      ],
+      [
+       "purchase_template",
+       "Purchase Template"
+      ]
+     ],
+     "string": "Agreement Type",
+     "type": "Selection"
+    },
+    "state": {
+     "copy": false,
+     "default": "draft",
+     "required": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "confirmed",
+       "Confirmed"
+      ],
+      [
+       "done",
+       "Closed"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "string": "Purchase Representative",
+     "type": "Many2one"
+    },
+    "vendor_id": {
+     "comodel": "res.partner",
+     "string": "Vendor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('vendor_id')"
+     ],
+     "lines": 15,
+     "name": "_onchange_vendor"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vendor_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('purchase_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_orders_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_start', 'date_end')"
+     ],
+     "lines": 6,
+     "name": "_check_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 10,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_draft"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_done"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_if_draft_or_cancel"
+    }
+   ],
+   "name": "purchase.requisition",
+   "order": "id desc",
+   "transient": false
+  },
+  "purchase.requisition.alternative.warning": {
+   "abstract": false,
+   "description": "Wizard in case PO still has open alternative requests for quotation",
+   "extension": false,
+   "fields": {
+    "alternative_po_ids": {
+     "comodel": "purchase.order",
+     "relation_table": "warning_purchase_order_alternative_rel",
+     "string": "Alternative POs",
+     "type": "Many2many"
+    },
+    "po_ids": {
+     "comodel": "purchase.order",
+     "relation_table": "warning_purchase_order_rel",
+     "string": "POs to Confirm",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_keep_alternatives"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_cancel_alternatives"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_action_done"
+    }
+   ],
+   "name": "purchase.requisition.alternative.warning",
+   "transient": true
+  },
+  "purchase.requisition.create.alternative": {
+   "abstract": false,
+   "description": "Wizard to preset values for alternative PO",
+   "extension": false,
+   "fields": {
+    "copy_products": {
+     "default": true,
+     "help": "If this is checked, the product quantities of the original PO will be copied",
+     "string": "Copy Products",
+     "type": "Boolean"
+    },
+    "creation_blocked": {
+     "compute": "_compute_purchase_warn",
+     "groups": "purchase.group_warning_purchase",
+     "help": "If the chosen vendor or if any of the products in the original PO have a blocking warning then we prevent creation of alternative PO. This is because normally these fields are cleared w/warning message within form view, but we cannot recreate that in this case.",
+     "type": "Boolean"
+    },
+    "origin_po_id": {
+     "comodel": "purchase.order",
+     "help": "The original PO that this alternative PO is being created for.",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "help": "Choose a vendor for alternative PO",
+     "required": true,
+     "string": "Vendor",
+     "type": "Many2one"
+    },
+    "purchase_warn_msg": {
+     "compute": "_compute_purchase_warn",
+     "groups": "purchase.group_warning_purchase",
+     "string": "Warning Messages",
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'copy_products')"
+     ],
+     "lines": 22,
+     "name": "_compute_purchase_warn"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_create_alternative"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_alternative_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_alternative_line_value"
+    }
+   ],
+   "name": "purchase.requisition.create.alternative",
+   "transient": true
+  },
+  "purchase.requisition.line": {
+   "abstract": false,
+   "description": "Purchase Requisition Line",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "related": "requisition_id.company_id",
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "price_unit": {
+     "compute": "_compute_price_unit",
+     "default": 0.0,
+     "readonly": false,
+     "store": true,
+     "string": "Unit Price",
+     "type": "Float"
+    },
+    "product_description_variants": {
+     "string": "Description",
+     "type": "Char"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": [
+      [
+       "purchase_ok",
+       "=",
+       true
+      ]
+     ],
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_qty": {
+     "digits": "Product Unit of Measure",
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "product_uom_category_id": {
+     "related": "product_id.uom_id.category_id",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_product_uom_id",
+     "domain": "[('category_id', '=', product_uom_category_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Product Unit of Measure",
+     "type": "Many2one"
+    },
+    "qty_ordered": {
+     "compute": "_compute_ordered_qty",
+     "string": "Ordered",
+     "type": "Float"
+    },
+    "requisition_id": {
+     "comodel": "purchase.requisition",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Purchase Agreement",
+     "type": "Many2one"
+    },
+    "supplier_info_ids": {
+     "comodel": "product.supplierinfo",
+     "inverse_name": "purchase_requisition_line_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "analytic.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('requisition_id.purchase_ids.state')"
+     ],
+     "lines": 15,
+     "name": "_compute_ordered_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'company_id', 'requisition_id.date_start', 'product_qty', 'product_uom_id', 'requisition_id.vendor_id', 'requisition_id.requisition_type')"
+     ],
+     "lines": 8,
+     "name": "_compute_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 13,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_create_supplier_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_purchase_order_line"
+    }
+   ],
+   "name": "purchase.requisition.line",
+   "rec_name": "product_id",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "group_purchase_alternatives": {
+     "string": "Purchase Alternatives",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "purchase_requisition",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/purchase_requisition",
+ "stats": {
+  "fields": 44,
+  "methods": 43,
+  "models": 10,
+  "py_lines": 769
+ },
+ "summary": "This module allows you to manage your Purchase Agreements.",
+ "title": "Purchase Agreements",
+ "version": "0.1"
+}

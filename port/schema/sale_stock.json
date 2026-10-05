@@ -1,0 +1,1167 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/sale_stock_security.xml",
+  "security/ir.model.access.csv",
+  "views/sale_order_views.xml",
+  "views/stock_route_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/sale_stock_portal_template.xml",
+  "views/stock_lot_views.xml",
+  "views/res_users_views.xml",
+  "views/stock_picking_views.xml",
+  "report/sale_order_report_templates.xml",
+  "report/stock_report_deliveryslip.xml",
+  "data/mail_templates.xml",
+  "data/sale_stock_data.xml",
+  "wizard/stock_rules_report_views.xml",
+  "wizard/sale_order_cancel_views.xml",
+  "data/sale_order_demo.xml"
+ ],
+ "depends": [
+  "sale",
+  "stock_account"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_stock_account_get_last_step_stock_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 83,
+     "name": "_get_invoiced_lot_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids.sale_line_ids.order_id.effective_date')"
+     ],
+     "lines": 11,
+     "name": "_compute_delivery_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids.sale_line_ids.order_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_incoterm_location"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_anglo_saxon_price_ctx"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_protected_vals"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_sale_can_be_reinvoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_stock_account_get_anglo_saxon_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_related_analytic_distribution"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "procurement.group": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_id": {
+     "comodel": "sale.order",
+     "string": "Sale Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "procurement.group",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 3,
+     "name": "_compute_expense_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 3,
+     "name": "_compute_service_type"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "report.stock.report_stock_rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_routes"
+    }
+   ],
+   "name": "report.stock.report_stock_rule",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "security_lead": {
+     "default": 0.0,
+     "help": "Margin of error for dates promised to customers. Products will be scheduled for procurement and delivery that many days earlier than the actual promised date, to cope with unexpected delays in the supply chain.",
+     "required": true,
+     "string": "Sales Safety Days",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "default_picking_policy": {
+     "default": "direct",
+     "required": true,
+     "selection": [
+      [
+       "direct",
+       "Ship products as soon as available, with back orders"
+      ],
+      [
+       "one",
+       "Ship all products at once"
+      ]
+     ],
+     "string": "Picking Policy",
+     "type": "Selection"
+    },
+    "security_lead": {
+     "readonly": false,
+     "related": "company_id.security_lead",
+     "string": "Security Lead Time",
+     "type": "Float"
+    },
+    "use_security_lead": {
+     "help": "Margin of error for dates promised to customers. Products will be scheduled for delivery that many days earlier than the actual promised date, to cope with unexpected delays in the supply chain.",
+     "string": "Security Lead Time for Sales",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('use_security_lead')"
+     ],
+     "lines": 3,
+     "name": "_onchange_use_security_lead"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "property_warehouse_id": {
+     "comodel": "stock.warehouse",
+     "string": "Default Warehouse",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_default_warehouse_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_WRITEABLE_FIELDS"
+    }
+   ],
+   "name": "res.users",
+   "sel_methods": {
+    "_get_default_warehouse_id": []
+   },
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "delivery_count": {
+     "compute": "_compute_picking_ids",
+     "string": "Delivery Orders",
+     "type": "Integer"
+    },
+    "delivery_status": {
+     "compute": "_compute_delivery_status",
+     "help": "Blue: Not Delivered/Started\n            Orange: Partially Delivered\n            Green: Fully Delivered",
+     "selection": [
+      [
+       "pending",
+       "Not Delivered"
+      ],
+      [
+       "started",
+       "Started"
+      ],
+      [
+       "partial",
+       "Partially Delivered"
+      ],
+      [
+       "full",
+       "Fully Delivered"
+      ]
+     ],
+     "store": true,
+     "string": "Delivery Status",
+     "type": "Selection"
+    },
+    "effective_date": {
+     "compute": "_compute_effective_date",
+     "help": "Completion date of the first delivery order.",
+     "store": true,
+     "string": "Effective Date",
+     "type": "Datetime"
+    },
+    "expected_date": {
+     "help": "Delivery date you can promise to the customer, computed from the minimum lead time of the order lines in case of Service products. In case of shipping, the shipping policy of the order will be taken into account to either use the minimum or maximum lead time of the order lines.",
+     "type": "Datetime"
+    },
+    "incoterm": {
+     "comodel": "account.incoterms",
+     "help": "International Commercial Terms are a series of predefined commercial terms used in international transactions.",
+     "string": "Incoterm",
+     "type": "Many2one"
+    },
+    "incoterm_location": {
+     "string": "Incoterm Location",
+     "type": "Char"
+    },
+    "json_popover": {
+     "compute": "_compute_json_popover",
+     "string": "JSON data for the popover widget",
+     "type": "Char"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "inverse_name": "sale_id",
+     "string": "Transfers",
+     "type": "One2many"
+    },
+    "picking_policy": {
+     "default": "direct",
+     "help": "If you deliver all products at once, the delivery order will be scheduled based on the greatest product lead time. Otherwise, it will be based on the shortest.",
+     "required": true,
+     "selection": [
+      [
+       "direct",
+       "As soon as possible"
+      ],
+      [
+       "one",
+       "When all products are ready"
+      ]
+     ],
+     "string": "Shipping Policy",
+     "type": "Selection"
+    },
+    "procurement_group_id": {
+     "comodel": "procurement.group",
+     "copy": false,
+     "string": "Procurement Group",
+     "type": "Many2one"
+    },
+    "show_json_popover": {
+     "compute": "_compute_json_popover",
+     "string": "Has late picking",
+     "type": "Boolean"
+    },
+    "warehouse_id": {
+     "comodel": "stock.warehouse",
+     "compute": "_compute_warehouse_id",
+     "readonly": false,
+     "store": true,
+     "string": "Warehouse",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_init_column"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids.date_done')"
+     ],
+     "lines": 5,
+     "name": "_compute_effective_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.state')"
+     ],
+     "lines": 13,
+     "name": "_compute_delivery_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_policy')"
+     ],
+     "lines": 2,
+     "name": "_compute_expected_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_select_expected_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('warehouse_id', 'state', 'order_line')"
+     ],
+     "lines": 17,
+     "name": "_check_warehouse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_compute_json_popover"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_picking_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id', 'company_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_warehouse_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_shipping_id')"
+     ],
+     "lines": 13,
+     "name": "_onchange_partner_shipping_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_view_delivery"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_action_view_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_log_decrease_ordered_quantity"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_action_cancel": [],
+    "_action_confirm": []
+   },
+   "transient": false
+  },
+  "sale.order.cancel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "display_delivery_alert": {
+     "compute": "_compute_display_delivery_alert",
+     "string": "Delivery Alert",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('order_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_delivery_alert"
+    }
+   ],
+   "name": "sale.order.cancel",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "customer_lead": {
+     "compute": "_compute_customer_lead",
+     "readonly": false,
+     "store": true,
+     "type": "Float"
+    },
+    "display_qty_widget": {
+     "compute": "_compute_qty_to_deliver",
+     "type": "Boolean"
+    },
+    "forecast_expected_date": {
+     "compute": "_compute_qty_at_date",
+     "type": "Datetime"
+    },
+    "free_qty_today": {
+     "compute": "_compute_qty_at_date",
+     "digits": "Product Unit of Measure",
+     "type": "Float"
+    },
+    "is_mto": {
+     "compute": "_compute_is_mto",
+     "type": "Boolean"
+    },
+    "is_storable": {
+     "related": "product_id.is_storable",
+     "type": "Boolean"
+    },
+    "move_ids": {
+     "comodel": "stock.move",
+     "inverse_name": "sale_line_id",
+     "string": "Stock Moves",
+     "type": "One2many"
+    },
+    "qty_available_today": {
+     "compute": "_compute_qty_at_date",
+     "type": "Float"
+    },
+    "qty_delivered_method": {
+     "selection_add": [
+      [
+       "stock_move",
+       "Stock Moves"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "qty_to_deliver": {
+     "compute": "_compute_qty_to_deliver",
+     "digits": "Product Unit of Measure",
+     "type": "Float"
+    },
+    "route_id": {
+     "comodel": "stock.route",
+     "domain": [
+      [
+       "sale_selectable",
+       "=",
+       true
+      ]
+     ],
+     "ondelete": "restrict",
+     "string": "Route",
+     "type": "Many2one"
+    },
+    "scheduled_date": {
+     "compute": "_compute_qty_at_date",
+     "type": "Datetime"
+    },
+    "virtual_available_at_date": {
+     "compute": "_compute_qty_at_date",
+     "digits": "Product Unit of Measure",
+     "type": "Float"
+    },
+    "warehouse_id": {
+     "comodel": "stock.warehouse",
+     "compute": "_compute_warehouse_id",
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('route_id', 'order_id.warehouse_id', 'product_packaging_id', 'product_id')"
+     ],
+     "lines": 20,
+     "name": "_compute_warehouse_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_storable', 'product_uom_qty', 'qty_delivered', 'state', 'move_ids', 'product_uom')"
+     ],
+     "lines": 11,
+     "name": "_compute_qty_to_deliver"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'customer_lead', 'product_uom_qty', 'product_uom', 'order_id.commitment_date', 'move_ids', 'move_ids.forecast_expected_date', 'move_ids.forecast_availability', 'warehouse_id')"
+     ],
+     "lines": 81,
+     "name": "_compute_qty_at_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'route_id', 'warehouse_id', 'product_id.route_ids')"
+     ],
+     "lines": 25,
+     "name": "_compute_is_mto"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_qty_delivered_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids.state', 'move_ids.scrapped', 'move_ids.quantity', 'move_ids.product_uom')"
+     ],
+     "lines": 16,
+     "name": "_compute_qty_delivered"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_compute_invoice_status"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_product_updatable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_customer_lead"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inverse_customer_lead"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_location_final"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_qty_procurement"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_get_outgoing_incoming_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_procurement_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_procurement_group_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_create_procurements"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_action_launch_stock_rule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_update_line_quantity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_action_add_from_catalog_extra_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_product_catalog_lines_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "has_valued_move_ids"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  },
+  "sale.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "warehouse_id": {
+     "comodel": "stock.warehouse",
+     "readonly": true,
+     "string": "Warehouse",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_select_additional_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_group_by_sale"
+    }
+   ],
+   "name": "sale.report",
+   "transient": false
+  },
+  "stock.forecasted_product_product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_prepare_report_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_report_header"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_product_sale_domain"
+    }
+   ],
+   "name": "stock.forecasted_product_product",
+   "sel_methods": {
+    "_product_sale_domain": [
+     [
+      "state",
+      "in"
+     ],
+     [
+      "product_template_id",
+      "in"
+     ],
+     [
+      "warehouse_id",
+      "="
+     ],
+     [
+      "product_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "stock.lot": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_order_count": {
+     "compute": "_compute_sale_order_ids",
+     "string": "Sale order count",
+     "type": "Integer"
+    },
+    "sale_order_ids": {
+     "comodel": "sale.order",
+     "compute": "_compute_sale_order_ids",
+     "string": "Sales Orders",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 16,
+     "name": "_compute_sale_order_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_view_so"
+    }
+   ],
+   "name": "stock.lot",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_line_id": {
+     "comodel": "sale.order.line",
+     "index": "btree_not_null",
+     "string": "Sale Line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_prepare_merge_moves_distinct_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_related_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_source_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_sale_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_assign_picking_post_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_all_related_sm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_should_show_lot_in_invoice"
+    }
+   ],
+   "name": "stock.move.line",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_id": {
+     "comodel": "sale.order",
+     "compute": "_compute_sale_id",
+     "index": "btree_not_null",
+     "store": true,
+     "string": "Sales Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('group_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_sale_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_set_sale_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 45,
+     "name": "_action_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_log_less_quantities_than_expected"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_can_return"
+    }
+   ],
+   "name": "stock.picking",
+   "sel_methods": {
+    "_auto_init": [],
+    "_log_less_quantities_than_expected": []
+   },
+   "transient": false
+  },
+  "stock.return.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_proc_values"
+    }
+   ],
+   "name": "stock.return.picking",
+   "sel_methods": {
+    "_get_proc_values": []
+   },
+   "transient": false
+  },
+  "stock.route": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_selectable": {
+     "string": "Selectable on Sales Order Line",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "stock.route",
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_custom_move_fields"
+    }
+   ],
+   "name": "stock.rule",
+   "transient": false
+  },
+  "stock.rules.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "so_route_ids": {
+     "comodel": "stock.route",
+     "domain": "[('sale_selectable', '=', True)]",
+     "help": "Choose to apply SO lines specific routes.",
+     "string": "Apply specific routes",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_report_data"
+    }
+   ],
+   "name": "stock.rules.report",
+   "transient": false
+  },
+  "stock.valuation.layer": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_related_product"
+    }
+   ],
+   "name": "stock.valuation.layer",
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_routes_values"
+    }
+   ],
+   "name": "stock.warehouse",
+   "transient": false
+  }
+ },
+ "module": "sale_stock",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_stock",
+ "stats": {
+  "fields": 40,
+  "methods": 85,
+  "models": 23,
+  "py_lines": 1565
+ },
+ "summary": "Quotation, Sales Orders, Delivery & Invoicing Control",
+ "title": "Sales and Warehouse Management",
+ "version": "1.0"
+}

@@ -1,0 +1,591 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources/Employees",
+ "data_files": [
+  "security/hr_work_entry_security.xml",
+  "security/ir.model.access.csv",
+  "data/hr_work_entry_data.xml",
+  "data/ir_cron_data.xml",
+  "views/hr_work_entry_views.xml",
+  "views/hr_contract_views.xml",
+  "wizard/hr_work_entry_regeneration_wizard_views.xml",
+  "data/hr_work_entry_demo.xml"
+ ],
+ "depends": [
+  "hr_work_entry",
+  "hr_contract"
+ ],
+ "models": {
+  "hr.contract": {
+   "abstract": false,
+   "description": "Employee Contract",
+   "extension": true,
+   "fields": {
+    "date_generated_from": {
+     "copy": false,
+     "default": {
+      "$lambda": "datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Generated From",
+     "type": "Datetime"
+    },
+    "date_generated_to": {
+     "copy": false,
+     "default": {
+      "$lambda": "datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Generated To",
+     "type": "Datetime"
+    },
+    "last_generation_date": {
+     "readonly": true,
+     "string": "Last Generation Date",
+     "type": "Date"
+    },
+    "work_entry_source": {
+     "default": "calendar",
+     "help": "\n        Defines the source for work entries generation\n\n        Working Schedule: Work entries will be generated from the working hours below.\n        Attendances: Work entries will be generated from the employee's attendances. (requires Attendance app)\n        Planning: Work entries will be generated from the employee's planning. (requires Planning app)\n    ",
+     "required": true,
+     "selection": [
+      [
+       "calendar",
+       "Working Schedule"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "work_entry_source_calendar_invalid": {
+     "compute": "_compute_work_entry_source_calendar_invalid",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('work_entry_source', 'resource_calendar_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_work_entry_source_calendar_invalid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_default_work_entry_type_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_leave_work_entry_type_dates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_leave_work_entry_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_more_vals_attendance_interval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_more_vals_leave_interval"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_bypassing_work_entry_type_codes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_interval_leave_work_entry_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_sub_leave_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_leave_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_resource_calendar_leaves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_attendance_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_lunch_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_interval_work_entry_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_valid_leave_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 140,
+     "name": "_get_contract_work_entries_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_get_work_entries_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "has_static_work_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "generate_work_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 62,
+     "name": "_generate_work_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_remove_work_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_cancel_work_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_recompute_work_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_fields_that_recompute_we"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 32,
+     "name": "_cron_generate_missing_work_entries"
+    }
+   ],
+   "name": "hr.contract",
+   "sel_methods": {
+    "_get_bypassing_work_entry_type_codes": [],
+    "_get_more_vals_attendance_interval": [],
+    "_get_more_vals_leave_interval": [],
+    "_get_sub_leave_domain": [
+     [
+      "calendar_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "generate_work_entries"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "hr.work.entry": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "contract_id": {
+     "comodel": "hr.contract",
+     "required": true,
+     "string": "Contract",
+     "type": "Many2one"
+    },
+    "employee_id": {
+     "domain": [
+      [
+       "contract_ids.state",
+       "in",
+       [
+        "open",
+        "pending"
+       ]
+      ]
+     ],
+     "type": "Many2one"
+    },
+    "work_entry_source": {
+     "related": "contract_id.work_entry_source",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_init_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_duration_is_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('employee_id', 'date_start', 'date_stop')"
+     ],
+     "lines": 12,
+     "name": "_onchange_contract_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_start', 'duration')"
+     ],
+     "lines": 9,
+     "name": "_compute_date_stop"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_duration_computed_from_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_duration_batch"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_set_current_contract"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_if_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_leaves_entries_outside_schedule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_mark_leaves_outside_schedule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_to_intervals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_from_intervals"
+    }
+   ],
+   "name": "hr.work.entry",
+   "transient": false
+  },
+  "hr.work.entry.regeneration.wizard": {
+   "abstract": false,
+   "description": "Regenerate Employee Work Entries",
+   "extension": false,
+   "fields": {
+    "date_from": {
+     "default": {
+      "$lambda": "self.env.context.get('date_start')"
+     },
+     "required": true,
+     "string": "From",
+     "type": "Date"
+    },
+    "date_to": {
+     "compute": "_compute_date_to",
+     "default": {
+      "$lambda": "self.env.context.get('date_end')"
+     },
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "To",
+     "type": "Date"
+    },
+    "earliest_available_date": {
+     "compute": "_compute_earliest_available_date",
+     "string": "Earliest date",
+     "type": "Date"
+    },
+    "earliest_available_date_message": {
+     "default": "",
+     "readonly": true,
+     "store": false,
+     "type": "Char"
+    },
+    "employee_ids": {
+     "comodel": "hr.employee",
+     "domain": {
+      "$lambda": "[('company_id', 'in', self.env.companies.ids)]"
+     },
+     "required": true,
+     "string": "Employees",
+     "type": "Many2many"
+    },
+    "latest_available_date": {
+     "compute": "_compute_latest_available_date",
+     "string": "Latest date",
+     "type": "Date"
+    },
+    "latest_available_date_message": {
+     "default": "",
+     "readonly": true,
+     "store": false,
+     "type": "Char"
+    },
+    "search_criteria_completed": {
+     "compute": "_compute_search_criteria_completed",
+     "type": "Boolean"
+    },
+    "valid": {
+     "compute": "_compute_valid",
+     "type": "Boolean"
+    },
+    "validated_work_entry_ids": {
+     "comodel": "hr.work.entry",
+     "compute": "_compute_validated_work_entry_ids",
+     "string": "Work Entries Within Interval",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_from')"
+     ],
+     "lines": 3,
+     "name": "_compute_date_to"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_earliest_available_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_latest_available_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_from', 'date_to', 'employee_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_validated_work_entry_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('validated_work_entry_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_from', 'date_to', 'employee_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_search_criteria_completed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('date_from', 'date_to', 'employee_ids')"
+     ],
+     "lines": 17,
+     "name": "_check_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_date_to_string"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_work_entry_fields_to_nullify"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "regenerate_work_entries"
+    }
+   ],
+   "name": "hr.work.entry.regeneration.wizard",
+   "transient": true
+  },
+  "hr.work.entry.type": {
+   "abstract": false,
+   "description": "HR Work Entry Type",
+   "extension": true,
+   "fields": {
+    "is_leave": {
+     "default": false,
+     "help": "Allow the work entry type to be linked with time off types.",
+     "string": "Time Off",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.work.entry.type",
+   "transient": false
+  },
+  "resource.calendar": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_global_attendances"
+    }
+   ],
+   "name": "resource.calendar",
+   "transient": false
+  }
+ },
+ "module": "hr_work_entry_contract",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_work_entry_contract",
+ "stats": {
+  "fields": 19,
+  "methods": 52,
+  "models": 6,
+  "py_lines": 976
+ },
+ "summary": "Manage work entries",
+ "title": "Work Entries - Contract",
+ "version": null
+}

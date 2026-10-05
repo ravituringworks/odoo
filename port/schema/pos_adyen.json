@@ -1,0 +1,216 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Point of Sale",
+ "data_files": [
+  "views/res_config_settings_views.xml",
+  "views/pos_payment_method_views.xml"
+ ],
+ "depends": [
+  "point_of_sale"
+ ],
+ "models": {
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "adyen_ask_customer_for_tip": {
+     "string": "Ask Customers For Tip",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('adyen_ask_customer_for_tip', 'iface_tipproduct', 'tip_product_id')"
+     ],
+     "lines": 4,
+     "name": "_check_adyen_ask_customer_for_tip"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.payment.method": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "adyen_api_key": {
+     "copy": false,
+     "groups": "base.group_erp_manager",
+     "help": "Used when connecting to Adyen: https://docs.adyen.com/user-management/how-to-get-the-api-key/#description",
+     "string": "Adyen API key",
+     "type": "Char"
+    },
+    "adyen_event_url": {
+     "default": {
+      "$lambda": "f'{self.get_base_url()}/pos_adyen/notification'"
+     },
+     "help": "This URL needs to be pasted on Adyen's portal terminal settings.",
+     "readonly": true,
+     "store": false,
+     "string": "Event URL",
+     "type": "Char"
+    },
+    "adyen_latest_response": {
+     "copy": false,
+     "groups": "base.group_erp_manager",
+     "type": "Char"
+    },
+    "adyen_terminal_identifier": {
+     "copy": false,
+     "help": "[Terminal model]-[Serial number], for example: P400Plus-123456789",
+     "type": "Char"
+    },
+    "adyen_test_mode": {
+     "groups": "base.group_erp_manager",
+     "help": "Run transactions in the test environment.",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_payment_terminal_selection"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('adyen_terminal_identifier')"
+     ],
+     "lines": 17,
+     "name": "_check_adyen_terminal_identifier"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_adyen_endpoints"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_write_forbidden"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "get_latest_adyen_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 83,
+     "name": "proxy_adyen_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_is_valid_adyen_request_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_expected_message_header"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_expected_payment_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_valid_acquirer_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_hmac"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_proxy_adyen_request_direct"
+    }
+   ],
+   "name": "pos.payment.method",
+   "sel_methods": {
+    "_get_payment_terminal_selection": [
+     [
+      "adyen",
+      "Adyen"
+     ]
+    ],
+    "_is_write_forbidden": []
+   },
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_adyen_ask_customer_for_tip": {
+     "compute": "_compute_pos_adyen_ask_customer_for_tip",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_iface_tipproduct', 'pos_config_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_adyen_ask_customer_for_tip"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "pos_adyen",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_adyen",
+ "stats": {
+  "fields": 7,
+  "methods": 15,
+  "models": 3,
+  "py_lines": 388
+ },
+ "summary": "Integrate your POS with an Adyen payment terminal",
+ "title": "POS Adyen",
+ "version": "1.0"
+}

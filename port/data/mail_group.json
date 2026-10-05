@@ -1,0 +1,772 @@
+{
+ "module": "mail_group",
+ "records": [
+  {
+   "model": "res.groups",
+   "id": "group_mail_group_manager",
+   "values": {
+    "name": "Mail Group Administrator",
+    "category_id": {
+     "$ref": "base.module_category_usability"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_system",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "mail_group.group_mail_group_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_rule_read_all",
+   "values": {
+    "name": "Mail Group: Access only public and joined groups",
+    "model_id": {
+     "$ref": "model_mail_group"
+    },
+    "domain_force": "[\n            '|',\n            '|',\n            '|',\n                ('moderator_ids', 'in', user.id),\n                ('access_mode', '=', 'public'),\n                '&',\n                    ('access_mode', '=', 'groups'),\n                    ('access_group_id', 'in', user.groups_id.ids),\n                '&',\n                    ('access_mode', '=', 'members'),\n                    ('member_partner_ids', 'in', [user.partner_id.id]),\n            ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ]
+    ],
+    "perm_create": false,
+    "perm_read": true,
+    "perm_write": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_rule_write_all",
+   "values": {
+    "name": "Mail Group: Moderator have write access on their group",
+    "model_id": {
+     "$ref": "model_mail_group"
+    },
+    "domain_force": "[('moderator_ids', 'in', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_create": false,
+    "perm_read": false,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_rule_administrator",
+   "values": {
+    "name": "Mail Group: Administrator have access to all mail group",
+    "model_id": {
+     "$ref": "model_mail_group"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "mail_group.group_mail_group_manager"
+      }
+     ]
+    ],
+    "perm_create": true,
+    "perm_read": true,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_message_rule_public",
+   "values": {
+    "name": "Mail Group Message: Only accepted message are accessible",
+    "model_id": {
+     "$ref": "model_mail_group_message"
+    },
+    "domain_force": "[\n            '&',\n                ('moderation_status', '=', 'accepted'),\n                '|',\n                '|',\n                '|',\n                    ('mail_group_id.moderator_ids', 'in', user.id),\n                    ('mail_group_id.access_mode', '=', 'public'),\n                    '&',\n                        ('mail_group_id.access_mode', '=', 'groups'),\n                        ('mail_group_id.access_group_id', 'in', user.groups_id.ids),\n                    '&',\n                        ('mail_group_id.access_mode', '=', 'members'),\n                        ('mail_group_id.member_partner_ids', 'in', [user.partner_id.id]),\n            ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_create": true,
+    "perm_read": true,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_message_rule_user",
+   "values": {
+    "name": "Mail Group Message: Non-accepted messages are accessible only by moderators",
+    "model_id": {
+     "$ref": "model_mail_group_message"
+    },
+    "domain_force": "[\n                '&',\n                    '|',\n                        ('moderation_status', '=', 'accepted'),\n                        ('mail_group_id.moderator_ids', 'in', user.id),\n                    '|',\n                    '|',\n                    '|',\n                        ('mail_group_id.moderator_ids', 'in', user.id),\n                        ('mail_group_id.access_mode', '=', 'public'),\n                        '&',\n                            ('mail_group_id.access_mode', '=', 'groups'),\n                            ('mail_group_id.access_group_id', 'in', user.groups_id.ids),\n                        '&',\n                            ('mail_group_id.access_mode', '=', 'members'),\n                            ('mail_group_id.member_partner_ids', 'in', [user.partner_id.id]),\n            ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_create": true,
+    "perm_read": true,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_message_rule_administrator",
+   "values": {
+    "name": "Mail Group Message: Administrator have access to all messages",
+    "model_id": {
+     "$ref": "model_mail_group_message"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "mail_group.group_mail_group_manager"
+      }
+     ]
+    ],
+    "perm_create": true,
+    "perm_read": true,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_member_rule_user",
+   "values": {
+    "name": "Mail Group Member: Members are accessible only by moderators",
+    "model_id": {
+     "$ref": "model_mail_group_member"
+    },
+    "domain_force": "[('mail_group_id.moderator_ids', 'in', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_create": true,
+    "perm_read": true,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_member_rule_administrator",
+   "values": {
+    "name": "Mail Group Member: Administrator have access to all members",
+    "model_id": {
+     "$ref": "model_mail_group_member"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "mail_group.group_mail_group_manager"
+      }
+     ]
+    ],
+    "perm_create": true,
+    "perm_read": true,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_moderation_rule_user",
+   "values": {
+    "name": "Mail Group Moderation: Moderation rules are accessible only by moderators",
+    "model_id": {
+     "$ref": "model_mail_group_moderation"
+    },
+    "domain_force": "[('mail_group_id.moderator_ids', 'in', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_create": true,
+    "perm_read": true,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mail_group_moderation_rule_administrator",
+   "values": {
+    "name": "Mail Group Moderation: Administrator have access to all moderation rules",
+    "model_id": {
+     "$ref": "model_mail_group_moderation"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "mail_group.group_mail_group_manager"
+      }
+     ]
+    ],
+    "perm_create": true,
+    "perm_read": true,
+    "perm_write": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_group_message_reject_action",
+   "values": {
+    "name": "Message Rejection Explanation",
+    "res_model": "mail.group.message.reject",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_group_member_action",
+   "values": {
+    "name": "Members",
+    "res_model": "mail.group.member",
+    "view_mode": "list",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_group_message_action",
+   "values": {
+    "name": "Messages",
+    "res_model": "mail.group.message",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_group_moderation_action",
+   "values": {
+    "name": "Moderation",
+    "res_model": "mail.group.moderation",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "mail_group_moderation_view_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_group_action",
+   "values": {
+    "name": "Mail Groups",
+    "res_model": "mail.group",
+    "view_mode": "kanban,list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "mail.group",
+   "id": "mail_group_1",
+   "values": {
+    "name": "My Company News",
+    "alias_name": "newsletter",
+    "description": "Receive news about \"My Company\"",
+    "moderation": true,
+    "moderator_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "access_mode": "groups",
+    "access_group_id": {
+     "$ref": "base.group_user"
+    }
+   }
+  },
+  {
+   "model": "mail.group.member",
+   "id": "mail_group_member_1",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "email": "admin@yourcompany.example.com",
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.member",
+   "id": "mail_group_member_2",
+   "values": {
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "email": "mark.brown23@example.com",
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "ir_attachment_mail_group_message_1",
+   "values": {
+    "datas": "U3VwZXIgc2VjcmV0IGF0dGFjaG1lbnQ=",
+    "name": "attachment.txt"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "ir_attachment_mail_group_message_2",
+   "values": {
+    "datas": "QnV0IEphdmFzY3JpcHQgc3Vja3M=",
+    "name": "attachment.txt"
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_1",
+   "values": {
+    "subject": "Important Announce",
+    "body": "This weekend, you should all come to our barbecue!",
+    "email_from": "mark.brown23@example.com",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": false,
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    },
+    "attachment_ids": [
+     [
+      4,
+      {
+       "$ref": "ir_attachment_mail_group_message_1"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_1_1",
+   "values": {
+    "subject": "Re: Important Announce",
+    "body": "Will there be vegetarian food?",
+    "email_from": "admin@yourcompany.example.com",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": {
+     "$ref": "mail_group_message_1"
+    },
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_1_1_1",
+   "values": {
+    "subject": "Re: Important Announce",
+    "body": "Yes of course, and for those who are allergic bring your own food",
+    "email_from": "mark.brown23@example.com",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": {
+     "$ref": "mail_group_message_1_1"
+    },
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_1_2",
+   "values": {
+    "subject": "Re: Important Announce",
+    "body": "Can I come with my dog?",
+    "email_from": "joel.willis63@example.com",
+    "moderation_status": "accepted",
+    "group_message_parent_id": {
+     "$ref": "mail_group_message_1"
+    },
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_1_2_1",
+   "values": {
+    "subject": "Re: Important Announce",
+    "body": "No animals please.",
+    "email_from": "admin@yourcompany.example.com",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": {
+     "$ref": "mail_group_message_1_2"
+    },
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_2",
+   "values": {
+    "subject": "Recruitment",
+    "body": "We are pleased to announce that we have hired 10 new people this month.",
+    "email_from": "admin@yourcompany.example.com",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": false,
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_3",
+   "values": {
+    "subject": "Relocation",
+    "body": "We are moving our office to Brussels. Take back all your remaining stuff.",
+    "email_from": "admin@yourcompany.example.com",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": false,
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_3_1",
+   "values": {
+    "subject": "Re: Relocation",
+    "body": "Is there a swimming pool in this new office?",
+    "email_from": "joel.willis63@example.com",
+    "moderation_status": "accepted",
+    "group_message_parent_id": {
+     "$ref": "mail_group_message_3"
+    },
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_3_1_1",
+   "values": {
+    "subject": "Re: Relocation",
+    "body": "Of course!",
+    "email_from": "admin@yourcompany.example.com",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": {
+     "$ref": "mail_group_message_3_1"
+    },
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_3_2",
+   "values": {
+    "subject": "Re: Relocation",
+    "body": "What is the deadline for taking back my stuff?",
+    "email_from": "mark.brown23@example.com",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": {
+     "$ref": "mail_group_message_3"
+    },
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_3_2_1",
+   "values": {
+    "subject": "Re: Relocation",
+    "body": "In 4 weeks.",
+    "email_from": "admin@yourcompany.example.com",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "moderation_status": "pending_moderation",
+    "group_message_parent_id": {
+     "$ref": "mail_group_message_3_2"
+    },
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    }
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_4",
+   "values": {
+    "subject": "I really like CSS & HTML",
+    "body": "<p style=\"margin:0px; font-size:13px;\">Hi,</p><br> <p style=\"margin:0px; font-size:13px;\"> We <u style=\"font-size:14px\">really</u> like <font style=\"color:rgb(57, 123, 33); font-weight:bolder\">colors</font> and <span style=\"font-weight:bolder\"><font style=\"color:rgb(255, 0, 0)\">CSS</font></span>. </p> <p style=\"margin:0px; font-size:13px;\">Do you know you can add </p> <a href=\"https://example.com\" target=\"_blank\" class=\"btn btn-primary flat btn-sm\">link in email</a> ? <ol> <li>Also image</li> <li>List</li> <li>Any HTML code in the end...</li> </ol>",
+    "email_from": "admin@yourcompany.example.com",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "moderation_status": "pending_moderation",
+    "group_message_parent_id": false,
+    "mail_group_id": {
+     "$ref": "mail_group_1"
+    },
+    "attachment_ids": [
+     [
+      4,
+      {
+       "$ref": "ir_attachment_mail_group_message_2"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.group",
+   "id": "mail_group_2",
+   "values": {
+    "name": "Public Mailing List",
+    "alias_name": "public_group",
+    "description": "Get the patch notes of our amazing product.",
+    "moderation": true,
+    "moderator_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.group.message",
+   "id": "mail_group_message_5",
+   "values": {
+    "subject": "Best patch ever",
+    "body": "In this patch, we have cleaned the CSS!",
+    "email_from": "mark.brown23@example.com",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "moderation_status": "accepted",
+    "group_message_parent_id": false,
+    "mail_group_id": {
+     "$ref": "mail_group_2"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "mail_group_menu",
+   "name": "Mail Groups",
+   "parent": "mail.mail_menu_technical",
+   "action": "mail_group_action",
+   "sequence": "50"
+  },
+  {
+   "id": "mail_group_moderation_menu",
+   "name": "Moderation Rules",
+   "parent": "mail.mail_menu_technical",
+   "action": "mail_group_moderation_action",
+   "sequence": "51"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_mail_group_all_public",
+   "model": "mail.group",
+   "model_xmlid": "model_mail_group",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_group_all_portal",
+   "model": "mail.group",
+   "model_xmlid": "model_mail_group",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_group_user",
+   "model": "mail.group",
+   "model_xmlid": "model_mail_group",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_group_member",
+   "model": "mail.group.member",
+   "model_xmlid": "model_mail_group_member",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_group_message_all_public",
+   "model": "mail.group.message",
+   "model_xmlid": "model_mail_group_message",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_group_message_all_portal",
+   "model": "mail.group.message",
+   "model_xmlid": "model_mail_group_message",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mail_group_message_user",
+   "model": "mail.group.message",
+   "model_xmlid": "model_mail_group_message",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_group_moderation",
+   "model": "mail.group.moderation",
+   "model_xmlid": "model_mail_group_moderation",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mail_group_message_reject",
+   "model": "mail.group.message.reject",
+   "model_xmlid": "model_mail_group_message_reject",
+   "group": "base.group_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

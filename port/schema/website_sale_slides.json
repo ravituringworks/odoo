@@ -1,0 +1,240 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/product_data.xml",
+  "report/sale_report_views.xml",
+  "views/website_slides_menu_views.xml",
+  "views/product_template_views.xml",
+  "views/slide_channel_views.xml",
+  "views/website_sale_templates.xml",
+  "views/website_slides_templates.xml",
+  "views/snippets.xml",
+  "data/product_demo.xml",
+  "data/slide_demo.xml",
+  "data/sale_order_demo.xml"
+ ],
+ "depends": [
+  "website_slides",
+  "website_sale"
+ ],
+ "models": {
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "channel_ids": {
+     "comodel": "slide.channel",
+     "inverse_name": "product_id",
+     "string": "Courses",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_is_add_to_cart_allowed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "get_product_multiline_description_sale"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "service_tracking": {
+     "ondelete": {
+      "course": "set default"
+     },
+     "selection_add": [
+      [
+       "course",
+       "Course Access"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_service_tracking_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_product_types_allow_zero_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_service_tracking_blacklist"
+    }
+   ],
+   "name": "product.template",
+   "sel_methods": {
+    "_prepare_service_tracking_tooltip": []
+   },
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_verify_updated_quantity"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_verify_updated_quantity": []
+   },
+   "transient": false
+  },
+  "slide.channel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "currency_id": {
+     "related": "product_id.currency_id",
+     "type": "Many2one"
+    },
+    "enroll": {
+     "ondelete": {
+      "$expr": "{'payment': lambda recs: recs.write({'enroll': 'invite'})}"
+     },
+     "selection_add": [
+      [
+       "payment",
+       "On payment"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "default": {
+      "$ref": "_get_default_product_id"
+     },
+     "domain": [
+      [
+       "service_tracking",
+       "=",
+       "course"
+      ]
+     ],
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_sale_revenues": {
+     "compute": "_compute_product_sale_revenues",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Total revenues",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_default_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_product_sale_revenues"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_synchronize_product_publish"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_view_sales"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_filter_add_members"
+    }
+   ],
+   "name": "slide.channel",
+   "sql_constraints": [
+    [
+     "product_id_check",
+     "CHECK( enroll!='payment' OR product_id IS NOT NULL )",
+     "Product is required for on payment channels."
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "website_sale_slides",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_sale_slides",
+ "stats": {
+  "fields": 6,
+  "methods": 14,
+  "models": 4,
+  "py_lines": 250
+ },
+ "summary": "Sell your courses online",
+ "title": "Sell Courses",
+ "version": "1.0"
+}

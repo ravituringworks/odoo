@@ -1,0 +1,122 @@
+{
+ "module": "account_payment",
+ "records": [
+  {
+   "model": "ir.config_parameter",
+   "id": "enable_portal_payment",
+   "values": {
+    "key": "account_payment.enable_portal_payment",
+    "value": "True"
+   }
+  },
+  {
+   "model": "onboarding.onboarding.step",
+   "id": "onboarding_onboarding_step_payment_provider",
+   "values": {
+    "title": "Online Payments",
+    "description": "Enable credit & debit card payments supported by Stripe.",
+    "button_text": "Activate Stripe",
+    "panel_step_open_action_name": "action_open_step_payment_provider",
+    "step_image": "",
+    "step_image_filename": "onboarding_bank-account.png",
+    "step_image_alt": "Onboarding Online Payments"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "payment_token_billing_rule",
+   "values": {
+    "name": "Access every token",
+    "model_id": {
+     "$ref": "payment.model_payment_token"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_invoice_order_generate_link",
+   "values": {
+    "name": "Generate a Payment Link",
+    "res_model": "payment.link.wizard",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "payment.payment_link_wizard_view_form"
+    },
+    "target": "new",
+    "binding_model_id": {
+     "$ref": "model_account_move"
+    },
+    "binding_view_types": "form"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "payment_provider_menu",
+   "parent": "account.root_payment_menu",
+   "action": "payment.action_payment_provider",
+   "sequence": "10"
+  },
+  {
+   "id": "payment_method_menu",
+   "parent": "account.root_payment_menu",
+   "action": "payment.action_payment_method",
+   "sequence": "15"
+  },
+  {
+   "id": "payment_token_menu",
+   "parent": "account.root_payment_menu",
+   "action": "payment.action_payment_token",
+   "sequence": "20",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "payment_transaction_menu",
+   "parent": "account.root_payment_menu",
+   "action": "payment.action_payment_transaction",
+   "sequence": "25",
+   "groups": "base.group_no_one"
+  }
+ ],
+ "access": [
+  {
+   "id": "payment_link_wizard",
+   "model": "payment.payment.link.wizard",
+   "model_xmlid": "payment.model_payment_link_wizard",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "payment_refund_wizard",
+   "model": "payment.refund.wizard",
+   "model_xmlid": "model_payment_refund_wizard",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "payment_transaction_user",
+   "model": "payment.transaction",
+   "model_xmlid": "model_payment_transaction",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

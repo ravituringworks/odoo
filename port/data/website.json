@@ -1,0 +1,3509 @@
+{
+ "module": "website",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_website_website",
+   "values": {
+    "sequence": "23"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_website_restricted_editor",
+   "values": {
+    "name": "Restricted Editor",
+    "category_id": {
+     "$ref": "base.module_category_website_website"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_website_designer",
+   "values": {
+    "name": "Editor and Designer",
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_website_restricted_editor"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_sanitize_override"
+      }
+     ]
+    ],
+    "category_id": {
+     "$ref": "base.module_category_website_website"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "group_website_designer"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_admin",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "website.group_website_designer"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_system",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "website.group_website_designer"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "website_menu",
+   "values": {
+    "name": "Website menu: group_ids",
+    "model_id": {
+     "$ref": "model_website_menu"
+    },
+    "domain_force": "['|', ('group_ids', '=', False), ('group_ids', 'in', user.groups_id.ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "website_designer_edit_qweb",
+   "values": {
+    "name": "website_designer: Manage Website and qWeb view",
+    "model_id": {
+     "$ref": "base.model_ir_ui_view"
+    },
+    "domain_force": "[('type', '=', 'qweb')]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_designer"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "website_designer_view",
+   "values": {
+    "name": "website_designer: global view",
+    "model_id": {
+     "$ref": "base.model_ir_ui_view"
+    },
+    "domain_force": "[('type', '!=', 'qweb')]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_website_designer"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "website_group_system_edit_all_views",
+   "values": {
+    "name": "Administration Settings: Manage all views",
+    "model_id": {
+     "$ref": "base.model_ir_ui_view"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_system"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": true,
+    "perm_create": true,
+    "perm_unlink": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "website_page_rule_public",
+   "values": {
+    "name": "website.page: portal/public: read published pages",
+    "model_id": {
+     "$ref": "website.model_website_page"
+    },
+    "domain_force": "[('website_published', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "view_rule_visibility_public",
+   "values": {
+    "name": "Website View Visibility Public",
+    "model_id": {
+     "$ref": "base.model_ir_ui_view"
+    },
+    "domain_force": "['|', ('type', '!=', 'qweb'), ('visibility', 'in', ('public', False))]",
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "view_rule_visibility_connected",
+   "values": {
+    "name": "Website View Visibility Connected",
+    "model_id": {
+     "$ref": "base.model_ir_ui_view"
+    },
+    "domain_force": "['|', ('type', '!=', 'qweb'), ('visibility', 'in', ('public', 'connected', False))]",
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false,
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "website_page_controller_expose",
+   "values": {
+    "name": "Public access to arbitrary exposed model",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_public",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "website.website_page_controller_expose"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_portal",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "website.website_page_controller_expose"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "website_page_controller_rule_public",
+   "values": {
+    "name": "website.controller.page: portal/public: read published pages",
+    "model_id": {
+     "$ref": "website.model_website_controller_page"
+    },
+    "domain_force": "[('website_published', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "website.website_page_controller_expose"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.business_conference",
+   "values": {
+    "public": true,
+    "name": "business_conference.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/business_conference.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_team",
+   "values": {
+    "public": true,
+    "name": "team.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/team.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_01",
+   "values": {
+    "public": true,
+    "name": "bridge.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/bridge.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_02",
+   "values": {
+    "public": true,
+    "name": "library_image_02.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_02.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_03",
+   "values": {
+    "public": true,
+    "name": "library_image_03.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_03.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_04",
+   "values": {
+    "public": true,
+    "name": "manufacturing.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/manufacturing.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_05",
+   "values": {
+    "public": true,
+    "name": "library_image_05.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_05.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_06",
+   "values": {
+    "public": true,
+    "name": "gift.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/gift.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_07",
+   "values": {
+    "public": true,
+    "name": "library_image_07.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_07.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_08",
+   "values": {
+    "public": true,
+    "name": "library_image_08.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_08.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_09",
+   "values": {
+    "public": true,
+    "name": "office.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/office.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_10",
+   "values": {
+    "public": true,
+    "name": "library_image_10.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_10.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_11",
+   "values": {
+    "public": true,
+    "name": "library_image_11.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_11.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_12",
+   "values": {
+    "public": true,
+    "name": "sell.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/sell.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_13",
+   "values": {
+    "public": true,
+    "name": "library_image_13.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_13.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_14",
+   "values": {
+    "public": true,
+    "name": "library_image_14.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_14.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_15",
+   "values": {
+    "public": true,
+    "name": "sweet.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/sweet.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_16",
+   "values": {
+    "public": true,
+    "name": "library_image_16.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/library_image_16.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_17",
+   "values": {
+    "public": true,
+    "name": "marketing.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/marketing.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.library_image_18",
+   "values": {
+    "public": true,
+    "name": "firework.jpg",
+    "res_model": "ir.ui.view",
+    "type": "url",
+    "url": "/website/static/src/img/library/firework.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_01",
+   "values": {
+    "public": true,
+    "name": "s_background_image_01.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/peak.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_02",
+   "values": {
+    "public": true,
+    "name": "s_background_image_02.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/la.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_03",
+   "values": {
+    "public": true,
+    "name": "s_background_image_03.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/panama-sky.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_04",
+   "values": {
+    "public": true,
+    "name": "s_background_image_04.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/cubes.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_05",
+   "values": {
+    "public": true,
+    "name": "s_background_image_05.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/building-profile.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_06",
+   "values": {
+    "public": true,
+    "name": "s_background_image_06.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/type.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_07",
+   "values": {
+    "public": true,
+    "name": "s_background_image_07.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/people.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_08",
+   "values": {
+    "public": true,
+    "name": "s_background_image_08.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/city.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_background_image_09",
+   "values": {
+    "public": true,
+    "name": "s_background_image_09.jpg",
+    "type": "url",
+    "res_model": "ir.ui.view",
+    "url": "/website/static/src/img/backgrounds/sails.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.header_image_1_default_image",
+   "values": {
+    "public": true,
+    "name": "header_image_1_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/header_image_1_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_cover_default_image",
+   "values": {
+    "public": true,
+    "name": "s_cover_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_cover.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_text_cover_default_image",
+   "values": {
+    "public": true,
+    "name": "s_text_cover_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_text_cover.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_masonry_block_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_masonry_block_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_masonry_block_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_masonry_block_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_masonry_block_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_picture.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_image_punchy_default_image",
+   "values": {
+    "public": true,
+    "name": "s_image_punchy_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_image_punchy.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_sidegrid_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_sidegrid_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_sidegrid_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_sidegrid_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_sidegrid_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_sidegrid_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_sidegrid_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_sidegrid_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_sidegrid_default_image_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_sidegrid_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_sidegrid_default_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_sidegrid_default_image_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_media_list_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_media_list_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_media_list_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_media_list_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_media_list_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_media_list_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_media_list_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_media_list_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_media_list_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_product_list_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_product_list_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_product_list_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_product_list_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_product_list_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_product_list_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_product_list_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_product_list_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_product_list_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_product_list_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_product_list_default_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_product_list_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_product_list_default_image_5",
+   "values": {
+    "public": true,
+    "name": "s_product_list_default_image_5.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_product_list_5.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_product_list_default_image_6",
+   "values": {
+    "public": true,
+    "name": "s_product_list_default_image_6.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_product_list_6.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quotes_carousel_demo_image_0",
+   "values": {
+    "public": true,
+    "name": "s_quotes_carousel_image_0.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_quotes_carousel_0.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quotes_carousel_demo_image_1",
+   "values": {
+    "public": true,
+    "name": "s_quotes_carousel_image_01.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_quotes_carousel_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quotes_carousel_demo_image_2",
+   "values": {
+    "public": true,
+    "name": "s_quotes_carousel_image_02.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_quotes_carousel_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quotes_carousel_demo_image_3",
+   "values": {
+    "public": true,
+    "name": "s_quotes_carousel_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quotes_carousel_demo_image_4",
+   "values": {
+    "public": true,
+    "name": "s_quotes_carousel_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quotes_carousel_demo_image_5",
+   "values": {
+    "public": true,
+    "name": "s_quotes_carousel_image_5.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_showcase_default_image",
+   "values": {
+    "public": true,
+    "name": "s_showcase_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_showcase.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mockup_image_default_image",
+   "values": {
+    "public": true,
+    "name": "s_mockup_image_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mockup_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_image_text_default_image",
+   "values": {
+    "public": true,
+    "name": "s_image_text_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_image_text.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_text_image_default_image",
+   "values": {
+    "public": true,
+    "name": "s_text_image_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_text_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_image_hexagonal_default_image",
+   "values": {
+    "public": true,
+    "name": "s_image_hexagonal_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_image_hexagonal.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_image_hexagonal_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_image_hexagonal_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_image_hexagonal_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_three_columns_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_three_columns_default_image_1.jpg",
+    "type": "url",
+    "url": "/web/image/website.library_image_11"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_three_columns_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_three_columns_default_image_2.jpg",
+    "type": "url",
+    "url": "/web/image/website.library_image_13"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_three_columns_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_three_columns_default_image_3.jpg",
+    "type": "url",
+    "url": "/web/image/website.library_image_07"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_card_offset_default_image",
+   "values": {
+    "public": true,
+    "name": "s_card_offset_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_card_offset.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_card_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_card_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_card_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_carousel_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_carousel_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_carousel_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_carousel_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_carousel_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_carousel_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_carousel_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_carousel_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_carousel_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_framed_intro_default_image",
+   "values": {
+    "public": true,
+    "name": "s_framed_intro_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_framed_intro.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_carousel_intro_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_carousel_intro_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_text_cover.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_carousel_intro_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_carousel_intro_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_image_title_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_carousel_intro_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_carousel_intro_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_banner_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_picture_default_image",
+   "values": {
+    "public": true,
+    "name": "s_picture_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_picture.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_striped_top_default_image",
+   "values": {
+    "public": true,
+    "name": "s_striped_top_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_striped_top.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_banner_default_image",
+   "values": {
+    "public": true,
+    "name": "s_banner_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_banner.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_banner_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_banner_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_banner_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_banner_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_banner_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_banner_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_closer_look_default_image",
+   "values": {
+    "public": true,
+    "name": "s_closer_look_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_closer_look.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_faq_horizontal_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_faq_horizontal_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_faq_horizontal_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_images_constellation_default_image",
+   "values": {
+    "public": true,
+    "name": "s_images_constellation_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_images_constellation_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_images_constellation_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_images_constellation_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_images_constellation_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_images_constellation_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_images_constellation_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_images_constellation_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_parallax_default_image",
+   "values": {
+    "public": true,
+    "name": "s_parallax_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_parallax.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_reference_demo_image_1",
+   "values": {
+    "public": true,
+    "name": "s_reference_demo_image_1.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_references_1.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_reference_demo_image_2",
+   "values": {
+    "public": true,
+    "name": "s_reference_demo_image_2.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_references_2.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_reference_demo_image_3",
+   "values": {
+    "public": true,
+    "name": "s_reference_demo_image_3.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_references_3.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_reference_demo_image_4",
+   "values": {
+    "public": true,
+    "name": "s_reference_demo_image_4.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_references_4.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_reference_demo_image_5",
+   "values": {
+    "public": true,
+    "name": "s_reference_demo_image_5.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_references_5.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_reference_default_image_6",
+   "values": {
+    "public": true,
+    "name": "s_reference_default_image_6.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_references_6.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_cta_mockups_default_image",
+   "values": {
+    "public": true,
+    "name": "s_cta_mockups_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_cta_mockups.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_cta_mockups_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_cta_mockups_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_cta_mockups_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_company_team_image_1",
+   "values": {
+    "public": true,
+    "name": "s_company_team_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_company_team_image_2",
+   "values": {
+    "public": true,
+    "name": "s_company_team_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_company_team_image_3",
+   "values": {
+    "public": true,
+    "name": "s_company_team_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_company_team_image_4",
+   "values": {
+    "public": true,
+    "name": "s_company_team_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_company_team_image_5",
+   "values": {
+    "public": true,
+    "name": "s_company_team_image_5.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_5.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_company_team_image_6",
+   "values": {
+    "public": true,
+    "name": "s_company_team_image_6.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_6.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_menu_image_menu_default_image",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_menu_image_menu_default_image.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_references_5.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_5",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_5.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_5.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_6",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_6.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_6.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_7",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_7.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_7.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_8",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_8.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_8.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_9",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_9.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_9.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_10",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_10.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_10.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_thumbnails_default_image_11",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_thumbnails_default_image_11.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_thumbnails_default_image_11.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_images_subtitles_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_images_subtitles_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_images_subtitles_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_images_subtitles_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_images_subtitles_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_images_subtitles_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_images_subtitles_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_images_subtitles_default_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_images_subtitles_default_image_5",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_images_subtitles_default_image_5.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_5.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_images_subtitles_default_image_6",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_images_subtitles_default_image_6.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_6.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_images_subtitles_default_image_7",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_images_subtitles_default_image_7.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_images_subtitles_default_image_7.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_menus_logos_default_image",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_menus_logos_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_menus_logos_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_menus_logos_default_logo_1",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_menus_logos_default_logo_1.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_menus_logos_default_logo_1.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_menus_logos_default_logo_2",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_menus_logos_default_logo_2.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_menus_logos_default_logo_2.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_menus_logos_default_logo_3",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_menus_logos_default_logo_3.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_menus_logos_default_logo_3.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_menus_logos_default_logo_4",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_menus_logos_default_logo_4.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_menus_logos_default_logo_4.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_menus_logos_default_logo_5",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_menus_logos_default_logo_5.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_menus_logos_default_logo_5.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_menus_logos_default_logo_6",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_menus_logos_default_logo_6.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_menus_logos_default_logo_6.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_cards_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_cards_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_cards_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_cards_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_cards_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_cards_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_cards_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_cards_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_cards_default_image_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_cards_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_cards_default_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_cards_default_image_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_cards_default_image_5",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_cards_default_image_5.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_cards_default_image_5.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_cards_default_image_6",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_cards_default_image_6.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_cards_default_image_6.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_cards_default_image_7",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_cards_default_image_7.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_cards_default_image_7.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_mega_menu_cards_default_image_8",
+   "values": {
+    "public": true,
+    "name": "s_mega_menu_cards_default_image_8.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_mega_menu_cards_default_image_8.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_product_catalog_default_image",
+   "values": {
+    "public": true,
+    "name": "s_product_catalog_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_product_catalog.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_pricelist_cafe_default_image",
+   "values": {
+    "public": true,
+    "name": "s_pricelist_cafe_default_image.png",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_pricelist_cafe_default_image.png"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_blockquote_default_image",
+   "values": {
+    "public": true,
+    "name": "s_blockquote_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_team_member_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_blockquote_cover_default_image",
+   "values": {
+    "public": true,
+    "name": "s_blockquote_cover_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_blockquote_cover.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quadrant_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_quadrant_default_image_1",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_quadrant_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quadrant_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_quadrant_default_image_2",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_quadrant_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quadrant_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_quadrant_default_image_3",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_quadrant_default_image_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_quadrant_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_quadrant_default_image_4",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_quadrant_default_image_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_popup_default_image",
+   "values": {
+    "public": true,
+    "name": "s_popup_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_popup.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_cta_box_default_image",
+   "values": {
+    "public": true,
+    "name": "s_cta_box_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_cta_box_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_accordion_image_default_image",
+   "values": {
+    "public": true,
+    "name": "s_accordion_image_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_accordion_image_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_pricelist_boxed_default_background",
+   "values": {
+    "public": true,
+    "name": "s_pricelist_boxed_default_background.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_pricelist_boxed_default_background.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_adventure_default_image",
+   "values": {
+    "public": true,
+    "name": "s_adventure_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_adventure_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_image_title_default_image",
+   "values": {
+    "public": true,
+    "name": "s_image_title_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_image_title_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_key_images_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_key_images_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_key_images_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_key_images_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_key_images_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_key_images_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_key_images_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_key_images_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_key_images_default_image_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_key_images_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_key_images_default_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_key_images_default_image_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_kickoff_default_image",
+   "values": {
+    "public": true,
+    "name": "s_kickoff_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_kickoff_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_intro_pill_default_image",
+   "values": {
+    "public": true,
+    "name": "s_connections_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_intro_pill_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_intro_pill_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_connections_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_intro_pill_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_image_frame_default_image",
+   "values": {
+    "public": true,
+    "name": "s_image_frame_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_image_frame.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_wavy_grid_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_wavy_grid_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_wavy_grid_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_wavy_grid_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_wavy_grid_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_wavy_grid_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_wavy_grid_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_wavy_grid_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_wavy_grid_default_image_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_wavy_grid_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_wavy_grid_default_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_wavy_grid_default_image_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_images_mosaic_default_image_1",
+   "values": {
+    "public": true,
+    "name": "s_images_mosaic_default_image_1.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_images_mosaic_default_image_1.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_images_mosaic_default_image_2",
+   "values": {
+    "public": true,
+    "name": "s_images_mosaic_default_image_2.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_images_mosaic_default_image_2.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_images_mosaic_default_image_3",
+   "values": {
+    "public": true,
+    "name": "s_images_mosaic_default_image_3.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_images_mosaic_default_image_3.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_images_mosaic_default_image_4",
+   "values": {
+    "public": true,
+    "name": "s_images_mosaic_default_image_4.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_images_mosaic_default_image_4.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_images_mosaic_default_image_5",
+   "values": {
+    "public": true,
+    "name": "s_images_mosaic_default_image_5.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_images_mosaic_default_image_5.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_shape_image_default_image",
+   "values": {
+    "public": true,
+    "name": "s_shape_image_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_shape_image_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.attachment",
+   "id": "website.s_empowerment_default_image",
+   "values": {
+    "public": true,
+    "name": "s_empowerment_default_image.jpg",
+    "type": "url",
+    "url": "/website/static/src/img/snippets_demo/s_empowerment_default_image.jpg"
+   }
+  },
+  {
+   "model": "ir.model",
+   "id": "mail.model_mail_mail",
+   "values": {
+    "website_form_key": "send_mail",
+    "website_form_default_field_id": {
+     "$ref": "mail.field_mail_mail__body_html"
+    },
+    "website_form_access": "True",
+    "website_form_label": "Send an E-mail"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_multi_website",
+   "values": {
+    "name": "Multi-website",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_url",
+   "id": "action_website",
+   "values": {
+    "name": "Website",
+    "url": "/",
+    "target": "self"
+   }
+  },
+  {
+   "model": "website.page",
+   "id": "website.contactus_thanks",
+   "values": {
+    "name": "Thanks (Contact us)",
+    "type": "qweb",
+    "url": "/contactus-thank-you",
+    "website_indexed": false,
+    "is_published": "True",
+    "key": "website.contactus_thanks",
+    "arch": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_page_about_us",
+   "values": {
+    "name": "About Us",
+    "description": "Info and stats about your company",
+    "iap_page_code": "about_us",
+    "sequence": "1",
+    "page_view_id": {
+     "$ref": "aboutus"
+    },
+    "icon": "fa-building",
+    "menu_company": "True",
+    "menu_sequence": "50",
+    "feature_url": "/about-us"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_page_our_services",
+   "values": {
+    "name": "Services",
+    "description": "Description of your services offer",
+    "iap_page_code": "our_services",
+    "sequence": "3",
+    "page_view_id": {
+     "$ref": "our_services"
+    },
+    "icon": "fa-handshake-o",
+    "menu_sequence": "30",
+    "feature_url": "/our-services"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_page_pricing",
+   "values": {
+    "name": "Pricing",
+    "description": "Designed to drive conversion",
+    "iap_page_code": "pricing",
+    "sequence": "4",
+    "page_view_id": {
+     "$ref": "pricing"
+    },
+    "icon": "fa-random",
+    "menu_sequence": "35",
+    "feature_url": "/pricing"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_page_privacy_policy",
+   "values": {
+    "name": "Privacy Policy",
+    "description": "Explain how you protect privacy",
+    "iap_page_code": "privacy_policy",
+    "sequence": "5",
+    "page_view_id": {
+     "$ref": "privacy_policy"
+    },
+    "icon": "fa-gavel",
+    "feature_url": "/privacy"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_news",
+   "values": {
+    "name": "News",
+    "description": "Blogging and posting relevant content",
+    "sequence": "6",
+    "website_config_preselection": "blog",
+    "module_id": {
+     "$ref": "base.module_website_blog"
+    },
+    "icon": "fa-rss",
+    "menu_company": "True",
+    "menu_sequence": "40",
+    "feature_url": "/blog"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_success_stories",
+   "values": {
+    "name": "Success Stories",
+    "description": "Share your best case studies",
+    "sequence": "7",
+    "module_id": {
+     "$ref": "base.module_website_blog"
+    },
+    "icon": "fa-star",
+    "menu_company": "True",
+    "menu_sequence": "45",
+    "feature_url": "/blog"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_career",
+   "values": {
+    "name": "Career",
+    "description": "Publish job offers and let people apply",
+    "sequence": "8",
+    "module_id": {
+     "$ref": "base.module_website_hr_recruitment"
+    },
+    "icon": "fa-address-card"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_shop",
+   "values": {
+    "name": "Shop",
+    "description": "Sell more with an eCommerce",
+    "sequence": "9",
+    "website_config_preselection": "online_store",
+    "module_id": {
+     "$ref": "base.module_website_sale"
+    },
+    "icon": "fa-shopping-cart",
+    "menu_sequence": "15",
+    "feature_url": "/shop"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_event",
+   "values": {
+    "name": "Events",
+    "description": "Publish on-site and online events",
+    "sequence": "10",
+    "website_config_preselection": "event",
+    "module_id": {
+     "$ref": "base.module_website_event"
+    },
+    "icon": "fa-ticket",
+    "menu_sequence": "20",
+    "feature_url": "/event"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_forum",
+   "values": {
+    "name": "Forum",
+    "description": "Give visitors the information they need",
+    "sequence": "11",
+    "module_id": {
+     "$ref": "base.module_website_forum"
+    },
+    "icon": "fa-users",
+    "feature_url": "/forum"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_live_chat",
+   "values": {
+    "name": "Live Chat",
+    "description": "Chat with visitors to improve traction",
+    "sequence": "12",
+    "module_id": {
+     "$ref": "base.module_website_livechat"
+    },
+    "icon": "fa-comments"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_elearning",
+   "values": {
+    "name": "eLearning",
+    "description": "Share knowledge publicly or for a fee",
+    "sequence": "13",
+    "website_config_preselection": "elearning",
+    "module_id": {
+     "$ref": "base.module_website_slides"
+    },
+    "icon": "fa-graduation-cap",
+    "menu_sequence": "25",
+    "feature_url": "/slides"
+   }
+  },
+  {
+   "model": "website.configurator.feature",
+   "id": "feature_module_stores_locator",
+   "values": {
+    "name": "Stores Locator",
+    "description": "A map and a listing of your stores",
+    "sequence": "15",
+    "module_id": {
+     "$ref": "base.module_website_google_map"
+    },
+    "icon": "fa-map-marker"
+   }
+  },
+  {
+   "model": "website.page",
+   "id": "homepage_page",
+   "values": {
+    "is_published": "True",
+    "url": "/",
+    "view_id": {
+     "$ref": "homepage"
+    },
+    "track": "True",
+    "website_meta_description": "This is the homepage of the website"
+   }
+  },
+  {
+   "model": "website.page",
+   "id": "contactus_page",
+   "values": {
+    "url": "/contactus",
+    "is_published": "True",
+    "view_id": {
+     "$ref": "contactus"
+    },
+    "track": "True",
+    "website_meta_description": "This is the contact us page of the website"
+   }
+  },
+  {
+   "model": "website.menu",
+   "id": "main_menu",
+   "values": {
+    "name": "Default Main Menu",
+    "url": "/default-main-menu"
+   }
+  },
+  {
+   "model": "website.menu",
+   "id": "menu_home",
+   "values": {
+    "name": "Home",
+    "url": "/",
+    "page_id": {
+     "$ref": "website.homepage_page"
+    },
+    "parent_id": {
+     "$ref": "website.main_menu"
+    },
+    "sequence": "10"
+   }
+  },
+  {
+   "model": "website.menu",
+   "id": "menu_contactus",
+   "values": {
+    "name": "Contact us",
+    "url": "/contactus",
+    "page_id": {
+     "$ref": "website.contactus_page"
+    },
+    "parent_id": {
+     "$ref": "website.main_menu"
+    },
+    "sequence": "60"
+   }
+  },
+  {
+   "model": "website",
+   "id": "default_website",
+   "values": {
+    "name": "My Website",
+    "company_id": {
+     "$ref": "base.main_company"
+    },
+    "user_id": {
+     "$ref": "base.public_user"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_website_0",
+   "values": {
+    "name": "Tip: Engage with visitors to convert them into leads",
+    "sequence": "1500",
+    "group_id": {
+     "$ref": "website.group_website_restricted_editor"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_website_1",
+   "values": {
+    "name": "Tip: Use royalty-free photos",
+    "sequence": "1400",
+    "group_id": {
+     "$ref": "website.group_website_restricted_editor"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_website_2",
+   "values": {
+    "name": "Tip: Search Engine Optimization (SEO)",
+    "sequence": "1600",
+    "group_id": {
+     "$ref": "website.group_website_restricted_editor"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_website_3",
+   "values": {
+    "name": "Tip: Use illustrations to spice up your website",
+    "sequence": "300",
+    "group_id": {
+     "$ref": "website.group_website_restricted_editor"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_website_4",
+   "values": {
+    "name": "Tip: Add shapes to energize your Website",
+    "sequence": "400",
+    "group_id": {
+     "$ref": "website.group_website_restricted_editor"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_website_add_features",
+   "values": {
+    "name": "Apps",
+    "res_model": "ir.module.module",
+    "view_mode": "kanban,list,form",
+    "domain": [
+     "!",
+     [
+      "name",
+      "=like",
+      "theme_%"
+     ]
+    ],
+    "context": {
+     "search_default_category_id": {
+      "$ref": "base.module_category_website_website"
+     },
+     "searchpanel_default_category_id": {
+      "$ref": "base.module_category_website"
+     }
+    }
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_website_view_hierarchy",
+   "values": {
+    "name": "View Hierarchy",
+    "tag": "website_view_hierarchy"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_website_list",
+   "values": {
+    "name": "Websites",
+    "res_model": "website",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "view_website_tree"
+    },
+    "target": "current"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_website_menu",
+   "values": {
+    "name": "Website Menu",
+    "res_model": "website.menu",
+    "view_mode": "list,form",
+    "context": {
+     "search_default_group_by_website_id": 1
+    },
+    "view_id": {
+     "$ref": "menu_tree"
+    },
+    "target": "current"
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "backend_dashboard",
+   "values": {
+    "name": "Analytics",
+    "tag": "backend_dashboard"
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "website_preview",
+   "values": {
+    "name": "Website Preview",
+    "path": "website",
+    "tag": "website_preview"
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "open_custom_menu",
+   "values": {
+    "name": "Open Custom Menu",
+    "tag": "open_website_custom_menu"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "ir_actions_server_website_dashboard",
+   "values": {
+    "name": "Website: Dashboard",
+    "model_id": {
+     "$ref": "website.model_website"
+    },
+    "state": "code",
+    "code": "action = model.action_dashboard_redirect()",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "ir_actions_server_website_analytics",
+   "values": {
+    "name": "Website: Analytics",
+    "model_id": {
+     "$ref": "website.model_website"
+    },
+    "state": "code",
+    "code": "action = model.env.ref('website.backend_dashboard').sudo().read()[0]",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "base.open_module_tree",
+   "values": {
+    "domain": [
+     "!",
+     [
+      "name",
+      "=like",
+      "theme_%"
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "theme_install_kanban_action",
+   "values": {
+    "name": "Pick a Theme",
+    "res_model": "ir.module.module",
+    "view_mode": "kanban,form",
+    "view_id": {
+     "$ref": "website.theme_view_kanban"
+    },
+    "target": "fullscreen",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "website.theme_view_kanban"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "website.theme_view_form_preview"
+       }
+      }
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "theme_view_search"
+    },
+    "domain": {
+     "$unevaluated": "obj().get_themes_domain()"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "website_configurator",
+   "values": {
+    "name": "Website Configurator",
+    "tag": "website_configurator",
+    "target": "fullscreen"
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_open_website_configurator",
+   "values": {
+    "name": "Open Website Configurator",
+    "tag": "reload",
+    "params": {
+     "action_id": {
+      "$ref": "website_configurator"
+     },
+     "menu_id": {
+      "$ref": "menu_website_configuration"
+     }
+    }
+   }
+  },
+  {
+   "model": "ir.actions.todo",
+   "id": "website_configurator_todo",
+   "values": {
+    "name": "Start Website Configurator",
+    "action_id": {
+     "$ref": "action_open_website_configurator"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_website_pages_list",
+   "values": {
+    "name": "Website Pages",
+    "res_model": "website.page",
+    "view_mode": "list,kanban",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "website_pages_tree_view"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "website_pages_kanban_view"
+       }
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_website_controller_pages_list",
+   "values": {
+    "name": "Website Model Pages",
+    "res_model": "website.controller.page",
+    "view_mode": "list,kanban,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "website_visitor_page_action",
+   "values": {
+    "name": "Page Views History",
+    "res_model": "website.track",
+    "view_mode": "list",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "website_visitor_page_view_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "graph",
+       "view_id": {
+        "$ref": "website_visitor_page_view_graph"
+       }
+      }
+     ]
+    ],
+    "domain": {
+     "$unevaluated": "[('visitor_id', '=', active_id), ('url', '!=', False)]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "website.visitor_partner_action",
+   "values": {
+    "name": "Partners",
+    "res_model": "res.partner",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "[('visitor_ids', 'in', [active_id])]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "website_visitors_action",
+   "values": {
+    "name": "Visitors",
+    "res_model": "website.visitor",
+    "path": "visitors",
+    "view_mode": "kanban,list,form,graph",
+    "context": {
+     "search_default_filter_last_7_days": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "website_visitor_view_action",
+   "values": {
+    "name": "Page Views",
+    "res_model": "website.track",
+    "view_mode": "list",
+    "context": {
+     "search_default_type_url": 1,
+     "create": false,
+     "edit": false,
+     "copy": false
+    },
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "website_visitor_track_view_tree"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "graph",
+       "view_id": {
+        "$ref": "website_visitor_track_view_graph"
+       }
+      }
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_website_configuration",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "website",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_website_rewrite_list",
+   "values": {
+    "name": "Rewrite",
+    "res_model": "website.rewrite",
+    "view_id": false
+   }
+  },
+  {
+   "model": "website",
+   "id": "website2",
+   "values": {
+    "name": "My Website 2",
+    "sequence": "20"
+   }
+  },
+  {
+   "model": "website.page",
+   "id": "bs_debug_page",
+   "values": {
+    "url": "/website/demo/bootstrap",
+    "is_published": "False",
+    "view_id": {
+     "$ref": "bs_debug_view"
+    }
+   }
+  },
+  {
+   "model": "website.page",
+   "id": "color_combinations_debug_page",
+   "values": {
+    "url": "/website/demo/color-combinations",
+    "is_published": "False",
+    "view_id": {
+     "$ref": "color_combinations_debug_view"
+    }
+   }
+  },
+  {
+   "model": "website.page",
+   "id": "snippets_debug_page",
+   "values": {
+    "url": "/website/demo/snippets",
+    "is_published": "False",
+    "view_id": {
+     "$ref": "snippets_debug_view"
+    }
+   }
+  },
+  {
+   "model": "website.visitor",
+   "id": "website_visitor_0",
+   "values": {
+    "country_id": {
+     "$ref": "base.nl"
+    },
+    "page_ids": [
+     [
+      4,
+      {
+       "$ref": "website.homepage_page"
+      }
+     ]
+    ],
+    "website_track_ids": [
+     [
+      0,
+      0,
+      {
+       "page_id": {
+        "$ref": "website.homepage_page"
+       },
+       "url": "/"
+      }
+     ]
+    ],
+    "access_token": {
+     "$ref": "base.res_partner_address_5"
+    }
+   }
+  },
+  {
+   "model": "website.visitor",
+   "id": "website_visitor_1",
+   "values": {
+    "country_id": {
+     "$ref": "base.us"
+    },
+    "page_ids": [
+     [
+      4,
+      {
+       "$ref": "website.contactus_page"
+      }
+     ]
+    ],
+    "website_track_ids": [
+     [
+      0,
+      0,
+      {
+       "page_id": {
+        "$ref": "website.contactus_page"
+       },
+       "url": "/contactus"
+      }
+     ]
+    ],
+    "access_token": {
+     "$ref": "base.res_partner_address_11"
+    }
+   }
+  },
+  {
+   "model": "website.visitor",
+   "id": "website_visitor_2",
+   "values": {
+    "country_id": {
+     "$ref": "base.be"
+    },
+    "page_ids": [
+     [
+      4,
+      {
+       "$ref": "website.homepage_page"
+      }
+     ]
+    ],
+    "website_track_ids": [
+     [
+      0,
+      0,
+      {
+       "page_id": {
+        "$ref": "website.homepage_page"
+       },
+       "url": "/"
+      }
+     ]
+    ],
+    "access_token": "f9d24e459528093a790f38e5cc989a8d"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_website_configuration",
+   "name": "Website",
+   "sequence": "95",
+   "groups": "base.group_user",
+   "web_icon": "website,static/description/icon.png"
+  },
+  {
+   "id": "menu_site",
+   "name": "Site",
+   "parent": "website.menu_website_configuration",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_website_preview",
+   "name": "Homepage",
+   "parent": "menu_site",
+   "action": "website.website_preview",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_edit_menu",
+   "name": "Menu Editor",
+   "parent": "menu_site",
+   "action": "website.website_preview",
+   "sequence": "20"
+  },
+  {
+   "id": "menu_content",
+   "name": "Content",
+   "parent": "menu_site",
+   "sequence": "30"
+  },
+  {
+   "id": "menu_current_page",
+   "name": "This page",
+   "parent": "menu_site",
+   "sequence": "40"
+  },
+  {
+   "id": "menu_page_properties",
+   "name": "Properties",
+   "parent": "menu_current_page",
+   "action": "website.website_preview",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_optimize_seo",
+   "name": "Optimize SEO",
+   "parent": "menu_current_page",
+   "action": "website.website_preview",
+   "sequence": "20"
+  },
+  {
+   "id": "menu_ace_editor",
+   "name": "HTML / CSS Editor",
+   "parent": "menu_current_page",
+   "action": "website.website_preview",
+   "sequence": "30"
+  },
+  {
+   "id": "custom_menu_edit_menu",
+   "name": "Edit Menu",
+   "parent": "menu_current_page",
+   "action": "website.website_preview",
+   "sequence": "40"
+  },
+  {
+   "id": "menu_reporting",
+   "name": "Reporting",
+   "parent": "website.menu_website_configuration",
+   "sequence": "30"
+  },
+  {
+   "id": "menu_website_dashboard",
+   "name": "eCommerce",
+   "parent": "menu_reporting",
+   "action": "website.ir_actions_server_website_dashboard",
+   "sequence": "20"
+  },
+  {
+   "id": "menu_website_analytics",
+   "name": "Analytics",
+   "parent": "menu_reporting",
+   "action": "website.ir_actions_server_website_analytics",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_website_pages_list",
+   "name": "Pages",
+   "parent": "menu_content",
+   "action": "action_website_pages_list",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_website_controller_pages_list",
+   "name": "Model Pages",
+   "parent": "menu_content",
+   "action": "action_website_controller_pages_list",
+   "sequence": "10",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "website_visitor_menu",
+   "name": "Visitors",
+   "parent": "website.menu_reporting",
+   "action": "website.website_visitors_action",
+   "sequence": "40"
+  },
+  {
+   "id": "menu_visitor_view_menu",
+   "name": "Page Views",
+   "parent": "website.menu_reporting",
+   "action": "website.website_visitor_view_action",
+   "sequence": "50"
+  },
+  {
+   "id": "menu_website_global_configuration",
+   "name": "Configuration",
+   "parent": "menu_website_configuration",
+   "sequence": "100",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "menu_website_website_settings",
+   "name": "Settings",
+   "parent": "menu_website_global_configuration",
+   "action": "action_website_configuration",
+   "sequence": "10",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "menu_website_add_features",
+   "parent": "website.menu_website_global_configuration",
+   "action": "action_website_add_features",
+   "sequence": "20",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "menu_website_websites_list",
+   "name": "Websites",
+   "parent": "menu_website_global_configuration",
+   "action": "action_website_list",
+   "sequence": "10",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_website_menu_list",
+   "name": "Menus",
+   "parent": "menu_website_global_configuration",
+   "action": "action_website_menu",
+   "sequence": "45",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_website_rewrite",
+   "name": "Redirects",
+   "parent": "menu_website_global_configuration",
+   "action": "action_website_rewrite_list",
+   "sequence": "30",
+   "groups": "base.group_no_one"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_website_public_public",
+   "model": "website.website",
+   "model_xmlid": "website.model_website",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_public_portal",
+   "model": "website.website",
+   "model_xmlid": "website.model_website",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_public_employee",
+   "model": "website.website",
+   "model_xmlid": "website.model_website",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_designer",
+   "model": "website.website",
+   "model_xmlid": "website.model_website",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_menu_public",
+   "model": "website.menu",
+   "model_xmlid": "model_website_menu",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_menu_portal",
+   "model": "website.menu",
+   "model_xmlid": "model_website_menu",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_menu_employee",
+   "model": "website.menu",
+   "model_xmlid": "model_website_menu",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_menu_designer",
+   "model": "website.menu",
+   "model_xmlid": "model_website_menu",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_rewrite",
+   "model": "website.rewrite",
+   "model_xmlid": "model_website_rewrite",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_rewrite_designer",
+   "model": "website.rewrite",
+   "model_xmlid": "model_website_rewrite",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_page_designer",
+   "model": "website.page",
+   "model_xmlid": "model_website_page",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_controller_page_designer",
+   "model": "website.controller.page",
+   "model_xmlid": "model_website_controller_page",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_controller_page_public",
+   "model": "website.controller.page",
+   "model_xmlid": "model_website_controller_page",
+   "group": "website_page_controller_expose",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_ir_ui_view_restricted_editor",
+   "model": "ir.ui.view",
+   "model_xmlid": "model_ir_ui_view",
+   "group": "group_website_restricted_editor",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_ir_ui_view_designer",
+   "model": "ir.ui.view",
+   "model_xmlid": "model_ir_ui_view",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_ir_asset_designer",
+   "model": "ir.asset",
+   "model_xmlid": "model_ir_asset",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_seo_public_public",
+   "model": "website.seo.metadata",
+   "model_xmlid": "model_website_seo_metadata",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_seo_public_portal",
+   "model": "website.seo.metadata",
+   "model_xmlid": "model_website_seo_metadata",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_seo_public_employee",
+   "model": "website.seo.metadata",
+   "model_xmlid": "model_website_seo_metadata",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_seo_designer",
+   "model": "website.seo.metadata",
+   "model_xmlid": "model_website_seo_metadata",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_page_properties_public",
+   "model": "website.page.properties",
+   "model_xmlid": "model_website_page_properties",
+   "group": "base.group_public",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_page_properties_portal",
+   "model": "website.page.properties",
+   "model_xmlid": "model_website_page_properties",
+   "group": "base.group_portal",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_page_properties_employee",
+   "model": "website.page.properties",
+   "model_xmlid": "model_website_page_properties",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_page_properties_designer",
+   "model": "website.page.properties",
+   "model_xmlid": "model_website_page_properties",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_page_properties_base_public",
+   "model": "website.page.properties.base",
+   "model_xmlid": "model_website_page_properties_base",
+   "group": "base.group_public",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_page_properties_base_portal",
+   "model": "website.page.properties.base",
+   "model_xmlid": "model_website_page_properties_base",
+   "group": "base.group_portal",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_page_properties_base_employee",
+   "model": "website.page.properties.base",
+   "model_xmlid": "model_website_page_properties_base",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_page_properties_base_designer",
+   "model": "website.page.properties.base",
+   "model_xmlid": "model_website_page_properties_base",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_visitor_designer",
+   "model": "website.visitor",
+   "model_xmlid": "model_website_visitor",
+   "group": "website.group_website_designer",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": true
+  },
+  {
+   "id": "access_website_visitor_system",
+   "model": "website.visitor",
+   "model_xmlid": "model_website_visitor",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": true
+  },
+  {
+   "id": "access_website_track_designer",
+   "model": "website.track",
+   "model_xmlid": "model_website_track",
+   "group": "website.group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_track_system",
+   "model": "website.track",
+   "model_xmlid": "model_website_track",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_route_designer",
+   "model": "website.route",
+   "model_xmlid": "model_website_route",
+   "group": "group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_theme_ir_ui_view",
+   "model": "theme.ir.ui.view",
+   "model_xmlid": "model_theme_ir_ui_view",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_theme_ir_asset_group_system",
+   "model": "theme.ir.asset",
+   "model_xmlid": "model_theme_ir_asset",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_theme_ir_attachment",
+   "model": "theme.ir.attachment",
+   "model_xmlid": "model_theme_ir_attachment",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_theme_website_menu",
+   "model": "theme.website.menu",
+   "model_xmlid": "model_theme_website_menu",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_theme_website_page",
+   "model": "theme.website.page",
+   "model_xmlid": "model_theme_website_page",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_robots",
+   "model": "website.robots",
+   "model_xmlid": "model_website_robots",
+   "group": "website.group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_website_dynamic_filter_public",
+   "model": "website.snippet.filter",
+   "model_xmlid": "model_website_snippet_filter",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_dynamic_filter_system",
+   "model": "website.snippet.filter",
+   "model_xmlid": "model_website_snippet_filter",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_configurator_feature_designer",
+   "model": "website.configurator.feature",
+   "model_xmlid": "model_website_configurator_feature",
+   "group": "website.group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_custom_blocked_third_party_domains",
+   "model": "website.custom.blocked.third.party.domains",
+   "model_xmlid": "model_website_custom_blocked_third_party_domains",
+   "group": "website.group_website_designer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

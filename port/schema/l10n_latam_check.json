@@ -1,0 +1,743 @@
+{
+ "application": false,
+ "author": "ADHOC SA",
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "data/account_payment_method_data.xml",
+  "wizards/l10n_latam_payment_mass_transfer_views.xml",
+  "security/ir.model.access.csv",
+  "security/security.xml",
+  "views/account_payment_view.xml",
+  "views/l10n_latam_check_view.xml",
+  "wizards/account_payment_register_views.xml"
+ ],
+ "depends": [
+  "account",
+  "base_vat"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_third_party_checks_country_codes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_get_latam_check_account_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_latam_check_outstanding_account_account"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_default_outbound_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_reusable_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "create"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "button_draft"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_latam_check_ids": {
+     "comodel": "l10n_latam.check",
+     "inverse_name": "outstanding_line_id",
+     "string": "Checks",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "amount": {
+     "compute": "_compute_amount",
+     "readonly": false,
+     "store": true,
+     "type": "Monetary"
+    },
+    "l10n_latam_check_warning_msg": {
+     "compute": "_compute_l10n_latam_check_warning_msg",
+     "type": "Text"
+    },
+    "l10n_latam_move_check_ids": {
+     "column1": "payment_id",
+     "column2": "check_id",
+     "comodel": "l10n_latam.check",
+     "copy": false,
+     "relation_table": "l10n_latam_check_account_payment_rel",
+     "required": true,
+     "string": "Checks Operations",
+     "type": "Many2many"
+    },
+    "l10n_latam_new_check_ids": {
+     "comodel": "l10n_latam.check",
+     "inverse_name": "payment_id",
+     "string": "Checks",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('state', 'move_id')"
+     ],
+     "lines": 8,
+     "name": "_check_move_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_move_check_ids.amount', 'l10n_latam_new_check_ids.amount', 'payment_method_code')"
+     ],
+     "lines": 5,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_is_latam_check_payment"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_latam_checks"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_get_blocking_l10n_latam_warning_msg"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_reconciled_checks_error"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_draft"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 60,
+     "name": "_l10n_latam_check_split_move"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_latam_check_unlink_split_move"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id', 'state', 'date', 'amount', 'currency_id', 'company_id', 'l10n_latam_move_check_ids.issuer_vat', 'l10n_latam_move_check_ids.bank_id', 'l10n_latam_move_check_ids.payment_id.date', 'l10n_latam_new_check_ids.amount', 'l10n_latam_new_check_ids.name')"
+     ],
+     "lines": 29,
+     "name": "_compute_l10n_latam_check_warning_msg"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_trigger_fields_to_synchronize"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_prepare_move_line_default_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_move_check_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_destination_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_latam_check_transfer"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "account.payment.method": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_payment_method_information"
+    }
+   ],
+   "name": "account.payment.method",
+   "transient": false
+  },
+  "account.payment.register": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_latam_move_check_ids": {
+     "comodel": "l10n_latam.check",
+     "string": "Checks",
+     "type": "Many2many"
+    },
+    "l10n_latam_new_check_ids": {
+     "comodel": "l10n_latam.payment.register.check",
+     "inverse_name": "payment_register_id",
+     "string": "New Checks",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_move_check_ids.amount', 'l10n_latam_new_check_ids.amount', 'payment_method_code')"
+     ],
+     "lines": 6,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_latam_move_check_ids.currency_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_is_latam_check_payment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_create_payment_vals_from_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_create_payments"
+    }
+   ],
+   "name": "account.payment.register",
+   "transient": false
+  },
+  "l10n_latam.check": {
+   "abstract": false,
+   "description": "Account payment check",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "type": "Monetary"
+    },
+    "bank_id": {
+     "comodel": "res.bank",
+     "compute": "_compute_bank_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "company_id": {
+     "related": "payment_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "payment_id.currency_id",
+     "type": "Many2one"
+    },
+    "current_journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_current_journal",
+     "store": true,
+     "type": "Many2one"
+    },
+    "issue_state": {
+     "compute": "_compute_issue_state",
+     "selection": [
+      [
+       "handed",
+       "Handed"
+      ],
+      [
+       "debited",
+       "Debited"
+      ],
+      [
+       "voided",
+       "Voided"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "issuer_vat": {
+     "compute": "_compute_issuer_vat",
+     "readonly": false,
+     "store": true,
+     "type": "Char"
+    },
+    "name": {
+     "string": "Number",
+     "type": "Char"
+    },
+    "operation_ids": {
+     "column1": "check_id",
+     "column2": "payment_id",
+     "comodel": "account.payment",
+     "readonly": true,
+     "relation_table": "l10n_latam_check_account_payment_rel",
+     "type": "Many2many"
+    },
+    "original_journal_id": {
+     "related": "payment_id.journal_id",
+     "type": "Many2one"
+    },
+    "outstanding_line_id": {
+     "comodel": "account.move.line",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "related": "payment_id.partner_id",
+     "type": "Many2one"
+    },
+    "payment_date": {
+     "readonly": false,
+     "required": true,
+     "type": "Date"
+    },
+    "payment_id": {
+     "comodel": "account.payment",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "payment_method_code": {
+     "related": "payment_id.payment_method_code",
+     "type": "Char"
+    },
+    "payment_method_line_id": {
+     "related": "payment_id.payment_method_line_id",
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('name')"
+     ],
+     "lines": 3,
+     "name": "_onchange_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_prepare_void_move_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('outstanding_line_id.amount_residual')"
+     ],
+     "lines": 14,
+     "name": "_compute_issue_state"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_void"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_last_operation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_id.state', 'operation_ids.state')"
+     ],
+     "lines": 10,
+     "name": "_compute_current_journal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "button_open_payment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "button_open_check_operations"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_show_reconciled_move"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_show_journal_entry"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_reconciled_move"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('amount')"
+     ],
+     "lines": 4,
+     "name": "_constrains_min_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id.code', 'payment_id.partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_bank_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id.code', 'payment_id.partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_issuer_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('issuer_vat')"
+     ],
+     "lines": 5,
+     "name": "_clean_issuer_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('issuer_vat')"
+     ],
+     "lines": 7,
+     "name": "_check_issuer_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_if_payment_is_draft"
+    }
+   ],
+   "name": "l10n_latam.check",
+   "transient": false
+  },
+  "l10n_latam.payment.mass.transfer": {
+   "abstract": false,
+   "description": "Checks Mass Transfers",
+   "extension": false,
+   "fields": {
+    "check_ids": {
+     "column1": "check_id",
+     "comodel": "l10n_latam.check",
+     "relation_table": "latam_tranfer_check_reltransfer_id",
+     "type": "Many2many"
+    },
+    "communication": {
+     "string": "Memo",
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_journal_company",
+     "type": "Many2one"
+    },
+    "destination_journal_id": {
+     "comodel": "account.journal",
+     "domain": "[('type', 'in', ('bank', 'cash')), ('id', '!=', journal_id)]",
+     "string": "Destination Journal",
+     "type": "Many2one"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_journal_company",
+     "type": "Many2one"
+    },
+    "payment_date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "required": true,
+     "string": "Payment Date",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('check_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_journal_company"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_create_payments"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 20,
+     "name": "action_create_payments"
+    }
+   ],
+   "name": "l10n_latam.payment.mass.transfer",
+   "transient": true
+  },
+  "l10n_latam.payment.register.check": {
+   "abstract": false,
+   "description": "Payment register check",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "type": "Monetary"
+    },
+    "bank_id": {
+     "comodel": "res.bank",
+     "compute": "_compute_bank_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "company_id": {
+     "related": "payment_register_id.company_id",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "payment_register_id.currency_id",
+     "type": "Many2one"
+    },
+    "issuer_vat": {
+     "compute": "_compute_issuer_vat",
+     "readonly": false,
+     "store": true,
+     "type": "Char"
+    },
+    "name": {
+     "string": "Number",
+     "type": "Char"
+    },
+    "payment_date": {
+     "readonly": false,
+     "required": true,
+     "type": "Date"
+    },
+    "payment_register_id": {
+     "comodel": "account.payment.register",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('name')"
+     ],
+     "lines": 3,
+     "name": "_onchange_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.payment_method_line_id.code', 'payment_register_id.partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_bank_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.payment_method_line_id.code', 'payment_register_id.partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_issuer_vat"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('issuer_vat')"
+     ],
+     "lines": 5,
+     "name": "_clean_issuer_vat"
+    }
+   ],
+   "name": "l10n_latam.payment.register.check",
+   "transient": true
+  }
+ },
+ "module": "l10n_latam_check",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_latam_check",
+ "stats": {
+  "fields": 37,
+  "methods": 55,
+  "models": 10,
+  "py_lines": 936
+ },
+ "summary": "Checks Management",
+ "title": "Third Party and Deferred/Electronic Checks Management",
+ "version": "1.0.0"
+}

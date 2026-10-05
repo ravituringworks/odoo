@@ -1,0 +1,218 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/tour_views.xml",
+  "views/res_users_views.xml"
+ ],
+ "depends": [
+  "web"
+ ],
+ "models": {
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "session_info"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "tour_enabled": {
+     "compute": "_compute_tour_enabled",
+     "readonly": false,
+     "store": true,
+     "string": "Onboarding",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('create_date')"
+     ],
+     "lines": 4,
+     "name": "_compute_tour_enabled"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "switch_tour_enabled"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "web_tour.tour": {
+   "abstract": false,
+   "description": "Tours",
+   "extension": false,
+   "fields": {
+    "custom": {
+     "string": "Custom",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "rainbow_man_message": {
+     "default": "<b>Good job!</b> You went through all steps of this tour.",
+     "translate": true,
+     "type": "Html"
+    },
+    "sequence": {
+     "default": 1000,
+     "type": "Integer"
+    },
+    "sharing_url": {
+     "compute": "_compute_sharing_url",
+     "string": "Sharing URL",
+     "type": "Char"
+    },
+    "step_ids": {
+     "comodel": "web_tour.tour.step",
+     "inverse_name": "tour_id",
+     "type": "One2many"
+    },
+    "url": {
+     "default": "/odoo",
+     "string": "Starting URL",
+     "type": "Char"
+    },
+    "user_consumed_ids": {
+     "comodel": "res.users",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 3,
+     "name": "_compute_sharing_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "consume"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "get_current_tour"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "get_tour_json_by_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_tour_json"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "export_js_file"
+    }
+   ],
+   "name": "web_tour.tour",
+   "order": "sequence, name, id",
+   "sql_constraints": [
+    [
+     "uniq_name",
+     "unique(name)",
+     "A tour already exists with this name . Tour's name must be unique!"
+    ]
+   ],
+   "transient": false
+  },
+  "web_tour.tour.step": {
+   "abstract": false,
+   "description": "Tour's step",
+   "extension": false,
+   "fields": {
+    "content": {
+     "type": "Char"
+    },
+    "run": {
+     "type": "Char"
+    },
+    "sequence": {
+     "type": "Integer"
+    },
+    "tour_id": {
+     "comodel": "web_tour.tour",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "trigger": {
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_steps_json"
+    }
+   ],
+   "name": "web_tour.tour.step",
+   "order": "sequence, id",
+   "transient": false
+  }
+ },
+ "module": "web_tour",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/web_tour",
+ "stats": {
+  "fields": 14,
+  "methods": 10,
+  "models": 4,
+  "py_lines": 135
+ },
+ "summary": "Odoo Web tours.",
+ "title": "Tours",
+ "version": "1.0"
+}

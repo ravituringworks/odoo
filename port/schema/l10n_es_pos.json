@@ -1,0 +1,182 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/Point of Sale",
+ "data_files": [
+  "views/res_config_settings_views.xml",
+  "views/pos_order_views.xml"
+ ],
+ "depends": [
+  "point_of_sale",
+  "l10n_es"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_l10n_es_is_simplified"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_spanish": {
+     "compute": "_compute_is_spanish",
+     "string": "Company located in Spain",
+     "type": "Boolean"
+    },
+    "l10n_es_simplified_invoice_journal_id": {
+     "comodel": "account.journal",
+     "domain": [
+      [
+       "type",
+       "=",
+       "sale"
+      ]
+     ],
+     "type": "Many2one"
+    },
+    "simplified_partner_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_simplified_partner_id",
+     "string": "Simplified invoice partner",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_spanish"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_simplified_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_limited_partners_loading"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_l10n_es_simplified_invoice": {
+     "string": "Simplified invoice",
+     "type": "Boolean"
+    },
+    "l10n_es_simplified_invoice_number": {
+     "compute": "_compute_l10n_es_simplified_invoice_number",
+     "string": "Simplified invoice number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_move')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_es_simplified_invoice_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_generate_pos_order_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_invoice_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_invoice_name"
+    }
+   ],
+   "name": "pos.order",
+   "sel_methods": {
+    "_generate_pos_order_invoice": []
+   },
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_fields"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_l10n_es_simplified_invoice_journal_id": {
+     "readonly": false,
+     "related": "pos_config_id.l10n_es_simplified_invoice_journal_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "l10n_es_pos",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_es_pos",
+ "stats": {
+  "fields": 6,
+  "methods": 9,
+  "models": 5,
+  "py_lines": 110
+ },
+ "summary": "Spanish localization for Point of Sale",
+ "title": "Spain - Point of Sale",
+ "version": null
+}

@@ -1,0 +1,791 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Delivery",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/product_template_view.xml",
+  "views/delivery_view.xml",
+  "views/delivery_portal_template.xml",
+  "views/report_shipping.xml",
+  "views/report_deliveryslip.xml",
+  "views/report_package_barcode.xml",
+  "wizard/choose_delivery_carrier_views.xml",
+  "wizard/choose_delivery_package_views.xml",
+  "views/stock_package_type_views.xml",
+  "views/stock_picking_type_views.xml",
+  "views/stock_rule_views.xml",
+  "views/stock_move_line_views.xml",
+  "data/delivery_demo.xml"
+ ],
+ "depends": [
+  "sale_stock",
+  "delivery"
+ ],
+ "models": {
+  "choose.delivery.carrier": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('carrier_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_invoicing_message"
+    }
+   ],
+   "name": "choose.delivery.carrier",
+   "transient": false
+  },
+  "choose.delivery.package": {
+   "abstract": false,
+   "description": "Delivery Package Selection Wizard",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "related": "picking_id.company_id",
+     "type": "Many2one"
+    },
+    "delivery_package_type_id": {
+     "comodel": "stock.package.type",
+     "string": "Delivery Package Type",
+     "type": "Many2one"
+    },
+    "picking_id": {
+     "comodel": "stock.picking",
+     "string": "Picking",
+     "type": "Many2one"
+    },
+    "shipping_weight": {
+     "compute": "_compute_shipping_weight",
+     "readonly": false,
+     "store": true,
+     "string": "Shipping Weight",
+     "type": "Float"
+    },
+    "weight_uom_name": {
+     "compute": "_compute_weight_uom_name",
+     "string": "Weight unit of measure label",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('delivery_package_type_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_weight_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('delivery_package_type_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_shipping_weight"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('delivery_package_type_id', 'shipping_weight')"
+     ],
+     "lines": 7,
+     "name": "_onchange_package_type_weight"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_put_in_pack"
+    }
+   ],
+   "name": "choose.delivery.package",
+   "transient": true
+  },
+  "delivery.carrier": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_policy": {
+     "help": "Estimated Cost: the customer will be invoiced the estimated cost of the shipping.\nReal Cost: the customer will be invoiced the real cost of the shipping, the cost of theshipping will be updated on the SO after the delivery.",
+     "ondelete": {
+      "real": "set default"
+     },
+     "selection_add": [
+      [
+       "real",
+       "Real cost"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "route_ids": {
+     "column1": "shipping_id",
+     "column2": "route_id",
+     "comodel": "stock.route",
+     "domain": [
+      [
+       "shipping_selectable",
+       "=",
+       true
+      ]
+     ],
+     "relation_table": "stock_route_shipping",
+     "string": "Routes",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "send_shipping"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "get_return_label"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_return_label_prefix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_delivery_label_prefix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_delivery_doc_prefix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "get_tracking_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "cancel_shipment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_default_custom_package_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_get_packages_from_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_get_packages_from_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_commodities_from_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_commodities_from_stock_move_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_product_price_to_company_currency"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "fixed_send_shipping"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "fixed_get_tracking_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "fixed_cancel_shipment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "base_on_rule_send_shipping"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "base_on_rule_get_tracking_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "base_on_rule_cancel_shipment"
+    }
+   ],
+   "name": "delivery.carrier",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "country_of_origin": {
+     "comodel": "res.country",
+     "help": "Rules of origin determine where goods originate, i.e. not where they have been shipped from, but where they have been produced or manufactured.\nAs such, the \u2018origin\u2019 is the 'economic nationality' of goods traded in commerce.",
+     "string": "Origin of Goods",
+     "type": "Many2one"
+    },
+    "hs_code": {
+     "help": "Standardized code for international shipping and goods declaration.",
+     "string": "HS Code",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.template",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "set_delivery_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_create_delivery_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_format_currency_amount"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_procurement_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_protected_fields"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "weight": {
+     "compute": "_cal_move_weight",
+     "digits": "Stock Weight",
+     "store": true,
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_uom_qty', 'product_uom')"
+     ],
+     "lines": 5,
+     "name": "_cal_move_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_new_picking_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_key_assign_picking"
+    }
+   ],
+   "name": "stock.move",
+   "sel_methods": {
+    "_auto_init": []
+   },
+   "transient": false
+  },
+  "stock.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "carrier_id": {
+     "related": "picking_id.carrier_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "destination_country_code": {
+     "related": "picking_id.destination_country_code",
+     "type": "Char"
+    },
+    "sale_price": {
+     "compute": "_compute_sale_price",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('quantity', 'product_uom_id', 'product_id', 'move_id.sale_line_id', 'move_id.sale_line_id.price_reduce_taxinc', 'move_id.sale_line_id.product_uom')"
+     ],
+     "lines": 18,
+     "name": "_compute_sale_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_aggregated_product_quantities"
+    }
+   ],
+   "name": "stock.move.line",
+   "transient": false
+  },
+  "stock.package.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "package_carrier_type": {
+     "default": "none",
+     "selection": [
+      [
+       "none",
+       "No carrier integration"
+      ]
+     ],
+     "string": "Carrier",
+     "type": "Selection"
+    },
+    "shipper_package_code": {
+     "string": "Carrier Code",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('package_carrier_type')"
+     ],
+     "lines": 6,
+     "name": "_onchange_carrier_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('package_carrier_type')"
+     ],
+     "lines": 13,
+     "name": "_compute_length_uom_name"
+    }
+   ],
+   "name": "stock.package.type",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "carrier_id": {
+     "comodel": "delivery.carrier",
+     "string": "Carrier",
+     "type": "Many2one"
+    },
+    "carrier_price": {
+     "string": "Shipping Cost",
+     "type": "Float"
+    },
+    "carrier_tracking_ref": {
+     "copy": false,
+     "string": "Tracking Reference",
+     "type": "Char"
+    },
+    "carrier_tracking_url": {
+     "compute": "_compute_carrier_tracking_url",
+     "string": "Tracking URL",
+     "type": "Char"
+    },
+    "delivery_type": {
+     "readonly": true,
+     "related": "carrier_id.delivery_type",
+     "type": "Selection"
+    },
+    "destination_country_code": {
+     "related": "partner_id.country_id.code",
+     "string": "Destination Country",
+     "type": "Char"
+    },
+    "is_return_picking": {
+     "compute": "_compute_return_picking",
+     "type": "Boolean"
+    },
+    "return_label_ids": {
+     "comodel": "ir.attachment",
+     "compute": "_compute_return_label",
+     "type": "One2many"
+    },
+    "weight": {
+     "compute": "_cal_weight",
+     "digits": "Stock Weight",
+     "help": "Total weight of the products in the picking.",
+     "store": true,
+     "type": "Float"
+    },
+    "weight_uom_name": {
+     "compute": "_compute_weight_uom_name",
+     "default": {
+      "$ref": "_get_default_weight_uom"
+     },
+     "readonly": true,
+     "string": "Weight unit of measure label",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_weight_uom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_weight_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_validate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('carrier_id', 'carrier_tracking_ref')"
+     ],
+     "lines": 3,
+     "name": "_compute_carrier_tracking_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('carrier_id', 'move_ids_without_package')"
+     ],
+     "lines": 6,
+     "name": "_compute_return_picking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_return_label"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "get_multiple_carrier_tracking"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids.weight')"
+     ],
+     "lines": 3,
+     "name": "_cal_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_carrier_exception_note"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_send_confirmation_email"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_pre_put_in_pack_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_set_delivery_package_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "send_to_shipper"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_carrier_details_compliance"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "print_return_label"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_matching_delivery_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_sale_delivery_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_add_delivery_cost_to_so"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "open_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "cancel_shipment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_estimated_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_should_generate_commercial_invoice"
+    }
+   ],
+   "name": "stock.picking",
+   "sel_methods": {
+    "_send_confirmation_email": []
+   },
+   "transient": false
+  },
+  "stock.quant.package": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "weight": {
+     "compute": "_compute_weight",
+     "digits": "Stock Weight",
+     "help": "Total weight of all the products contained in the package.",
+     "type": "Float"
+    },
+    "weight_is_kg": {
+     "compute": "_compute_weight_is_kg",
+     "string": "Technical field indicating whether weight uom is kg or not (i.e. lb)",
+     "type": "Boolean"
+    },
+    "weight_uom_name": {
+     "compute": "_compute_weight_uom_name",
+     "default": {
+      "$ref": "_get_default_weight_uom"
+     },
+     "readonly": true,
+     "string": "Weight unit of measure label",
+     "type": "Char"
+    },
+    "weight_uom_rounding": {
+     "compute": "_compute_weight_is_kg",
+     "string": "Technical field indicating weight's number of decimal places",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('quant_ids', 'package_type_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_weight_uom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_weight_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_weight_is_kg"
+    }
+   ],
+   "name": "stock.quant.package",
+   "transient": false
+  },
+  "stock.return.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_create_return"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_reset_carrier_id"
+    }
+   ],
+   "name": "stock.return.picking",
+   "transient": false
+  },
+  "stock.route": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "shipping_selectable": {
+     "string": "Applicable on Shipping Methods",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "stock.route",
+   "transient": false
+  }
+ },
+ "module": "stock_delivery",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/stock_delivery",
+ "stats": {
+  "fields": 30,
+  "methods": 65,
+  "models": 13,
+  "py_lines": 934
+ },
+ "summary": "Allows you to add delivery methods in pickings.",
+ "title": "Delivery - Stock",
+ "version": "1.0"
+}

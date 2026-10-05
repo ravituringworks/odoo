@@ -1,0 +1,500 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/account_tax_report_data.xml",
+  "report/swissqr_report.xml",
+  "views/res_bank_view.xml",
+  "views/account_invoice.xml",
+  "views/setup_wizard_views.xml",
+  "views/qr_invoice_wizard_view.xml",
+  "views/account_payment_view.xml",
+  "demo/account_cash_rounding.xml",
+  "demo/demo_company.xml",
+  "demo/res_partner_demo.xml"
+ ],
+ "depends": [
+  "account",
+  "base_iban",
+  "l10n_din5008"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_ch_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_ch_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_reference_model": {
+     "ondelete": {
+      "$expr": "{'ch': lambda recs: recs.write({'invoice_reference_model': 'odoo'})}"
+     },
+     "selection_add": [
+      [
+       "ch",
+       "Switzerland"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_process_reference_for_sale_order"
+    }
+   ],
+   "name": "account.journal",
+   "sel_methods": {
+    "_process_reference_for_sale_order": []
+   },
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ch_is_qr_valid": {
+     "compute": "_compute_l10n_ch_qr_is_valid",
+     "help": "Determines whether an invoice can be printed as a QR or not",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'currency_id')"
+     ],
+     "lines": 18,
+     "name": "_compute_l10n_ch_qr_is_valid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "get_l10n_ch_qrr_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_compute_qrr_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_invoice_reference_ch_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_invoice_reference_ch_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "space_qrr_reference"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "space_scor_reference"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "l10n_ch_action_print_qr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_ch_dispatch_invoices_to_print"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_get_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_hook_invoice_document_before_pdf_report_render"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ch_reference_warning_msg": {
+     "compute": "_compute_l10n_ch_reference_warning_msg",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_id', 'memo', 'payment_type')"
+     ],
+     "lines": 9,
+     "name": "_compute_l10n_ch_reference_warning_msg"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_ch_reference_is_valid"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "account.setup.bank.manual.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ch_display_qr_bank_options": {
+     "compute": "_compute_l10n_ch_display_qr_bank_options",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('acc_number')"
+     ],
+     "lines": 7,
+     "name": "_onchange_recompute_qr_iban"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_ch_display_qr_bank_options"
+    }
+   ],
+   "name": "account.setup.bank.manual.config",
+   "transient": false
+  },
+  "ir.actions.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "get_available_barcode_masks"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "apply_qr_code_ch_cross_mask"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_render_qweb_pdf_prepare_streams"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_paperformat"
+    }
+   ],
+   "name": "ir.actions.report",
+   "transient": false
+  },
+  "l10n_ch.qr_invoice.wizard": {
+   "abstract": false,
+   "description": "Handles problems occurring while creating multiple QR-invoices at once",
+   "extension": false,
+   "fields": {
+    "classic_inv_text": {
+     "readonly": true,
+     "type": "Text"
+    },
+    "nb_classic_inv": {
+     "readonly": true,
+     "type": "Integer"
+    },
+    "nb_qr_inv": {
+     "readonly": true,
+     "type": "Integer"
+    },
+    "qr_inv_text": {
+     "readonly": true,
+     "type": "Text"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 30,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "print_all_invoices"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 31,
+     "name": "action_view_faulty_invoices"
+    }
+   ],
+   "name": "l10n_ch.qr_invoice.wizard",
+   "transient": true
+  },
+  "report.l10n_ch.qr_report_main": {
+   "abstract": true,
+   "description": "Swiss QR-bill report",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.l10n_ch.qr_report_main",
+   "transient": false
+  },
+  "res.partner.bank": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ch_display_qr_bank_options": {
+     "compute": "_compute_l10n_ch_display_qr_bank_options",
+     "type": "Boolean"
+    },
+    "l10n_ch_qr_iban": {
+     "compute": "_compute_l10n_ch_qr_iban",
+     "help": "Put the QR-IBAN here for your own bank accounts.  That way, you can still use the main IBAN in the Account Number while you will see the QR-IBAN for the barcode.  ",
+     "readonly": false,
+     "store": true,
+     "string": "QR-IBAN",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'company_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_l10n_ch_display_qr_bank_options"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('acc_number')"
+     ],
+     "lines": 11,
+     "name": "_compute_l10n_ch_qr_iban"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_ch_filter_text"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_l10n_ch_get_qr_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_qr_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_qr_code_generation_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_partner_address_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_is_qr_reference"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_is_iso11649_reference"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_ch_qr_debtor_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_error_messages_for_qr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_check_for_qr_code_errors"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_available_qr_methods"
+    }
+   ],
+   "name": "res.partner.bank",
+   "sel_methods": {
+    "_check_for_qr_code_errors": [],
+    "_get_error_messages_for_qr": [],
+    "_get_qr_code_generation_params": [],
+    "_get_qr_vals": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_ch",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_ch",
+ "stats": {
+  "fields": 10,
+  "methods": 41,
+  "models": 10,
+  "py_lines": 819
+ },
+ "summary": "Swiss localization",
+ "title": "Switzerland - Accounting",
+ "version": "11.3"
+}

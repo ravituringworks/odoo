@@ -1,0 +1,188 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Point of Sale",
+ "data_files": [
+  "views/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "pos_online_payment",
+  "pos_self_order"
+ ],
+ "models": {
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_translation_frontend_modules_name"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "self_order_online_payment_method_id": {
+     "comodel": "pos.payment.method",
+     "domain": [
+      [
+       "is_online_payment",
+       "=",
+       true
+      ]
+     ],
+     "help": "The online payment method to use when a customer pays a self-order online.",
+     "readonly": false,
+     "store": true,
+     "string": "Self Online Payment",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('self_order_online_payment_method_id')"
+     ],
+     "lines": 4,
+     "name": "_check_self_order_online_payment_method_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_self_ordering_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_self_data_fields"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "use_self_order_online_payment": {
+     "compute": "_compute_use_self_order_online_payment",
+     "readonly": true,
+     "store": true,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('config_id.self_order_online_payment_method_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_use_self_order_online_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 7,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('use_self_order_online_payment', 'config_id.self_order_online_payment_method_id', 'config_id.payment_method_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_online_payment_method_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "get_and_set_online_payments_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_check_pos_order"
+    }
+   ],
+   "name": "pos.order",
+   "transient": false
+  },
+  "pos.payment.method": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_load_pos_self_data_domain"
+    }
+   ],
+   "name": "pos.payment.method",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_self_order_online_payment_method_id": {
+     "readonly": false,
+     "related": "pos_config_id.self_order_online_payment_method_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "pos_online_payment_self_order",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_online_payment_self_order",
+ "stats": {
+  "fields": 3,
+  "methods": 11,
+  "models": 5,
+  "py_lines": 188
+ },
+ "summary": "Support online payment in self-order",
+ "title": "POS Self-Order / Online Payment",
+ "version": "1.0"
+}

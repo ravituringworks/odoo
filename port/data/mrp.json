@@ -1,0 +1,3707 @@
+{
+ "module": "mrp",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_manufacturing_manufacturing",
+   "values": {
+    "description": "Helps you manage your manufacturing processes and generate reports on those processes.",
+    "sequence": "5"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_mrp_user",
+   "values": {
+    "name": "User",
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_user"
+      }
+     ]
+    ],
+    "category_id": {
+     "$ref": "base.module_category_manufacturing_manufacturing"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_mrp_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_manufacturing_manufacturing"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_mrp_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_mrp_routings",
+   "values": {
+    "name": "Manage Work Order Operations",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_mrp_byproducts",
+   "values": {
+    "name": "Produce residual products",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_unlocked_by_default",
+   "values": {
+    "name": "Unlocked by default",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_mrp_reception_report",
+   "values": {
+    "name": "Use Reception Report with Manufacturing Orders",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_mrp_workorder_dependencies",
+   "values": {
+    "name": "Use Operation Dependencies",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "mrp.group_mrp_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_production_rule",
+   "values": {
+    "name": "mrp_production multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_unbuild_rule",
+   "values": {
+    "name": "mrp_unbuild multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_workcenter_rule",
+   "values": {
+    "name": "mrp_workcenter multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_workorder_rule",
+   "values": {
+    "name": "mrp_workorder multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_bom_rule",
+   "values": {
+    "name": "mrp_bom multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_bom_line_rule",
+   "values": {
+    "name": "mrp_bom_line multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_bom_byproduct_rule",
+   "values": {
+    "name": "mrp_bom_byproduct multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_routing_workcenter_rule",
+   "values": {
+    "name": "mrp_routing_workcenter multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "mrp_workcenter_productivity",
+   "values": {
+    "name": "mrp_workcenter_productivity multi-company",
+    "model_id": {
+     "$unevaluated": "search"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "digest.tip",
+   "id": "digest_tip_mrp_0",
+   "values": {
+    "name": "Tip: Use tablets in the shop to control manufacturing",
+    "sequence": "600",
+    "group_id": {
+     "$ref": "mrp.group_mrp_user"
+    },
+    "tip_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "stock.route",
+   "id": "route_warehouse0_manufacture",
+   "values": {
+    "name": "Manufacture",
+    "company_id": "",
+    "sequence": "10"
+   }
+  },
+  {
+   "model": "stock.warehouse",
+   "id": "stock.warehouse0",
+   "values": {
+    "manufacture_to_resupply": true
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss.type",
+   "id": "category_availability",
+   "values": {
+    "loss_type": "availability"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss.type",
+   "id": "category_performance",
+   "values": {
+    "loss_type": "performance"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss.type",
+   "id": "category_quality",
+   "values": {
+    "loss_type": "quality"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss.type",
+   "id": "category_productive",
+   "values": {
+    "loss_type": "productive"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss",
+   "id": "block_reason0",
+   "values": {
+    "name": "Material Availability",
+    "loss_id": {
+     "$ref": "mrp.category_availability"
+    },
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss",
+   "id": "block_reason1",
+   "values": {
+    "name": "Equipment Failure",
+    "loss_id": {
+     "$ref": "mrp.category_availability"
+    },
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss",
+   "id": "block_reason2",
+   "values": {
+    "name": "Setup and Adjustments",
+    "loss_id": {
+     "$ref": "mrp.category_availability"
+    },
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss",
+   "id": "block_reason4",
+   "values": {
+    "name": "Reduced Speed",
+    "loss_id": {
+     "$ref": "mrp.category_performance"
+    },
+    "manual": false,
+    "sequence": "5"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss",
+   "id": "block_reason5",
+   "values": {
+    "name": "Process Defect",
+    "loss_id": {
+     "$ref": "mrp.category_quality"
+    },
+    "sequence": "6"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss",
+   "id": "block_reason6",
+   "values": {
+    "name": "Reduced Yield",
+    "loss_id": {
+     "$ref": "mrp.category_quality"
+    },
+    "sequence": "7"
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity.loss",
+   "id": "block_reason7",
+   "values": {
+    "name": "Fully Productive Time",
+    "loss_id": {
+     "$ref": "mrp.category_productive"
+    },
+    "manual": false,
+    "sequence": "0"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mrp_mo_in_confirmed",
+   "values": {
+    "name": "MO Confirmed",
+    "res_model": "mrp.production",
+    "default": false,
+    "sequence": 101,
+    "description": "MO Confirmed"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mrp_mo_in_progress",
+   "values": {
+    "name": "MO Progress",
+    "res_model": "mrp.production",
+    "default": false,
+    "sequence": 102,
+    "description": "MO Progress"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mrp_mo_in_to_close",
+   "values": {
+    "name": "MO To Close",
+    "res_model": "mrp.production",
+    "default": false,
+    "sequence": 103,
+    "description": "MO To Close"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mrp_mo_in_done",
+   "values": {
+    "name": "MO Done",
+    "res_model": "mrp.production",
+    "default": false,
+    "sequence": 104,
+    "description": "MO Done"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mrp_mo_in_cancelled",
+   "values": {
+    "name": "MO Cancelled",
+    "res_model": "mrp.production",
+    "default": false,
+    "sequence": 105,
+    "description": "MO Cancelled"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_change_production_qty",
+   "values": {
+    "name": "Change Quantity To Produce",
+    "res_model": "change.production.qty",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_mrp_block_workcenter",
+   "values": {
+    "name": "Block Workcenter",
+    "res_model": "mrp.workcenter.productivity",
+    "view_mode": "form",
+    "context": {
+     "$unevaluated": "{'default_workcenter_id': active_id}"
+    },
+    "view_id": {
+     "$unevaluated": "mrp_workcenter_block_wizard_form"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_mrp_block_workcenter_wo",
+   "values": {
+    "name": "Block Workcenter",
+    "res_model": "mrp.workcenter.productivity",
+    "view_mode": "form",
+    "view_id": {
+     "$unevaluated": "mrp_workcenter_block_wizard_form"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_production_backorder",
+   "values": {
+    "name": "You produced less than initial demand",
+    "res_model": "mrp.production.backorder",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_consumption_warning",
+   "values": {
+    "name": "Consumption Warning",
+    "res_model": "mrp.consumption.warning",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_batch_produce",
+   "values": {
+    "name": "Batch Production",
+    "res_model": "mrp.batch.produce",
+    "view_id": {
+     "$ref": "view_mrp_batch_produce_form"
+    },
+    "view_mode": "form",
+    "context": {},
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_production_split_multi",
+   "values": {
+    "name": "Split productions",
+    "res_model": "mrp.production.split.multi",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_production_split",
+   "values": {
+    "name": "Split production",
+    "res_model": "mrp.production.split",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_production_moves",
+   "values": {
+    "name": "Inventory Moves",
+    "res_model": "stock.move.line",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "['|', ('move_id.raw_material_production_id', '=', active_id), ('move_id.production_id', '=', active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_routing_time",
+   "values": {
+    "name": "Work Orders",
+    "res_model": "mrp.workorder",
+    "view_mode": "graph,pivot,list,form,calendar",
+    "context": {
+     "search_default_done": true
+    },
+    "search_view_id": {
+     "$ref": "view_mrp_production_work_order_search"
+    },
+    "domain": {
+     "$unevaluated": "[('operation_id.bom_id', '=', active_id), ('state', '=', 'done')]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_workorder_production_specific",
+   "values": {
+    "name": "Work Orders",
+    "res_model": "mrp.workorder",
+    "view_mode": "list,form,calendar,pivot,graph",
+    "domain": {
+     "$unevaluated": "[('production_id', '=', active_id)]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_workorder_workcenter",
+   "values": {
+    "name": "Work Orders Planning",
+    "res_model": "mrp.workorder",
+    "path": "workcenter-planning",
+    "view_mode": "list,form,calendar,pivot,graph",
+    "search_view_id": {
+     "$ref": "view_mrp_production_workorder_form_view_filter"
+    },
+    "context": {
+     "search_default_work_center": true,
+     "search_default_ready": true,
+     "search_default_waiting": true,
+     "search_default_progress": true,
+     "search_default_pending": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_workorder_production",
+   "values": {
+    "name": "Work Orders Planning",
+    "res_model": "mrp.workorder",
+    "path": "production-planning",
+    "domain": [
+     [
+      "production_state",
+      "not in",
+      [
+       "done",
+       "cancel"
+      ]
+     ]
+    ],
+    "view_mode": "list,form,calendar,pivot,graph",
+    "search_view_id": {
+     "$ref": "view_mrp_production_workorder_form_view_filter"
+    },
+    "context": {
+     "search_default_production": true,
+     "search_default_ready": true,
+     "search_default_waiting": true,
+     "search_default_progress": true,
+     "search_default_pending": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workorder_mrp_production_form",
+   "values": {
+    "name": "Work Orders",
+    "res_model": "mrp.workorder",
+    "view_mode": "form",
+    "target": "new",
+    "view_id": {
+     "$ref": "mrp_production_workorder_form_view_inherit"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workorder_todo",
+   "values": {
+    "name": "Work Orders",
+    "res_model": "mrp.workorder",
+    "view_mode": "list,kanban,form,calendar,pivot,graph",
+    "view_id": {
+     "$ref": "mrp.mrp_production_workorder_tree_view"
+    },
+    "search_view_id": {
+     "$ref": "view_mrp_production_workorder_form_view_filter"
+    },
+    "context": {
+     "search_default_ready": true,
+     "search_default_progress": true,
+     "search_default_pending": true,
+     "search_default_waiting": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_workcenter_load_report_graph",
+   "values": {
+    "name": "Work Center Loads",
+    "res_model": "mrp.workorder",
+    "view_mode": "graph,pivot",
+    "view_id": {
+     "$ref": "view_workcenter_load_pivot"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_mrp_workcenter_load_report_pivot",
+   "values": {
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "view_work_center_load_graph"
+    },
+    "act_window_id": {
+     "$ref": "action_mrp_workcenter_load_report_graph"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_start_workorders",
+   "values": {
+    "name": "Start",
+    "model_id": {
+     "$ref": "mrp.model_mrp_workorder"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_workorder"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "action = records.button_start(raise_on_invalid_state=True)"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_pause_workorders",
+   "values": {
+    "name": "Pause",
+    "model_id": {
+     "$ref": "mrp.model_mrp_workorder"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_workorder"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "action = records.button_pending()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "act_product_mrp_production_workcenter",
+   "values": {
+    "context": {
+     "search_default_confirmed": 1
+    },
+    "name": "Manufacturing Orders",
+    "res_model": "mrp.production",
+    "view_mode": "list,kanban,form",
+    "domain": {
+     "$unevaluated": "[('bom_id', '!=', False), ('bom_id.operation_ids.workcenter_id', '=', active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_work_orders",
+   "values": {
+    "name": "Work Orders",
+    "res_model": "mrp.workorder",
+    "view_mode": "list,form,pivot,graph,calendar",
+    "search_view_id": {
+     "$ref": "view_mrp_production_work_order_search"
+    },
+    "domain": [
+     [
+      "state",
+      "not in",
+      [
+       "done",
+       "cancel"
+      ]
+     ]
+    ],
+    "context": {
+     "$unevaluated": "{'search_default_workcenter_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workcenter_productivity_report_oee",
+   "values": {
+    "name": "Overall Equipment Effectiveness",
+    "res_model": "mrp.workcenter.productivity",
+    "view_id": {
+     "$unevaluated": "oee_pie_view"
+    },
+    "view_mode": "graph,pivot,list,form",
+    "domain": {
+     "$unevaluated": "[('workcenter_id','=',active_id)]"
+    },
+    "context": {
+     "search_default_thismonth": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workcenter_productivity_report_blocked",
+   "values": {
+    "name": "Productivity Losses",
+    "res_model": "mrp.workcenter.productivity",
+    "view_mode": "list,form,graph,pivot",
+    "context": {
+     "$unevaluated": "{'search_default_availability': '1',\n                                   'search_default_performance': '1',\n                                   'search_default_qu"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workorder_workcenter_report",
+   "values": {
+    "name": "Work Orders Performance",
+    "res_model": "mrp.workorder",
+    "domain": {
+     "$unevaluated": "[('workcenter_id','=', active_id),('state','=','done')]"
+    },
+    "view_mode": "graph,pivot,list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workorder_report",
+   "values": {
+    "name": "Work Orders",
+    "res_model": "mrp.workorder",
+    "domain": [],
+    "context": {
+     "search_default_workcenter": 1,
+     "search_default_ready": true,
+     "search_default_waiting": true,
+     "search_default_pending": true,
+     "search_default_progress": true
+    },
+    "view_mode": "graph,pivot,list,form",
+    "search_view_id": {
+     "$ref": "view_mrp_production_work_order_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workcenter_action",
+   "values": {
+    "name": "Work Centers",
+    "res_model": "mrp.workcenter",
+    "view_mode": "list,kanban,form",
+    "view_id": {
+     "$ref": "mrp_workcenter_tree_view"
+    },
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "mrp_workcenter_tree_view"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "mrp_workcenter_view_kanban"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "form",
+       "view_id": {
+        "$ref": "mrp_workcenter_view"
+       }
+      }
+     ]
+    ],
+    "search_view_id": {
+     "$ref": "view_mrp_workcenter_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workcenter_kanban_action",
+   "values": {
+    "name": "Work Centers Overview",
+    "path": "work-centers",
+    "res_model": "mrp.workcenter",
+    "view_mode": "kanban,form",
+    "view_id": {
+     "$ref": "mrp_workcenter_kanban"
+    },
+    "search_view_id": {
+     "$ref": "view_mrp_workcenter_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_workcenter_productivity_report",
+   "values": {
+    "name": "Overall Equipment Effectiveness",
+    "res_model": "mrp.workcenter.productivity",
+    "view_mode": "graph,pivot,list,form",
+    "domain": [],
+    "context": {
+     "search_default_workcenter_group": 1,
+     "search_default_loss_group": 2,
+     "create": false,
+     "edit": false
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_report_mrp_bom",
+   "values": {
+    "name": "BoM Overview",
+    "tag": "mrp_bom_report",
+    "context": {
+     "model": "report.mrp.report_bom_structure"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_bom_form_action",
+   "values": {
+    "name": "Bills of Materials",
+    "res_model": "mrp.bom",
+    "domain": [],
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "view_mrp_bom_filter"
+    },
+    "context": {
+     "$unevaluated": "{'default_company_id': allowed_company_ids[0]}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "template_open_bom",
+   "values": {
+    "context": {
+     "$unevaluated": "{'default_product_tmpl_id': active_id}"
+    },
+    "name": "Bill of Materials",
+    "res_model": "mrp.bom",
+    "domain": {
+     "$unevaluated": "['|', ('product_tmpl_id', '=', active_id), ('byproduct_ids.product_id.product_tmpl_id', '=', active_id)]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_open_bom",
+   "values": {
+    "context": {
+     "$unevaluated": "{'default_product_id': active_id}"
+    },
+    "name": "Bill of Materials",
+    "res_model": "mrp.bom",
+    "domain": []
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_report_mo_overview",
+   "values": {
+    "name": "MO Overview",
+    "tag": "mrp_mo_overview",
+    "context": {
+     "model": "report.mrp.report_mo_overview"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_mrp_display",
+   "values": {
+    "name": "Mrp Display",
+    "tag": "mrp_display",
+    "res_model": "mrp.production"
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_mrp_display_fullscreen",
+   "values": {
+    "name": "Manufacturing",
+    "tag": "mrp_display",
+    "target": "fullscreen"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_production_order_split",
+   "values": {
+    "name": "Split",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "list,form",
+    "state": "code",
+    "code": "action = records.action_split()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_print_labels",
+   "values": {
+    "name": "Labels",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "list,form",
+    "binding_type": "report",
+    "state": "code",
+    "code": "if records:\n                action = records.action_open_label_type()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_production_order_lock_unlock",
+   "values": {
+    "name": "Lock/Unlock",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "if records:\n                records.action_toggle_is_locked()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_production_order_scrap",
+   "values": {
+    "name": "Scrap",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "if records:\n                action = records.button_scrap()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_print_labels",
+   "values": {
+    "name": "Print Labels",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "form",
+    "state": "code",
+    "code": "if records:\n                action = records.action_open_label_type()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_plan_with_components_availability",
+   "values": {
+    "name": "Plan based on Components Availability",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "list,form",
+    "state": "code",
+    "code": "action = records.action_plan_with_components_availability()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_production_order_merge",
+   "values": {
+    "name": "Merge",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "action = records.action_merge()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_production_order_mark_done",
+   "values": {
+    "name": "Mark as Done",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "if records:\n                res = records.filtered(lambda mo: mo.state in {'confirmed', 'to_close', 'progress'}).button_mark_done()\n                if res is not True:\n                    action = res"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_production_action",
+   "values": {
+    "name": "Manufacturing Orders",
+    "path": "manufacturing",
+    "res_model": "mrp.production",
+    "view_mode": "list,kanban,form,calendar,pivot,graph,activity",
+    "view_id": false,
+    "search_view_id": {
+     "$ref": "view_mrp_production_filter"
+    },
+    "context": {
+     "$unevaluated": "{'search_default_todo': True, 'default_company_id': allowed_company_ids[0]}"
+    },
+    "domain": [
+     [
+      "picking_type_id.active",
+      "=",
+      true
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_production_action_picking_deshboard",
+   "values": {
+    "name": "Manufacturing Orders",
+    "res_model": "mrp.production",
+    "view_mode": "list,kanban,form",
+    "view_id": false,
+    "search_view_id": {
+     "$ref": "view_mrp_production_filter"
+    },
+    "domain": {
+     "$unevaluated": "[('picking_type_id', '=', active_id)]"
+    },
+    "context": {
+     "$unevaluated": "{'default_picking_type_id': active_id}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "mrp_production_action_unreserve_tree",
+   "values": {
+    "name": "Unreserve",
+    "model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_model_id": {
+     "$ref": "mrp.model_mrp_production"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "if records:\n                records.do_unreserve()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_production_form",
+   "values": {
+    "name": "Manufacturing Orders",
+    "res_model": "mrp.production",
+    "view_mode": "form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_routing_action",
+   "values": {
+    "name": "Operations",
+    "res_model": "mrp.routing.workcenter",
+    "view_mode": "list,form",
+    "view_id": {
+     "$ref": "mrp_routing_workcenter_tree_view"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    },
+    "domain": [
+     "|",
+     [
+      "bom_id",
+      "=",
+      false
+     ],
+     [
+      "bom_id.active",
+      "=",
+      true
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_template_action",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "search_view_id": {
+     "$ref": "mrp_product_template_search_view"
+    },
+    "view_mode": "kanban,list,form",
+    "context": {
+     "search_default_goods": 1,
+     "default_is_storable": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_product_variant_action",
+   "values": {
+    "name": "Product Variants",
+    "res_model": "product.product",
+    "search_view_id": {
+     "$ref": "mrp_product_product_search_view"
+    },
+    "view_mode": "kanban,list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_mrp_operation",
+   "values": {
+    "name": "Manufacturings",
+    "res_model": "mrp.production",
+    "view_mode": "list,kanban,form,calendar,activity",
+    "domain": "",
+    "context": {
+     "$unevaluated": "{'default_company_id': allowed_company_ids[0]}"
+    },
+    "search_view_id": {
+     "$ref": "mrp.view_mrp_production_filter"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_picking_tree_mrp_operation_graph",
+   "values": {
+    "name": "Manufacturings",
+    "res_model": "mrp.production",
+    "view_mode": "list,kanban,form,calendar,activity",
+    "domain": "",
+    "context": {
+     "search_default_filter_confirmed": 1
+    },
+    "search_view_id": {
+     "$ref": "mrp.view_mrp_production_filter"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_unbuild_moves",
+   "values": {
+    "name": "Stock Moves",
+    "res_model": "stock.move.line",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "['|', ('move_id.unbuild_id', '=', active_id), ('move_id.consume_unbuild_id', '=', active_id)]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mrp_unbuild",
+   "values": {
+    "name": "Unbuild Orders",
+    "res_model": "mrp.unbuild",
+    "view_mode": "list,kanban,form,activity",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_mrp_configuration",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "mrp",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "mrp_reception_action",
+   "values": {
+    "name": "MRP Reception Report",
+    "tag": "reception_report",
+    "res_model": "report.stock.report_reception"
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "group_mrp_manager"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "group_mrp_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_user",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "mrp.group_mrp_routings"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.company",
+   "id": "stock.res_company_1",
+   "values": {
+    "manufacturing_lead": 1.0
+   }
+  },
+  {
+   "model": "mrp.workcenter",
+   "id": "mrp_workcenter_3",
+   "values": {
+    "name": "Assembly 1",
+    "resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std"
+    }
+   }
+  },
+  {
+   "model": "mrp.workcenter",
+   "id": "mrp_workcenter_1",
+   "values": {
+    "name": "Drill 1",
+    "resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std"
+    }
+   }
+  },
+  {
+   "model": "mrp.workcenter",
+   "id": "mrp_workcenter_2",
+   "values": {
+    "name": "Assembly 2",
+    "resource_calendar_id": {
+     "$ref": "resource.resource_calendar_std"
+    }
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product.product_product_3_product_template",
+   "values": {
+    "route_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "stock.route_warehouse0_mto"
+       },
+       {
+        "$ref": "mrp.route_warehouse0_manufacture"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_manufacture",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.product_product_3_product_template"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "produce_delay": "10"
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_0",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_manufacture"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "name": "Manual Assembly",
+    "time_cycle": "60",
+    "sequence": "5",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_manufacture_line_1",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_12"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "5",
+    "bom_id": {
+     "$ref": "mrp_bom_manufacture"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_manufacture_line_2",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_13"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "5",
+    "bom_id": {
+     "$ref": "mrp_bom_manufacture"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_manufacture_line_3",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_16"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "5",
+    "bom_id": {
+     "$ref": "mrp_bom_manufacture"
+    }
+   }
+  },
+  {
+   "model": "mrp.production",
+   "id": "mrp_production_1",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_3"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_qty": "3",
+    "bom_id": {
+     "$ref": "mrp_bom_manufacture"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_computer_desk",
+   "values": {
+    "name": "Table",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "290",
+    "list_price": "520",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Solid wood table.",
+    "default_code": "FURN_9666",
+    "tracking": "serial",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "stock.warehouse.orderpoint",
+   "id": "stock_warehouse_orderpoint_table",
+   "values": {
+    "product_max_qty": "0.0",
+    "product_min_qty": "0.0",
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "company_id": {
+     "$ref": "base.main_company"
+    },
+    "warehouse_id": {
+     "$ref": "stock.warehouse0"
+    },
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "product_id": {
+     "$ref": "product_product_computer_desk"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_computer_desk_head",
+   "values": {
+    "name": "Table Top",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "240",
+    "list_price": "380",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Solid wood is a durable natural material.",
+    "default_code": "FURN_8522",
+    "tracking": "serial",
+    "image_1920": "",
+    "route_ids": [
+     [
+      4,
+      {
+       "$ref": "mrp.route_warehouse0_manufacture"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_computer_desk_leg",
+   "values": {
+    "name": "Table Leg",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "10",
+    "list_price": "50",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "18\u2033 x 2\u00bd\u2033 Square Leg",
+    "default_code": "FURN_2333",
+    "tracking": "lot",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_1",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_computer_desk_leg_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "delay": "3",
+    "min_qty": "0",
+    "price": "8",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.supplierinfo",
+   "id": "product_supplierinfo_2",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_computer_desk_leg_product_template"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "delay": "2",
+    "min_qty": "0",
+    "price": "10",
+    "currency_id": {
+     "$ref": "base.USD"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_computer_desk_bolt",
+   "values": {
+    "name": "Bolt",
+    "categ_id": {
+     "$ref": "product.product_category_consumable"
+    },
+    "standard_price": "0.5",
+    "list_price": "0.5",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Stainless steel screw full (dia - 5mm, Length - 10mm)",
+    "default_code": "CONS_89957",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_computer_desk_screw",
+   "values": {
+    "name": "Screw",
+    "categ_id": {
+     "$ref": "product.product_category_consumable"
+    },
+    "standard_price": "0.1",
+    "list_price": "0.2",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Stainless steel screw",
+    "default_code": "CONS_25630",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_wood_ply",
+   "values": {
+    "name": "Ply Layer",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "10",
+    "list_price": "10",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Layers that are stick together to assemble wood panels.",
+    "default_code": "FURN_7111",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_wood_wear",
+   "values": {
+    "name": "Wear Layer",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "10",
+    "list_price": "10",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Top layer of a wood panel.",
+    "default_code": "FURN_8111",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_ply_veneer",
+   "values": {
+    "name": "Ply Veneer",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "10",
+    "list_price": "10",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_9111",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_wood_panel",
+   "values": {
+    "name": "Wood Panel",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "80",
+    "list_price": "100",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_7023",
+    "image_1920": "",
+    "route_ids": [
+     [
+      4,
+      {
+       "$ref": "mrp.route_warehouse0_manufacture"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_plastic_laminate",
+   "values": {
+    "name": "Plastic Laminate",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "3000",
+    "list_price": "1000",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_8621",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product_product_computer_desk_product_template",
+   "values": {
+    "route_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "stock.route_warehouse0_mto"
+       },
+       {
+        "$ref": "mrp.route_warehouse0_manufacture"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_desk",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_computer_desk_product_template"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "3",
+    "consumption": "flexible",
+    "days_to_prepare_mo": "3"
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_5",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_desk"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "time_cycle": "120",
+    "sequence": "10",
+    "name": "Assembly",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_desk_line_1",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_computer_desk_head"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "bom_id": {
+     "$ref": "mrp_bom_desk"
+    },
+    "operation_id": {
+     "$ref": "mrp.mrp_routing_workcenter_5"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_desk_line_2",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_computer_desk_leg"
+    },
+    "product_qty": "4",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "2",
+    "bom_id": {
+     "$ref": "mrp_bom_desk"
+    },
+    "operation_id": {
+     "$ref": "mrp.mrp_routing_workcenter_5"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_desk_line_3",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_computer_desk_bolt"
+    },
+    "product_qty": "4",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "3",
+    "bom_id": {
+     "$ref": "mrp_bom_desk"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_desk_line_4",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_computer_desk_screw"
+    },
+    "product_qty": "10",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "4",
+    "bom_id": {
+     "$ref": "mrp_bom_desk"
+    }
+   }
+  },
+  {
+   "model": "mrp.production",
+   "id": "mrp_production_3",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_computer_desk"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_qty": "1",
+    "date_start": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "bom_id": {
+     "$ref": "mrp_bom_desk"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_table_top",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_computer_desk_head_product_template"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_0",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_table_top"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "name": "Manual Assembly",
+    "time_cycle": "60",
+    "sequence": "5",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_line_wood_panel",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_wood_panel"
+    },
+    "product_qty": "2",
+    "manual_consumption": "True",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "bom_id": {
+     "$ref": "mrp_bom_table_top"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_line_plastic_laminate",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_plastic_laminate"
+    },
+    "product_qty": "4",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "2",
+    "bom_id": {
+     "$ref": "mrp_bom_table_top"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_plastic_laminate",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_plastic_laminate_product_template"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_1",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_plastic_laminate"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "name": "Long time assembly",
+    "time_cycle": "180",
+    "sequence": "15",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_3",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_plastic_laminate"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "name": "Testing",
+    "time_cycle": "60",
+    "sequence": "10",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_4",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_plastic_laminate"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_1"
+    },
+    "name": "Packing",
+    "time_cycle": "30",
+    "sequence": "5",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_line_plastic_laminate",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_ply_veneer"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "bom_id": {
+     "$ref": "mrp_bom_plastic_laminate"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_wood_panel",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_wood_panel_product_template"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_line_wood_panel_ply",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_wood_ply"
+    },
+    "product_qty": "3",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "bom_id": {
+     "$ref": "mrp_bom_wood_panel"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_line_wood_panel_wear",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_wood_wear"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "bom_id": {
+     "$ref": "mrp_bom_wood_panel"
+    }
+   }
+  },
+  {
+   "model": "mrp.production",
+   "id": "mrp_production_4",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_computer_desk_head"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_qty": "1",
+    "location_src_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "bom_id": {
+     "$ref": "mrp_bom_table_top"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_table_kit",
+   "values": {
+    "name": "Table Kit",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "standard_price": "600.0",
+    "list_price": "147.0",
+    "type": "consu",
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Table kit",
+    "default_code": "FURN_78236",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.template",
+   "id": "product_product_table_kit_product_template",
+   "values": {
+    "route_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "mrp.route_warehouse0_manufacture"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_kit",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product_product_table_kit_product_template"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "2",
+    "type": "phantom"
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_kit_line_1",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_wood_panel"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "bom_id": {
+     "$ref": "mrp_bom_kit"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_kit_line_2",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_computer_desk_bolt"
+    },
+    "product_qty": "4",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "bom_id": {
+     "$ref": "mrp_bom_kit"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_drawer_drawer",
+   "values": {
+    "name": "Drawer Black",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "tracking": "lot",
+    "standard_price": "20.0",
+    "list_price": "24.0",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "description": "Drawer on casters for great usability.",
+    "default_code": "FURN_2100",
+    "barcode": "601647855646",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_drawer_case",
+   "values": {
+    "name": "Drawer Case Black",
+    "categ_id": {
+     "$ref": "product.product_category_5"
+    },
+    "tracking": "lot",
+    "standard_price": "10",
+    "list_price": "20",
+    "is_storable": true,
+    "weight": "0.01",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "default_code": "FURN_5623",
+    "barcode": "601647855647",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_27_0",
+   "values": {
+    "name": "0000000000030",
+    "product_id": {
+     "$ref": "product.product_product_27"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_27_1",
+   "values": {
+    "name": "0000000000031",
+    "product_id": {
+     "$ref": "product.product_product_27"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_drawer_drawer_0",
+   "values": {
+    "name": "0000000010001",
+    "product_id": {
+     "$ref": "product_product_drawer_drawer"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_drawer_case_0",
+   "values": {
+    "name": "0000000020045",
+    "product_id": {
+     "$ref": "product_product_drawer_case"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_drawer_lot0",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_27"
+    },
+    "inventory_quantity": "50.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_27_0"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_drawer_lot1",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_27"
+    },
+    "inventory_quantity": "40.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_27_1"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_product_drawer_drawer",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_drawer_drawer"
+    },
+    "inventory_quantity": "50.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_drawer_drawer_0"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_product_drawer_case",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_drawer_case"
+    },
+    "inventory_quantity": "50.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_drawer_case_0"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_product_wood_panel",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_wood_panel"
+    },
+    "inventory_quantity": "50.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_product_ply",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_wood_ply"
+    },
+    "inventory_quantity": "20.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "stock_inventory_product_wear",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_wood_wear"
+    },
+    "inventory_quantity": "30.0",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_drawer",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.product_product_27_product_template"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "code": "PRIM-ASSEM"
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_drawer_line_1",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_drawer_drawer"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "bom_id": {
+     "$ref": "mrp_bom_drawer"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_drawer_line_2",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_drawer_case"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "2",
+    "bom_id": {
+     "$ref": "mrp_bom_drawer"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom",
+   "id": "mrp_bom_drawer_rout",
+   "values": {
+    "product_tmpl_id": {
+     "$ref": "product.product_product_27_product_template"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "2",
+    "code": "SEC-ASSEM"
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_1",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_drawer_rout"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "name": "Long time assembly",
+    "time_cycle": "180",
+    "sequence": "15",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_3",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_drawer_rout"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "name": "Testing",
+    "time_cycle": "60",
+    "sequence": "10",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.routing.workcenter",
+   "id": "mrp_routing_workcenter_4",
+   "values": {
+    "bom_id": {
+     "$ref": "mrp_bom_drawer_rout"
+    },
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_1"
+    },
+    "name": "Packing",
+    "time_cycle": "30",
+    "sequence": "5",
+    "worksheet_type": "pdf",
+    "worksheet": ""
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_drawer_rout_line_1",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_drawer_drawer"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "1",
+    "bom_id": {
+     "$ref": "mrp_bom_drawer_rout"
+    }
+   }
+  },
+  {
+   "model": "mrp.bom.line",
+   "id": "mrp_bom_drawer_rout_line_2",
+   "values": {
+    "product_id": {
+     "$ref": "product_product_drawer_case"
+    },
+    "product_qty": "1",
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "sequence": "2",
+    "bom_id": {
+     "$ref": "mrp_bom_drawer_rout"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_27",
+   "values": {
+    "is_storable": true
+   }
+  },
+  {
+   "model": "mrp.production",
+   "id": "mrp_production_drawer",
+   "values": {
+    "product_id": {
+     "$ref": "product.product_product_27"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_qty": "5",
+    "location_src_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "location_dest_id": {
+     "$ref": "stock.stock_location_stock"
+    },
+    "bom_id": {
+     "$ref": "mrp_bom_drawer"
+    }
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity",
+   "id": "mrp_workcenter_efficiency_0",
+   "values": {
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "loss_id": {
+     "$ref": "block_reason7"
+    },
+    "date_start": {
+     "$unevaluated": "(datetime.now() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M:%S')"
+    },
+    "date_end": {
+     "$unevaluated": "(datetime.now() - relativedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity",
+   "id": "mrp_workcenter_efficiency_1",
+   "values": {
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "loss_id": {
+     "$ref": "block_reason0"
+    },
+    "date_start": {
+     "$unevaluated": "(datetime.now() - timedelta(hours=5)).strftime('%Y-%m-%d %H:%M:%S')"
+    },
+    "date_end": {
+     "$unevaluated": "(datetime.now() - timedelta(hours=3)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity",
+   "id": "mrp_workcenter_efficiency_2",
+   "values": {
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_3"
+    },
+    "loss_id": {
+     "$ref": "block_reason1"
+    },
+    "date_start": {
+     "$unevaluated": "(datetime.now() - timedelta(days=5, hours=4)).strftime('%Y-%m-%d %H:%M:%S')"
+    },
+    "date_end": {
+     "$unevaluated": "(datetime.now() - timedelta(days=5, hours=3)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity",
+   "id": "mrp_workcenter_efficiency_3",
+   "values": {
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_1"
+    },
+    "loss_id": {
+     "$ref": "block_reason7"
+    },
+    "date_start": {
+     "$unevaluated": "(datetime.now() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M:%S')"
+    },
+    "date_end": {
+     "$unevaluated": "(datetime.now() - relativedelta(days=3)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity",
+   "id": "mrp_workcenter_efficiency_4",
+   "values": {
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_1"
+    },
+    "loss_id": {
+     "$ref": "block_reason0"
+    },
+    "date_start": {
+     "$unevaluated": "(datetime.now() - timedelta(days=5,hours=5)).strftime('%Y-%m-%d %H:%M:%S')"
+    },
+    "date_end": {
+     "$unevaluated": "(datetime.now() - timedelta(days=5,hours=1)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "mrp.workcenter.productivity",
+   "id": "mrp_workcenter_efficiency_5",
+   "values": {
+    "workcenter_id": {
+     "$ref": "mrp_workcenter_1"
+    },
+    "loss_id": {
+     "$ref": "block_reason1"
+    },
+    "date_start": {
+     "$unevaluated": "(datetime.now() - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_computer_desk_head_1",
+   "values": {
+    "name": "TT001",
+    "product_id": {
+     "$ref": "product_product_computer_desk_head"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_computer_desk_head_2",
+   "values": {
+    "name": "TT002",
+    "product_id": {
+     "$ref": "product_product_computer_desk_head"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_computer_desk_head_3",
+   "values": {
+    "name": "TT003",
+    "product_id": {
+     "$ref": "product_product_computer_desk_head"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_computer_desk_head_4",
+   "values": {
+    "name": "TT004",
+    "product_id": {
+     "$ref": "product_product_computer_desk_head"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_computer_desk_head_5",
+   "values": {
+    "name": "TT005",
+    "product_id": {
+     "$ref": "product_product_computer_desk_head"
+    }
+   }
+  },
+  {
+   "model": "stock.lot",
+   "id": "lot_product_product_computer_desk_1",
+   "values": {
+    "name": "T0001",
+    "product_id": {
+     "$ref": "product_product_computer_desk"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "mrp_inventory_1",
+   "values": {
+    "product_id": {
+     "$ref": "mrp.product_product_computer_desk_head"
+    },
+    "inventory_quantity": "1",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_computer_desk_head_1"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "mrp_inventory_2",
+   "values": {
+    "product_id": {
+     "$ref": "mrp.product_product_computer_desk_head"
+    },
+    "inventory_quantity": "1",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_computer_desk_head_2"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "mrp_inventory_3",
+   "values": {
+    "product_id": {
+     "$ref": "mrp.product_product_computer_desk_head"
+    },
+    "inventory_quantity": "1",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_computer_desk_head_3"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "mrp_inventory_4",
+   "values": {
+    "product_id": {
+     "$ref": "mrp.product_product_computer_desk_head"
+    },
+    "inventory_quantity": "1",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_computer_desk_head_4"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "mrp_inventory_5",
+   "values": {
+    "product_id": {
+     "$ref": "mrp.product_product_computer_desk_head"
+    },
+    "inventory_quantity": "1",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_computer_desk_head_5"
+    }
+   }
+  },
+  {
+   "model": "stock.quant",
+   "id": "mrp_inventory_6",
+   "values": {
+    "product_id": {
+     "$ref": "mrp.product_product_computer_desk"
+    },
+    "inventory_quantity": "1",
+    "location_id": {
+     "$unevaluated": "obj().env.ref('stock.warehouse0').lot_stock_id.id"
+    },
+    "lot_id": {
+     "$ref": "lot_product_product_computer_desk_1"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_mrp_root",
+   "name": "Manufacturing",
+   "sequence": "145",
+   "groups": "group_mrp_user,group_mrp_manager",
+   "web_icon": "mrp,static/description/icon.png"
+  },
+  {
+   "id": "menu_mrp_manufacturing",
+   "name": "Operations",
+   "sequence": "10",
+   "parent": "menu_mrp_root"
+  },
+  {
+   "id": "mrp_planning_menu_root",
+   "name": "Planning",
+   "sequence": "15",
+   "parent": "menu_mrp_root"
+  },
+  {
+   "id": "menu_mrp_bom",
+   "name": "Products",
+   "sequence": "20",
+   "parent": "menu_mrp_root"
+  },
+  {
+   "id": "menu_mrp_reporting",
+   "name": "Reporting",
+   "sequence": "25",
+   "parent": "menu_mrp_root"
+  },
+  {
+   "id": "menu_mrp_configuration",
+   "name": "Configuration",
+   "sequence": "100",
+   "groups": "group_mrp_manager",
+   "parent": "menu_mrp_root"
+  },
+  {
+   "id": "menu_mrp_traceability",
+   "name": "Lots/Serial Numbers",
+   "parent": "menu_mrp_bom",
+   "action": "stock.action_production_lot_form",
+   "sequence": "15",
+   "groups": "stock.group_production_lot"
+  },
+  {
+   "id": "menu_mrp_scrap",
+   "name": "Scrap",
+   "parent": "menu_mrp_manufacturing",
+   "action": "stock.action_stock_scrap",
+   "sequence": "25"
+  },
+  {
+   "id": "menu_procurement_compute_mrp",
+   "parent": "mrp_planning_menu_root",
+   "action": "stock.ir_cron_scheduler_action_ir_actions_server",
+   "sequence": "135",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_view_resource_search_mrp",
+   "parent": "menu_mrp_configuration",
+   "action": "mrp_workcenter_action",
+   "sequence": "90",
+   "groups": "group_mrp_routings"
+  },
+  {
+   "id": "menu_mrp_workcenter_productivity_report",
+   "parent": "menu_mrp_reporting",
+   "action": "mrp_workcenter_productivity_report",
+   "sequence": "12",
+   "groups": "group_mrp_routings"
+  },
+  {
+   "id": "menu_mrp_bom_form_action",
+   "parent": "menu_mrp_bom",
+   "action": "mrp_bom_form_action",
+   "sequence": "13"
+  },
+  {
+   "id": "menu_mrp_production_action",
+   "parent": "menu_mrp_manufacturing",
+   "action": "mrp_production_action",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_mrp_workorder_todo",
+   "name": "Work Orders",
+   "parent": "menu_mrp_manufacturing",
+   "action": "mrp_workorder_todo",
+   "groups": "group_mrp_routings"
+  },
+  {
+   "id": "menu_mrp_work_order_report",
+   "name": "Work Orders",
+   "parent": "menu_mrp_reporting",
+   "action": "mrp_workorder_report",
+   "sequence": "10",
+   "groups": "group_mrp_routings"
+  },
+  {
+   "id": "menu_mrp_routing_action",
+   "parent": "menu_mrp_configuration",
+   "action": "mrp_routing_action",
+   "sequence": "100",
+   "groups": "group_mrp_routings"
+  },
+  {
+   "id": "menu_mrp_product_form",
+   "name": "Products",
+   "parent": "menu_mrp_bom",
+   "action": "product_template_action",
+   "sequence": "1"
+  },
+  {
+   "id": "product_variant_mrp",
+   "name": "Product Variants",
+   "parent": "menu_mrp_bom",
+   "action": "mrp_product_variant_action",
+   "sequence": "2",
+   "groups": "product.group_product_variant"
+  },
+  {
+   "id": "mrp_operation_picking",
+   "name": "Manufacturings",
+   "parent": "stock.menu_stock_transfers",
+   "action": "action_picking_tree_mrp_operation",
+   "sequence": "25",
+   "groups": "stock.group_stock_manager,stock.group_stock_user"
+  },
+  {
+   "id": "menu_mrp_unbuild",
+   "name": "Unbuild Orders",
+   "parent": "menu_mrp_manufacturing",
+   "action": "mrp_unbuild",
+   "sequence": "20"
+  },
+  {
+   "id": "menu_mrp_config",
+   "name": "Settings",
+   "parent": "menu_mrp_configuration",
+   "action": "action_mrp_configuration",
+   "sequence": "0",
+   "groups": "base.group_system"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_mrp_workcenter_productivity_loss_manager",
+   "model": "mrp.workcenter.productivity.loss",
+   "model_xmlid": "model_mrp_workcenter_productivity_loss",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_workcenter_productivity_loss",
+   "model": "mrp.workcenter.productivity.loss",
+   "model_xmlid": "model_mrp_workcenter_productivity_loss",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_workcenter_productivity_loss_type",
+   "model": "mrp.workcenter.productivity.loss.type",
+   "model_xmlid": "model_mrp_workcenter_productivity_loss_type",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_workcenter_productivity",
+   "model": "mrp.workcenter.productivity",
+   "model_xmlid": "model_mrp_workcenter_productivity",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_workcenter",
+   "model": "mrp.workcenter",
+   "model_xmlid": "model_mrp_workcenter",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_routing_workcenter",
+   "model": "mrp.routing.workcenter",
+   "model_xmlid": "model_mrp_routing_workcenter",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_bom",
+   "model": "mrp.bom",
+   "model_xmlid": "model_mrp_bom",
+   "group": "group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_bom_line",
+   "model": "mrp.bom.line",
+   "model_xmlid": "model_mrp_bom_line",
+   "group": "group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_bom_byproduct_user",
+   "model": "mrp.bom.byproduct",
+   "model_xmlid": "model_mrp_bom_byproduct",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_production",
+   "model": "mrp.production",
+   "model_xmlid": "model_mrp_production",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_workcenter_manager",
+   "model": "mrp.workcenter",
+   "model_xmlid": "model_mrp_workcenter",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_routing_workcenter_manager",
+   "model": "mrp.routing.workcenter",
+   "model_xmlid": "model_mrp_routing_workcenter",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_bom_manager",
+   "model": "mrp.bom",
+   "model_xmlid": "model_mrp_bom",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_bom_line_manager",
+   "model": "mrp.bom.line",
+   "model_xmlid": "model_mrp_bom_line",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_bom_byproduct_manager",
+   "model": "mrp.bom.byproduct",
+   "model_xmlid": "model_mrp_bom_byproduct",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_production_stock_worker",
+   "model": "mrp.production",
+   "model_xmlid": "model_mrp_production",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_user",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_template_user",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_uom_uom_user",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_supplierinfo_user",
+   "model": "product.product.supplierinfo",
+   "model_xmlid": "product.model_product_supplierinfo",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_res_partner",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_workorder_mrp_user",
+   "model": "mrp.workorder",
+   "model_xmlid": "model_mrp_workorder",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_workorder_mrp_manager",
+   "model": "mrp.workorder",
+   "model_xmlid": "model_mrp_workorder",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_resource_calendar_leaves_user",
+   "model": "resource.resource.calendar.leaves",
+   "model_xmlid": "resource.model_resource_calendar_leaves",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_resource_calendar_leaves_manager",
+   "model": "resource.resource.calendar.leaves",
+   "model_xmlid": "resource.model_resource_calendar_leaves",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_calendar_attendance_mrp_user",
+   "model": "resource.resource.calendar.attendance",
+   "model_xmlid": "resource.model_resource_calendar_attendance",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_resource_calendar_attendance_manager",
+   "model": "resource.resource.calendar.attendance",
+   "model_xmlid": "resource.model_resource_calendar_attendance",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_uom_category",
+   "model": "uom.uom.category",
+   "model_xmlid": "uom.model_uom_category",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_resource",
+   "model": "resource.resource.resource",
+   "model_xmlid": "resource.model_resource_resource",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_resource_resource_manager",
+   "model": "resource.resource.resource",
+   "model_xmlid": "resource.model_resource_resource",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_supplierinfo_manager",
+   "model": "product.product.supplierinfo",
+   "model_xmlid": "product.model_product_supplierinfo",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_production_manager",
+   "model": "mrp.production",
+   "model_xmlid": "model_mrp_production",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_bom_stockuser",
+   "model": "mrp.bom",
+   "model_xmlid": "model_mrp_bom",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_bom_line_stockuser",
+   "model": "mrp.bom.line",
+   "model_xmlid": "model_mrp_bom_line",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_uom_category_mrp_manager",
+   "model": "uom.uom.category",
+   "model_xmlid": "uom.model_uom_category",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_uom_uom_mrp_manager",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_category_mrp_manager",
+   "model": "product.product.category",
+   "model_xmlid": "product.model_product_category",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_mrp_manager",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_mrp_manager",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_packaging_mrp_manager",
+   "model": "product.product.packaging",
+   "model_xmlid": "product.model_product_packaging",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_mrp_manager",
+   "model": "product.product.pricelist",
+   "model_xmlid": "product.model_product_pricelist",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_group_res_partner_mrp_manager",
+   "model": "base.res.partner",
+   "model_xmlid": "base.model_res_partner",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_product_pricelist_item_mrp_manager",
+   "model": "product.product.pricelist.item",
+   "model_xmlid": "product.model_product_pricelist_item",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_tag_mrp_manager",
+   "model": "product.product.tag",
+   "model_xmlid": "product.model_product_tag",
+   "group": "group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_resource_calendar_manufacturinguser",
+   "model": "resource.resource.calendar",
+   "model_xmlid": "resource.model_resource_calendar",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_unbuild",
+   "model": "mrp.unbuild",
+   "model_xmlid": "model_mrp_unbuild",
+   "group": "group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_unbuild_manager",
+   "model": "mrp.unbuild",
+   "model_xmlid": "model_mrp_unbuild",
+   "group": "group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_document_mrp_manager",
+   "model": "product.document",
+   "model_xmlid": "model_product_document",
+   "group": "group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_document_mrp_user",
+   "model": "product.document",
+   "model_xmlid": "model_product_document",
+   "group": "group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_change_production_qty",
+   "model": "change.production.qty",
+   "model_xmlid": "model_change_production_qty",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_warn_insufficient_qty_unbuild",
+   "model": "stock.warn.insufficient.qty.unbuild",
+   "model_xmlid": "model_stock_warn_insufficient_qty_unbuild",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_production_backorder",
+   "model": "mrp.production.backorder",
+   "model_xmlid": "model_mrp_production_backorder",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_production_backorder_line",
+   "model": "mrp.production.backorder.line",
+   "model_xmlid": "model_mrp_production_backorder_line",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_consumption_warning",
+   "model": "mrp.consumption.warning",
+   "model_xmlid": "model_mrp_consumption_warning",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_consumption_warning_line",
+   "model": "mrp.consumption.warning.line",
+   "model_xmlid": "model_mrp_consumption_warning_line",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_workcenter_tag_group_user",
+   "model": "mrp.workcenter.tag",
+   "model_xmlid": "model_mrp_workcenter_tag",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_workcenter_tag_manager",
+   "model": "mrp.workcenter.tag",
+   "model_xmlid": "model_mrp_workcenter_tag",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_production_split_multi",
+   "model": "mrp.production.split.multi",
+   "model_xmlid": "model_mrp_production_split_multi",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_production_split",
+   "model": "mrp.production.split",
+   "model_xmlid": "model_mrp_production_split",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_production_split_line",
+   "model": "mrp.production.split.line",
+   "model_xmlid": "model_mrp_production_split_line",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_workcenter_capacity_manager",
+   "model": "mrp.workcenter.capacity",
+   "model_xmlid": "model_mrp_workcenter_capacity",
+   "group": "mrp.group_mrp_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_mrp_workcenter_capacity_group_user",
+   "model": "mrp.workcenter.capacity",
+   "model_xmlid": "model_mrp_workcenter_capacity",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_mrp_batch_produce",
+   "model": "mrp.batch.produce",
+   "model_xmlid": "model_mrp_batch_produce",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_move_mrp_user",
+   "model": "stock.stock.move",
+   "model_xmlid": "stock.model_stock_move",
+   "group": "mrp.group_mrp_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

@@ -1,0 +1,214 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/hr_recruitment_survey_security.xml",
+  "data/mail_template_data.xml",
+  "views/hr_job_views.xml",
+  "views/hr_applicant_views.xml",
+  "views/res_config_setting_views.xml",
+  "views/survey_survey_views.xml",
+  "views/survey_templates_statistics.xml",
+  "data/survey_demo.xml",
+  "data/hr_job_demo.xml"
+ ],
+ "depends": [
+  "survey",
+  "hr_recruitment"
+ ],
+ "models": {
+  "hr.applicant": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "response_ids": {
+     "comodel": "survey.user_input",
+     "inverse_name": "applicant_id",
+     "string": "Responses",
+     "type": "One2many"
+    },
+    "survey_id": {
+     "comodel": "survey.survey",
+     "readonly": true,
+     "related": "job_id.survey_id",
+     "string": "Survey",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_print_survey"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 35,
+     "name": "action_send_survey"
+    }
+   ],
+   "name": "hr.applicant",
+   "transient": false
+  },
+  "hr.job": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "survey_id": {
+     "comodel": "survey.survey",
+     "help": "Choose an interview form for this job position and you will be able to print/answer this interview from all applicants who apply for this job",
+     "string": "Interview Form",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_test_survey"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_new_survey"
+    }
+   ],
+   "name": "hr.job",
+   "transient": false
+  },
+  "survey.invite": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "applicant_id": {
+     "comodel": "hr.applicant",
+     "string": "Applicant",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_done_partners_emails"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_send_mail"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 21,
+     "name": "action_invite"
+    }
+   ],
+   "name": "survey.invite",
+   "transient": false
+  },
+  "survey.survey": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "hr_job_ids": {
+     "comodel": "hr.job",
+     "inverse_name": "survey_id",
+     "string": "Job Position",
+     "type": "One2many"
+    },
+    "survey_type": {
+     "ondelete": {
+      "recruitment": "set default"
+     },
+     "selection_add": [
+      [
+       "recruitment",
+       "Recruitment"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('survey_type')",
+      "api.depends_context('uid')"
+     ],
+     "lines": 5,
+     "name": "_compute_allowed_survey_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_formview_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_survey_user_input_completed"
+    }
+   ],
+   "name": "survey.survey",
+   "transient": false
+  },
+  "survey.user_input": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "applicant_id": {
+     "comodel": "hr.applicant",
+     "index": "btree_not_null",
+     "string": "Applicant",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_mark_done"
+    }
+   ],
+   "name": "survey.user_input",
+   "sel_methods": {
+    "_mark_done": []
+   },
+   "transient": false
+  }
+ },
+ "module": "hr_recruitment_survey",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_recruitment_survey",
+ "stats": {
+  "fields": 7,
+  "methods": 11,
+  "models": 5,
+  "py_lines": 229
+ },
+ "summary": "Surveys",
+ "title": "Hr Recruitment Interview Forms",
+ "version": "1.0"
+}

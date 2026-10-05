@@ -1,0 +1,109 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "views/account_tax_views.xml"
+ ],
+ "depends": [
+  "account"
+ ],
+ "models": {
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "amount_type": {
+     "ondelete": {
+      "$expr": "{'code': lambda recs: recs.write({'amount_type': 'percent', 'active': False})}"
+     },
+     "selection_add": [
+      [
+       "code",
+       "Custom Formula"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "formula": {
+     "default": "price_unit * 0.10",
+     "help": "Compute the amount of the tax.\n\n:param base: float, actual amount on which the tax is applied\n:param price_unit: float\n:param quantity: float\n:param product: A object representing the product\n",
+     "string": "Formula",
+     "type": "Text"
+    },
+    "formula_decoded_info": {
+     "compute": "_compute_formula_decoded_info",
+     "type": "Json"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('amount_type', 'formula')"
+     ],
+     "lines": 4,
+     "name": "_check_amount_type_code_formula"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_eval_taxes_computation_prepare_product_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_eval_taxes_computation_prepare_product_uom_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('formula')"
+     ],
+     "lines": 33,
+     "name": "_compute_formula_decoded_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 53,
+     "name": "_check_formula"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 32,
+     "name": "_eval_tax_amount_formula"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_eval_tax_amount_fixed_amount"
+    }
+   ],
+   "name": "account.tax",
+   "sel_methods": {
+    "_eval_tax_amount_fixed_amount": []
+   },
+   "transient": false
+  }
+ },
+ "module": "account_tax_python",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/account_tax_python",
+ "stats": {
+  "fields": 3,
+  "methods": 7,
+  "models": 1,
+  "py_lines": 192
+ },
+ "summary": "Use python code to define taxes",
+ "title": "Define Taxes as Python Code",
+ "version": "1.0"
+}

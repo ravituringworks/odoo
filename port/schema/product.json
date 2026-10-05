@@ -1,0 +1,4479 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "data/product_data.xml",
+  "security/product_security.xml",
+  "security/ir.model.access.csv",
+  "wizard/product_label_layout_views.xml",
+  "wizard/update_product_attribute_value_views.xml",
+  "views/product_tag_views.xml",
+  "views/product_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/product_attribute_views.xml",
+  "views/product_attribute_value_views.xml",
+  "views/product_category_views.xml",
+  "views/product_combo_views.xml",
+  "views/product_document_views.xml",
+  "views/product_packaging_views.xml",
+  "views/product_pricelist_item_views.xml",
+  "views/product_pricelist_views.xml",
+  "views/product_supplierinfo_views.xml",
+  "views/product_template_attribute_line_views.xml",
+  "views/product_template_views.xml",
+  "views/res_country_group_views.xml",
+  "views/res_partner_views.xml",
+  "report/product_reports.xml",
+  "report/product_product_templates.xml",
+  "report/product_template_templates.xml",
+  "report/product_packaging.xml",
+  "report/product_pricelist_report_templates.xml",
+  "data/product_attribute_demo.xml",
+  "data/product_category_demo.xml",
+  "data/product_demo.xml",
+  "data/product_document_demo.xml",
+  "data/product_supplierinfo_demo.xml"
+ ],
+ "depends": [
+  "base",
+  "mail",
+  "uom"
+ ],
+ "models": {
+  "decimal.precision": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('digits')"
+     ],
+     "lines": 6,
+     "name": "_check_main_currency_rounding"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('digits')"
+     ],
+     "lines": 21,
+     "name": "_onchange_digits"
+    }
+   ],
+   "name": "decimal.precision",
+   "transient": false
+  },
+  "ir.attachment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 16,
+     "name": "create"
+    }
+   ],
+   "name": "ir.attachment",
+   "transient": false
+  },
+  "product.attribute": {
+   "abstract": false,
+   "description": "Product Attribute",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If unchecked, it will allow you to hide the attribute without removing it.",
+     "type": "Boolean"
+    },
+    "attribute_line_ids": {
+     "comodel": "product.template.attribute.line",
+     "inverse_name": "attribute_id",
+     "string": "Lines",
+     "type": "One2many"
+    },
+    "create_variant": {
+     "default": "always",
+     "help": "- Instantly: All possible variants are created as soon as the attribute and its values are added to a product.\n        - Dynamically: Each variant is created only when its corresponding attributes and values are added to a sales order.\n        - Never: Variants are never created for the attribute.\n        Note: this cannot be changed once the attribute is used on a product.",
+     "required": true,
+     "selection": [
+      [
+       "always",
+       "Instantly"
+      ],
+      [
+       "dynamic",
+       "Dynamically"
+      ],
+      [
+       "no_variant",
+       "Never"
+      ]
+     ],
+     "string": "Variant Creation",
+     "type": "Selection"
+    },
+    "display_type": {
+     "default": "radio",
+     "help": "The display type used in the Product Configurator.",
+     "required": true,
+     "selection": [
+      [
+       "radio",
+       "Radio"
+      ],
+      [
+       "pills",
+       "Pills"
+      ],
+      [
+       "select",
+       "Select"
+      ],
+      [
+       "color",
+       "Color"
+      ],
+      [
+       "multi",
+       "Multi-checkbox"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Attribute",
+     "translate": true,
+     "type": "Char"
+    },
+    "number_related_products": {
+     "compute": "_compute_number_related_products",
+     "type": "Integer"
+    },
+    "product_tmpl_ids": {
+     "comodel": "product.template",
+     "compute": "_compute_products",
+     "store": true,
+     "string": "Related Products",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "default": 20,
+     "help": "Determine the display order",
+     "index": true,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "template_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "inverse_name": "attribute_id",
+     "string": "Template Values",
+     "type": "One2many"
+    },
+    "value_ids": {
+     "comodel": "product.attribute.value",
+     "copy": true,
+     "inverse_name": "attribute_id",
+     "string": "Values",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_tmpl_ids')"
+     ],
+     "lines": 11,
+     "name": "_compute_number_related_products"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attribute_line_ids.active', 'attribute_line_ids.product_tmpl_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_products"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('display_type')"
+     ],
+     "lines": 3,
+     "name": "_onchange_display_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 9,
+     "name": "_unlink_except_used_on_product"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_archive"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_product_template_attribute_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_without_no_variant_attributes"
+    }
+   ],
+   "name": "product.attribute",
+   "order": "sequence, id",
+   "sql_constraints": [
+    [
+     "check_multi_checkbox_no_variant",
+     "CHECK(display_type != 'multi' OR create_variant = 'no_variant')",
+     "Multi-checkbox display type is not compatible with the creation of variants"
+    ]
+   ],
+   "transient": false
+  },
+  "product.attribute.custom.value": {
+   "abstract": false,
+   "description": "Product Attribute Custom Value",
+   "extension": false,
+   "fields": {
+    "custom_product_template_attribute_value_id": {
+     "comodel": "product.template.attribute.value",
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Attribute Value",
+     "type": "Many2one"
+    },
+    "custom_value": {
+     "string": "Custom Value",
+     "type": "Char"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "string": "Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('custom_product_template_attribute_value_id.name', 'custom_value')"
+     ],
+     "lines": 6,
+     "name": "_compute_name"
+    }
+   ],
+   "name": "product.attribute.custom.value",
+   "order": "custom_product_template_attribute_value_id, id",
+   "transient": false
+  },
+  "product.attribute.value": {
+   "abstract": false,
+   "description": "Attribute Value",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "attribute_id": {
+     "comodel": "product.attribute",
+     "help": "The attribute cannot be changed once the value is used on at least one product.",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Attribute",
+     "type": "Many2one"
+    },
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "default_extra_price": {
+     "type": "Float"
+    },
+    "default_extra_price_changed": {
+     "compute": "_compute_default_extra_price_changed",
+     "type": "Boolean"
+    },
+    "display_type": {
+     "related": "attribute_id.display_type",
+     "type": "Selection"
+    },
+    "html_color": {
+     "help": "Here you can set a specific HTML color index (e.g. #ff0000) to display the color if the attribute type is 'Color'.",
+     "string": "Color",
+     "type": "Char"
+    },
+    "image": {
+     "help": "You can upload an image that will be used as the color of the attribute value.",
+     "string": "Image",
+     "type": "Image"
+    },
+    "is_custom": {
+     "help": "Allow customers to set their own value",
+     "string": "Free text",
+     "type": "Boolean"
+    },
+    "is_used_on_products": {
+     "compute": "_compute_is_used_on_products",
+     "string": "Used on Products",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Value",
+     "translate": true,
+     "type": "Char"
+    },
+    "pav_attribute_line_ids": {
+     "comodel": "product.template.attribute.line",
+     "copy": false,
+     "relation_table": "product_attribute_value_product_template_attribute_line_rel",
+     "string": "Lines",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "help": "Determine the display order",
+     "index": true,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attribute_id')",
+      "api.depends_context('show_attribute')"
+     ],
+     "lines": 13,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pav_attribute_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_used_on_products"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('default_extra_price')"
+     ],
+     "lines": 13,
+     "name": "_compute_default_extra_price_changed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "check_is_used_on_products"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_used_on_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_without_no_variant_attributes"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_add_to_products"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_update_prices"
+    }
+   ],
+   "name": "product.attribute.value",
+   "order": "attribute_id, sequence, id",
+   "transient": false
+  },
+  "product.catalog.mixin": {
+   "abstract": true,
+   "description": "Product Catalog Mixin",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_add_from_catalog"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_order_line_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_product_catalog_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_product_catalog_record_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_get_product_catalog_order_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_get_product_catalog_order_line_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_action_add_from_catalog_extra_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_is_readonly"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_update_order_line_info"
+    }
+   ],
+   "name": "product.catalog.mixin",
+   "transient": false
+  },
+  "product.category": {
+   "abstract": false,
+   "description": "Product Category",
+   "extension": false,
+   "fields": {
+    "child_id": {
+     "comodel": "product.category",
+     "inverse_name": "parent_id",
+     "string": "Child Categories",
+     "type": "One2many"
+    },
+    "complete_name": {
+     "compute": "_compute_complete_name",
+     "store": true,
+     "string": "Complete Name",
+     "type": "Char"
+    },
+    "name": {
+     "index": "trigram",
+     "required": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "parent_id": {
+     "comodel": "product.category",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Parent Category",
+     "type": "Many2one"
+    },
+    "parent_path": {
+     "index": true,
+     "type": "Char"
+    },
+    "product_count": {
+     "compute": "_compute_product_count",
+     "help": "The number of products under this category (Does not consider the children categories)",
+     "string": "# Products",
+     "type": "Integer"
+    },
+    "product_properties_definition": {
+     "string": "Product Properties",
+     "type": "PropertiesDefinition"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'parent_id.complete_name')"
+     ],
+     "lines": 6,
+     "name": "_compute_complete_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_product_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('parent_id')"
+     ],
+     "lines": 3,
+     "name": "_check_category_recursion"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "name_create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('hierarchical_naming')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 10,
+     "name": "_unlink_except_default_category"
+    }
+   ],
+   "name": "product.category",
+   "order": "complete_name",
+   "parent_name": "parent_id",
+   "parent_store": true,
+   "rec_name": "complete_name",
+   "transient": false
+  },
+  "product.combo": {
+   "abstract": false,
+   "description": "Product Combo",
+   "extension": false,
+   "fields": {
+    "base_price": {
+     "compute": "_compute_base_price",
+     "help": "The minimum price among the products in this combo. This value will be used to prorate the price of this combo with respect to the other combos in a combo product. This heuristic ensures that whatever product the user chooses in a combo, it will always be the same price.",
+     "string": "Combo Price",
+     "type": "Float"
+    },
+    "combo_item_count": {
+     "compute": "_compute_combo_item_count",
+     "string": "Product Count",
+     "type": "Integer"
+    },
+    "combo_item_ids": {
+     "comodel": "product.combo.item",
+     "copy": true,
+     "inverse_name": "combo_id",
+     "type": "One2many"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "index": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "sequence": {
+     "copy": false,
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('combo_item_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_combo_item_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('combo_item_ids')"
+     ],
+     "lines": 10,
+     "name": "_compute_base_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('combo_item_ids')"
+     ],
+     "lines": 3,
+     "name": "_check_combo_item_ids_not_empty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('combo_item_ids')"
+     ],
+     "lines": 4,
+     "name": "_check_combo_item_ids_no_duplicates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id')"
+     ],
+     "lines": 4,
+     "name": "_check_company_id"
+    }
+   ],
+   "name": "product.combo",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "product.combo.item": {
+   "abstract": false,
+   "description": "Product Combo Item",
+   "extension": false,
+   "fields": {
+    "combo_id": {
+     "comodel": "product.combo",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "company_id": {
+     "related": "combo_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "related": "product_id.currency_id",
+     "type": "Many2one"
+    },
+    "extra_price": {
+     "default": 0.0,
+     "string": "Extra Price",
+     "type": "Float"
+    },
+    "lst_price": {
+     "related": "product_id.lst_price",
+     "string": "Original Price",
+     "type": "Float"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": [
+      [
+       "type",
+       "!=",
+       "combo"
+      ]
+     ],
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('product_id')"
+     ],
+     "lines": 3,
+     "name": "_check_product_id_no_combo"
+    }
+   ],
+   "name": "product.combo.item",
+   "transient": false
+  },
+  "product.document": {
+   "abstract": false,
+   "description": "Product Document",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "ir_attachment_id": {
+     "comodel": "ir.attachment",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Related attachment",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {
+    "ir.attachment": "ir_attachment_id"
+   },
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('url')"
+     ],
+     "lines": 8,
+     "name": "_onchange_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "unlink"
+    }
+   ],
+   "name": "product.document",
+   "order": "sequence, name",
+   "transient": false
+  },
+  "product.label.layout": {
+   "abstract": false,
+   "description": "Choose the sheet layout to print the labels",
+   "extension": false,
+   "fields": {
+    "columns": {
+     "compute": "_compute_dimensions",
+     "type": "Integer"
+    },
+    "custom_quantity": {
+     "default": 1,
+     "required": true,
+     "string": "Quantity",
+     "type": "Integer"
+    },
+    "extra_html": {
+     "default": "",
+     "string": "Extra Content",
+     "type": "Html"
+    },
+    "pricelist_id": {
+     "comodel": "product.pricelist",
+     "string": "Pricelist",
+     "type": "Many2one"
+    },
+    "print_format": {
+     "default": "2x7xprice",
+     "required": true,
+     "selection": [
+      [
+       "dymo",
+       "Dymo"
+      ],
+      [
+       "2x7xprice",
+       "2 x 7 with price"
+      ],
+      [
+       "4x7xprice",
+       "4 x 7 with price"
+      ],
+      [
+       "4x12",
+       "4 x 12"
+      ],
+      [
+       "4x12xprice",
+       "4 x 12 with price"
+      ]
+     ],
+     "string": "Format",
+     "type": "Selection"
+    },
+    "product_ids": {
+     "comodel": "product.product",
+     "type": "Many2many"
+    },
+    "product_tmpl_ids": {
+     "comodel": "product.template",
+     "type": "Many2many"
+    },
+    "rows": {
+     "compute": "_compute_dimensions",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('print_format')"
+     ],
+     "lines": 8,
+     "name": "_compute_dimensions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_prepare_report_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "process"
+    }
+   ],
+   "name": "product.label.layout",
+   "transient": true
+  },
+  "product.packaging": {
+   "abstract": false,
+   "description": "Product Packaging",
+   "extension": false,
+   "fields": {
+    "barcode": {
+     "copy": false,
+     "help": "Barcode used for packaging identification. Scan this packaging barcode from a transfer in the Barcode app to move all the contained units",
+     "string": "Barcode",
+     "type": "Char"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "index": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Product Packaging",
+     "type": "Char"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_uom_id": {
+     "comodel": "uom.uom",
+     "readonly": true,
+     "related": "product_id.uom_id",
+     "type": "Many2one"
+    },
+    "qty": {
+     "default": 1,
+     "digits": "Product Unit of Measure",
+     "help": "Quantity of products contained in the packaging.",
+     "string": "Contained Quantity",
+     "type": "Float"
+    },
+    "sequence": {
+     "default": 1,
+     "help": "The first in the sequence is the default one.",
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('barcode')"
+     ],
+     "lines": 6,
+     "name": "_check_barcode_uniqueness"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_check_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_find_suitable_product_packaging"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_compute_qty"
+    }
+   ],
+   "name": "product.packaging",
+   "order": "product_id, sequence, id",
+   "sql_constraints": [
+    [
+     "positive_qty",
+     "CHECK(qty > 0)",
+     "Contained Quantity should be positive."
+    ],
+    [
+     "barcode_uniq",
+     "unique(barcode)",
+     "A barcode can only be assigned to one packaging."
+    ]
+   ],
+   "transient": false
+  },
+  "product.pricelist": {
+   "abstract": false,
+   "description": "Pricelist",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If unchecked, it will allow you to hide the pricelist without removing it.",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "tracking": 5,
+     "type": "Many2one"
+    },
+    "country_group_ids": {
+     "column1": "pricelist_id",
+     "column2": "res_country_group_id",
+     "comodel": "res.country.group",
+     "relation_table": "res_country_group_pricelist_rel",
+     "string": "Country Groups",
+     "tracking": 10,
+     "type": "Many2many"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "default": {
+      "$ref": "_default_currency_id"
+     },
+     "required": true,
+     "tracking": 1,
+     "type": "Many2one"
+    },
+    "item_ids": {
+     "comodel": "product.pricelist.item",
+     "copy": true,
+     "domain": [
+      "&",
+      "|",
+      [
+       "product_tmpl_id",
+       "=",
+       null
+      ],
+      [
+       "product_tmpl_id.active",
+       "=",
+       true
+      ],
+      "|",
+      [
+       "product_id",
+       "=",
+       null
+      ],
+      [
+       "product_id.active",
+       "=",
+       true
+      ]
+     ],
+     "inverse_name": "pricelist_id",
+     "string": "Pricelist Rules",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Pricelist Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 16,
+     "type": "Integer"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('currency_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_get_products_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_product_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_product_price_rule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_product_rule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 67,
+     "name": "_compute_price_rule"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_applicable_rules"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_applicable_rules_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_price_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_compute_price_rule_multi"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_get_country_pricelist_multi"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 35,
+     "name": "_get_partner_pricelist_multi"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_partner_pricelist_multi_search_domain_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_partner_pricelist_multi_filter_hook"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_import_templates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 12,
+     "name": "_unlink_except_used_as_rule_base"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_open_pricelist_report"
+    }
+   ],
+   "name": "product.pricelist",
+   "order": "sequence, id, name",
+   "sel_methods": {
+    "_get_partner_pricelist_multi_search_domain_hook": [
+     [
+      "active",
+      "="
+     ],
+     [
+      "company_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.pricelist.item": {
+   "abstract": false,
+   "description": "Pricelist Rule",
+   "extension": false,
+   "fields": {
+    "applied_on": {
+     "default": "3_global",
+     "help": "Pricelist Item applicable on selected option",
+     "required": true,
+     "selection": [
+      [
+       "3_global",
+       "All Products"
+      ],
+      [
+       "2_product_category",
+       "Product Category"
+      ],
+      [
+       "1_product",
+       "Product"
+      ],
+      [
+       "0_product_variant",
+       "Product Variant"
+      ]
+     ],
+     "string": "Apply On",
+     "type": "Selection"
+    },
+    "base": {
+     "default": "list_price",
+     "help": "Base price for computation.\nSales Price: The base price will be the Sales Price.\nCost Price: The base price will be the cost price.\nOther Pricelist: Computation of the base price based on another Pricelist.",
+     "required": true,
+     "selection": [
+      [
+       "list_price",
+       "Sales Price"
+      ],
+      [
+       "standard_price",
+       "Cost"
+      ],
+      [
+       "pricelist",
+       "Other Pricelist"
+      ]
+     ],
+     "string": "Based on",
+     "type": "Selection"
+    },
+    "base_pricelist_id": {
+     "comodel": "product.pricelist",
+     "string": "Other Pricelist",
+     "type": "Many2one"
+    },
+    "categ_id": {
+     "comodel": "product.category",
+     "help": "Specify a product category if this rule only applies to products belonging to this category or its children categories. Keep empty otherwise.",
+     "ondelete": "cascade",
+     "string": "Category",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "related": "pricelist_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "compute_price": {
+     "default": "fixed",
+     "help": "Use the discount rules and activate the discount settings in order to show discount to customer.",
+     "index": true,
+     "required": true,
+     "selection": [
+      [
+       "percentage",
+       "Discount"
+      ],
+      [
+       "formula",
+       "Formula"
+      ],
+      [
+       "fixed",
+       "Fixed Price"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "currency_id": {
+     "related": "pricelist_id.currency_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "date_end": {
+     "help": "Ending datetime for the pricelist item validation\nThe displayed value depends on the timezone set in your preferences.",
+     "string": "End Date",
+     "type": "Datetime"
+    },
+    "date_start": {
+     "help": "Starting datetime for the pricelist item validation\nThe displayed value depends on the timezone set in your preferences.",
+     "string": "Start Date",
+     "type": "Datetime"
+    },
+    "display_applied_on": {
+     "default": "1_product",
+     "help": "Pricelist Item applicable on selected option",
+     "required": true,
+     "selection": [
+      [
+       "1_product",
+       "Product"
+      ],
+      [
+       "2_product_category",
+       "Category"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "fixed_price": {
+     "string": "Fixed Price",
+     "type": "Float"
+    },
+    "min_quantity": {
+     "default": 0,
+     "digits": "Product Unit of Measure",
+     "help": "For the rule to apply, bought/sold quantity must be greater than or equal to the minimum quantity specified in this field.\nExpressed in the default unit of measure of the product.",
+     "string": "Min. Quantity",
+     "type": "Float"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "help": "Explicit rule name for this pricelist line.",
+     "string": "Name",
+     "type": "Char"
+    },
+    "percent_price": {
+     "help": "You can apply a mark-up by setting a negative discount.",
+     "string": "Percentage Price",
+     "type": "Float"
+    },
+    "price": {
+     "compute": "_compute_price_label",
+     "help": "Explicit rule name for this pricelist line.",
+     "string": "Price",
+     "type": "Char"
+    },
+    "price_discount": {
+     "default": 0,
+     "digits": [
+      16,
+      2
+     ],
+     "help": "You can apply a mark-up by setting a negative discount.",
+     "string": "Price Discount",
+     "type": "Float"
+    },
+    "price_markup": {
+     "compute": "_compute_price_markup",
+     "digits": [
+      16,
+      2
+     ],
+     "help": "You can apply a mark-up on the cost",
+     "store": true,
+     "string": "Markup",
+     "type": "Float"
+    },
+    "price_max_margin": {
+     "help": "Specify the maximum amount of margin over the base price.",
+     "string": "Max. Price Margin",
+     "type": "Float"
+    },
+    "price_min_margin": {
+     "help": "Specify the minimum amount of margin over the base price.",
+     "string": "Min. Price Margin",
+     "type": "Float"
+    },
+    "price_round": {
+     "help": "Sets the price so that it is a multiple of this value.\nRounding is applied after the discount and before the surcharge.\nTo have prices that end in 9.99, round off to 10.00 and set an extra at -0.01",
+     "string": "Price Rounding",
+     "type": "Float"
+    },
+    "price_surcharge": {
+     "help": "Specify the fixed amount to add or subtract (if negative) to the amount calculated with the discount.",
+     "string": "Extra Fee",
+     "type": "Float"
+    },
+    "pricelist_id": {
+     "comodel": "product.pricelist",
+     "default": {
+      "$ref": "_default_pricelist_id"
+     },
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Pricelist",
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "domain": "[('product_tmpl_id', '=', product_tmpl_id)]",
+     "help": "Specify a product if this rule only applies to one product. Keep empty otherwise.",
+     "ondelete": "cascade",
+     "string": "Variant",
+     "type": "Many2one"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "help": "Specify a template if this rule only applies to one product template. Keep empty otherwise.",
+     "ondelete": "cascade",
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_uom": {
+     "related": "product_tmpl_id.uom_name",
+     "type": "Char"
+    },
+    "product_variant_count": {
+     "related": "product_tmpl_id.product_variant_count",
+     "type": "Integer"
+    },
+    "rule_tip": {
+     "compute": "_compute_rule_tip",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_default_pricelist_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('applied_on', 'categ_id', 'product_tmpl_id', 'product_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_price_label_base_str"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('compute_price', 'fixed_price', 'pricelist_id', 'percent_price', 'price_discount', 'price_markup', 'price_surcharge', 'base', 'base_pricelist_id')"
+     ],
+     "lines": 47,
+     "name": "_compute_price_label"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('price_discount')"
+     ],
+     "lines": 3,
+     "name": "_compute_price_markup"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_price_markup"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('lang')",
+      "api.depends('base', 'compute_price', 'price_discount', 'price_markup', 'price_round', 'price_surcharge')"
+     ],
+     "lines": 28,
+     "name": "_compute_rule_tip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_integer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_displayed_discount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('base_pricelist_id', 'base')"
+     ],
+     "lines": 3,
+     "name": "_check_base_pricelist_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('base_pricelist_id', 'pricelist_id', 'base')"
+     ],
+     "lines": 3,
+     "name": "_check_pricelist_recursion"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('date_start', 'date_end')"
+     ],
+     "lines": 10,
+     "name": "_check_date_range"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('price_min_margin', 'price_max_margin')"
+     ],
+     "lines": 3,
+     "name": "_check_margin"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('product_id', 'product_tmpl_id', 'categ_id')"
+     ],
+     "lines": 8,
+     "name": "_check_product_consistency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('base')"
+     ],
+     "lines": 6,
+     "name": "_onchange_base"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('base_pricelist_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_base_pricelist_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('compute_price')"
+     ],
+     "lines": 16,
+     "name": "_onchange_compute_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('display_applied_on')"
+     ],
+     "lines": 18,
+     "name": "_onchange_display_applied_on"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('price_markup')"
+     ],
+     "lines": 2,
+     "name": "_onchange_price_markup"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 9,
+     "name": "_onchange_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_tmpl_id')"
+     ],
+     "lines": 5,
+     "name": "_onchange_product_tmpl_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id', 'product_tmpl_id', 'categ_id')"
+     ],
+     "lines": 13,
+     "name": "_onchange_rule_content"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('price_round')"
+     ],
+     "lines": 3,
+     "name": "_onchange_price_round"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('date_start', 'date_end')"
+     ],
+     "lines": 2,
+     "name": "_onchange_validity_period"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 29,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_is_applicable_for"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_compute_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_compute_base_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_compute_price_before_discount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_is_discount_feature_enabled"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_show_discount"
+    }
+   ],
+   "name": "product.pricelist.item",
+   "order": "applied_on, min_quantity desc, categ_id desc, id desc",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "description": "Product Variant",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If unchecked, it will allow you to hide the product without removing it.",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "additional_product_tag_ids": {
+     "comodel": "product.tag",
+     "domain": "[('id', 'not in', product_tag_ids)]",
+     "relation_table": "product_tag_product_product_rel",
+     "string": "Variant Tags",
+     "type": "Many2many"
+    },
+    "all_product_tag_ids": {
+     "comodel": "product.tag",
+     "compute": "_compute_all_product_tag_ids",
+     "type": "Many2many"
+    },
+    "barcode": {
+     "copy": false,
+     "help": "International Article Number used for product identification.",
+     "index": "btree_not_null",
+     "string": "Barcode",
+     "type": "Char"
+    },
+    "can_image_1024_be_zoomed": {
+     "compute": "_compute_can_image_1024_be_zoomed",
+     "string": "Can Image 1024 be zoomed",
+     "type": "Boolean"
+    },
+    "can_image_variant_1024_be_zoomed": {
+     "compute": "_compute_can_image_variant_1024_be_zoomed",
+     "store": true,
+     "string": "Can Variant Image 1024 be zoomed",
+     "type": "Boolean"
+    },
+    "code": {
+     "compute": "_compute_product_code",
+     "string": "Reference",
+     "type": "Char"
+    },
+    "combination_indices": {
+     "compute": "_compute_combination_indices",
+     "index": true,
+     "store": true,
+     "type": "Char"
+    },
+    "default_code": {
+     "index": true,
+     "string": "Internal Reference",
+     "type": "Char"
+    },
+    "image_1024": {
+     "compute": "_compute_image_1024",
+     "string": "Image 1024",
+     "type": "Image"
+    },
+    "image_128": {
+     "compute": "_compute_image_128",
+     "string": "Image 128",
+     "type": "Image"
+    },
+    "image_1920": {
+     "compute": "_compute_image_1920",
+     "string": "Image",
+     "type": "Image"
+    },
+    "image_256": {
+     "compute": "_compute_image_256",
+     "string": "Image 256",
+     "type": "Image"
+    },
+    "image_512": {
+     "compute": "_compute_image_512",
+     "string": "Image 512",
+     "type": "Image"
+    },
+    "image_variant_1024": {
+     "related": "image_variant_1920",
+     "store": true,
+     "string": "Variant Image 1024",
+     "type": "Image"
+    },
+    "image_variant_128": {
+     "related": "image_variant_1920",
+     "store": true,
+     "string": "Variant Image 128",
+     "type": "Image"
+    },
+    "image_variant_1920": {
+     "string": "Variant Image",
+     "type": "Image"
+    },
+    "image_variant_256": {
+     "related": "image_variant_1920",
+     "store": true,
+     "string": "Variant Image 256",
+     "type": "Image"
+    },
+    "image_variant_512": {
+     "related": "image_variant_1920",
+     "store": true,
+     "string": "Variant Image 512",
+     "type": "Image"
+    },
+    "is_product_variant": {
+     "compute": "_compute_is_product_variant",
+     "type": "Boolean"
+    },
+    "lst_price": {
+     "compute": "_compute_product_lst_price",
+     "help": "The sale price is managed from the product template. Click on the 'Configure Variants' button to set the extra attribute prices.",
+     "string": "Sales\u00a0Price",
+     "type": "Float"
+    },
+    "packaging_ids": {
+     "comodel": "product.packaging",
+     "help": "Gives the different ways to package the same product.",
+     "inverse_name": "product_id",
+     "string": "Product Packages",
+     "type": "One2many"
+    },
+    "partner_ref": {
+     "compute": "_compute_partner_ref",
+     "string": "Customer Ref",
+     "type": "Char"
+    },
+    "price_extra": {
+     "compute": "_compute_product_price_extra",
+     "help": "This is the sum of the extra price of all attributes",
+     "string": "Variant Price Extra",
+     "type": "Float"
+    },
+    "pricelist_item_count": {
+     "compute": "_compute_variant_item_count",
+     "string": "Number of price rules",
+     "type": "Integer"
+    },
+    "product_document_count": {
+     "compute": "_compute_product_document_count",
+     "string": "Documents Count",
+     "type": "Integer"
+    },
+    "product_document_ids": {
+     "comodel": "product.document",
+     "domain": {
+      "$lambda": "[('res_model', '=', self._name)]"
+     },
+     "inverse_name": "res_id",
+     "string": "Documents",
+     "type": "One2many"
+    },
+    "product_template_attribute_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "ondelete": "restrict",
+     "relation_table": "product_variant_combination",
+     "string": "Attribute Values",
+     "type": "Many2many"
+    },
+    "product_template_variant_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "domain": [
+      [
+       "attribute_line_id.value_count",
+       ">",
+       1
+      ]
+     ],
+     "ondelete": "restrict",
+     "relation_table": "product_variant_combination",
+     "string": "Variant Values",
+     "type": "Many2many"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Product Template",
+     "type": "Many2one"
+    },
+    "standard_price": {
+     "groups": "base.group_user",
+     "help": "Value of the product (automatically computed in AVCO).\n        Used to value the product when the purchase cost is not known (e.g. inventory adjustment).\n        Used to compute margins on sale orders.",
+     "string": "Cost",
+     "type": "Float"
+    },
+    "volume": {
+     "digits": "Volume",
+     "string": "Volume",
+     "type": "Float"
+    },
+    "weight": {
+     "digits": "Stock Weight",
+     "string": "Weight",
+     "type": "Float"
+    },
+    "write_date": {
+     "compute": "_compute_write_date",
+     "store": true,
+     "type": "Datetime"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {
+    "product.template": "product_tmpl_id"
+   },
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('image_variant_1920', 'image_variant_1024')"
+     ],
+     "lines": 3,
+     "name": "_compute_can_image_variant_1024_be_zoomed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_set_template_field"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_tmpl_id.write_date')"
+     ],
+     "lines": 22,
+     "name": "_compute_write_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_image_1920"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_set_image_1920"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_image_1024"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_image_512"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_image_256"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_image_128"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_can_image_1024_be_zoomed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_placeholder_filename"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_barcodes_by_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_barcode_search_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_check_duplicated_product_barcodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_duplicated_packaging_barcodes"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('barcode')"
+     ],
+     "lines": 7,
+     "name": "_check_barcode_uniqueness"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id')"
+     ],
+     "lines": 3,
+     "name": "_check_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_invoice_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_template_attribute_value_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_combination_indices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_is_product_variant"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('lst_price')"
+     ],
+     "lines": 8,
+     "name": "_set_product_lst_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_template_attribute_value_ids.price_extra')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_price_extra"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('list_price', 'price_extra')",
+      "api.depends_context('uom')"
+     ],
+     "lines": 11,
+     "name": "_compute_product_lst_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('partner_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_product_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('partner_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_partner_ref"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_variant_item_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_product_document_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_tag_ids', 'additional_product_tag_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_all_product_tag_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_search_all_product_tag_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('uom_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('uom_po_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_uom"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('default_code')"
+     ],
+     "lines": 13,
+     "name": "_onchange_default_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_filter_to_unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_unlink_or_archive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_search"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'default_code', 'product_tmpl_id')",
+      "api.depends_context('display_default_code', 'seller_id', 'company_id', 'partner_id', 'lang')"
+     ],
+     "lines": 58,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 53,
+     "name": "_search_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 42,
+     "name": "name_search"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "view_header_get"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_open_label_layout"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "open_pricelist_rules"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "open_product_template"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_prepare_sellers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_get_filtered_sellers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_select_seller"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_product_price_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_no_variant_attributes_price_extra"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_attributes_extra_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_price_compute"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_product_multiline_description_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_is_variant_possible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_contextual_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_contextual_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_contextual_discount"
+    }
+   ],
+   "name": "product.product",
+   "order": "is_favorite desc, default_code, name, id",
+   "sel_methods": {
+    "_get_barcode_search_domain": [
+     [
+      "barcode",
+      "in"
+     ],
+     [
+      "company_id",
+      "in"
+     ]
+    ],
+    "_get_placeholder_filename": [],
+    "_search": [],
+    "_search_display_name": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.supplierinfo": {
+   "abstract": false,
+   "description": "Supplier Pricelist",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company.id"
+     },
+     "index": 1,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "default": {
+      "$lambda": "self.env.company.currency_id.id"
+     },
+     "required": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "date_end": {
+     "help": "End date for this vendor price",
+     "string": "End Date",
+     "type": "Date"
+    },
+    "date_start": {
+     "help": "Start date for this vendor price",
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "delay": {
+     "default": 1,
+     "help": "Lead time in days between the confirmation of the purchase order and the receipt of the products in your warehouse. Used by the scheduler for automatic computation of the purchase order planning.",
+     "required": true,
+     "string": "Delivery Lead Time",
+     "type": "Integer"
+    },
+    "discount": {
+     "digits": "Discount",
+     "readonly": false,
+     "string": "Discount (%)",
+     "type": "Float"
+    },
+    "min_qty": {
+     "default": 0.0,
+     "digits": "Product Unit of Measure",
+     "help": "The quantity to purchase from this vendor to benefit from the price, expressed in the vendor Product Unit of Measure if not any, in the default unit of measure of the product otherwise.",
+     "required": true,
+     "string": "Quantity",
+     "type": "Float"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Vendor",
+     "type": "Many2one"
+    },
+    "price": {
+     "default": 0.0,
+     "help": "The price to purchase a product",
+     "required": true,
+     "string": "Price",
+     "type": "Float"
+    },
+    "price_discounted": {
+     "compute": "_compute_price_discounted",
+     "string": "Discounted Price",
+     "type": "Float"
+    },
+    "product_code": {
+     "help": "This vendor's product code will be used when printing a request for quotation. Keep empty to use the internal one.",
+     "string": "Vendor Product Code",
+     "type": "Char"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "default": {
+      "$ref": "_default_product_id"
+     },
+     "domain": "[('product_tmpl_id', '=', product_tmpl_id)] if product_tmpl_id else []",
+     "help": "If not set, the vendor price will apply to all variants of this product.",
+     "string": "Product Variant",
+     "type": "Many2one"
+    },
+    "product_name": {
+     "help": "This vendor's product name will be used when printing a request for quotation. Keep empty to use the internal one.",
+     "string": "Vendor Product Name",
+     "type": "Char"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Product Template",
+     "type": "Many2one"
+    },
+    "product_uom": {
+     "comodel": "uom.uom",
+     "related": "product_tmpl_id.uom_po_id",
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "product_variant_count": {
+     "related": "product_tmpl_id.product_variant_count",
+     "string": "Variant Count",
+     "type": "Integer"
+    },
+    "sequence": {
+     "default": 1,
+     "help": "Assigns the priority to the list of product vendor.",
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_default_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('discount', 'price')"
+     ],
+     "lines": 3,
+     "name": "_compute_price_discounted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_tmpl_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_product_tmpl_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_import_templates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_sanitize_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_filtered_supplier"
+    }
+   ],
+   "name": "product.supplierinfo",
+   "order": "sequence, min_qty DESC, price, id",
+   "rec_name": "partner_id",
+   "transient": false
+  },
+  "product.tag": {
+   "abstract": false,
+   "description": "Product Tag",
+   "extension": false,
+   "fields": {
+    "color": {
+     "default": "#3C3C3C",
+     "string": "Color",
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "product_ids": {
+     "comodel": "product.product",
+     "compute": "_compute_product_ids",
+     "string": "All Product Variants using this Tag",
+     "type": "Many2many"
+    },
+    "product_product_ids": {
+     "comodel": "product.product",
+     "default": {
+      "$ref": "_get_default_variant_id"
+     },
+     "domain": "[('attribute_line_ids', '!=', False), ('product_tmpl_id', 'not in', product_template_ids)]",
+     "relation_table": "product_tag_product_product_rel",
+     "string": "Product Variants",
+     "type": "Many2many"
+    },
+    "product_template_ids": {
+     "comodel": "product.template",
+     "default": {
+      "$ref": "_get_default_template_id"
+     },
+     "relation_table": "product_tag_product_template_rel",
+     "string": "Product Templates",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "default": 10,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_template_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_variant_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_template_ids', 'product_product_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_search_product_ids"
+    }
+   ],
+   "name": "product.tag",
+   "order": "sequence, id",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "description": "Product",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If unchecked, it will allow you to hide the product without removing it.",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "attribute_line_ids": {
+     "comodel": "product.template.attribute.line",
+     "copy": true,
+     "inverse_name": "product_tmpl_id",
+     "string": "Product Attributes",
+     "type": "One2many"
+    },
+    "barcode": {
+     "compute": "_compute_barcode",
+     "string": "Barcode",
+     "type": "Char"
+    },
+    "can_image_1024_be_zoomed": {
+     "compute": "_compute_can_image_1024_be_zoomed",
+     "store": true,
+     "string": "Can Image 1024 be zoomed",
+     "type": "Boolean"
+    },
+    "categ_id": {
+     "comodel": "product.category",
+     "default": {
+      "$ref": "_get_default_category_id"
+     },
+     "required": true,
+     "string": "Product Category",
+     "type": "Many2one"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "combo_ids": {
+     "comodel": "product.combo",
+     "string": "Combo Choices",
+     "type": "Many2many"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "index": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "cost_currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_cost_currency_id",
+     "string": "Cost Currency",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "default_code": {
+     "compute": "_compute_default_code",
+     "store": true,
+     "string": "Internal Reference",
+     "type": "Char"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Html"
+    },
+    "description_purchase": {
+     "string": "Purchase Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "description_sale": {
+     "help": "A description of the Product that you want to communicate to your customers. This description will be copied to every Sales Order, Delivery Order and Customer Invoice/Credit Note",
+     "string": "Sales Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "has_configurable_attributes": {
+     "compute": "_compute_has_configurable_attributes",
+     "store": true,
+     "string": "Is a configurable product",
+     "type": "Boolean"
+    },
+    "is_favorite": {
+     "string": "Favorite",
+     "type": "Boolean"
+    },
+    "is_product_variant": {
+     "compute": "_compute_is_product_variant",
+     "string": "Is a product variant",
+     "type": "Boolean"
+    },
+    "list_price": {
+     "default": 1.0,
+     "help": "Price at which the product is sold to customers.",
+     "string": "Sales Price",
+     "tracking": true,
+     "type": "Float"
+    },
+    "name": {
+     "index": "trigram",
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "packaging_ids": {
+     "comodel": "product.packaging",
+     "compute": "_compute_packaging_ids",
+     "help": "Gives the different ways to package the same product.",
+     "string": "Product Packages",
+     "type": "One2many"
+    },
+    "pricelist_item_count": {
+     "compute": "_compute_item_count",
+     "string": "Number of price rules",
+     "type": "Integer"
+    },
+    "product_document_count": {
+     "compute": "_compute_product_document_count",
+     "string": "Documents Count",
+     "type": "Integer"
+    },
+    "product_document_ids": {
+     "comodel": "product.document",
+     "domain": {
+      "$lambda": "[('res_model', '=', self._name)]"
+     },
+     "inverse_name": "res_id",
+     "string": "Documents",
+     "type": "One2many"
+    },
+    "product_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "product_tag_ids": {
+     "comodel": "product.tag",
+     "relation_table": "product_tag_product_template_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "product_tooltip": {
+     "compute": "_compute_product_tooltip",
+     "type": "Char"
+    },
+    "product_variant_count": {
+     "compute": "_compute_product_variant_count",
+     "string": "# Product Variants",
+     "type": "Integer"
+    },
+    "product_variant_id": {
+     "comodel": "product.product",
+     "compute": "_compute_product_variant_id",
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "product_variant_ids": {
+     "comodel": "product.product",
+     "inverse_name": "product_tmpl_id",
+     "required": true,
+     "string": "Products",
+     "type": "One2many"
+    },
+    "purchase_ok": {
+     "compute": "_compute_purchase_ok",
+     "default": true,
+     "readonly": false,
+     "store": true,
+     "string": "Purchase",
+     "type": "Boolean"
+    },
+    "sale_ok": {
+     "default": true,
+     "string": "Sales",
+     "type": "Boolean"
+    },
+    "seller_ids": {
+     "comodel": "product.supplierinfo",
+     "inverse_name": "product_tmpl_id",
+     "string": "Vendors",
+     "type": "One2many"
+    },
+    "sequence": {
+     "default": 1,
+     "help": "Gives the sequence order when displaying a product list",
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "service_tracking": {
+     "compute": "_compute_service_tracking",
+     "default": "no",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "no",
+       "Nothing"
+      ]
+     ],
+     "store": true,
+     "string": "Create on Order",
+     "type": "Selection"
+    },
+    "standard_price": {
+     "compute": "_compute_standard_price",
+     "groups": "base.group_user",
+     "help": "Value of the product (automatically computed in AVCO).\n        Used to value the product when the purchase cost is not known (e.g. inventory adjustment).\n        Used to compute margins on sale orders.",
+     "string": "Cost",
+     "type": "Float"
+    },
+    "type": {
+     "default": "consu",
+     "help": "Goods are tangible materials and merchandise you provide.\nA service is a non-material product you provide.",
+     "required": true,
+     "selection": [
+      [
+       "consu",
+       "Goods"
+      ],
+      [
+       "service",
+       "Service"
+      ],
+      [
+       "combo",
+       "Combo"
+      ]
+     ],
+     "string": "Product Type",
+     "type": "Selection"
+    },
+    "uom_category_id": {
+     "comodel": "uom.category",
+     "related": "uom_id.category_id",
+     "string": "UoM Category",
+     "type": "Many2one"
+    },
+    "uom_id": {
+     "comodel": "uom.uom",
+     "default": {
+      "$ref": "_get_default_uom_id"
+     },
+     "help": "Default unit of measure used for all stock operations.",
+     "required": true,
+     "string": "Unit of Measure",
+     "type": "Many2one"
+    },
+    "uom_name": {
+     "readonly": true,
+     "related": "uom_id.name",
+     "string": "Unit of Measure Name",
+     "type": "Char"
+    },
+    "uom_po_id": {
+     "comodel": "uom.uom",
+     "compute": "_compute_uom_po_id",
+     "domain": "[('category_id', '=', uom_category_id)]",
+     "help": "Default unit of measure used for purchase orders. It must be in the same category as the default unit of measure.",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Purchase Unit",
+     "type": "Many2one"
+    },
+    "valid_product_template_attribute_line_ids": {
+     "comodel": "product.template.attribute.line",
+     "compute": "_compute_valid_product_template_attribute_line_ids",
+     "string": "Valid Product Attribute Lines",
+     "type": "Many2many"
+    },
+    "variant_seller_ids": {
+     "comodel": "product.supplierinfo",
+     "inverse_name": "product_tmpl_id",
+     "type": "One2many"
+    },
+    "volume": {
+     "compute": "_compute_volume",
+     "digits": "Volume",
+     "store": true,
+     "string": "Volume",
+     "type": "Float"
+    },
+    "volume_uom_name": {
+     "compute": "_compute_volume_uom_name",
+     "string": "Volume unit of measure label",
+     "type": "Char"
+    },
+    "weight": {
+     "compute": "_compute_weight",
+     "digits": "Stock Weight",
+     "store": true,
+     "string": "Weight",
+     "type": "Float"
+    },
+    "weight_uom_name": {
+     "compute": "_compute_weight_uom_name",
+     "string": "Weight unit of measure label",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "image.mixin",
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_default_category_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_default_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_read_group_categ_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 2,
+     "name": "_compute_service_tracking"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_purchase_ok"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('uom_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_uom_po_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_item_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_product_document_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('image_1920', 'image_1024')"
+     ],
+     "lines": 3,
+     "name": "_compute_can_image_1024_be_zoomed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attribute_line_ids', 'attribute_line_ids.value_ids', 'attribute_line_ids.attribute_id.create_variant', 'attribute_line_ids.attribute_id.display_type', 'attribute_line_ids.value_ids.is_custom')"
+     ],
+     "lines": 14,
+     "name": "_compute_has_configurable_attributes"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_variant_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('company_id')"
+     ],
+     "lines": 3,
+     "name": "_check_barcode_uniqueness"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')",
+      "api.depends_context('company')"
+     ],
+     "lines": 4,
+     "name": "_compute_cost_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_compute_template_field_from_variant_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_set_product_variant_field"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('product_variant_ids.standard_price')"
+     ],
+     "lines": 4,
+     "name": "_compute_standard_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_set_standard_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_standard_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.volume')"
+     ],
+     "lines": 2,
+     "name": "_compute_volume"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_set_volume"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.weight')"
+     ],
+     "lines": 2,
+     "name": "_compute_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_set_weight"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_is_product_variant"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.barcode')"
+     ],
+     "lines": 2,
+     "name": "_compute_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_search_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_set_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_weight_uom_id_from_ir_config_parameter"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_length_uom_id_from_ir_config_parameter"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_volume_uom_id_from_ir_config_parameter"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_weight_uom_name_from_ir_config_parameter"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_length_uom_name_from_ir_config_parameter"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_volume_uom_name_from_ir_config_parameter"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 2,
+     "name": "_compute_weight_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 2,
+     "name": "_compute_volume_uom_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.product_tmpl_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_product_variant_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('default_code')"
+     ],
+     "lines": 13,
+     "name": "_onchange_default_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.default_code')"
+     ],
+     "lines": 2,
+     "name": "_compute_default_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_set_default_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids', 'product_variant_ids.packaging_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_packaging_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_set_packaging_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_prepare_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('uom_id', 'uom_po_id')"
+     ],
+     "lines": 3,
+     "name": "_check_uom"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('uom_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('type')"
+     ],
+     "lines": 13,
+     "name": "_onchange_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('type', 'combo_ids')"
+     ],
+     "lines": 4,
+     "name": "_check_combo_ids_not_empty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('type', 'combo_ids', 'sale_ok')"
+     ],
+     "lines": 12,
+     "name": "_check_sale_combo_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_related_fields_variant_template"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 17,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "copy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'default_code')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_search_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "name_search"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_open_label_layout"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "open_pricelist_rules"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 35,
+     "name": "action_open_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_product_price_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_attributes_extra_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_price_compute"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 100,
+     "name": "_create_variant_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_variant_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "has_dynamic_attributes"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attribute_line_ids.value_ids')"
+     ],
+     "lines": 11,
+     "name": "_compute_valid_product_template_attribute_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_possible_variants"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_get_attribute_exclusions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_complete_inverse_exclusions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_get_own_attribute_exclusions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_parent_attribute_exclusions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_mapped_attribute_names"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_filter_combinations_impossible_by_config"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_is_combination_possible_by_config"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_is_combination_possible"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_get_variant_for_combination"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_create_product_variant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_create_first_product_variant"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_variant_id_for_combination"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_first_possible_variant_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_first_possible_combination"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 103,
+     "name": "_cartesian_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_get_possible_combinations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_closest_possible_combination"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_closest_possible_combinations"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_placeholder_filename"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "get_single_product_variant"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_import_templates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_contextual_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_contextual_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_contextual_pricelist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_product_document_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_demo_configure_variants"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_list_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_service_tracking_blacklist"
+    }
+   ],
+   "name": "product.template",
+   "order": "is_favorite desc, name",
+   "sel_methods": {
+    "_get_placeholder_filename": [],
+    "_search_barcode": [
+     [
+      "id",
+      "in"
+     ]
+    ],
+    "_search_display_name": [
+     [
+      "id",
+      "in"
+     ]
+    ],
+    "_service_tracking_blacklist": []
+   },
+   "transient": false
+  },
+  "product.template.attribute.exclusion": {
+   "abstract": false,
+   "description": "Product Template Attribute Exclusion",
+   "extension": false,
+   "fields": {
+    "product_template_attribute_value_id": {
+     "comodel": "product.template.attribute.value",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Attribute Value",
+     "type": "Many2one"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Product Template",
+     "type": "Many2one"
+    },
+    "value_ids": {
+     "comodel": "product.template.attribute.value",
+     "domain": "[('product_tmpl_id', '=', product_tmpl_id), ('ptav_active', '=', True)]",
+     "relation_table": "product_attr_exclusion_value_ids_rel",
+     "string": "Attribute Values",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    }
+   ],
+   "name": "product.template.attribute.exclusion",
+   "order": "product_tmpl_id, id",
+   "transient": false
+  },
+  "product.template.attribute.line": {
+   "abstract": false,
+   "description": "Product Template Attribute Line",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "attribute_id": {
+     "comodel": "product.attribute",
+     "index": true,
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Attribute",
+     "type": "Many2one"
+    },
+    "product_template_value_ids": {
+     "comodel": "product.template.attribute.value",
+     "inverse_name": "attribute_line_id",
+     "string": "Product Attribute Values",
+     "type": "One2many"
+    },
+    "product_tmpl_id": {
+     "comodel": "product.template",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Product Template",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "value_count": {
+     "compute": "_compute_value_count",
+     "store": true,
+     "type": "Integer"
+    },
+    "value_ids": {
+     "comodel": "product.attribute.value",
+     "domain": "[('attribute_id', '=', attribute_id)]",
+     "ondelete": "restrict",
+     "relation_table": "product_attribute_value_product_template_attribute_line_rel",
+     "string": "Values",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('value_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_value_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('attribute_id')"
+     ],
+     "lines": 9,
+     "name": "_onchange_attribute_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('active', 'value_ids', 'attribute_id')"
+     ],
+     "lines": 18,
+     "name": "_check_valid_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 35,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 61,
+     "name": "_update_product_template_attribute_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_without_no_variant_attributes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_is_configurable"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_open_attribute_values"
+    }
+   ],
+   "name": "product.template.attribute.line",
+   "order": "sequence, attribute_id, id",
+   "rec_name": "attribute_id",
+   "transient": false
+  },
+  "product.template.attribute.value": {
+   "abstract": false,
+   "description": "Product Template Attribute Value",
+   "extension": false,
+   "fields": {
+    "attribute_id": {
+     "index": true,
+     "related": "attribute_line_id.attribute_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "attribute_line_id": {
+     "comodel": "product.template.attribute.line",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "color": {
+     "default": {
+      "$ref": "_get_default_color"
+     },
+     "string": "Color",
+     "type": "Integer"
+    },
+    "currency_id": {
+     "related": "attribute_line_id.product_tmpl_id.currency_id",
+     "type": "Many2one"
+    },
+    "display_type": {
+     "related": "product_attribute_value_id.display_type",
+     "type": "Selection"
+    },
+    "exclude_for": {
+     "comodel": "product.template.attribute.exclusion",
+     "help": "Make this attribute value not compatible with other values of the product or some attribute values of optional and accessory products.",
+     "inverse_name": "product_template_attribute_value_id",
+     "string": "Exclude for",
+     "type": "One2many"
+    },
+    "html_color": {
+     "related": "product_attribute_value_id.html_color",
+     "string": "HTML Color Index",
+     "type": "Char"
+    },
+    "image": {
+     "related": "product_attribute_value_id.image",
+     "type": "Image"
+    },
+    "is_custom": {
+     "related": "product_attribute_value_id.is_custom",
+     "type": "Boolean"
+    },
+    "name": {
+     "related": "product_attribute_value_id.name",
+     "string": "Value",
+     "type": "Char"
+    },
+    "price_extra": {
+     "default": 0.0,
+     "help": "Extra price for the variant with this attribute value on sale price. eg. 200 price extra, 1000 + 200 = 1200.",
+     "string": "Extra Price",
+     "type": "Float"
+    },
+    "product_attribute_value_id": {
+     "comodel": "product.attribute.value",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Attribute Value",
+     "type": "Many2one"
+    },
+    "product_tmpl_id": {
+     "index": true,
+     "related": "attribute_line_id.product_tmpl_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "ptav_active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "ptav_product_variant_ids": {
+     "comodel": "product.product",
+     "readonly": true,
+     "relation_table": "product_variant_combination",
+     "string": "Related Variants",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_default_color"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('attribute_line_id', 'product_attribute_value_id')"
+     ],
+     "lines": 10,
+     "name": "_check_valid_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attribute_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_only_active"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_without_no_variant_attributes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_ids2str"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_combination_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_filter_single_value_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_is_from_single_value_line"
+    }
+   ],
+   "name": "product.template.attribute.value",
+   "order": "attribute_line_id, product_attribute_value_id, id",
+   "sql_constraints": [
+    [
+     "attribute_value_unique",
+     "unique(attribute_line_id, product_attribute_value_id)",
+     "Each value should be defined only once per attribute per product."
+    ]
+   ],
+   "transient": false
+  },
+  "report.product.report_pricelist": {
+   "abstract": true,
+   "description": "Pricelist Report",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_report_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "get_html"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_report_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_product_data"
+    }
+   ],
+   "name": "report.product.report_pricelist",
+   "transient": false
+  },
+  "report.product.report_producttemplatelabel2x7": {
+   "abstract": true,
+   "description": "Product Label Report 2x7",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.product.report_producttemplatelabel2x7",
+   "transient": false
+  },
+  "report.product.report_producttemplatelabel4x12": {
+   "abstract": true,
+   "description": "Product Label Report 4x12",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.product.report_producttemplatelabel4x12",
+   "transient": false
+  },
+  "report.product.report_producttemplatelabel4x12noprice": {
+   "abstract": true,
+   "description": "Product Label Report 4x12 No Price",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.product.report_producttemplatelabel4x12noprice",
+   "transient": false
+  },
+  "report.product.report_producttemplatelabel4x7": {
+   "abstract": true,
+   "description": "Product Label Report 4x7",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.product.report_producttemplatelabel4x7",
+   "transient": false
+  },
+  "report.product.report_producttemplatelabel_dymo": {
+   "abstract": true,
+   "description": "Product Label Report",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_report_values"
+    }
+   ],
+   "name": "report.product.report_producttemplatelabel_dymo",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_activate_or_create_pricelists"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_default_pricelist_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "write"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "group_product_pricelist": {
+     "string": "Pricelists",
+     "type": "Boolean"
+    },
+    "group_product_variant": {
+     "string": "Variants",
+     "type": "Boolean"
+    },
+    "group_stock_packaging": {
+     "string": "Product Packagings",
+     "type": "Boolean"
+    },
+    "group_uom": {
+     "string": "Units of Measure",
+     "type": "Boolean"
+    },
+    "module_loyalty": {
+     "string": "Promotions, Coupons, Gift Card & Loyalty Program",
+     "type": "Boolean"
+    },
+    "product_volume_volume_in_cubic_feet": {
+     "default": "0",
+     "selection": [
+      [
+       "0",
+       "Cubic Meters"
+      ],
+      [
+       "1",
+       "Cubic Feet"
+      ]
+     ],
+     "string": "Volume unit of measure",
+     "type": "Selection"
+    },
+    "product_weight_in_lbs": {
+     "default": "0",
+     "selection": [
+      [
+       "0",
+       "Kilograms"
+      ],
+      [
+       "1",
+       "Pounds"
+      ]
+     ],
+     "string": "Weight unit of measure",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('group_product_pricelist')"
+     ],
+     "lines": 11,
+     "name": "_onchange_group_sale_pricelist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "set_values"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.country.group": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pricelist_ids": {
+     "column1": "res_country_group_id",
+     "column2": "pricelist_id",
+     "comodel": "product.pricelist",
+     "relation_table": "res_country_group_pricelist_rel",
+     "string": "Pricelists",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.country.group",
+   "transient": false
+  },
+  "res.currency": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_activate_group_multi_currency"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    }
+   ],
+   "name": "res.currency",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "property_product_pricelist": {
+     "comodel": "product.pricelist",
+     "compute": "_compute_product_pricelist",
+     "domain": {
+      "$lambda": "[('company_id', 'in', (self.env.company.id, False))]"
+     },
+     "help": "This pricelist will be used, instead of the default one, for sales to the current partner",
+     "string": "Pricelist",
+     "type": "Many2one"
+    },
+    "specific_property_product_pricelist": {
+     "comodel": "product.pricelist",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_id', 'specific_property_product_pricelist')",
+      "api.depends_context('company', 'country_code')"
+     ],
+     "lines": 4,
+     "name": "_compute_product_pricelist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_inverse_product_pricelist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_commercial_fields"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "uom.uom": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('rounding')"
+     ],
+     "lines": 11,
+     "name": "_onchange_rounding"
+    }
+   ],
+   "name": "uom.uom",
+   "transient": false
+  },
+  "update.product.attribute.value": {
+   "abstract": false,
+   "description": "Update product attribute value",
+   "extension": false,
+   "fields": {
+    "attribute_value_id": {
+     "comodel": "product.attribute.value",
+     "required": true,
+     "type": "Many2one"
+    },
+    "message": {
+     "compute": "_compute_message",
+     "type": "Char"
+    },
+    "mode": {
+     "selection": [
+      [
+       "add",
+       "Add to existing products"
+      ],
+      [
+       "update_extra_price",
+       "Update the extra price on existing products"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "product_count": {
+     "compute": "_compute_product_count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_count', 'mode', 'attribute_value_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mode')"
+     ],
+     "lines": 12,
+     "name": "_compute_product_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_add_value_to_existing_attribute_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_extra_price_on_existing_products"
+    }
+   ],
+   "name": "update.product.attribute.value",
+   "transient": true
+  }
+ },
+ "module": "product",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/product",
+ "stats": {
+  "fields": 240,
+  "methods": 331,
+  "models": 34,
+  "py_lines": 5827
+ },
+ "summary": "This is the base module for managing products and pricelists in Odoo.",
+ "title": "Products & Pricelists",
+ "version": "1.2"
+}

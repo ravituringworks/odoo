@@ -1,0 +1,584 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Sales/Point of Sale",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/pos_order_views.xml",
+  "views/pos_restaurant_views.xml",
+  "views/res_config_settings_views.xml",
+  "data/demo_data.xml"
+ ],
+ "depends": [
+  "point_of_sale"
+ ],
+ "models": {
+  "account.fiscal.position": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_domain"
+    }
+   ],
+   "name": "account.fiscal.position",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "floor_ids": {
+     "comodel": "restaurant.floor",
+     "copy": false,
+     "help": "The restaurant floors served by this point of sale.",
+     "string": "Restaurant Floors",
+     "type": "Many2many"
+    },
+    "iface_printbill": {
+     "help": "Allows to print the Bill before payment.",
+     "string": "Bill Printing",
+     "type": "Boolean"
+    },
+    "iface_splitbill": {
+     "help": "Enables Bill Splitting in the Point of Sale.",
+     "string": "Bill Splitting",
+     "type": "Boolean"
+    },
+    "module_pos_restaurant_appointment": {
+     "string": "Table Booking",
+     "type": "Boolean"
+    },
+    "set_tip_after_payment": {
+     "help": "Adjust the amount authorized by payment terminals to add a tip after the customers left or at the end of the day.",
+     "string": "Set Tip After Payment",
+     "type": "Boolean"
+    },
+    "takeaway": {
+     "help": "Allow to create orders for takeaway customers.",
+     "string": "Takeaway",
+     "type": "Boolean"
+    },
+    "takeaway_fp_id": {
+     "comodel": "account.fiscal.position",
+     "help": "This is useful for restaurants with onsite and take-away services that imply specific tax rates.",
+     "string": "Alternative Fiscal Position",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_forbidden_change_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 12,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_setup_default_floor"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_bar_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_restaurant_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "load_onboarding_bar_scenario"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "load_onboarding_restaurant_scenario"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "customer_count": {
+     "help": "The amount of customers that have been served by this order.",
+     "readonly": true,
+     "string": "Guests",
+     "type": "Integer"
+    },
+    "table_id": {
+     "comodel": "restaurant.table",
+     "help": "The table where this order was served",
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Table",
+     "type": "Many2one"
+    },
+    "takeaway": {
+     "default": false,
+     "string": "Take Away",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_open_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "remove_from_ui"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "sync_from_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "send_table_count_notification"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_pos_order_cancel"
+    }
+   ],
+   "name": "pos.order",
+   "transient": false
+  },
+  "pos.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_update_payment_line_for_tip"
+    }
+   ],
+   "name": "pos.payment",
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_data_models"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_set_last_order_preparation_change"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_floor_ids": {
+     "readonly": false,
+     "related": "pos_config_id.floor_ids",
+     "type": "Many2many"
+    },
+    "pos_iface_printbill": {
+     "compute": "_compute_pos_module_pos_restaurant",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    },
+    "pos_iface_splitbill": {
+     "compute": "_compute_pos_module_pos_restaurant",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    },
+    "pos_module_pos_restaurant_appointment": {
+     "readonly": false,
+     "related": "pos_config_id.module_pos_restaurant_appointment",
+     "type": "Boolean"
+    },
+    "pos_set_tip_after_payment": {
+     "compute": "_compute_pos_set_tip_after_payment",
+     "readonly": false,
+     "store": true,
+     "type": "Boolean"
+    },
+    "pos_takeaway": {
+     "readonly": false,
+     "related": "pos_config_id.takeaway",
+     "type": "Boolean"
+    },
+    "pos_takeaway_fp_id": {
+     "readonly": false,
+     "related": "pos_config_id.takeaway_fp_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_module_pos_restaurant', 'pos_config_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_pos_module_pos_restaurant"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_iface_tipproduct', 'pos_config_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_pos_set_tip_after_payment"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "restaurant.floor": {
+   "abstract": false,
+   "description": "Restaurant Floor",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "background_color": {
+     "default": "rgb(249,250,251)",
+     "help": "The background color of the floor in a html-compatible format",
+     "string": "Background Color",
+     "type": "Char"
+    },
+    "background_image": {
+     "string": "Background Image",
+     "type": "Binary"
+    },
+    "floor_background_image": {
+     "string": "Floor Background Image",
+     "type": "Image"
+    },
+    "name": {
+     "required": true,
+     "string": "Floor Name",
+     "type": "Char"
+    },
+    "pos_config_ids": {
+     "comodel": "pos.config",
+     "domain": "[('module_pos_restaurant', '=', True)]",
+     "string": "Point of Sales",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "table_ids": {
+     "comodel": "restaurant.table",
+     "inverse_name": "floor_id",
+     "string": "Tables",
+     "type": "One2many"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 10,
+     "name": "_unlink_except_active_pos_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "rename_floor"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "sync_from_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "deactivate_floor"
+    }
+   ],
+   "name": "restaurant.floor",
+   "order": "sequence, name",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "pos_config_ids",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "restaurant.table": {
+   "abstract": false,
+   "description": "Restaurant Table",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "If false, the table is deactivated and will not be available in the point of sale",
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "color": {
+     "default": "#35D374",
+     "help": "The table's color, expressed as a valid 'background' CSS property value",
+     "string": "Color",
+     "type": "Char"
+    },
+    "floor_id": {
+     "comodel": "restaurant.floor",
+     "string": "Floor",
+     "type": "Many2one"
+    },
+    "height": {
+     "default": 50,
+     "help": "The table's height in pixels",
+     "string": "Height",
+     "type": "Float"
+    },
+    "parent_id": {
+     "comodel": "restaurant.table",
+     "help": "The parent table if this table is part of a group of tables",
+     "string": "Parent Table",
+     "type": "Many2one"
+    },
+    "position_h": {
+     "default": 10,
+     "help": "The table's horizontal position from the left side to the table's center, in pixels",
+     "string": "Horizontal Position",
+     "type": "Float"
+    },
+    "position_v": {
+     "default": 10,
+     "help": "The table's vertical position from the top to the table's center, in pixels",
+     "string": "Vertical Position",
+     "type": "Float"
+    },
+    "seats": {
+     "default": 1,
+     "help": "The default number of customer served at this table.",
+     "string": "Seats",
+     "type": "Integer"
+    },
+    "shape": {
+     "default": "square",
+     "required": true,
+     "selection": [
+      [
+       "square",
+       "Square"
+      ],
+      [
+       "round",
+       "Round"
+      ]
+     ],
+     "string": "Shape",
+     "type": "Selection"
+    },
+    "table_number": {
+     "default": 0,
+     "help": "The number of the table as displayed on the floor plan",
+     "required": true,
+     "string": "Table Number",
+     "type": "Integer"
+    },
+    "width": {
+     "default": 50,
+     "help": "The table's width in pixels",
+     "string": "Width",
+     "type": "Float"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('table_number', 'floor_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "are_orders_still_in_draft"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 7,
+     "name": "_unlink_except_active_pos_session"
+    }
+   ],
+   "name": "restaurant.table",
+   "sel_methods": {
+    "_load_pos_data_domain": [
+     [
+      "active",
+      "="
+     ],
+     [
+      "floor_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  }
+ },
+ "module": "pos_restaurant",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_restaurant",
+ "stats": {
+  "fields": 36,
+  "methods": 31,
+  "models": 8,
+  "py_lines": 445
+ },
+ "summary": "Restaurant extensions for the Point of Sale",
+ "title": "Restaurant",
+ "version": "1.0"
+}

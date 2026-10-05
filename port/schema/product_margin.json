@@ -1,0 +1,228 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "wizard/product_margin_view.xml",
+  "views/product_product_views.xml"
+ ],
+ "depends": [
+  "account"
+ ],
+ "models": {
+  "product.margin": {
+   "abstract": false,
+   "description": "Product Margin",
+   "extension": false,
+   "fields": {
+    "from_date": {
+     "default": {
+      "$call": "time.strftime('%Y-01-01')"
+     },
+     "string": "From",
+     "type": "Date"
+    },
+    "invoice_state": {
+     "default": "open_paid",
+     "required": true,
+     "selection": [
+      [
+       "paid",
+       "Paid"
+      ],
+      [
+       "open_paid",
+       "Open and Paid"
+      ],
+      [
+       "draft_open_paid",
+       "Draft, Open and Paid"
+      ]
+     ],
+     "string": "Invoice State",
+     "type": "Selection"
+    },
+    "to_date": {
+     "default": {
+      "$call": "time.strftime('%Y-12-31')"
+     },
+     "string": "To",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 36,
+     "name": "action_open_window"
+    }
+   ],
+   "name": "product.margin",
+   "transient": true
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "date_from": {
+     "compute": "_compute_product_margin_fields_values",
+     "string": "Margin Date From",
+     "type": "Date"
+    },
+    "date_to": {
+     "compute": "_compute_product_margin_fields_values",
+     "string": "Margin Date To",
+     "type": "Date"
+    },
+    "expected_margin": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Expected Sale - Normal Cost",
+     "string": "Expected Margin",
+     "type": "Float"
+    },
+    "expected_margin_rate": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Expected margin * 100 / Expected Sale",
+     "string": "Expected Margin (%)",
+     "type": "Float"
+    },
+    "invoice_state": {
+     "compute": "_compute_product_margin_fields_values",
+     "readonly": true,
+     "selection": [
+      [
+       "paid",
+       "Paid"
+      ],
+      [
+       "open_paid",
+       "Open and Paid"
+      ],
+      [
+       "draft_open_paid",
+       "Draft, Open and Paid"
+      ]
+     ],
+     "string": "Invoice State",
+     "type": "Selection"
+    },
+    "normal_cost": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Sum of Multiplication of Cost price and quantity of Vendor Bills",
+     "string": "Normal Cost",
+     "type": "Float"
+    },
+    "purchase_avg_price": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Avg. Price in Vendor Bills",
+     "string": "Avg. Purchase Unit Price",
+     "type": "Float"
+    },
+    "purchase_gap": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Normal Cost - Total Cost",
+     "string": "Purchase Gap",
+     "type": "Float"
+    },
+    "purchase_num_invoiced": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Sum of Quantity in Vendor Bills",
+     "string": "# Invoiced in Purchase",
+     "type": "Float"
+    },
+    "sale_avg_price": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Avg. Price in Customer Invoices.",
+     "string": "Avg. Sale Unit Price",
+     "type": "Float"
+    },
+    "sale_expected": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Sum of Multiplication of Sale Catalog price and quantity of Customer Invoices",
+     "string": "Expected Sale",
+     "type": "Float"
+    },
+    "sale_num_invoiced": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Sum of Quantity in Customer Invoices",
+     "string": "# Invoiced in Sale",
+     "type": "Float"
+    },
+    "sales_gap": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Expected Sale - Turn Over",
+     "string": "Sales Gap",
+     "type": "Float"
+    },
+    "total_cost": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Sum of Multiplication of Invoice price and quantity of Vendor Bills ",
+     "string": "Total Cost",
+     "type": "Float"
+    },
+    "total_margin": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Turnover - Total cost",
+     "string": "Total Margin",
+     "type": "Float"
+    },
+    "total_margin_rate": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Total margin * 100 / Turnover",
+     "string": "Total Margin Rate(%)",
+     "type": "Float"
+    },
+    "turnover": {
+     "compute": "_compute_product_margin_fields_values",
+     "help": "Sum of Multiplication of Invoice price and quantity of Customer Invoices",
+     "string": "Turnover",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_read_group_select"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_read_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 88,
+     "name": "_compute_product_margin_fields_values"
+    }
+   ],
+   "name": "product.product",
+   "sel_methods": {
+    "_read_group_select": []
+   },
+   "transient": false
+  }
+ },
+ "module": "product_margin",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/product_margin",
+ "stats": {
+  "fields": 20,
+  "methods": 4,
+  "models": 2,
+  "py_lines": 247
+ },
+ "summary": "Adds a reporting menu in products that computes sales, purchases, margins and other interesting indicators based on invoices.",
+ "title": "Margins by Products",
+ "version": null
+}

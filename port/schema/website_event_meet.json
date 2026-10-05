@@ -1,0 +1,232 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/security.xml",
+  "views/event_meet_templates_list.xml",
+  "views/event_meet_templates_page.xml",
+  "views/event_meeting_room_views.xml",
+  "views/event_event_views.xml",
+  "views/event_type_views.xml",
+  "views/snippets.xml",
+  "data/website_event_meet_demo.xml"
+ ],
+ "depends": [
+  "website_event_jitsi"
+ ],
+ "models": {
+  "event.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "meeting_room_allow_creation": {
+     "compute": "_compute_meeting_room_allow_creation",
+     "help": "Let Visitors Create Rooms",
+     "readonly": false,
+     "store": true,
+     "string": "Allow Room Creation",
+     "type": "Boolean"
+    },
+    "meeting_room_count": {
+     "compute": "_compute_meeting_room_count",
+     "string": "Room count",
+     "type": "Integer"
+    },
+    "meeting_room_ids": {
+     "comodel": "event.meeting.room",
+     "inverse_name": "event_id",
+     "string": "Meeting rooms",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id', 'website_menu', 'community_menu')"
+     ],
+     "lines": 9,
+     "name": "_compute_community_menu"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('meeting_room_ids')"
+     ],
+     "lines": 14,
+     "name": "_compute_meeting_room_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id', 'community_menu', 'meeting_room_allow_creation')"
+     ],
+     "lines": 8,
+     "name": "_compute_meeting_room_allow_creation"
+    }
+   ],
+   "name": "event.event",
+   "transient": false
+  },
+  "event.meeting.room": {
+   "abstract": false,
+   "description": "Event Meeting Room",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "chat_room_id": {
+     "comodel": "chat.room",
+     "ondelete": "restrict",
+     "required": true,
+     "type": "Many2one"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "is_pinned": {
+     "string": "Is Pinned",
+     "type": "Boolean"
+    },
+    "is_published": {
+     "copy": true,
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Topic",
+     "translate": true,
+     "type": "Char"
+    },
+    "room_max_capacity": {
+     "copy": true,
+     "default": "8",
+     "type": "Selection"
+    },
+    "summary": {
+     "string": "Summary",
+     "translate": true,
+     "type": "Char"
+    },
+    "target_audience": {
+     "string": "Audience",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "chat.room.mixin",
+    "website.published.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'event_id.name')"
+     ],
+     "lines": 6,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 8,
+     "name": "_archive_meeting_rooms"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "open_website_url"
+    }
+   ],
+   "name": "event.meeting.room",
+   "order": "is_pinned DESC, id",
+   "transient": false
+  },
+  "event.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "meeting_room_allow_creation": {
+     "compute": "_compute_meeting_room_allow_creation",
+     "help": "Let Visitors Create Rooms",
+     "readonly": false,
+     "store": true,
+     "string": "Allow Room Creation",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('community_menu')"
+     ],
+     "lines": 3,
+     "name": "_compute_meeting_room_allow_creation"
+    }
+   ],
+   "name": "event.type",
+   "transient": false
+  },
+  "website.event.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "menu_type": {
+     "ondelete": {
+      "meeting_room": "cascade"
+     },
+     "selection_add": [
+      [
+       "meeting_room",
+       "Event Meeting Room Menus"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "website.event.menu",
+   "transient": false
+  }
+ },
+ "module": "website_event_meet",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_event_meet",
+ "stats": {
+  "fields": 14,
+  "methods": 8,
+  "models": 4,
+  "py_lines": 339
+ },
+ "summary": "Event: meeting and chat rooms",
+ "title": "Event Meeting / Rooms",
+ "version": "1.0"
+}

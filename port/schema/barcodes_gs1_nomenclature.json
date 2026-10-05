@@ -1,0 +1,237 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/barcodes_gs1_rules.xml",
+  "views/barcodes_view.xml"
+ ],
+ "depends": [
+  "barcodes",
+  "uom"
+ ],
+ "models": {
+  "barcode.nomenclature": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "gs1_separator_fnc1": {
+     "default": "(Alt029|#|\\x1D)",
+     "help": "Alternative regex delimiter for the FNC1. The separator must not match the begin/end of any related rules pattern.",
+     "string": "FNC1 Separator",
+     "type": "Char"
+    },
+    "is_gs1_nomenclature": {
+     "help": "This Nomenclature use the GS1 specification, only GS1-128 encoding rules is accepted is this kind of nomenclature.",
+     "string": "Is GS1 Nomenclature",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('gs1_separator_fnc1')"
+     ],
+     "lines": 7,
+     "name": "_check_pattern"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 30,
+     "name": "gs1_date_to_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "parse_gs1_rule_pattern"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "gs1_decompose_extanded"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "parse_nomenclature_barcode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 41,
+     "name": "_preprocess_gs1_search_args"
+    }
+   ],
+   "name": "barcode.nomenclature",
+   "transient": false
+  },
+  "barcode.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "associated_uom_id": {
+     "comodel": "uom.uom",
+     "type": "Many2one"
+    },
+    "encoding": {
+     "default": {
+      "$ref": "_default_encoding"
+     },
+     "ondelete": {
+      "gs1-128": "set default"
+     },
+     "selection_add": [
+      [
+       "gs1-128",
+       "GS1-128"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "gs1_content_type": {
+     "help": "The GS1 content type defines what kind of data the rule will process the barcode as:        * Date: the barcode will be converted into a Odoo datetime;        * Measure: the barcode's value is related to a specific UoM;        * Numeric Identifier: fixed length barcode following a specific encoding;        * Alpha-Numeric Name: variable length barcode.",
+     "selection": [
+      [
+       "date",
+       "Date"
+      ],
+      [
+       "measure",
+       "Measure"
+      ],
+      [
+       "identifier",
+       "Numeric Identifier"
+      ],
+      [
+       "alpha",
+       "Alpha-Numeric Name"
+      ]
+     ],
+     "string": "GS1 Content Type",
+     "type": "Selection"
+    },
+    "gs1_decimal_usage": {
+     "help": "If True, use the last digit of AI to determine where the first decimal is",
+     "string": "Decimal",
+     "type": "Boolean"
+    },
+    "is_gs1_nomenclature": {
+     "related": "barcode_nomenclature_id.is_gs1_nomenclature",
+     "type": "Boolean"
+    },
+    "type": {
+     "ondelete": {
+      "expiration_date": "set default",
+      "location": "set default",
+      "location_dest": "set default",
+      "lot": "set default",
+      "pack_date": "set default",
+      "package": "set default",
+      "package_type": "set default",
+      "quantity": "set default",
+      "use_date": "set default"
+     },
+     "selection_add": [
+      [
+       "quantity",
+       "Quantity"
+      ],
+      [
+       "location",
+       "Location"
+      ],
+      [
+       "location_dest",
+       "Destination location"
+      ],
+      [
+       "lot",
+       "Lot number"
+      ],
+      [
+       "package",
+       "Package"
+      ],
+      [
+       "use_date",
+       "Best before Date"
+      ],
+      [
+       "expiration_date",
+       "Expiration Date"
+      ],
+      [
+       "package_type",
+       "Package Type"
+      ],
+      [
+       "pack_date",
+       "Pack Date"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_encoding"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('pattern')"
+     ],
+     "lines": 16,
+     "name": "_check_pattern"
+    }
+   ],
+   "name": "barcode.rule",
+   "transient": false
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "session_info"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  }
+ },
+ "module": "barcodes_gs1_nomenclature",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/barcodes_gs1_nomenclature",
+ "stats": {
+  "fields": 8,
+  "methods": 9,
+  "models": 3,
+  "py_lines": 271
+ },
+ "summary": "Parse barcodes according to the GS1-128 specifications",
+ "title": "Barcode - GS1 Nomenclature",
+ "version": "1.0"
+}

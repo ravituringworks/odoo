@@ -1,0 +1,190 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Payment Providers",
+ "data_files": [
+  "views/payment_authorize_templates.xml",
+  "views/payment_provider_views.xml",
+  "views/payment_token_views.xml",
+  "data/payment_provider_data.xml"
+ ],
+ "depends": [
+  "payment"
+ ],
+ "models": {
+  "payment.provider": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "authorize_client_key": {
+     "help": "The public client key. To generate directly from Odoo or from Authorize.Net backend.",
+     "string": "API Client Key",
+     "type": "Char"
+    },
+    "authorize_login": {
+     "help": "The ID solely used to identify the account with Authorize.Net",
+     "string": "API Login ID",
+     "type": "Char"
+    },
+    "authorize_signature_key": {
+     "groups": "base.group_system",
+     "string": "API Signature Key",
+     "type": "Char"
+    },
+    "authorize_transaction_key": {
+     "groups": "base.group_system",
+     "string": "API Transaction Key",
+     "type": "Char"
+    },
+    "code": {
+     "ondelete": {
+      "authorize": "set default"
+     },
+     "selection_add": [
+      [
+       "authorize",
+       "Authorize.Net"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('available_currency_ids', 'state')"
+     ],
+     "lines": 6,
+     "name": "_limit_available_currency_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_feature_support_fields"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 24,
+     "name": "action_update_merchant_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_validation_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_authorize_get_inline_form_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_payment_method_codes"
+    }
+   ],
+   "name": "payment.provider",
+   "transient": false
+  },
+  "payment.token": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "authorize_profile": {
+     "help": "The unique reference for the partner/token combination in the Authorize.net backend.",
+     "string": "Authorize.Net Profile ID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "payment.token",
+   "transient": false
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_specific_processing_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_authorize_create_transaction_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_send_payment_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 61,
+     "name": "_send_refund_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_send_capture_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_send_void_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_tx_from_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 69,
+     "name": "_process_notification_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_authorize_tokenize"
+    }
+   ],
+   "name": "payment.transaction",
+   "transient": false
+  }
+ },
+ "module": "payment_authorize",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/payment_authorize",
+ "stats": {
+  "fields": 6,
+  "methods": 15,
+  "models": 3,
+  "py_lines": 907
+ },
+ "summary": "An payment provider covering the US, Australia, and Canada.",
+ "title": "Payment Provider: Authorize.Net",
+ "version": "2.0"
+}

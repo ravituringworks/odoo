@@ -1,0 +1,401 @@
+{
+ "application": false,
+ "author": null,
+ "category": null,
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/payment_transaction_views.xml",
+  "views/pos_payment_views.xml",
+  "views/pos_payment_method_views.xml",
+  "views/payment_portal_templates.xml",
+  "views/account_payment_views.xml"
+ ],
+ "depends": [
+  "point_of_sale",
+  "account_payment"
+ ],
+ "models": {
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_order_id": {
+     "comodel": "pos.order",
+     "help": "The Point of Sale order linked to this payment",
+     "readonly": true,
+     "string": "POS Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_view_pos_order"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_order_id": {
+     "comodel": "pos.order",
+     "help": "The Point of Sale order linked to the payment transaction",
+     "readonly": true,
+     "string": "POS Order",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_compute_reference_prefix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_post_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_process_pos_online_payment"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_view_pos_order"
+    }
+   ],
+   "name": "payment.transaction",
+   "sel_methods": {
+    "_compute_reference_prefix": []
+   },
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('payment_method_ids')"
+     ],
+     "lines": 11,
+     "name": "_check_online_payment_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_cashier_online_payment_method"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "next_online_payment_amount": {
+     "digits": 0,
+     "required": false,
+     "string": "Next online payment amount to pay",
+     "type": "Float"
+    },
+    "online_payment_method_id": {
+     "comodel": "pos.payment.method",
+     "compute": "_compute_online_payment_method_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('config_id.payment_method_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_online_payment_method_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "get_amount_unpaid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_clean_payment_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "get_and_set_online_payments_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_next_online_payment_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_checked_next_online_payment_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_process_order"
+    }
+   ],
+   "name": "pos.order",
+   "sel_methods": {
+    "_process_order": []
+   },
+   "transient": false
+  },
+  "pos.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "online_account_payment_id": {
+     "comodel": "account.payment",
+     "readonly": true,
+     "string": "Online accounting payment",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 27,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('payment_method_id')"
+     ],
+     "lines": 7,
+     "name": "_check_payment_method_id"
+    }
+   ],
+   "name": "pos.payment",
+   "transient": false
+  },
+  "pos.payment.method": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_an_online_payment_provider": {
+     "compute": "_compute_has_an_online_payment_provider",
+     "readonly": true,
+     "type": "Boolean"
+    },
+    "is_online_payment": {
+     "default": false,
+     "help": "Use this payment method for online payments (payments made on a web page with online payment providers)",
+     "string": "Online Payment",
+     "type": "Boolean"
+    },
+    "online_payment_provider_ids": {
+     "comodel": "payment.provider",
+     "domain": "[('is_published', '=', True), ('state', 'in', ['enabled', 'test'])]",
+     "string": "Allowed Providers",
+     "type": "Many2many"
+    },
+    "type": {
+     "selection_add": [
+      [
+       "online",
+       "Online"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_online_payment')"
+     ],
+     "lines": 6,
+     "name": "_compute_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_online_payment_providers"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_online_payment', 'online_payment_provider_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_has_an_online_payment_provider"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_write_forbidden"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_force_online_payment_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_payment_terminal_selection"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 5,
+     "name": "_compute_hide_use_payment_terminal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_get_or_create_online_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_online_payment"
+    }
+   ],
+   "name": "pos.payment.method",
+   "sel_methods": {
+    "_get_payment_terminal_selection": [],
+    "_is_write_forbidden": []
+   },
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_accumulate_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_create_bank_payment_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_split_receivable_op_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_reconcile_account_move_lines"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  }
+ },
+ "module": "pos_online_payment",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_online_payment",
+ "stats": {
+  "fields": 9,
+  "methods": 33,
+  "models": 7,
+  "py_lines": 800
+ },
+ "summary": "",
+ "title": "Point of Sale online payment",
+ "version": null
+}

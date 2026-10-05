@@ -1,0 +1,599 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/CRM",
+ "data_files": [
+  "data/crm.iap.lead.industry.csv",
+  "data/crm.iap.lead.role.csv",
+  "data/crm.iap.lead.seniority.csv",
+  "data/mail_template_data.xml",
+  "data/ir_sequence_data.xml",
+  "security/ir.model.access.csv",
+  "views/crm_lead_views.xml",
+  "views/crm_iap_lead_mining_request_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/mail_templates.xml",
+  "views/crm_menus.xml"
+ ],
+ "depends": [
+  "iap_crm",
+  "iap_mail"
+ ],
+ "models": {
+  "crm.iap.lead.helpers": {
+   "abstract": false,
+   "description": "Helper methods for crm_iap_mine modules",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_notify_no_more_credit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 34,
+     "name": "lead_vals_from_response"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_find_state_id"
+    }
+   ],
+   "name": "crm.iap.lead.helpers",
+   "transient": false
+  },
+  "crm.iap.lead.industry": {
+   "abstract": false,
+   "description": "CRM IAP Lead Industry",
+   "extension": false,
+   "fields": {
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Industry",
+     "translate": true,
+     "type": "Char"
+    },
+    "reveal_ids": {
+     "required": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "crm.iap.lead.industry",
+   "order": "sequence,id",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Industry name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "crm.iap.lead.mining.request": {
+   "abstract": false,
+   "description": "CRM Lead Mining Request",
+   "extension": false,
+   "fields": {
+    "available_state_ids": {
+     "comodel": "res.country.state",
+     "compute": "_compute_available_state_ids",
+     "type": "One2many"
+    },
+    "company_size_max": {
+     "default": 1000,
+     "type": "Integer"
+    },
+    "company_size_min": {
+     "default": 1,
+     "string": "Size",
+     "type": "Integer"
+    },
+    "contact_filter_type": {
+     "default": "role",
+     "selection": [
+      [
+       "role",
+       "Role"
+      ],
+      [
+       "seniority",
+       "Seniority"
+      ]
+     ],
+     "string": "Filter on",
+     "type": "Selection"
+    },
+    "contact_number": {
+     "default": 10,
+     "string": "Number of Contacts",
+     "type": "Integer"
+    },
+    "country_ids": {
+     "comodel": "res.country",
+     "default": {
+      "$ref": "_default_country_ids"
+     },
+     "string": "Countries",
+     "type": "Many2many"
+    },
+    "error_type": {
+     "copy": false,
+     "readonly": true,
+     "selection": [
+      [
+       "credits",
+       "Insufficient Credits"
+      ],
+      [
+       "no_result",
+       "No Result"
+      ]
+     ],
+     "string": "Error Type",
+     "type": "Selection"
+    },
+    "filter_on_size": {
+     "default": false,
+     "string": "Filter on Size",
+     "type": "Boolean"
+    },
+    "industry_ids": {
+     "comodel": "crm.iap.lead.industry",
+     "string": "Industries",
+     "type": "Many2many"
+    },
+    "lead_contacts_credits": {
+     "compute": "_compute_tooltip",
+     "readonly": true,
+     "type": "Char"
+    },
+    "lead_count": {
+     "compute": "_compute_lead_count",
+     "string": "Number of Generated Leads",
+     "type": "Integer"
+    },
+    "lead_credits": {
+     "compute": "_compute_tooltip",
+     "readonly": true,
+     "type": "Char"
+    },
+    "lead_ids": {
+     "comodel": "crm.lead",
+     "inverse_name": "lead_mining_request_id",
+     "string": "Generated Lead / Opportunity",
+     "type": "One2many"
+    },
+    "lead_number": {
+     "default": 3,
+     "required": true,
+     "string": "Number of Leads",
+     "type": "Integer"
+    },
+    "lead_total_credits": {
+     "compute": "_compute_tooltip",
+     "readonly": true,
+     "type": "Char"
+    },
+    "lead_type": {
+     "default": {
+      "$ref": "_default_lead_type"
+     },
+     "required": true,
+     "selection": [
+      [
+       "lead",
+       "Leads"
+      ],
+      [
+       "opportunity",
+       "Opportunities"
+      ]
+     ],
+     "string": "Type",
+     "type": "Selection"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "_('New')"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Request Number",
+     "type": "Char"
+    },
+    "preferred_role_id": {
+     "comodel": "crm.iap.lead.role",
+     "string": "Preferred Role",
+     "type": "Many2one"
+    },
+    "role_ids": {
+     "comodel": "crm.iap.lead.role",
+     "string": "Other Roles",
+     "type": "Many2many"
+    },
+    "search_type": {
+     "default": "companies",
+     "required": true,
+     "selection": [
+      [
+       "companies",
+       "Companies"
+      ],
+      [
+       "people",
+       "Companies and their Contacts"
+      ]
+     ],
+     "string": "Target",
+     "type": "Selection"
+    },
+    "seniority_id": {
+     "comodel": "crm.iap.lead.seniority",
+     "string": "Seniority",
+     "type": "Many2one"
+    },
+    "state": {
+     "default": "draft",
+     "required": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "error",
+       "Error"
+      ],
+      [
+       "done",
+       "Done"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "state_ids": {
+     "comodel": "res.country.state",
+     "string": "States",
+     "type": "Many2many"
+    },
+    "tag_ids": {
+     "comodel": "crm.tag",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "compute": "_compute_team_id",
+     "domain": "[('use_opportunities', '=', True)]",
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "string": "Salesperson",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_default_lead_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_country_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('lead_number', 'contact_number')"
+     ],
+     "lines": 16,
+     "name": "_compute_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_ids.lead_mining_request_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_lead_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id', 'lead_type')"
+     ],
+     "lines": 13,
+     "name": "_compute_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_ids')"
+     ],
+     "lines": 22,
+     "name": "_compute_available_state_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('available_state_ids')"
+     ],
+     "lines": 4,
+     "name": "_onchange_available_state_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('lead_number')"
+     ],
+     "lines": 5,
+     "name": "_onchange_lead_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('contact_number')"
+     ],
+     "lines": 5,
+     "name": "_onchange_contact_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('country_ids')"
+     ],
+     "lines": 2,
+     "name": "_onchange_country_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_size_min')"
+     ],
+     "lines": 5,
+     "name": "_onchange_company_size_min"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('company_size_max')"
+     ],
+     "lines": 3,
+     "name": "_onchange_company_size_max"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_prepare_iap_payload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_perform_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_iap_contact_mining"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_create_leads_from_response"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_lead_vals_from_response"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_draft"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 29,
+     "name": "action_submit"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_get_lead_action"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_get_opportunity_action"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_buy_credits"
+    }
+   ],
+   "name": "crm.iap.lead.mining.request",
+   "transient": false
+  },
+  "crm.iap.lead.role": {
+   "abstract": false,
+   "description": "People Role",
+   "extension": false,
+   "fields": {
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Role Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "reveal_id": {
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "crm.iap.lead.role",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Role name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "crm.iap.lead.seniority": {
+   "abstract": false,
+   "description": "People Seniority",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "reveal_id": {
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "crm.iap.lead.seniority",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "crm.lead": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "lead_mining_request_id": {
+     "comodel": "crm.iap.lead.mining.request",
+     "index": "btree_not_null",
+     "string": "Lead Mining Request",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_merge_get_fields"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_generate_leads"
+    }
+   ],
+   "name": "crm.lead",
+   "transient": false
+  }
+ },
+ "module": "crm_iap_mine",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/crm_iap_mine",
+ "stats": {
+  "fields": 36,
+  "methods": 30,
+  "models": 6,
+  "py_lines": 531
+ },
+ "summary": "Generate Leads/Opportunities based on country, industries, size, etc.",
+ "title": "Lead Generation",
+ "version": "1.2"
+}

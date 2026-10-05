@@ -1,0 +1,737 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden/Tools",
+ "data_files": [
+  "data/iap_service_data.xml",
+  "data/snailmail_data.xml",
+  "views/report_assets.xml",
+  "views/snailmail_views.xml",
+  "wizard/snailmail_letter_format_error_views.xml",
+  "wizard/snailmail_letter_missing_required_fields_views.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "iap_mail",
+  "mail"
+ ],
+ "models": {
+  "ir.actions.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "retrieve_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "get_paperformat"
+    }
+   ],
+   "name": "ir.actions.report",
+   "transient": false
+  },
+  "mail.message": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "letter_ids": {
+     "comodel": "snailmail.letter",
+     "inverse_name": "message_id",
+     "type": "One2many"
+    },
+    "message_type": {
+     "ondelete": {
+      "$expr": "{'snailmail': lambda recs: recs.write({'message_type': ' comment'})}"
+     },
+     "selection_add": [
+      [
+       "snailmail",
+       "Snailmail"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "snailmail_error": {
+     "compute": "_compute_snailmail_error",
+     "string": "Snailmail message in error",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('letter_ids', 'letter_ids.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_snailmail_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_search_snailmail_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "cancel_letter"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "send_letter"
+    }
+   ],
+   "name": "mail.message",
+   "transient": false
+  },
+  "mail.notification": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "failure_type": {
+     "selection_add": [
+      [
+       "sn_credit",
+       "Snailmail Credit Error"
+      ],
+      [
+       "sn_trial",
+       "Snailmail Trial Error"
+      ],
+      [
+       "sn_price",
+       "Snailmail No Price Available"
+      ],
+      [
+       "sn_fields",
+       "Snailmail Missing Required Fields"
+      ],
+      [
+       "sn_format",
+       "Snailmail Format Error"
+      ],
+      [
+       "sn_error",
+       "Snailmail Unknown Error"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "letter_id": {
+     "comodel": "snailmail.letter",
+     "index": "btree_not_null",
+     "ondelete": "cascade",
+     "string": "Snailmail Letter",
+     "type": "Many2one"
+    },
+    "notification_type": {
+     "ondelete": {
+      "snail": "cascade"
+     },
+     "selection_add": [
+      [
+       "snail",
+       "Snailmail"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "mail.notification",
+   "transient": false
+  },
+  "mail.thread": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_notify_cancel_snail"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "notify_cancel_by_type"
+    }
+   ],
+   "name": "mail.thread",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "snailmail_color": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "snailmail_cover": {
+     "default": false,
+     "string": "Add a Cover Page",
+     "type": "Boolean"
+    },
+    "snailmail_duplex": {
+     "default": false,
+     "string": "Both sides",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "snailmail_color": {
+     "readonly": false,
+     "related": "company_id.snailmail_color",
+     "string": "Print In Color",
+     "type": "Boolean"
+    },
+    "snailmail_cover": {
+     "readonly": false,
+     "related": "company_id.snailmail_cover",
+     "string": "Add a Cover Page",
+     "type": "Boolean"
+    },
+    "snailmail_cover_readonly": {
+     "compute": "_compute_cover_readonly",
+     "store": false,
+     "type": "Boolean"
+    },
+    "snailmail_duplex": {
+     "readonly": false,
+     "related": "company_id.snailmail_duplex",
+     "string": "Print Both sides",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_is_layout_cover_required"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('external_report_layout_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_layout"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('external_report_layout_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_cover_readonly"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_country_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_get_address_format"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_get_address_format": [],
+    "_get_country_name": []
+   },
+   "transient": false
+  },
+  "snailmail.letter": {
+   "abstract": false,
+   "description": "Snailmail Letter",
+   "extension": false,
+   "fields": {
+    "attachment_datas": {
+     "related": "attachment_id.datas",
+     "string": "Document",
+     "type": "Binary"
+    },
+    "attachment_fname": {
+     "related": "attachment_id.name",
+     "string": "Attachment Filename",
+     "type": "Char"
+    },
+    "attachment_id": {
+     "comodel": "ir.attachment",
+     "index": "btree_not_null",
+     "ondelete": "cascade",
+     "string": "Attachment",
+     "type": "Many2one"
+    },
+    "city": {
+     "string": "City",
+     "type": "Char"
+    },
+    "color": {
+     "default": {
+      "$lambda": "self.env.company.snailmail_color"
+     },
+     "string": "Color",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company.id"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "cover": {
+     "default": {
+      "$lambda": "self.env.company.snailmail_cover"
+     },
+     "string": "Cover Page",
+     "type": "Boolean"
+    },
+    "duplex": {
+     "default": {
+      "$lambda": "self.env.company.snailmail_duplex"
+     },
+     "string": "Both side",
+     "type": "Boolean"
+    },
+    "error_code": {
+     "selection": {
+      "$expr": "[(err_code, err_code) for err_code in ERROR_CODES]"
+     },
+     "string": "Error",
+     "type": "Selection"
+    },
+    "info_msg": {
+     "string": "Information",
+     "type": "Html"
+    },
+    "message_id": {
+     "comodel": "mail.message",
+     "index": "btree_not_null",
+     "string": "Snailmail Status Message",
+     "type": "Many2one"
+    },
+    "model": {
+     "required": true,
+     "string": "Model",
+     "type": "Char"
+    },
+    "notification_ids": {
+     "comodel": "mail.notification",
+     "inverse_name": "letter_id",
+     "string": "Notifications",
+     "type": "One2many"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "required": true,
+     "string": "Recipient",
+     "type": "Many2one"
+    },
+    "reference": {
+     "compute": "_compute_reference",
+     "readonly": true,
+     "store": false,
+     "string": "Related Record",
+     "type": "Char"
+    },
+    "report_template": {
+     "comodel": "ir.actions.report",
+     "string": "Optional report to print and attach",
+     "type": "Many2one"
+    },
+    "res_id": {
+     "required": true,
+     "string": "Document ID",
+     "type": "Integer"
+    },
+    "state": {
+     "copy": false,
+     "default": "pending",
+     "help": "When a letter is created, the status is 'Pending'.\nIf the letter is correctly sent, the status goes in 'Sent',\nIf not, it will got in state 'Error' and the error message will be displayed in the field 'Error Message'.",
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "pending",
+       "In Queue"
+      ],
+      [
+       "sent",
+       "Sent"
+      ],
+      [
+       "error",
+       "Error"
+      ],
+      [
+       "canceled",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "state_id": {
+     "comodel": "res.country.state",
+     "string": "State",
+     "type": "Many2one"
+    },
+    "street": {
+     "string": "Street",
+     "type": "Char"
+    },
+    "street2": {
+     "string": "Street2",
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Sent by",
+     "type": "Many2one"
+    },
+    "zip": {
+     "string": "Zip",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('attachment_id', 'partner_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('model', 'res_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_reference"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 35,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('attachment_id')"
+     ],
+     "lines": 2,
+     "name": "_onchange_attachment_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_generate_report_pdf"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_fetch_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_count_pages_pdf"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 118,
+     "name": "_snailmail_create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_error_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_failure_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_snailmail_print"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_snailmail_print_invalid_address"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_snailmail_print_valid_address"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "snailmail_print"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "cancel"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_snailmail_cron"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_is_valid_address"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_cover_address_split"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_append_cover_page"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_overwrite_margins"
+    }
+   ],
+   "name": "snailmail.letter",
+   "transient": false
+  },
+  "snailmail.letter.format.error": {
+   "abstract": false,
+   "description": "Format Error Sending a Snailmail Letter",
+   "extension": false,
+   "fields": {
+    "message_id": {
+     "comodel": "mail.message",
+     "default": {
+      "$lambda": "self.env.context.get('message_id', None)"
+     },
+     "type": "Many2one"
+    },
+    "snailmail_cover": {
+     "default": {
+      "$lambda": "self.env.company.snailmail_cover"
+     },
+     "string": "Add a Cover Page",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_resend_letters"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "update_resend_action"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "cancel_letter_action"
+    }
+   ],
+   "name": "snailmail.letter.format.error",
+   "transient": true
+  },
+  "snailmail.letter.missing.required.fields": {
+   "abstract": false,
+   "description": "Update address of partner",
+   "extension": false,
+   "fields": {
+    "city": {
+     "string": "City",
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "letter_id": {
+     "comodel": "snailmail.letter",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "type": "Many2one"
+    },
+    "state_id": {
+     "comodel": "res.country.state",
+     "string": "State",
+     "type": "Many2one"
+    },
+    "street": {
+     "string": "Street",
+     "type": "Char"
+    },
+    "street2": {
+     "string": "Street2",
+     "type": "Char"
+    },
+    "zip": {
+     "string": "Zip",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "update_address_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "update_address_save"
+    }
+   ],
+   "name": "snailmail.letter.missing.required.fields",
+   "transient": true
+  }
+ },
+ "module": "snailmail",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/snailmail",
+ "stats": {
+  "fields": 47,
+  "methods": 41,
+  "models": 10,
+  "py_lines": 1110
+ },
+ "summary": "Allows users to send documents by post",
+ "title": "Snail Mail",
+ "version": "0.4"
+}

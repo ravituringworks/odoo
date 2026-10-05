@@ -1,0 +1,313 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/event_leaderboard_templates.xml",
+  "views/event_quiz_views.xml",
+  "views/event_quiz_question_views.xml",
+  "views/event_track_views.xml",
+  "views/event_track_visitor_views.xml",
+  "views/event_menus.xml",
+  "views/event_quiz_templates.xml",
+  "views/event_track_templates_page.xml",
+  "views/event_event_views.xml",
+  "views/event_type_views.xml",
+  "data/quiz_demo.xml"
+ ],
+ "depends": [
+  "website_profile",
+  "website_event_track"
+ ],
+ "models": {
+  "event.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id', 'website_menu', 'community_menu')"
+     ],
+     "lines": 9,
+     "name": "_compute_community_menu"
+    }
+   ],
+   "name": "event.event",
+   "transient": false
+  },
+  "event.quiz": {
+   "abstract": false,
+   "description": "Quiz",
+   "extension": false,
+   "fields": {
+    "event_id": {
+     "comodel": "event.event",
+     "readonly": true,
+     "related": "event_track_id.event_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "event_track_id": {
+     "comodel": "event.track",
+     "readonly": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "question_ids": {
+     "comodel": "event.quiz.question",
+     "inverse_name": "quiz_id",
+     "string": "Questions",
+     "type": "One2many"
+    },
+    "repeatable": {
+     "help": "Let attendees reset the quiz and try again.",
+     "string": "Unlimited Tries",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "event.quiz",
+   "transient": false
+  },
+  "event.quiz.answer": {
+   "abstract": false,
+   "description": "Question's Answer",
+   "extension": false,
+   "fields": {
+    "awarded_points": {
+     "default": 0,
+     "string": "Points",
+     "type": "Integer"
+    },
+    "comment": {
+     "help": "This comment will be displayed to the user if they select this answer, after submitting the quiz.\n                It is used as a small informational text helping to understand why this answer is correct / incorrect.",
+     "string": "Extra Comment",
+     "translate": true,
+     "type": "Text"
+    },
+    "is_correct": {
+     "default": false,
+     "string": "Correct",
+     "type": "Boolean"
+    },
+    "question_id": {
+     "comodel": "event.quiz.question",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Question",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "text_value": {
+     "required": true,
+     "string": "Answer",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "event.quiz.answer",
+   "order": "question_id, sequence, id",
+   "rec_name": "text_value",
+   "transient": false
+  },
+  "event.quiz.question": {
+   "abstract": false,
+   "description": "Content Quiz Question",
+   "extension": false,
+   "fields": {
+    "answer_ids": {
+     "comodel": "event.quiz.answer",
+     "inverse_name": "question_id",
+     "string": "Answer",
+     "type": "One2many"
+    },
+    "awarded_points": {
+     "compute": "_compute_awarded_points",
+     "string": "Number of Points",
+     "type": "Integer"
+    },
+    "correct_answer_id": {
+     "comodel": "event.quiz.answer",
+     "compute": "_compute_correct_answer_id",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Question",
+     "translate": true,
+     "type": "Char"
+    },
+    "quiz_id": {
+     "comodel": "event.quiz",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Quiz",
+     "type": "Many2one"
+    },
+    "sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('answer_ids.awarded_points')"
+     ],
+     "lines": 3,
+     "name": "_compute_awarded_points"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('answer_ids.is_correct')"
+     ],
+     "lines": 3,
+     "name": "_compute_correct_answer_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('answer_ids')"
+     ],
+     "lines": 6,
+     "name": "_check_answers_integrity"
+    }
+   ],
+   "name": "event.quiz.question",
+   "order": "quiz_id, sequence, id",
+   "transient": false
+  },
+  "event.track": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_quiz_completed": {
+     "compute": "_compute_quiz_data",
+     "string": "Is Quiz Done",
+     "type": "Boolean"
+    },
+    "quiz_id": {
+     "comodel": "event.quiz",
+     "compute": "_compute_quiz_id",
+     "groups": "event.group_event_user",
+     "store": true,
+     "string": "Quiz",
+     "type": "Many2one"
+    },
+    "quiz_ids": {
+     "comodel": "event.quiz",
+     "inverse_name": "event_track_id",
+     "string": "Quizzes",
+     "type": "One2many"
+    },
+    "quiz_points": {
+     "compute": "_compute_quiz_data",
+     "string": "Quiz Points",
+     "type": "Integer"
+    },
+    "quiz_questions_count": {
+     "compute": "_compute_quiz_questions_count",
+     "groups": "event.group_event_user",
+     "string": "# Quiz Questions",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('quiz_ids.event_track_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_quiz_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('quiz_id.question_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_quiz_questions_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('quiz_id', 'event_track_visitor_ids.visitor_id', 'event_track_visitor_ids.partner_id', 'event_track_visitor_ids.quiz_completed', 'event_track_visitor_ids.quiz_points')",
+      "api.depends_context('uid')"
+     ],
+     "lines": 42,
+     "name": "_compute_quiz_data"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_add_quiz"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_view_quiz"
+    }
+   ],
+   "name": "event.track",
+   "transient": false
+  },
+  "event.track.visitor": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "quiz_completed": {
+     "string": "Completed",
+     "type": "Boolean"
+    },
+    "quiz_points": {
+     "default": 0,
+     "string": "Quiz Points",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "event.track.visitor",
+   "transient": false
+  }
+ },
+ "module": "website_event_track_quiz",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_event_track_quiz",
+ "stats": {
+  "fields": 24,
+  "methods": 9,
+  "models": 6,
+  "py_lines": 384
+ },
+ "summary": "Quizzes on tracks",
+ "title": "Quizzes on Tracks",
+ "version": "1.0"
+}

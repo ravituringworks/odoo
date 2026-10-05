@@ -1,0 +1,230 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/res_partner_data.xml",
+  "views/res_config_settings_views.xml",
+  "views/account_move_views.xml"
+ ],
+ "depends": [
+  "l10n_vn_edi_viettel",
+  "point_of_sale"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_invoice_legal_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_l10n_vn_edi_add_buyer_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "l10n_vn_edi_fetch_invoice_files"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_get_invoice_legal_documents": []
+   },
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_vn_auto_send_to_sinvoice": {
+     "default": true,
+     "string": "Auto-send to SInvoice",
+     "type": "Boolean"
+    },
+    "l10n_vn_pos_symbol": {
+     "comodel": "l10n_vn_edi_viettel.sinvoice.symbol",
+     "compute": "_compute_l10n_vn_pos_symbol",
+     "groups": "base.group_system,point_of_sale.group_pos_manager",
+     "help": "This is the symbol that will be used on invoices issued from this POS.",
+     "readonly": false,
+     "store": true,
+     "string": "POS Symbol",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.l10n_vn_pos_default_symbol')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_vn_pos_symbol"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_vn_credit_note_reason": {
+     "copy": false,
+     "string": "Credit Note Reason",
+     "type": "Char"
+    },
+    "l10n_vn_has_sinvoice_pdf": {
+     "compute": "_compute_sinvoice_has_pdf",
+     "string": "SInvoice PDF Available",
+     "type": "Boolean"
+    },
+    "l10n_vn_sinvoice_state": {
+     "related": "account_move.l10n_vn_edi_invoice_state",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_move.l10n_vn_edi_sinvoice_pdf_file')"
+     ],
+     "lines": 3,
+     "name": "_compute_sinvoice_has_pdf"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_prepare_invoice_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_create_invoice"
+    }
+   ],
+   "name": "pos.order",
+   "sel_methods": {
+    "_create_invoice": []
+   },
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_load_pos_data"
+    }
+   ],
+   "name": "pos.session",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_vn_pos_default_symbol": {
+     "comodel": "l10n_vn_edi_viettel.sinvoice.symbol",
+     "string": "Default PoS Symbol",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_vn_edi_pos_default_symbol": {
+     "help": "Default Sinvoice Symbol for PoS.",
+     "readonly": false,
+     "related": "company_id.l10n_vn_pos_default_symbol",
+     "string": "Default PoS Symbol",
+     "type": "Many2one"
+    },
+    "pos_l10n_vn_auto_send_to_sinvoice": {
+     "readonly": false,
+     "related": "pos_config_id.l10n_vn_auto_send_to_sinvoice",
+     "type": "Boolean"
+    },
+    "pos_l10n_vn_pos_symbol": {
+     "readonly": false,
+     "related": "pos_config_id.l10n_vn_pos_symbol",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_load_pos_data_domain"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_vn_edi_viettel_pos",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_vn_edi_viettel_pos",
+ "stats": {
+  "fields": 9,
+  "methods": 10,
+  "models": 7,
+  "py_lines": 194
+ },
+ "summary": "POS E-invoicing using SInvoice by Viettel",
+ "title": "Vietnam - POS E-invoicing",
+ "version": "1.0"
+}

@@ -1,0 +1,167 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "wizard/base_module_install_request_views.xml",
+  "data/mail_template_data.xml",
+  "data/mail_templates_module_install.xml",
+  "views/ir_module_module_views.xml"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "base.module.install.request": {
+   "abstract": false,
+   "description": "Module Activation Request",
+   "extension": false,
+   "fields": {
+    "body_html": {
+     "string": "Body",
+     "type": "Html"
+    },
+    "module_id": {
+     "comodel": "ir.module.module",
+     "domain": [
+      [
+       "state",
+       "=",
+       "uninstalled"
+      ]
+     ],
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "string": "Module",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "required": true,
+     "type": "Many2one"
+    },
+    "user_ids": {
+     "comodel": "res.users",
+     "compute": "_compute_user_ids",
+     "string": "Send to:",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('module_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_user_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_send_request"
+    }
+   ],
+   "name": "base.module.install.request",
+   "rec_name": "module_id",
+   "transient": true
+  },
+  "base.module.install.review": {
+   "abstract": false,
+   "description": "Module Activation Review",
+   "extension": false,
+   "fields": {
+    "module_id": {
+     "comodel": "ir.module.module",
+     "domain": [
+      [
+       "state",
+       "=",
+       "uninstalled"
+      ]
+     ],
+     "ondelete": "cascade",
+     "readonly": true,
+     "required": true,
+     "string": "Module",
+     "type": "Many2one"
+    },
+    "module_ids": {
+     "comodel": "ir.module.module",
+     "compute": "_compute_modules_description",
+     "string": "Depending Apps",
+     "type": "Many2many"
+    },
+    "modules_description": {
+     "compute": "_compute_modules_description",
+     "type": "Html"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('module_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_modules_description"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_depending_apps"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_install_module"
+    }
+   ],
+   "name": "base.module.install.review",
+   "rec_name": "module_id",
+   "transient": true
+  },
+  "ir.module.module": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_open_install_request"
+    }
+   ],
+   "name": "ir.module.module",
+   "transient": false
+  }
+ },
+ "module": "base_install_request",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/base_install_request",
+ "stats": {
+  "fields": 7,
+  "methods": 6,
+  "models": 3,
+  "py_lines": 135
+ },
+ "summary": "Allow internal users requesting a module installation",
+ "title": "Base - Module Install Request",
+ "version": null
+}

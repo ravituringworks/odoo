@@ -1,0 +1,138 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Sales",
+ "data_files": [
+  "views/product_template_views.xml",
+  "views/sale_order_views.xml",
+  "report/sale_report_templates.xml",
+  "data/product_matrix_demo.xml"
+ ],
+ "depends": [
+  "sale",
+  "product_matrix"
+ ],
+ "models": {
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "product_add_mode": {
+     "default": "configurator",
+     "help": "Configurator: choose attribute values to add the matching product variant to the order.\nGrid: add several variants at once from the grid of attribute values",
+     "selection": [
+      [
+       "configurator",
+       "Product Configurator"
+      ],
+      [
+       "matrix",
+       "Order Grid Entry"
+      ]
+     ],
+     "string": "Add product mode",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_single_product_variant"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "grid": {
+     "help": "Technical local storage of grid. \nIf grid_update, will be loaded on the SO.\nIf not, represents the matrix to open.",
+     "store": false,
+     "string": "Matrix local storage",
+     "type": "Char"
+    },
+    "grid_product_tmpl_id": {
+     "comodel": "product.template",
+     "store": false,
+     "type": "Many2one"
+    },
+    "grid_update": {
+     "default": false,
+     "store": false,
+     "type": "Boolean"
+    },
+    "report_grids": {
+     "default": true,
+     "string": "Print Variant Grids",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('grid_product_tmpl_id')"
+     ],
+     "lines": 5,
+     "name": "_set_grid_up"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('grid')"
+     ],
+     "lines": 76,
+     "name": "_apply_grid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_get_matrix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "get_report_matrixes"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "product_add_mode": {
+     "related": "product_template_id.product_add_mode",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "sale.order.line",
+   "transient": false
+  }
+ },
+ "module": "sale_product_matrix",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_product_matrix",
+ "stats": {
+  "fields": 6,
+  "methods": 5,
+  "models": 3,
+  "py_lines": 212
+ },
+ "summary": "Add variants to Sales Order through a grid entry.",
+ "title": "Sale Matrix",
+ "version": "1.0"
+}

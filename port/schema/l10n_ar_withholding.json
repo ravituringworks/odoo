@@ -1,0 +1,634 @@
+{
+ "application": false,
+ "author": "ADHOC SA",
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "views/account_tax_views.xml",
+  "views/account_payment_view.xml",
+  "views/report_payment_receipt_templates.xml",
+  "views/res_config_settings.xml",
+  "views/res_partner_view.xml",
+  "views/l10n_ar_earnings_scale_view.xml",
+  "wizards/account_payment_register_views.xml",
+  "security/ir.model.access.csv",
+  "security/security.xml",
+  "data/earnings_table_data.xml"
+ ],
+ "depends": [
+  "l10n_ar",
+  "l10n_latam_check"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_post_load_demo_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_ar_base_withholding_account_account"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_ar_ri_withholding_account_tax_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_ar_ri_withholding_account_tax"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_ar_ex_withholding_account_tax_group"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_ar_ex_withholding_account_tax"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_ar_base_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ar_withholding_ids": {
+     "comodel": "account.move.line",
+     "compute": "_compute_l10n_ar_withholding_ids",
+     "inverse_name": "move_id",
+     "readonly": true,
+     "string": "Withholdings",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_ar_withholding_ids"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ar_withholding_ids": {
+     "related": "move_id.l10n_ar_withholding_ids",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_synchronize_to_moves"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "account.payment.register": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ar_adjustment_warning": {
+     "compute": "_compute_l10n_ar_adjustment_warning",
+     "type": "Boolean"
+    },
+    "l10n_ar_net_amount": {
+     "compute": "_compute_l10n_ar_net_amount",
+     "help": "Net amount after withholdings",
+     "readonly": true,
+     "type": "Monetary"
+    },
+    "l10n_ar_withholding_ids": {
+     "comodel": "l10n_ar.payment.register.withholding",
+     "compute": "_compute_l10n_ar_withholding_ids",
+     "inverse_name": "payment_register_id",
+     "readonly": false,
+     "store": true,
+     "string": "Withholdings",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('can_edit_wizard', 'source_amount', 'source_amount_currency', 'source_currency_id', 'company_id', 'currency_id', 'payment_date', 'installments_mode', 'l10n_latam_move_check_ids.amount', 'l10n_latam_new_check_ids.amount', 'payment_method_code')"
+     ],
+     "lines": 33,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount', 'l10n_latam_move_check_ids', 'l10n_latam_new_check_ids', 'payment_method_code')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_ar_adjustment_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount', 'l10n_ar_withholding_ids.amount')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_ar_net_amount"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 53,
+     "name": "_create_payment_vals_from_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_conversion_rate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'payment_date')"
+     ],
+     "lines": 12,
+     "name": "_compute_l10n_ar_withholding_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_create_payments"
+    }
+   ],
+   "name": "account.payment.register",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ar_code": {
+     "string": "AFIP Code",
+     "type": "Char"
+    },
+    "l10n_ar_minimum_threshold": {
+     "help": "If the calculated withholding tax amount is lower than minimum withholding threshold then it is 0.0.",
+     "string": "Minimum Treshold",
+     "type": "Float"
+    },
+    "l10n_ar_non_taxable_amount": {
+     "digits": "Account",
+     "help": "Until this base amount, the tax is not applied.",
+     "string": "Non Taxable Amount",
+     "type": "Float"
+    },
+    "l10n_ar_scale_id": {
+     "comodel": "l10n_ar.earnings.scale",
+     "help": "Earnings table scale if tax type is 'Earnings Scale'.",
+     "string": "Scale",
+     "type": "Many2one"
+    },
+    "l10n_ar_state_id": {
+     "comodel": "res.country.state",
+     "domain": "[('country_id', '=?', country_id)]",
+     "ondelete": "restrict",
+     "string": "Jurisdiction",
+     "type": "Many2one"
+    },
+    "l10n_ar_tax_type": {
+     "selection": [
+      [
+       "earnings",
+       "Earnings"
+      ],
+      [
+       "earnings_scale",
+       "Earnings Scale"
+      ],
+      [
+       "iibb_untaxed",
+       "IIBB Untaxed"
+      ],
+      [
+       "iibb_total",
+       "IIBB Total Amount"
+      ]
+     ],
+     "string": "WTH Tax",
+     "type": "Selection"
+    },
+    "l10n_ar_type_tax_use": {
+     "compute": "_compute_l10n_ar_type_tax_use",
+     "selection": [
+      [
+       "sale",
+       "Sales"
+      ],
+      [
+       "purchase",
+       "Purchases"
+      ],
+      [
+       "none",
+       "Other"
+      ],
+      [
+       "supplier",
+       "Vendor Payment Withholding"
+      ],
+      [
+       "customer",
+       "Customer Payment Withholding"
+      ]
+     ],
+     "string": "Argentina Tax Type",
+     "type": "Selection"
+    },
+    "l10n_ar_withholding_payment_type": {
+     "help": "Withholding tax for supplier or customer payments.",
+     "selection": [
+      [
+       "supplier",
+       "Vendor Payment"
+      ],
+      [
+       "customer",
+       "Customer Payment"
+      ]
+     ],
+     "string": "Argentina Withholding Payment Type",
+     "type": "Selection"
+    },
+    "l10n_ar_withholding_sequence_id": {
+     "comodel": "ir.sequence",
+     "copy": false,
+     "help": "If no sequence provided then it will be required for you to enter withholding number when registering one.",
+     "string": "WTH Sequence",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type_tax_use', 'l10n_ar_withholding_payment_type')"
+     ],
+     "lines": 11,
+     "name": "_compute_l10n_ar_type_tax_use"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_ar_type_tax_use')"
+     ],
+     "lines": 14,
+     "name": "_inverse_l10n_ar_type_tax_use"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_prepare_base_line_tax_repartition_grouping_key"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_ar.earnings.scale": {
+   "abstract": false,
+   "description": "l10n_ar.earnings.scale",
+   "extension": false,
+   "fields": {
+    "line_ids": {
+     "comodel": "l10n_ar.earnings.scale.line",
+     "inverse_name": "scale_id",
+     "type": "One2many"
+    },
+    "name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "l10n_ar.earnings.scale",
+   "transient": false
+  },
+  "l10n_ar.earnings.scale.line": {
+   "abstract": false,
+   "description": "l10n_ar.earnings.scale.line",
+   "extension": false,
+   "fields": {
+    "currency_id": {
+     "comodel": "res.currency",
+     "default": {
+      "$lambda": "self.env.ref('base.ARS')"
+     },
+     "store": false,
+     "type": "Many2one"
+    },
+    "excess_amount": {
+     "currency_field": "currency_id",
+     "help": "From the taxable amount (tax base + tax bases applied this month to same tax and partner - non-taxable minimum) subtract the immediately previous amount of this column to detect which row to work with and apply the percentage of said row to the result of the subtraction.",
+     "string": "S/ Exceeding $",
+     "type": "Monetary"
+    },
+    "fixed_amount": {
+     "currency_field": "currency_id",
+     "help": "To obtain the withholding amount first from the taxable amount (tax base + tax bases applied this month to same tax and partner - non-taxable minimum) subtract the immediately previous amount of 'S/ Exced. of $' column to detect which row to work with and apply the percentage of said row to the result of the subtraction. Then add the amount of this column to the result of applying the percentage.",
+     "string": "$",
+     "type": "Monetary"
+    },
+    "from_amount": {
+     "compute": "_compute_from_amount",
+     "currency_field": "currency_id",
+     "string": "From $",
+     "type": "Monetary"
+    },
+    "percentage": {
+     "currency_field": "currency_id",
+     "help": "Percentage to apply to the result of the subtraction between the taxable amount (tax base + tax basis of the previous month - non-taxable minimum) and the immediately previous amount of 'S/ Exced. from $' column.",
+     "string": "Add %",
+     "type": "Monetary"
+    },
+    "scale_id": {
+     "comodel": "l10n_ar.earnings.scale",
+     "help": "Calculation of the withholding amount: From the taxable amount (tax base + tax bases applied this month to same tax and partner - non-taxable minimum) subtract the immediately previous amount of the column 'S/ Exceeding $' to detect which row to work with and apply the percentage of said row to the result of the subtraction. Then add to this amount the amount of the '$' column.",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "to_amount": {
+     "currency_field": "currency_id",
+     "help": "The taxable amount (tax base + tax bases applied this month to same tax and partner - non-taxable minimum) must be between the amount in the 'S/ Exced' column. of $' and the amount of this column.",
+     "string": "To $",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('to_amount', 'scale_id.line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_from_amount"
+    }
+   ],
+   "name": "l10n_ar.earnings.scale.line",
+   "order": "to_amount",
+   "transient": false
+  },
+  "l10n_ar.partner.tax": {
+   "abstract": false,
+   "description": "Argentinean Partner Taxes",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "related": "tax_id.company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "from_date": {
+     "string": "From Date",
+     "type": "Date"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "ref": {
+     "string": "ref",
+     "type": "Char"
+    },
+    "tax_id": {
+     "comodel": "account.tax",
+     "required": true,
+     "type": "Many2one"
+    },
+    "to_date": {
+     "string": "To Date",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('from_date', 'to_date')"
+     ],
+     "lines": 3,
+     "name": "check_partner_tax_dates"
+    }
+   ],
+   "name": "l10n_ar.partner.tax",
+   "order": "to_date desc, from_date desc, tax_id",
+   "transient": false
+  },
+  "l10n_ar.payment.register.withholding": {
+   "abstract": false,
+   "description": "Payment register withholding lines",
+   "extension": false,
+   "fields": {
+    "amount": {
+     "compute": "_compute_amount",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Monetary"
+    },
+    "base_amount": {
+     "compute": "_compute_base_amount",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Monetary"
+    },
+    "company_id": {
+     "related": "payment_register_id.company_id",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "related": "payment_register_id.currency_id",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Number",
+     "type": "Char"
+    },
+    "payment_register_id": {
+     "comodel": "account.payment.register",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "tax_id": {
+     "comodel": "account.tax",
+     "domain": "[('l10n_ar_withholding_payment_type', '=', parent.partner_type)]",
+     "required": true,
+     "type": "Many2one"
+    },
+    "withholding_sequence_id": {
+     "related": "tax_id.l10n_ar_withholding_sequence_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_tax_compute_all_helper"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('base_amount', 'tax_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.amount', 'tax_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_base_amount"
+    }
+   ],
+   "name": "l10n_ar.payment.register.withholding",
+   "transient": true
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ar_tax_base_account_id": {
+     "comodel": "account.account",
+     "domain": [
+      [
+       "deprecated",
+       "=",
+       false
+      ]
+     ],
+     "help": "Account that will be set on lines created to represent the tax base amounts.",
+     "string": "Tax Base Account",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ar_tax_base_account_id": {
+     "comodel": "account.account",
+     "domain": [
+      [
+       "deprecated",
+       "=",
+       false
+      ]
+     ],
+     "help": "Account that will be set on lines created to represent the tax base amounts.",
+     "readonly": false,
+     "related": "company_id.l10n_ar_tax_base_account_id",
+     "string": "Tax Base Account",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_ar_partner_tax_ids": {
+     "comodel": "l10n_ar.partner.tax",
+     "inverse_name": "partner_id",
+     "string": "Argentinean Withholding Taxes",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_ar_withholding",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_ar_withholding",
+ "stats": {
+  "fields": 40,
+  "methods": 24,
+  "models": 12,
+  "py_lines": 653
+ },
+ "summary": "Allows to register withholdings during the payment of an invoice.",
+ "title": "Argentina - Payment Withholdings",
+ "version": "1.0"
+}

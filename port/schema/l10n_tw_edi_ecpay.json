@@ -1,0 +1,931 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/res_config_setting_view.xml",
+  "views/account_tax.xml",
+  "views/account_move_view.xml",
+  "views/account_move_reversal_view.xml",
+  "views/l10n_tw_edi_invoice_cancel_view.xml",
+  "views/l10n_tw_edi_invoice_print_view.xml"
+ ],
+ "depends": [
+  "l10n_tw",
+  "base_vat"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tw_edi_allowance_notify_way": {
+     "copy": false,
+     "selection": [
+      [
+       "email",
+       "Email"
+      ],
+      [
+       "phone",
+       "Phone"
+      ]
+     ],
+     "string": "Allowance Notify Way",
+     "type": "Selection"
+    },
+    "l10n_tw_edi_carrier_number": {
+     "compute": "_compute_carrier_info",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Carrier Number",
+     "type": "Char"
+    },
+    "l10n_tw_edi_carrier_number_2": {
+     "compute": "_compute_carrier_info",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Carrier Number 2",
+     "type": "Char"
+    },
+    "l10n_tw_edi_carrier_type": {
+     "compute": "_compute_carrier_info",
+     "copy": false,
+     "help": "\n    - Citizen Digital Certificate: The carrier number format is 2 capital letters following 14 digits.\n    - Mobile Barcode: The carrier number format is / following 7 alphanumeric or +-. string.\n    - EasyCard or iPass: The carrier number is the card hidden code, the carrier number 2 is the card visible code.\n        ",
+     "readonly": false,
+     "selection": [
+      [
+       "1",
+       "ECpay e-invoice carrier"
+      ],
+      [
+       "2",
+       "Citizen Digital Certificate"
+      ],
+      [
+       "3",
+       "Mobile Barcode"
+      ],
+      [
+       "4",
+       "EasyCard"
+      ],
+      [
+       "5",
+       "iPass"
+      ]
+     ],
+     "store": true,
+     "string": "Carrier Type",
+     "type": "Selection"
+    },
+    "l10n_tw_edi_clearance_mark": {
+     "copy": false,
+     "selection": [
+      [
+       "1",
+       "NOT via the customs"
+      ],
+      [
+       "2",
+       "Via the customs"
+      ]
+     ],
+     "string": "Clearance Mark",
+     "type": "Selection"
+    },
+    "l10n_tw_edi_ecpay_invoice_id": {
+     "copy": false,
+     "readonly": true,
+     "string": "Ecpay Invoice Number",
+     "type": "Char"
+    },
+    "l10n_tw_edi_file": {
+     "copy": false,
+     "readonly": true,
+     "string": "Ecpay JSON File",
+     "type": "Binary"
+    },
+    "l10n_tw_edi_file_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('l10n_tw_edi_file_id', 'l10n_tw_edi_file')"
+     },
+     "copy": false,
+     "type": "Many2one"
+    },
+    "l10n_tw_edi_invalidate_reason": {
+     "copy": false,
+     "readonly": true,
+     "string": "Invalidate Reason",
+     "type": "Char"
+    },
+    "l10n_tw_edi_invoice_create_date": {
+     "copy": false,
+     "readonly": true,
+     "string": "Creation Date",
+     "type": "Datetime"
+    },
+    "l10n_tw_edi_invoice_type": {
+     "compute": "_compute_l10n_tw_edi_invoice_type",
+     "copy": false,
+     "readonly": false,
+     "selection": [
+      [
+       "07",
+       "General Invoice"
+      ],
+      [
+       "08",
+       "Special Invoice"
+      ]
+     ],
+     "store": true,
+     "string": "Ecpay Invoice Type",
+     "type": "Selection"
+    },
+    "l10n_tw_edi_is_b2b": {
+     "compute": "_compute_l10n_tw_edi_is_b2b",
+     "string": "Is B2B",
+     "type": "Boolean"
+    },
+    "l10n_tw_edi_is_print": {
+     "compute": "_compute_is_print",
+     "readonly": false,
+     "store": true,
+     "string": "Get Printed Version",
+     "type": "Boolean"
+    },
+    "l10n_tw_edi_is_zero_tax_rate": {
+     "compute": "_compute_l10n_tw_edi_is_zero_tax_rate",
+     "copy": false,
+     "string": "Is Zero Tax Rate",
+     "type": "Boolean"
+    },
+    "l10n_tw_edi_love_code": {
+     "compute": "_compute_love_code",
+     "readonly": false,
+     "store": true,
+     "string": "Love Code",
+     "type": "Char"
+    },
+    "l10n_tw_edi_refund_agreement_type": {
+     "copy": false,
+     "selection": [
+      [
+       "offline",
+       "Offline Agreement"
+      ],
+      [
+       "online",
+       "Online Agreement"
+      ]
+     ],
+     "string": "Refund invoice Agreement Type",
+     "type": "Selection"
+    },
+    "l10n_tw_edi_refund_invoice_number": {
+     "copy": false,
+     "readonly": true,
+     "string": "Refund Invoice Number",
+     "type": "Char"
+    },
+    "l10n_tw_edi_refund_state": {
+     "copy": false,
+     "readonly": true,
+     "selection": [
+      [
+       "to_be_agreed",
+       "To be agreed"
+      ],
+      [
+       "agreed",
+       "Agreed"
+      ],
+      [
+       "disagreed",
+       "Disagreed"
+      ]
+     ],
+     "string": "Refund State",
+     "type": "Selection"
+    },
+    "l10n_tw_edi_related_number": {
+     "copy": false,
+     "readonly": true,
+     "store": true,
+     "string": "Related Number",
+     "type": "Char"
+    },
+    "l10n_tw_edi_state": {
+     "copy": false,
+     "readonly": true,
+     "selection": [
+      [
+       "invoiced",
+       "Invoiced"
+      ],
+      [
+       "valid",
+       "Valid"
+      ],
+      [
+       "invalid",
+       "Invalid"
+      ]
+     ],
+     "string": "Invoice Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "l10n_tw_edi_zero_tax_rate_reason": {
+     "copy": false,
+     "selection": [
+      [
+       "71",
+       "71: No.1 export goods"
+      ],
+      [
+       "72",
+       "72: No.2 Services related to export sales, or services provided domestically but used abroad"
+      ],
+      [
+       "73",
+       "73: No.3 Duty-free shops established by law for the sale and transit or departure of passengers"
+      ],
+      [
+       "74",
+       "74: No.4 Sale of goods or services for operation by the operator of the FREE Trade Zone"
+      ],
+      [
+       "75",
+       "75: No.5 International transportation. However, foreign transport undertakings operating international transport business in Taiwan shall be limited to those whose countries shall give equal treatment to Taiwan's international transport undertakings or be exempt from similar taxes"
+      ],
+      [
+       "76",
+       "76: No.6 Ships, aircraft and distant-water fishing vessels for international transportation"
+      ],
+      [
+       "77",
+       "77: No.7 Goods or repair services used by ships, aircraft and distant-water fishing vessels for sale and international transport"
+      ],
+      [
+       "78",
+       "78: No.8 The bonded area operator sells goods that are not directly exported by the taxable area operator and the taxable area operator is not exported to the taxation area"
+      ],
+      [
+       "79",
+       "79: No.9 The bonded area operator sells the goods that the taxable area operator deposits into the bonded warehouse or logistics center managed by the free port area or customs administration for export"
+      ]
+     ],
+     "string": "Zero Tax Rate Reason",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tw_edi_state')"
+     ],
+     "lines": 3,
+     "name": "_compute_need_cancel_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tw_edi_state', 'l10n_tw_edi_refund_state')"
+     ],
+     "lines": 7,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_need_cancel_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "button_request_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "button_draft"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tw_edi_love_code', 'l10n_tw_edi_carrier_type', 'partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_print"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tw_edi_is_print', 'l10n_tw_edi_carrier_type', 'partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_love_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tw_edi_is_print', 'l10n_tw_edi_love_code')"
+     ],
+     "lines": 6,
+     "name": "_compute_carrier_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_line_ids.tax_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_l10n_tw_edi_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_line_ids.tax_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_tw_edi_is_zero_tax_rate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_tw_edi_is_b2b"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_mail_thread_data_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_l10n_tw_edi_check_tax_type_on_invoice_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_l10n_tw_edi_determine_tax_types"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_tw_edi_convert_currency_to_twd"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "_reformat_phone_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 51,
+     "name": "_l10n_tw_edi_check_before_generate_invoice_json"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 106,
+     "name": "_l10n_tw_edi_prepare_item_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 49,
+     "name": "_l10n_tw_edi_generate_invoice_json"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_l10n_tw_edi_check_before_generate_issue_allowance_json"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_l10n_tw_edi_generate_issue_allowance_json"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_l10n_tw_edi_send_create_buyer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_l10n_tw_edi_send"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_l10n_tw_edi_update_ecpay_invoice_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_l10n_tw_edi_run_invoice_invalid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_l10n_tw_edi_issue_allowance"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_l10n_tw_edi_print_invoice"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tw_edi_ecpay_item_sequence": {
+     "readonly": true,
+     "string": "Item Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tw_edi_allowance_notify_way": {
+     "selection": [
+      [
+       "email",
+       "Email"
+      ],
+      [
+       "phone",
+       "Phone"
+      ]
+     ],
+     "string": "Allowance Notify Way",
+     "type": "Selection"
+    },
+    "l10n_tw_edi_ecpay_invoice_id": {
+     "compute": "_compute_from_moves",
+     "type": "Char"
+    },
+    "l10n_tw_edi_is_b2b": {
+     "compute": "_compute_from_moves",
+     "type": "Boolean"
+    },
+    "l10n_tw_edi_refund_agreement_type": {
+     "selection": [
+      [
+       "offline",
+       "Offline"
+      ],
+      [
+       "online",
+       "Online"
+      ]
+     ],
+     "string": "Agreement Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_from_moves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_prepare_default_reversal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "reverse_moves"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_is_tw_edi_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_is_tw_edi_issue_allowance_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_l10n_tw_edi_generate_ecpay_json"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_hook_invoice_document_before_pdf_report_render"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 33,
+     "name": "_call_web_service_before_invoice_pdf_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_call_web_service_after_invoice_pdf_render"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_link_invoice_documents"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tw_edi_special_tax_type": {
+     "selection": [
+      [
+       "1",
+       "Saloons and tea rooms, coffee shops and bars offering companionship services: Tax rate is 25%"
+      ],
+      [
+       "2",
+       "Night clubs or restaurants providing entertaining show programs: Tax rate is 15%"
+      ],
+      [
+       "3",
+       "Banking businesses, insurance businesses, trust investment businesses, securities businesses, futures businesses, commercial paper businesses and pawn-broking businesses: Tax rate is 2%"
+      ],
+      [
+       "4",
+       "The sales amounts from reinsurance premiums shall be taxed at 1%"
+      ],
+      [
+       "5",
+       "Banking businesses, insurance businesses, trust investment businesses, securities businesses, futures businesses, commercial paper businesses and pawn-broking businesses: Tax rate is 5%"
+      ],
+      [
+       "6",
+       "Core business revenues from the banking and insurance business of the banking and insurance industries (Applicable to sales after July 2014): Tax rate is 5%"
+      ],
+      [
+       "7",
+       "Core business revenues from the banking and insurance business of the banking and insurance industries (Applicable to sales after June 2014): Tax rate is 5%"
+      ],
+      [
+       "8",
+       "Duty free or non-output data"
+      ]
+     ],
+     "string": "Ecpay Special Tax Type",
+     "type": "Selection"
+    },
+    "l10n_tw_edi_tax_type": {
+     "compute": "_compute_l10n_tw_edi_tax_type",
+     "readonly": false,
+     "selection": [
+      [
+       "1",
+       "Taxable"
+      ],
+      [
+       "2",
+       "Zero tax rate"
+      ],
+      [
+       "3",
+       "Duty free"
+      ],
+      [
+       "4",
+       "Taxable (special tax rate)"
+      ]
+     ],
+     "store": true,
+     "string": "Ecpay Tax Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('country_id', 'amount')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_tw_edi_tax_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('l10n_tw_edi_tax_type')"
+     ],
+     "lines": 4,
+     "name": "_onchange_l10n_tw_edi_tax_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_tw_edi_tax_type', 'l10n_tw_edi_special_tax_type')"
+     ],
+     "lines": 6,
+     "name": "_check_special_tax_type_constrains"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_tw_edi.invoice.cancel": {
+   "abstract": false,
+   "description": "Implements cancelling an ecpay invoice.",
+   "extension": false,
+   "fields": {
+    "invoice_id": {
+     "comodel": "account.move",
+     "readonly": true,
+     "required": true,
+     "string": "Document To Cancel",
+     "type": "Many2one"
+    },
+    "reason": {
+     "help": "Reason for cancelling the document.",
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "button_request_cancel"
+    }
+   ],
+   "name": "l10n_tw_edi.invoice.cancel",
+   "transient": true
+  },
+  "l10n_tw_edi.invoice.print": {
+   "abstract": false,
+   "description": "Implements printingan ecpay invoice.",
+   "extension": false,
+   "fields": {
+    "invoice_id": {
+     "comodel": "account.move",
+     "readonly": true,
+     "required": true,
+     "string": "Document To Print",
+     "type": "Many2one"
+    },
+    "l10n_tw_edi_is_b2b": {
+     "related": "invoice_id.l10n_tw_edi_is_b2b",
+     "string": "Is B2B",
+     "type": "Boolean"
+    },
+    "print_format_b2b": {
+     "default": "1",
+     "selection": [
+      [
+       "1",
+       "A4 printing "
+      ],
+      [
+       "2",
+       "A5 printing "
+      ]
+     ],
+     "string": "Print Format (B2B)",
+     "type": "Selection"
+    },
+    "print_format_b2c": {
+     "default": "1",
+     "selection": [
+      [
+       "1",
+       "single-sided printing"
+      ],
+      [
+       "2",
+       "double-sided printing"
+      ],
+      [
+       "3",
+       "printing with thermal paper"
+      ]
+     ],
+     "string": "Print Format (B2C)",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "button_print"
+    }
+   ],
+   "name": "l10n_tw_edi.invoice.print",
+   "transient": true
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tw_edi_ecpay_hashIV": {
+     "groups": "base.group_system",
+     "string": "HashIV",
+     "type": "Char"
+    },
+    "l10n_tw_edi_ecpay_hashkey": {
+     "groups": "base.group_system",
+     "string": "Hashkey",
+     "type": "Char"
+    },
+    "l10n_tw_edi_ecpay_merchant_id": {
+     "groups": "base.group_system",
+     "string": "MerchantID",
+     "type": "Char"
+    },
+    "l10n_tw_edi_ecpay_staging_mode": {
+     "groups": "base.group_system",
+     "string": "Staging mode",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_ecpay_enabled"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tw_edi_ecpay_hashIV": {
+     "readonly": false,
+     "related": "company_id.l10n_tw_edi_ecpay_hashIV",
+     "type": "Char"
+    },
+    "l10n_tw_edi_ecpay_hashkey": {
+     "readonly": false,
+     "related": "company_id.l10n_tw_edi_ecpay_hashkey",
+     "type": "Char"
+    },
+    "l10n_tw_edi_ecpay_merchant_id": {
+     "readonly": false,
+     "related": "company_id.l10n_tw_edi_ecpay_merchant_id",
+     "type": "Char"
+    },
+    "l10n_tw_edi_ecpay_staging_mode": {
+     "readonly": false,
+     "related": "company_id.l10n_tw_edi_ecpay_staging_mode",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_edi_format": {
+     "selection_add": [
+      [
+       "tw_ecpay",
+       "ECPay"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_l10n_tw_edi_formatted_address"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_tw_edi_ecpay",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_tw_edi_ecpay",
+ "stats": {
+  "fields": 43,
+  "methods": 45,
+  "models": 10,
+  "py_lines": 1387
+ },
+ "summary": "E-invoicing using ECpay",
+ "title": "Taiwan - E-invoicing",
+ "version": "1.0"
+}

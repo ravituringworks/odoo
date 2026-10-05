@@ -1,0 +1,210 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Delivery",
+ "data_files": [
+  "data/data.xml",
+  "views/views.xml",
+  "wizard/choose_delivery_carrier_views.xml"
+ ],
+ "depends": [
+  "stock_delivery"
+ ],
+ "models": {
+  "choose.delivery.carrier": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_mondialrelay": {
+     "compute": "_compute_is_mondialrelay",
+     "type": "Boolean"
+    },
+    "mondialrelay_allowed_countries": {
+     "compute": "_compute_mr_allowed_countries",
+     "type": "Char"
+    },
+    "mondialrelay_brand": {
+     "related": "carrier_id.mondialrelay_brand",
+     "type": "Char"
+    },
+    "mondialrelay_colLivMod": {
+     "related": "carrier_id.mondialrelay_packagetype",
+     "type": "Char"
+    },
+    "mondialrelay_last_selected": {
+     "string": "Last Relay Selected",
+     "type": "Char"
+    },
+    "mondialrelay_last_selected_id": {
+     "compute": "_compute_mr_last_selected_id",
+     "type": "Char"
+    },
+    "shipping_country_code": {
+     "related": "order_id.partner_shipping_id.country_id.code",
+     "type": "Char"
+    },
+    "shipping_zip": {
+     "related": "order_id.partner_shipping_id.zip",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('carrier_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_mondialrelay"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('carrier_id', 'order_id.partner_shipping_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_mr_last_selected_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('carrier_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_mr_allowed_countries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "button_confirm"
+    }
+   ],
+   "name": "choose.delivery.carrier",
+   "transient": false
+  },
+  "delivery.carrier": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_mondialrelay": {
+     "compute": "_compute_is_mondialrelay",
+     "type": "Boolean"
+    },
+    "mondialrelay_brand": {
+     "default": "BDTEST  ",
+     "string": "Brand Code",
+     "type": "Char"
+    },
+    "mondialrelay_packagetype": {
+     "default": "24R",
+     "groups": "base.group_system",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.default_code')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_mondialrelay"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_search_is_mondialrelay"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "fixed_get_tracking_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "base_on_rule_get_tracking_link"
+    }
+   ],
+   "name": "delivery.carrier",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_mondialrelay": {
+     "compute": "_compute_is_mondialrelay",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('ref')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_mondialrelay"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_mondialrelay_search_or_create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_avatar_get_placeholder_path"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_avatar_get_placeholder_path": []
+   },
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_confirm"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  }
+ },
+ "module": "delivery_mondialrelay",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/delivery_mondialrelay",
+ "stats": {
+  "fields": 12,
+  "methods": 12,
+  "models": 4,
+  "py_lines": 173
+ },
+ "summary": "Let's choose a Point Relais\u00ae as shipping address",
+ "title": "delivery_mondialrelay",
+ "version": "0.1"
+}

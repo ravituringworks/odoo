@@ -1,0 +1,1057 @@
+{
+ "application": false,
+ "author": "DO Tech (OdooTech Zrt.), BDSC Business Consulting Kft. & Odoo S.A.",
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/uom.uom.csv",
+  "data/account_cash_rounding.xml",
+  "data/template_requests.xml",
+  "data/template_invoice.xml",
+  "data/ir_cron.xml",
+  "views/report_templates.xml",
+  "views/report_invoice.xml",
+  "views/account_move_views.xml",
+  "views/product_template_views.xml",
+  "views/account_tax_views.xml",
+  "views/uom_uom_views.xml",
+  "views/res_partner_views.xml",
+  "views/res_company_views.xml",
+  "views/res_config_settings_views.xml",
+  "wizard/l10n_hu_edi_cancellation.xml",
+  "wizard/l10n_hu_edi_tax_audit_export.xml",
+  "demo/demo_partner.xml"
+ ],
+ "depends": [
+  "account_debit_note",
+  "base_iban",
+  "l10n_hu"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_load"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_hu_account_tax"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.debit.note": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_default_values"
+    }
+   ],
+   "name": "account.debit.note",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_hu_edi_attachment": {
+     "copy": false,
+     "string": "Invoice XML file",
+     "type": "Binary"
+    },
+    "l10n_hu_edi_attachment_filename": {
+     "compute": "_compute_l10n_hu_edi_attachment_filename",
+     "string": "Invoice XML filename",
+     "type": "Char"
+    },
+    "l10n_hu_edi_batch_upload_index": {
+     "copy": false,
+     "string": "Index of invoice within a batch upload",
+     "type": "Integer"
+    },
+    "l10n_hu_edi_message_html": {
+     "compute": "_compute_message_html",
+     "string": "Transaction messages",
+     "type": "Html"
+    },
+    "l10n_hu_edi_messages": {
+     "copy": false,
+     "string": "Transaction messages (JSON)",
+     "type": "Json"
+    },
+    "l10n_hu_edi_send_time": {
+     "copy": false,
+     "string": "Invoice upload time",
+     "type": "Datetime"
+    },
+    "l10n_hu_edi_state": {
+     "copy": false,
+     "index": "btree_not_null",
+     "selection": [
+      [
+       "sent",
+       "Sent, waiting for response"
+      ],
+      [
+       "send_timeout",
+       "Timeout when sending"
+      ],
+      [
+       "confirmed",
+       "Confirmed"
+      ],
+      [
+       "confirmed_warning",
+       "Confirmed with warnings"
+      ],
+      [
+       "rejected",
+       "Rejected"
+      ],
+      [
+       "cancel_sent",
+       "Cancellation request sent"
+      ],
+      [
+       "cancel_timeout",
+       "Timeout when requesting cancellation"
+      ],
+      [
+       "cancel_pending",
+       "Cancellation request pending"
+      ],
+      [
+       "cancelled",
+       "Cancelled"
+      ]
+     ],
+     "string": "NAV 3.0 status",
+     "type": "Selection"
+    },
+    "l10n_hu_edi_transaction_code": {
+     "copy": false,
+     "index": "trigram",
+     "string": "Transaction Code",
+     "tracking": true,
+     "type": "Char"
+    },
+    "l10n_hu_invoice_chain_index": {
+     "copy": false,
+     "help": "\n            Index in the chain of modification invoices:\n                -1 for a base invoice;\n                1, 2, 3, ... for modification invoices;\n                0 for rejected/cancelled invoices or if it has not yet been set.\n            ",
+     "string": "Invoice Chain Index",
+     "type": "Integer"
+    },
+    "l10n_hu_payment_mode": {
+     "help": "NAV expected payment mode of the invoice.",
+     "selection": [
+      [
+       "TRANSFER",
+       "Transfer"
+      ],
+      [
+       "CASH",
+       "Cash"
+      ],
+      [
+       "CARD",
+       "Credit/debit card"
+      ],
+      [
+       "VOUCHER",
+       "Voucher"
+      ],
+      [
+       "OTHER",
+       "Other"
+      ]
+     ],
+     "string": "Payment mode",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_hu_edi_state', 'state')"
+     ],
+     "lines": 5,
+     "name": "_check_posted_if_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('delivery_date')"
+     ],
+     "lines": 2,
+     "name": "_compute_expected_currency_rate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_invoice_currency_rate_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_hu_edi_messages')"
+     ],
+     "lines": 6,
+     "name": "_compute_message_html"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_hu_edi_state', 'state')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_hu_edi_state')"
+     ],
+     "lines": 3,
+     "name": "_compute_need_cancel_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'ref')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_hu_edi_attachment_filename"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_delivery_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_need_cancel_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "button_request_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "l10n_hu_edi_button_update_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "l10n_hu_edi_button_hide_banner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_l10n_hu_edi_get_valid_actions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_l10n_hu_get_chain_base"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_l10n_hu_get_chain_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_hu_get_currency_rate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_l10n_hu_edi_set_chain_index"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_l10n_hu_edi_acquire_lock"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 139,
+     "name": "_l10n_hu_edi_check_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_l10n_hu_edi_upload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_l10n_hu_edi_get_operation_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 64,
+     "name": "_l10n_hu_edi_upload_single_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_l10n_hu_edi_query_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_l10n_hu_edi_query_status_single_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 113,
+     "name": "_l10n_hu_edi_process_query_transaction_result"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_hu_edi_request_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_l10n_hu_edi_request_cancel_single_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_l10n_hu_edi_generate_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_l10n_hu_edi_get_electronic_invoice_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 198,
+     "name": "_l10n_hu_edi_get_invoice_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_name_invoice_report"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_l10n_hu_get_invoice_totals_for_report"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_compute_need_cancel_request": [],
+    "_get_invoice_currency_rate_date": []
+   },
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_default_reversal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "reverse_moves"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_hu_edi_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_l10n_hu_edi_cron_update_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_call_web_service_before_invoice_pdf_render"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_hu_tax_reason": {
+     "compute": "_compute_l10n_hu_tax_reason",
+     "help": "May be used to provide support for the use of a VAT-exempt VAT tax type.",
+     "readonly": false,
+     "string": "NAV VAT Tax Exemption Reason",
+     "type": "Char"
+    },
+    "l10n_hu_tax_type": {
+     "help": "Precise identification of the VAT tax for the Hungarian authority.",
+     "selection": [
+      [
+       "VAT",
+       "Normal VAT (percent based)"
+      ],
+      [
+       "AAM",
+       "AAM - Personal tax exemption"
+      ],
+      [
+       "TAM",
+       "TAM - tax-exempt activity or tax-exempt due to being in public interest or special in nature"
+      ],
+      [
+       "KBAET",
+       "KBAET - intra-Community exempt supply, without new means of transport"
+      ],
+      [
+       "KBAUK",
+       "KBAUK - tax-exempt, intra-Community sales of new means of transport"
+      ],
+      [
+       "EAM",
+       "EAM - tax-exempt, extra-Community sales of goods (export of goods to a non-EU country)"
+      ],
+      [
+       "NAM",
+       "NAM - tax-exempt on other grounds related to international transactions"
+      ],
+      [
+       "ATK",
+       "ATK - Outside the scope of VAT"
+      ],
+      [
+       "EUFAD37",
+       "EUFAD37 - Based on section 37 of the VAT Act, a reverse charge transaction carried out in another Member State"
+      ],
+      [
+       "EUFADE",
+       "EUFADE - Reverse charge transaction carried out in another Member State, not subject to Section 37 of the VAT Act"
+      ],
+      [
+       "EUE",
+       "EUE - Non-reverse charge transaction performed in another Member State"
+      ],
+      [
+       "HO",
+       "HO - Transaction in a third country"
+      ],
+      [
+       "DOMESTIC_REVERSE",
+       "DOMESTIC_REVERSE - Domestic reverse-charge regime"
+      ],
+      [
+       "TRAVEL_AGENCY",
+       "TRAVEL_AGENCY - Profit-margin based regime for travel agencies"
+      ],
+      [
+       "SECOND_HAND",
+       "SECOND_HAND - Profit-margin based regime for second-hand sales"
+      ],
+      [
+       "ARTWORK",
+       "ARTWORK - Profit-margin based regime for artwork sales"
+      ],
+      [
+       "ANTIQUES",
+       "ANTIQUES - Profit-margin based regime for antique sales"
+      ],
+      [
+       "REFUNDABLE_VAT",
+       "REFUNDABLE_VAT - VAT incurred under sections 11 or 14, without an agreement from the beneficiary to reimburse VAT"
+      ],
+      [
+       "NONREFUNDABLE_VAT",
+       "NONREFUNDABLE_VAT - VAT incurred under sections 11 or 14, with an agreement from the beneficiary to reimburse VAT"
+      ],
+      [
+       "NO_VAT",
+       "VAT not applicable pursuant to section 17 of the VAT Act"
+      ]
+     ],
+     "string": "NAV VAT Tax Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_hu_tax_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_hu_tax_reason"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_hu_edi.cancellation": {
+   "abstract": false,
+   "description": "Technical Annulment Wizard",
+   "extension": false,
+   "fields": {
+    "code": {
+     "required": true,
+     "selection": [
+      [
+       "ERRATIC_DATA",
+       "ERRATIC_DATA - Erroneous data"
+      ],
+      [
+       "ERRATIC_INVOICE_NUMBER",
+       "ERRATIC_INVOICE_NUMBER - Erroneous invoice number"
+      ],
+      [
+       "ERRATIC_INVOICE_ISSUE_DATE",
+       "ERRATIC_INVOICE_ISSUE_DATE - Erroneous issue date"
+      ]
+     ],
+     "string": "Annulment Code",
+     "type": "Selection"
+    },
+    "invoice_id": {
+     "comodel": "account.move",
+     "string": "Invoice to cancel",
+     "type": "Many2one"
+    },
+    "reason": {
+     "required": true,
+     "string": "Annulment Reason",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "button_request_cancel"
+    }
+   ],
+   "name": "l10n_hu_edi.cancellation",
+   "transient": true
+  },
+  "l10n_hu_edi.tax_audit_export": {
+   "abstract": false,
+   "description": "Tax audit export - Ad\u00f3hat\u00f3s\u00e1gi Ellen\u0151rz\u00e9si Adatszolg\u00e1ltat\u00e1s",
+   "extension": false,
+   "fields": {
+    "date_from": {
+     "string": "Date From",
+     "type": "Date"
+    },
+    "date_to": {
+     "string": "Date To",
+     "type": "Date"
+    },
+    "export_file": {
+     "readonly": true,
+     "string": "Generated File",
+     "type": "Binary"
+    },
+    "filename": {
+     "compute": "_compute_filename",
+     "string": "File name",
+     "type": "Char"
+    },
+    "name_from": {
+     "string": "Name From",
+     "type": "Char"
+    },
+    "name_to": {
+     "string": "Name To",
+     "type": "Char"
+    },
+    "selection_mode": {
+     "default": "date",
+     "selection": [
+      [
+       "date",
+       "By date"
+      ],
+      [
+       "name",
+       "By serial number"
+      ]
+     ],
+     "string": "Selection mode",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('selection_mode', 'date_from', 'date_to', 'name_from', 'name_to')"
+     ],
+     "lines": 24,
+     "name": "_compute_filename"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 49,
+     "name": "action_export"
+    }
+   ],
+   "name": "l10n_hu_edi.tax_audit_export",
+   "transient": true
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_hu_product_code": {
+     "help": "If your product has a code in a standard nomenclature, you can indicate its code here.",
+     "string": "Product Code Value",
+     "type": "Char"
+    },
+    "l10n_hu_product_code_type": {
+     "help": "If your product has a code in a standard nomenclature, you can indicate which nomenclature here.",
+     "selection": [
+      [
+       "VTSZ",
+       "VTSZ - Customs Code"
+      ],
+      [
+       "SZJ",
+       "SZJ - Service Registry Code"
+      ],
+      [
+       "TESZOR",
+       "TESZOR - CPA 2.1 Code"
+      ],
+      [
+       "KN",
+       "KN - Combined Nomenclature Code"
+      ],
+      [
+       "AHK",
+       "AHK - e-TKO Excise Duty Code"
+      ],
+      [
+       "KT",
+       "KT - Environmental Product Code"
+      ],
+      [
+       "CSK",
+       "CSK - Packaging Catalogue Code"
+      ],
+      [
+       "EJ",
+       "EJ - Building Registry Number"
+      ],
+      [
+       "OTHER",
+       "Other"
+      ]
+     ],
+     "string": "Product Code Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_hu_edi_last_transaction_recovery": {
+     "default": {
+      "$lambda": "fields.Datetime.now()"
+     },
+     "string": "Last transaction recovery (in production mode)",
+     "type": "Datetime"
+    },
+    "l10n_hu_edi_password": {
+     "groups": "base.group_system",
+     "string": "NAV Password",
+     "type": "Char"
+    },
+    "l10n_hu_edi_replacement_key": {
+     "groups": "base.group_system",
+     "string": "NAV Replacement Key",
+     "type": "Char"
+    },
+    "l10n_hu_edi_server_mode": {
+     "help": "\n            - Production: Sends invoices to the NAV's production system.\n            - Test: Sends invoices to the NAV's test system.\n            - Demo: Mocks the NAV system (does not require credentials).\n        ",
+     "selection": [
+      [
+       "production",
+       "Production"
+      ],
+      [
+       "test",
+       "Test"
+      ],
+      [
+       "demo",
+       "Demo"
+      ]
+     ],
+     "string": "Server Mode",
+     "type": "Selection"
+    },
+    "l10n_hu_edi_signature_key": {
+     "groups": "base.group_system",
+     "string": "NAV Signature Key",
+     "type": "Char"
+    },
+    "l10n_hu_edi_username": {
+     "groups": "base.group_system",
+     "string": "NAV Username",
+     "type": "Char"
+    },
+    "l10n_hu_group_vat": {
+     "readonly": false,
+     "related": "partner_id.l10n_hu_group_vat",
+     "type": "Char"
+    },
+    "l10n_hu_tax_regime": {
+     "selection": [
+      [
+       "ie",
+       "Individual Exemption"
+      ],
+      [
+       "ca",
+       "Cash Accounting"
+      ],
+      [
+       "sb",
+       "Small Business"
+      ]
+     ],
+     "string": "NAV Tax Regime",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_l10n_hu_edi_configure_company"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_l10n_hu_edi_get_credentials_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_l10n_hu_edi_test_credentials"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 136,
+     "name": "_l10n_hu_edi_recover_transactions"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_hu_edi_is_active": {
+     "compute": "_compute_l10n_hu_edi_is_active",
+     "type": "Boolean"
+    },
+    "l10n_hu_edi_password": {
+     "readonly": false,
+     "related": "company_id.l10n_hu_edi_password",
+     "type": "Char"
+    },
+    "l10n_hu_edi_replacement_key": {
+     "readonly": false,
+     "related": "company_id.l10n_hu_edi_replacement_key",
+     "type": "Char"
+    },
+    "l10n_hu_edi_server_mode": {
+     "readonly": false,
+     "related": "company_id.l10n_hu_edi_server_mode",
+     "type": "Selection"
+    },
+    "l10n_hu_edi_signature_key": {
+     "readonly": false,
+     "related": "company_id.l10n_hu_edi_signature_key",
+     "type": "Char"
+    },
+    "l10n_hu_edi_username": {
+     "readonly": false,
+     "related": "company_id.l10n_hu_edi_username",
+     "type": "Char"
+    },
+    "l10n_hu_tax_regime": {
+     "readonly": false,
+     "related": "company_id.l10n_hu_tax_regime",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.l10n_hu_edi_server_mode')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_hu_edi_is_active"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_hu_group_vat": {
+     "help": "If this company belongs to a VAT group, indicate the group's VAT number here.",
+     "index": true,
+     "size": 13,
+     "string": "Group Tax ID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_commercial_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_run_vies_test"
+    }
+   ],
+   "name": "res.partner",
+   "sel_methods": {
+    "_run_vies_test": []
+   },
+   "transient": false
+  },
+  "uom.uom": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_hu_edi_code": {
+     "help": "Choose the corresponding code, or leave blank if none correspond.",
+     "selection": [
+      [
+       "PIECE",
+       "Piece"
+      ],
+      [
+       "KILOGRAM",
+       "Kilogram"
+      ],
+      [
+       "TON",
+       "Ton"
+      ],
+      [
+       "KWH",
+       "Kilowatt hour"
+      ],
+      [
+       "DAY",
+       "Day"
+      ],
+      [
+       "HOUR",
+       "Hour"
+      ],
+      [
+       "MINUTE",
+       "Minute"
+      ],
+      [
+       "MONTH",
+       "Month"
+      ],
+      [
+       "LITER",
+       "Liter"
+      ],
+      [
+       "KILOMETER",
+       "Kilometer"
+      ],
+      [
+       "CUBIC_METER",
+       "Cubic meter"
+      ],
+      [
+       "METER",
+       "Meter"
+      ],
+      [
+       "LINEAR_METER",
+       "Linear meter"
+      ],
+      [
+       "CARTON",
+       "Carton"
+      ],
+      [
+       "PACK",
+       "Package"
+      ]
+     ],
+     "string": "NAV UoM code",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "uom.uom",
+   "transient": false
+  }
+ },
+ "module": "l10n_hu_edi",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_hu_edi",
+ "stats": {
+  "fields": 41,
+  "methods": 54,
+  "models": 13,
+  "py_lines": 2310
+ },
+ "summary": "* Electronically report invoices to the NAV (Hungarian Tax Agency) when issuing physical (paper) invoices.",
+ "title": "Hungary - E-invoicing",
+ "version": "1.0.0"
+}

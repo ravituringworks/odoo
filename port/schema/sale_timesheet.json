@@ -1,0 +1,1762 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "data/sale_service_data.xml",
+  "security/ir.model.access.csv",
+  "security/sale_timesheet_security.xml",
+  "views/account_invoice_views.xml",
+  "views/sale_order_views.xml",
+  "views/product_views.xml",
+  "views/project_task_views.xml",
+  "views/project_update_templates.xml",
+  "views/hr_timesheet_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/sale_timesheet_portal_templates.xml",
+  "views/project_sharing_views.xml",
+  "views/project_portal_templates.xml",
+  "report/timesheets_analysis_views.xml",
+  "report/report_timesheet_templates.xml",
+  "report/project_report_view.xml",
+  "wizard/project_create_invoice_views.xml",
+  "wizard/sale_make_invoice_advance_views.xml",
+  "data/sale_service_demo.xml"
+ ],
+ "depends": [
+  "sale_project",
+  "hr_timesheet"
+ ],
+ "models": {
+  "account.analytic.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allow_billable": {
+     "related": "project_id.allow_billable",
+     "type": "Boolean"
+    },
+    "commercial_partner_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_commercial_partner",
+     "type": "Many2one"
+    },
+    "is_so_line_edited": {
+     "string": "Is Sales Order Item Manually Edited",
+     "type": "Boolean"
+    },
+    "order_id": {
+     "index": true,
+     "readonly": true,
+     "related": "so_line.order_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "sale_order_state": {
+     "related": "order_id.state",
+     "type": "Selection"
+    },
+    "so_line": {
+     "compute": "_compute_so_line",
+     "domain": {
+      "$ref": "_domain_so_line"
+     },
+     "help": "Sales order item to which the time spent will be added in order to be invoiced to your customer. Remove the sales order item for the timesheet entry to be non-billable.",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "timesheet_invoice_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "help": "Invoice created from the timesheet",
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Invoice",
+     "type": "Many2one"
+    },
+    "timesheet_invoice_type": {
+     "compute": "_compute_timesheet_invoice_type",
+     "readonly": true,
+     "selection": [
+      [
+       "billable_time",
+       "Billed on Timesheets"
+      ],
+      [
+       "billable_fixed",
+       "Billed at a Fixed price"
+      ],
+      [
+       "billable_milestones",
+       "Billed on Milestones"
+      ],
+      [
+       "billable_manual",
+       "Billed Manually"
+      ],
+      [
+       "non_billable",
+       "Non-Billable"
+      ],
+      [
+       "timesheet_revenues",
+       "Timesheet Revenues"
+      ],
+      [
+       "service_revenues",
+       "Service Revenues"
+      ],
+      [
+       "other_revenues",
+       "Other revenues"
+      ],
+      [
+       "other_costs",
+       "Other costs"
+      ]
+     ],
+     "store": true,
+     "string": "Billable Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_domain_so_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id.partner_id.commercial_partner_id', 'task_id.partner_id.commercial_partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_commercial_partner"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('so_line.product_id', 'project_id.billing_type', 'amount')"
+     ],
+     "lines": 24,
+     "name": "_compute_timesheet_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('task_id.sale_line_id', 'project_id.sale_line_id', 'employee_id', 'project_id.allow_billable')"
+     ],
+     "lines": 3,
+     "name": "_compute_so_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_invoice_id.state')"
+     ],
+     "lines": 2,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_invoice_id.state')"
+     ],
+     "lines": 2,
+     "name": "_compute_project_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_readonly"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_not_billed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_check_timesheet_can_be_billed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_check_can_write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_timesheet_determine_sale_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_timesheet_get_portal_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_timesheet_get_sale_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_timesheets_to_merge"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_except_invoiced"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_employee_mapping_entry"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_hourly_cost"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_sale_order_from_timesheet"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_invoice_from_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_timesheet_convert_sol_uom"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_is_updatable_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_timesheet_preprocess_get_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_timesheet_postprocess"
+    }
+   ],
+   "name": "account.analytic.line",
+   "sel_methods": {
+    "_check_can_write": [],
+    "_hourly_cost": [],
+    "_timesheet_postprocess": []
+   },
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "timesheet_count": {
+     "compute": "_compute_timesheet_count",
+     "string": "Number of timesheets",
+     "type": "Integer"
+    },
+    "timesheet_encode_uom_id": {
+     "comodel": "uom.uom",
+     "related": "company_id.timesheet_encode_uom_id",
+     "type": "Many2one"
+    },
+    "timesheet_ids": {
+     "comodel": "account.analytic.line",
+     "copy": false,
+     "inverse_name": "timesheet_invoice_id",
+     "readonly": true,
+     "string": "Timesheets",
+     "type": "One2many"
+    },
+    "timesheet_total_duration": {
+     "compute": "_compute_timesheet_total_duration",
+     "help": "Total recorded duration, expressed in the encoding UoM, and rounded to the unit",
+     "string": "Timesheet Total Duration",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_ids', 'company_id.timesheet_encode_uom_id')"
+     ],
+     "lines": 16,
+     "name": "_compute_timesheet_total_duration"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_timesheet_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 24,
+     "name": "action_view_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_link_timesheets_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_range_dates"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_post"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_timesheet_domain_get_invoiced_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "unlink"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "reverse_moves"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "default_get"
+    }
+   ],
+   "name": "hr.employee",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_default_uom_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_is_delivered_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('type', 'service_type', 'service_policy')"
+     ],
+     "lines": 17,
+     "name": "_onchange_service_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('service_policy')"
+     ],
+     "lines": 8,
+     "name": "_onchange_service_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_master_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "project_id": {
+     "domain": "['|', ('company_id', '=', False), '&', ('company_id', '=?', company_id), ('company_id', '=', current_company_id), ('allow_billable', '=', True), ('pricing_type', '=', 'task_rate'), ('allow_timesheets', 'in', [service_policy == 'delivered_timesheet', True])]",
+     "type": "Many2one"
+    },
+    "project_template_id": {
+     "domain": "['|', ('company_id', '=', False), '&', ('company_id', '=?', company_id), ('company_id', '=', current_company_id), ('allow_billable', '=', True), ('allow_timesheets', 'in', [service_policy == 'delivered_timesheet', True])]",
+     "type": "Many2one"
+    },
+    "service_type": {
+     "ondelete": {
+      "timesheet": "set manual"
+     },
+     "selection_add": [
+      [
+       "timesheet",
+       "Timesheets on project (one fare per SO/Project)"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "service_upsell_threshold": {
+     "default": 1,
+     "help": "Percentage of time delivered compared to the prepaid amount that must be reached for the upselling opportunity activity to be triggered.",
+     "string": "Threshold",
+     "type": "Float"
+    },
+    "service_upsell_threshold_ratio": {
+     "compute": "_compute_service_upsell_threshold_ratio",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_selection_service_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('uom_id', 'company_id')"
+     ],
+     "lines": 13,
+     "name": "_compute_service_upsell_threshold_ratio"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_visible_expense_policy"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_invoicing_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('type', 'service_type', 'service_policy')"
+     ],
+     "lines": 17,
+     "name": "_onchange_service_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_service_to_general_map"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_get_onchange_service_policy_updates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('service_policy')"
+     ],
+     "lines": 8,
+     "name": "_onchange_service_policy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_master_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "write"
+    }
+   ],
+   "name": "product.template",
+   "sel_methods": {
+    "_compute_visible_expense_policy": [],
+    "_prepare_invoicing_tooltip": []
+   },
+   "transient": false
+  },
+  "project.create.invoice": {
+   "abstract": false,
+   "description": "Create Invoice from project",
+   "extension": false,
+   "fields": {
+    "_candidate_orders": {
+     "comodel": "sale.order",
+     "compute": "_compute_candidate_orders",
+     "type": "Many2many"
+    },
+    "amount_to_invoice": {
+     "compute": "_compute_amount_to_invoice",
+     "currency_field": "currency_id",
+     "help": "Total amount to invoice on the sales order, including all items (services, storables, expenses, ...)",
+     "string": "Amount to invoice",
+     "type": "Monetary"
+    },
+    "currency_id": {
+     "readonly": true,
+     "related": "sale_order_id.currency_id",
+     "type": "Many2one"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "help": "Project to make billable",
+     "required": true,
+     "string": "Project",
+     "type": "Many2one"
+    },
+    "sale_order_id": {
+     "comodel": "sale.order",
+     "domain": "[('id', 'in', _candidate_orders)]",
+     "required": true,
+     "string": "Choose the Sales Order to invoice",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id.tasks.sale_line_id.order_id.invoice_status')"
+     ],
+     "lines": 5,
+     "name": "_compute_candidate_orders"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_amount_to_invoice"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_create_invoice"
+    }
+   ],
+   "name": "project.create.invoice",
+   "transient": true
+  },
+  "project.project": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allocated_hours": {
+     "type": "Float"
+    },
+    "billing_type": {
+     "compute": "_compute_billing_type",
+     "default": "not_billable",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "not_billable",
+       "not billable"
+      ],
+      [
+       "manually",
+       "billed manually"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "partner_id": {
+     "compute": "_compute_partner_id",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "pricing_type": {
+     "compute": "_compute_pricing_type",
+     "default": "task_rate",
+     "help": "The task rate is perfect if you would like to bill different services to different customers at different rates. The fixed rate is perfect if you bill a service at a fixed rate per hour or day worked regardless of the employee who performed it. The employee rate is preferable if your employees deliver the same service at a different rate. For instance, junior and senior consultants would deliver the same service (= consultancy), but at a different rate because of their level of seniority.",
+     "selection": [
+      [
+       "task_rate",
+       "Task rate"
+      ],
+      [
+       "fixed_rate",
+       "Project rate"
+      ],
+      [
+       "employee_rate",
+       "Employee rate"
+      ]
+     ],
+     "string": "Pricing",
+     "type": "Selection"
+    },
+    "sale_line_employee_ids": {
+     "comodel": "project.sale.line.employee.map",
+     "copy": false,
+     "help": "Sales order item that will be selected by default on the timesheets of the corresponding employee. It bypasses the sales order item defined on the project and the task, and can be modified on each timesheet entry if necessary. In other words, it defines the rate at which an employee's time is billed based on their expertise, skills or experience, for instance.\nIf you would like to bill the same service at a different rate, you need to create two separate sales order items as each sales order item can only have a single unit price at a time.\nYou can also define the hourly company cost of your employees for their timesheets on this project specifically. It will bypass the timesheet cost set on the employee.",
+     "inverse_name": "project_id",
+     "string": "Sale line/Employee map",
+     "type": "One2many"
+    },
+    "timesheet_product_id": {
+     "comodel": "product.product",
+     "compute": "_compute_timesheet_product_id",
+     "default": {
+      "$ref": "_default_timesheet_product_id"
+     },
+     "domain": "[\n            ('type', '=', 'service'),\n            ('invoice_policy', '=', 'delivery'),\n            ('service_type', '=', 'timesheet'),\n        ]",
+     "help": "Service that will be used by default when invoicing the time spent on a task. It can be modified on each task individually by selecting a specific sales order item.",
+     "readonly": false,
+     "store": true,
+     "string": "Timesheet Product",
+     "type": "Many2one"
+    },
+    "warning_employee_rate": {
+     "compute": "_compute_warning_employee_rate",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_timesheet_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_view"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id', 'sale_line_employee_ids', 'allow_billable')"
+     ],
+     "lines": 10,
+     "name": "_compute_pricing_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_search_pricing_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allow_timesheets', 'allow_billable')"
+     ],
+     "lines": 7,
+     "name": "_compute_timesheet_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pricing_type', 'allow_timesheets', 'allow_billable', 'sale_line_employee_ids', 'sale_line_employee_ids.employee_id')"
+     ],
+     "lines": 15,
+     "name": "_compute_warning_employee_rate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_employee_ids.sale_line_id', 'sale_line_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_sale_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_employee_ids.sale_line_id', 'allow_billable')"
+     ],
+     "lines": 6,
+     "name": "_compute_sale_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('allow_billable', 'allow_timesheets')"
+     ],
+     "lines": 2,
+     "name": "_compute_billing_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('sale_line_id')"
+     ],
+     "lines": 6,
+     "name": "_check_sale_line_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_update_timesheets_sale_line_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 24,
+     "name": "action_view_timesheet"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_billable_time_button"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_profitability_items"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "get_panel_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_foldable_section"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 44,
+     "name": "_get_sale_order_items_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_get_domain_from_section_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_profitability_labels"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_profitability_sequence_per_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_profitability_aal_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 103,
+     "name": "_get_profitability_items_from_aal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_domain_aal_with_no_move_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_service_policy_to_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_profitability_items"
+    }
+   ],
+   "name": "project.project",
+   "transient": false
+  },
+  "project.sale.line.employee.map": {
+   "abstract": false,
+   "description": "Project Sales line, employee mapping",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "related": "project_id.company_id",
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "cost": {
+     "compute": "_compute_cost",
+     "currency_field": "cost_currency_id",
+     "help": "This cost overrides the employee's default employee hourly wage in employee's HR Settings",
+     "readonly": false,
+     "store": true,
+     "type": "Monetary"
+    },
+    "cost_currency_id": {
+     "comodel": "res.currency",
+     "readonly": true,
+     "related": "employee_id.currency_id",
+     "string": "Cost Currency",
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_currency_id",
+     "readonly": false,
+     "store": true,
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "display_cost": {
+     "compute": "_compute_display_cost",
+     "currency_field": "cost_currency_id",
+     "groups": "project.group_project_manager,hr.group_hr_user",
+     "string": "Hourly Cost",
+     "type": "Monetary"
+    },
+    "employee_id": {
+     "comodel": "hr.employee",
+     "domain": "[('id', 'not in', existing_employee_ids)]",
+     "required": true,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "existing_employee_ids": {
+     "comodel": "hr.employee",
+     "compute": "_compute_existing_employee_ids",
+     "type": "Many2many"
+    },
+    "is_cost_changed": {
+     "compute": "_compute_is_cost_changed",
+     "store": true,
+     "string": "Is Cost Manually Changed",
+     "type": "Boolean"
+    },
+    "partner_id": {
+     "related": "project_id.partner_id",
+     "type": "Many2one"
+    },
+    "price_unit": {
+     "compute": "_compute_price_unit",
+     "readonly": true,
+     "store": true,
+     "string": "Unit Price",
+     "type": "Float"
+    },
+    "project_id": {
+     "comodel": "project.project",
+     "required": true,
+     "string": "Project",
+     "type": "Many2one"
+    },
+    "sale_line_id": {
+     "comodel": "sale.order.line",
+     "compute": "_compute_sale_line_id",
+     "domain": {
+      "$lambda": "str(self._domain_sale_line_id())"
+     },
+     "readonly": false,
+     "store": true,
+     "string": "Sales Order Item",
+     "type": "Many2one"
+    },
+    "sale_order_id": {
+     "related": "project_id.sale_order_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_domain_sale_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id', 'project_id.sale_line_employee_ids.employee_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_existing_employee_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_sale_line_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id.price_unit')"
+     ],
+     "lines": 6,
+     "name": "_compute_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id.price_unit')"
+     ],
+     "lines": 3,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id.hourly_cost')"
+     ],
+     "lines": 5,
+     "name": "_compute_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_working_hours_per_calendar"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('company')",
+      "api.depends('cost', 'employee_id.resource_calendar_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_display_cost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_inverse_display_cost"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('cost')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_cost_changed"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_update_project_timesheet"
+    }
+   ],
+   "name": "project.sale.line.employee.map",
+   "sql_constraints": [
+    [
+     "uniqueness_employee",
+     "UNIQUE(project_id,employee_id)",
+     "An employee cannot be selected more than once in the mapping. Please remove duplicate(s) and try again."
+    ]
+   ],
+   "transient": false
+  },
+  "project.task": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_multi_sol": {
+     "compute": "_compute_has_multi_sol",
+     "type": "Boolean"
+    },
+    "is_project_map_empty": {
+     "compute": "_compute_is_project_map_empty",
+     "string": "Is Project map empty",
+     "type": "Boolean"
+    },
+    "pricing_type": {
+     "related": "project_id.pricing_type",
+     "type": "Selection"
+    },
+    "remaining_hours_available": {
+     "related": "sale_line_id.remaining_hours_available",
+     "type": "Boolean"
+    },
+    "remaining_hours_so": {
+     "compute": "_compute_remaining_hours_so",
+     "string": "Time Remaining on SO",
+     "type": "Float"
+    },
+    "sale_order_id": {
+     "domain": "['|', '|', ('partner_id', '=', partner_id), ('partner_id.commercial_partner_id.id', 'parent_of', partner_id), ('partner_id', 'parent_of', partner_id)]",
+     "type": "Many2one"
+    },
+    "timesheet_product_id": {
+     "related": "project_id.timesheet_product_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_default_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id', 'timesheet_ids', 'timesheet_ids.unit_amount')"
+     ],
+     "lines": 18,
+     "name": "_compute_remaining_hours_so"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_search_remaining_hours_so"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inverse_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_line_id.order_partner_id', 'parent_id.sale_line_id', 'project_id.sale_line_id', 'allow_billable')"
+     ],
+     "lines": 5,
+     "name": "_compute_sale_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('project_id.sale_line_employee_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_project_map_empty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('timesheet_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_has_multi_sol"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_last_sol_of_customer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_action_view_so_ids"
+    }
+   ],
+   "name": "project.task",
+   "transient": false
+  },
+  "project.update": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_get_template_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 39,
+     "name": "_get_profitability_values"
+    }
+   ],
+   "name": "project.update",
+   "transient": false
+  },
+  "report.project.task.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "remaining_hours_so": {
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "readonly": true,
+     "string": "Time Remaining on SO",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_group_by"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_from"
+    }
+   ],
+   "name": "report.project.task.user",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_policy": {
+     "help": "Timesheets taken when invoicing time spent",
+     "string": "Invoice Policy",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "sale.advance.payment.inv": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "date_end_invoice_timesheet": {
+     "help": "Only timesheets not yet invoiced (and validated, if applicable) from this period will be invoiced. If the period is not indicated, all timesheets not yet invoiced (and validated, if applicable) will be invoiced without distinction.",
+     "string": "End Date",
+     "type": "Date"
+    },
+    "date_start_invoice_timesheet": {
+     "help": "Only timesheets not yet invoiced (and validated, if applicable) from this period will be invoiced. If the period is not indicated, all timesheets not yet invoiced (and validated, if applicable) will be invoiced without distinction.",
+     "string": "Start Date",
+     "type": "Date"
+    },
+    "invoicing_timesheet_enabled": {
+     "compute": "_compute_invoicing_timesheet_enabled",
+     "store": true,
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('sale_order_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_invoicing_timesheet_enabled"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_create_invoices"
+    }
+   ],
+   "name": "sale.advance.payment.inv",
+   "sel_methods": {
+    "_create_invoices": []
+   },
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "show_hours_recorded_button": {
+     "compute": "_compute_show_hours_recorded_button",
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "type": "Boolean"
+    },
+    "timesheet_count": {
+     "compute": "_compute_timesheet_count",
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "string": "Timesheet activities",
+     "type": "Float"
+    },
+    "timesheet_encode_uom_id": {
+     "comodel": "uom.uom",
+     "related": "company_id.timesheet_encode_uom_id",
+     "type": "Many2one"
+    },
+    "timesheet_total_duration": {
+     "compute": "_compute_timesheet_total_duration",
+     "groups": "hr_timesheet.group_hr_timesheet_user",
+     "help": "Total recorded duration, expressed in the encoding UoM, and rounded to the unit",
+     "string": "Timesheet Total Duration",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_timesheet_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id.project_time_mode_id', 'company_id.timesheet_encode_uom_id', 'order_line.timesheet_ids')"
+     ],
+     "lines": 13,
+     "name": "_compute_timesheet_total_duration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_compute_field_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_show_hours_recorded_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_order_with_valid_service_product"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_prepaid_service_lines_to_upsell"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 34,
+     "name": "action_view_timesheet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_reset_has_displayed_warning_upsell_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_create_invoices"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "analytic_line_ids": {
+     "domain": [
+      [
+       "project_id",
+       "=",
+       false
+      ]
+     ],
+     "type": "One2many"
+    },
+    "has_displayed_warning_upsell": {
+     "copy": false,
+     "string": "Has Displayed Warning Upsell",
+     "type": "Boolean"
+    },
+    "qty_delivered_method": {
+     "selection_add": [
+      [
+       "timesheet",
+       "Timesheets"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "remaining_hours": {
+     "compute": "_compute_remaining_hours",
+     "store": true,
+     "string": "Time Remaining on SO",
+     "type": "Float"
+    },
+    "remaining_hours_available": {
+     "compute": "_compute_remaining_hours_available",
+     "type": "Boolean"
+    },
+    "timesheet_ids": {
+     "comodel": "account.analytic.line",
+     "domain": [
+      [
+       "project_id",
+       "!=",
+       false
+      ]
+     ],
+     "inverse_name": "so_line",
+     "string": "Timesheets",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('remaining_hours_available', 'remaining_hours')",
+      "api.depends_context('with_remaining_hours', 'company')"
+     ],
+     "lines": 24,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.service_policy', 'product_uom.category_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_remaining_hours_available"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('remaining_hours_available', 'qty_delivered', 'product_uom_qty', 'product_uom')"
+     ],
+     "lines": 8,
+     "name": "_compute_remaining_hours"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_qty_delivered_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('analytic_line_ids.project_id', 'project_id.pricing_type')"
+     ],
+     "lines": 7,
+     "name": "_compute_qty_delivered"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_timesheet_compute_delivered_quantity_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_convert_qty_company_hours"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_timesheet_create_project"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_timesheet_create_project_prepare_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_recompute_qty_to_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_action_per_item"
+    }
+   ],
+   "name": "sale.order.line",
+   "sel_methods": {
+    "_timesheet_compute_delivered_quantity_domain": [
+     [
+      "project_id",
+      "!="
+     ],
+     [
+      "date",
+      "<="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "timesheets.analysis.report": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "billable_time": {
+     "help": "Number of hours/days linked to a SOL.",
+     "readonly": true,
+     "string": "Billable Time",
+     "type": "Float"
+    },
+    "margin": {
+     "currency_field": "currency_id",
+     "help": "Timesheets revenues minus the costs",
+     "readonly": true,
+     "string": "Margin",
+     "type": "Monetary"
+    },
+    "non_billable_time": {
+     "help": "Number of hours/days not linked to a SOL.",
+     "readonly": true,
+     "string": "Non-billable Time",
+     "type": "Float"
+    },
+    "order_id": {
+     "comodel": "sale.order",
+     "readonly": true,
+     "string": "Sales Order",
+     "type": "Many2one"
+    },
+    "so_line": {
+     "comodel": "sale.order.line",
+     "readonly": true,
+     "string": "Sales Order Item",
+     "type": "Many2one"
+    },
+    "timesheet_invoice_id": {
+     "comodel": "account.move",
+     "help": "Invoice created from the timesheet",
+     "readonly": true,
+     "string": "Invoice",
+     "type": "Many2one"
+    },
+    "timesheet_invoice_type": {
+     "readonly": true,
+     "selection": [
+      [
+       "billable_time",
+       "Billed on Timesheets"
+      ],
+      [
+       "billable_fixed",
+       "Billed at a Fixed price"
+      ],
+      [
+       "billable_milestones",
+       "Billed on Milestones"
+      ],
+      [
+       "billable_manual",
+       "Billed Manually"
+      ],
+      [
+       "non_billable",
+       "Non-Billable"
+      ],
+      [
+       "timesheet_revenues",
+       "Timesheet Revenues"
+      ],
+      [
+       "service_revenues",
+       "Service Revenues"
+      ],
+      [
+       "other_revenues",
+       "Other revenues"
+      ],
+      [
+       "other_costs",
+       "Other costs"
+      ]
+     ],
+     "string": "Billable Type",
+     "type": "Selection"
+    },
+    "timesheet_revenues": {
+     "currency_field": "currency_id",
+     "help": "Number of hours spent multiplied by the unit price per hour/day.",
+     "readonly": true,
+     "string": "Timesheet Revenues",
+     "type": "Monetary"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_table_query"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_from"
+    }
+   ],
+   "name": "timesheets.analysis.report",
+   "transient": false
+  }
+ },
+ "module": "sale_timesheet",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_timesheet",
+ "stats": {
+  "fields": 72,
+  "methods": 136,
+  "models": 18,
+  "py_lines": 2260
+ },
+ "summary": "Sell based on timesheets",
+ "title": "Sales Timesheet",
+ "version": null
+}

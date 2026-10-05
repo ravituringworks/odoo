@@ -1,0 +1,203 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources",
+ "data_files": [
+  "security/gamification_security.xml",
+  "security/ir.model.access.csv",
+  "wizard/gamification_badge_user_wizard_views.xml",
+  "views/gamification_views.xml",
+  "views/hr_employee_views.xml"
+ ],
+ "depends": [
+  "gamification",
+  "hr"
+ ],
+ "models": {
+  "gamification.badge": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "granted_employees_count": {
+     "compute": "_compute_granted_employees_count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('owner_ids.employee_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_granted_employees_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "get_granted_employees"
+    }
+   ],
+   "name": "gamification.badge",
+   "transient": false
+  },
+  "gamification.badge.user": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_id": {
+     "comodel": "hr.employee",
+     "index": true,
+     "string": "Employee",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('employee_id')"
+     ],
+     "lines": 5,
+     "name": "_check_employee_related_user"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_badge"
+    }
+   ],
+   "name": "gamification.badge.user",
+   "transient": false
+  },
+  "gamification.badge.user.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_id": {
+     "comodel": "hr.employee",
+     "required": false,
+     "string": "Employee",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_user_id",
+     "readonly": false,
+     "store": true,
+     "string": "User",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_grant_badge"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('employee_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_user_id"
+    }
+   ],
+   "name": "gamification.badge.user.wizard",
+   "transient": false
+  },
+  "hr.employee.base": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "badge_ids": {
+     "comodel": "gamification.badge.user",
+     "compute": "_compute_employee_badges",
+     "help": "All employee badges, linked to the employee either directly or through the user",
+     "string": "Employee Badges",
+     "type": "One2many"
+    },
+    "direct_badge_ids": {
+     "comodel": "gamification.badge.user",
+     "help": "Badges directly linked to the employee",
+     "inverse_name": "employee_id",
+     "type": "One2many"
+    },
+    "goal_ids": {
+     "comodel": "gamification.goal",
+     "compute": "_compute_employee_goals",
+     "string": "Employee HR Goals",
+     "type": "One2many"
+    },
+    "has_badges": {
+     "compute": "_compute_employee_badges",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id.goal_ids.challenge_id.challenge_category')"
+     ],
+     "lines": 6,
+     "name": "_compute_employee_goals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('direct_badge_ids', 'user_id.badge_ids.employee_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_employee_badges"
+    }
+   ],
+   "name": "hr.employee.base",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "badge_ids": {
+     "comodel": "gamification.badge.user",
+     "inverse_name": "user_id",
+     "type": "One2many"
+    },
+    "goal_ids": {
+     "comodel": "gamification.goal",
+     "inverse_name": "user_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "hr_gamification",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_gamification",
+ "stats": {
+  "fields": 10,
+  "methods": 8,
+  "models": 5,
+  "py_lines": 147
+ },
+ "summary": "Use the HR resources for the gamification process.",
+ "title": "HR Gamification",
+ "version": "1.0"
+}

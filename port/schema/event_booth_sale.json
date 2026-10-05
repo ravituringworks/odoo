@@ -1,0 +1,712 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/product_data.xml",
+  "data/event_booth_category_data.xml",
+  "views/sale_order_views.xml",
+  "views/event_type_booth_views.xml",
+  "views/event_booth_category_views.xml",
+  "views/event_booth_registration_views.xml",
+  "views/event_booth_views.xml",
+  "wizard/event_booth_configurator_views.xml"
+ ],
+ "depends": [
+  "event_booth",
+  "event_sale"
+ ],
+ "models": {
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_invoice_paid_hook"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "event.booth": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_booth_registration_ids": {
+     "comodel": "event.booth.registration",
+     "inverse_name": "event_booth_id",
+     "type": "One2many"
+    },
+    "is_paid": {
+     "copy": false,
+     "string": "Is Paid",
+     "type": "Boolean"
+    },
+    "sale_order_id": {
+     "groups": "sales_team.group_sale_salesman",
+     "readonly": true,
+     "related": "sale_order_line_id.order_id",
+     "store": "True",
+     "type": "Many2one"
+    },
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "copy": false,
+     "groups": "sales_team.group_sale_salesman",
+     "ondelete": "set null",
+     "readonly": false,
+     "string": "Final Sale Order Line",
+     "type": "Many2one"
+    },
+    "sale_order_line_registration_ids": {
+     "column1": "event_booth_id",
+     "column2": "sale_order_line_id",
+     "comodel": "sale.order.line",
+     "copy": false,
+     "groups": "sales_team.group_sale_salesman",
+     "relation_table": "event_booth_registration",
+     "string": "SO Lines with reservations",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 6,
+     "name": "_unlink_except_linked_sale_order"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_set_paid"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_view_sale_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_booth_multiline_description"
+    }
+   ],
+   "name": "event.booth",
+   "transient": false
+  },
+  "event.booth.category": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "currency_id": {
+     "groups": "event.group_event_registration_desk",
+     "related": "product_id.currency_id",
+     "type": "Many2one"
+    },
+    "image_1920": {
+     "compute": "_compute_image_1920",
+     "readonly": false,
+     "store": true,
+     "type": "Image"
+    },
+    "price": {
+     "compute": "_compute_price",
+     "groups": "event.group_event_registration_desk",
+     "readonly": false,
+     "store": true,
+     "string": "Price",
+     "type": "Float"
+    },
+    "price_incl": {
+     "compute": "_compute_price_incl",
+     "groups": "event.group_event_registration_desk",
+     "readonly": false,
+     "string": "Price incl",
+     "type": "Float"
+    },
+    "price_reduce": {
+     "compute": "_compute_price_reduce",
+     "groups": "event.group_event_registration_desk",
+     "string": "Price Reduce",
+     "type": "Float"
+    },
+    "price_reduce_taxinc": {
+     "compute": "_compute_price_reduce_taxinc",
+     "string": "Price Reduce Tax inc",
+     "type": "Float"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "default": {
+      "$ref": "_default_product_id"
+     },
+     "domain": [
+      [
+       "service_tracking",
+       "=",
+       "event_booth"
+      ]
+     ],
+     "groups": "event.group_event_registration_desk",
+     "required": true,
+     "string": "Product",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_product_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_image_1920"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_price"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id', 'product_id.taxes_id', 'price')"
+     ],
+     "lines": 8,
+     "name": "_compute_price_incl"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context(*PRICE_CONTEXT_KEYS)",
+      "api.depends('product_id', 'price')"
+     ],
+     "lines": 4,
+     "name": "_compute_price_reduce"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context(*PRICE_CONTEXT_KEYS)",
+      "api.depends('product_id', 'price_reduce')"
+     ],
+     "lines": 5,
+     "name": "_compute_price_reduce_taxinc"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_init_column"
+    }
+   ],
+   "name": "event.booth.category",
+   "transient": false
+  },
+  "event.booth.configurator": {
+   "abstract": false,
+   "description": "Event Booth Configurator",
+   "extension": false,
+   "fields": {
+    "event_booth_category_available_ids": {
+     "readonly": true,
+     "related": "event_id.event_booth_category_available_ids",
+     "type": "Many2many"
+    },
+    "event_booth_category_id": {
+     "comodel": "event.booth.category",
+     "compute": "_compute_event_booth_category_id",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Booth Category",
+     "type": "Many2one"
+    },
+    "event_booth_ids": {
+     "comodel": "event.booth",
+     "compute": "_compute_event_booth_ids",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Booth",
+     "type": "Many2many"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "product_id": {
+     "comodel": "product.product",
+     "readonly": true,
+     "string": "Product",
+     "type": "Many2one"
+    },
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "readonly": true,
+     "string": "Sale Order Line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_event_booth_category_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_id', 'event_booth_category_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_event_booth_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('event_booth_ids')"
+     ],
+     "lines": 3,
+     "name": "_check_if_no_booth_ids"
+    }
+   ],
+   "name": "event.booth.configurator",
+   "transient": true
+  },
+  "event.booth.registration": {
+   "abstract": false,
+   "description": "Event Booth Registration",
+   "extension": false,
+   "fields": {
+    "contact_email": {
+     "compute": "_compute_contact_email",
+     "readonly": false,
+     "store": true,
+     "string": "Contact Email",
+     "type": "Char"
+    },
+    "contact_name": {
+     "compute": "_compute_contact_name",
+     "readonly": false,
+     "store": true,
+     "string": "Contact Name",
+     "type": "Char"
+    },
+    "contact_phone": {
+     "compute": "_compute_contact_phone",
+     "readonly": false,
+     "store": true,
+     "string": "Contact Phone",
+     "type": "Char"
+    },
+    "event_booth_id": {
+     "comodel": "event.booth",
+     "required": true,
+     "string": "Booth",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "related": "sale_order_line_id.order_partner_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "sale_order_line_id": {
+     "comodel": "sale.order.line",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Sale Order Line",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_phone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_fields_for_booth_confirmation"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_cancel_pending_registrations"
+    }
+   ],
+   "name": "event.booth.registration",
+   "sql_constraints": [
+    [
+     "unique_registration",
+     "unique(sale_order_line_id, event_booth_id)",
+     "There can be only one registration for a booth by sale order line"
+    ]
+   ],
+   "transient": false
+  },
+  "event.type.booth": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "currency_id": {
+     "related": "booth_category_id.currency_id",
+     "type": "Many2one"
+    },
+    "price": {
+     "related": "booth_category_id.price",
+     "store": true,
+     "type": "Float"
+    },
+    "product_id": {
+     "related": "booth_category_id.product_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_event_booth_fields_whitelist"
+    }
+   ],
+   "name": "event.type.booth",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('service_tracking')"
+     ],
+     "lines": 3,
+     "name": "_onchange_type_event_booth"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "service_tracking": {
+     "ondelete": {
+      "event_booth": "set default"
+     },
+     "selection_add": [
+      [
+       "event_booth",
+       "Event Booth"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_prepare_service_tracking_tooltip"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('service_tracking')"
+     ],
+     "lines": 3,
+     "name": "_onchange_type_event_booth"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_service_tracking_blacklist"
+    }
+   ],
+   "name": "product.template",
+   "sel_methods": {
+    "_prepare_service_tracking_tooltip": []
+   },
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_booth_count": {
+     "compute": "_compute_event_booth_count",
+     "string": "Booth Count",
+     "type": "Integer"
+    },
+    "event_booth_ids": {
+     "comodel": "event.booth",
+     "inverse_name": "sale_order_id",
+     "string": "Booths",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_booth_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_event_booth_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_view_booth_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_product_catalog_domain"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "event_booth_category_id": {
+     "comodel": "event.booth.category",
+     "ondelete": "set null",
+     "string": "Booths Category",
+     "type": "Many2one"
+    },
+    "event_booth_ids": {
+     "comodel": "event.booth",
+     "inverse_name": "sale_order_line_id",
+     "string": "Confirmed Booths",
+     "type": "One2many"
+    },
+    "event_booth_pending_ids": {
+     "comodel": "event.booth",
+     "compute": "_compute_event_booth_pending_ids",
+     "help": "Used to create registration when providing the desired event booth.",
+     "string": "Pending Booths",
+     "type": "Many2many"
+    },
+    "event_booth_registration_ids": {
+     "comodel": "event.booth.registration",
+     "inverse_name": "sale_order_line_id",
+     "string": "Confirmed Registration",
+     "type": "One2many"
+    },
+    "is_event_booth": {
+     "compute": "_compute_is_event_booth",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.type')"
+     ],
+     "lines": 3,
+     "name": "_compute_is_event_booth"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_booth_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_name_short"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_booth_registration_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_event_booth_pending_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_inverse_event_booth_pending_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_event_booth_pending_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('event_booth_registration_ids')"
+     ],
+     "lines": 3,
+     "name": "_check_event_booth_registration_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('product_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_product_id_booth"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('event_id')"
+     ],
+     "lines": 4,
+     "name": "_onchange_event_id_booth"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_booth_pending_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_update_event_booths"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_sale_order_line_multiline_description_sale"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_use_template_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_display_price"
+    }
+   ],
+   "name": "sale.order.line",
+   "sel_methods": {
+    "_get_display_price": [],
+    "_get_sale_order_line_multiline_description_sale": [],
+    "_use_template_name": []
+   },
+   "transient": false
+  }
+ },
+ "module": "event_booth_sale",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/event_booth_sale",
+ "stats": {
+  "fields": 35,
+  "methods": 43,
+  "models": 10,
+  "py_lines": 521
+ },
+ "summary": "Manage event booths sale",
+ "title": "Events Booths Sales",
+ "version": "1.2"
+}

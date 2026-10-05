@@ -1,0 +1,445 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Human Resources",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/hr_fleet_security.xml",
+  "views/employee_views.xml",
+  "views/fleet_vehicle_views.xml",
+  "views/fleet_vehicle_cost_views.xml",
+  "wizard/hr_departure_wizard_views.xml",
+  "data/hr_fleet_data.xml",
+  "data/hr_fleet_demo.xml"
+ ],
+ "depends": [
+  "hr",
+  "fleet"
+ ],
+ "models": {
+  "fleet.vehicle": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "driver_employee_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_driver_employee_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "store": true,
+     "string": "Driver (Employee)",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "driver_employee_name": {
+     "related": "driver_employee_id.name",
+     "type": "Char"
+    },
+    "future_driver_employee_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_future_driver_employee_id",
+     "domain": "['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
+     "store": true,
+     "string": "Future Driver (Employee)",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "mobility_card": {
+     "compute": "_compute_mobility_card",
+     "store": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('driver_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_driver_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('future_driver_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_future_driver_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('driver_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_mobility_card"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_update_create_write_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_employee"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "open_assignation_logs"
+    }
+   ],
+   "name": "fleet.vehicle",
+   "transient": false
+  },
+  "fleet.vehicle.assignation.log": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "attachment_number": {
+     "compute": "_compute_attachment_number",
+     "string": "Number of Attachments",
+     "type": "Integer"
+    },
+    "driver_employee_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_driver_employee_id",
+     "readonly": false,
+     "store": true,
+     "string": "Driver (Employee)",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('driver_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_driver_employee_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_attachment_number"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_get_attachment_view"
+    }
+   ],
+   "name": "fleet.vehicle.assignation.log",
+   "transient": false
+  },
+  "fleet.vehicle.log.contract": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchaser_employee_id": {
+     "related": "vehicle_id.driver_employee_id",
+     "string": "Driver (Employee)",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_open_employee"
+    }
+   ],
+   "name": "fleet.vehicle.log.contract",
+   "transient": false
+  },
+  "fleet.vehicle.log.services": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "purchaser_employee_id": {
+     "comodel": "hr.employee",
+     "compute": "_compute_purchaser_employee_id",
+     "readonly": false,
+     "store": true,
+     "string": "Driver (Employee)",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vehicle_id', 'purchaser_employee_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_purchaser_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vehicle_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_purchaser_employee_id"
+    }
+   ],
+   "name": "fleet.vehicle.log.services",
+   "transient": false
+  },
+  "fleet.vehicle.odometer": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "driver_employee_id": {
+     "readonly": true,
+     "related": "vehicle_id.driver_employee_id",
+     "string": "Driver (Employee)",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "fleet.vehicle.odometer",
+   "transient": false
+  },
+  "hr.departure.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "release_campany_car": {
+     "default": {
+      "$lambda": "self.env.user.has_group('fleet.fleet_group_user')"
+     },
+     "string": "Release Company Car",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_register_departure"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_free_campany_car"
+    }
+   ],
+   "name": "hr.departure.wizard",
+   "transient": false
+  },
+  "hr.employee": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "car_ids": {
+     "comodel": "fleet.vehicle",
+     "groups": "fleet.fleet_group_manager,hr.group_hr_user",
+     "inverse_name": "driver_employee_id",
+     "string": "Vehicles (private)",
+     "type": "One2many"
+    },
+    "employee_cars_count": {
+     "compute": "_compute_employee_cars_count",
+     "groups": "fleet.fleet_group_manager",
+     "string": "Cars",
+     "type": "Integer"
+    },
+    "license_plate": {
+     "compute": "_compute_license_plate",
+     "groups": "hr.group_hr_user",
+     "type": "Char"
+    },
+    "mobility_card": {
+     "groups": "fleet.fleet_group_user",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_open_employee_cars"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('private_car_plate', 'car_ids.license_plate')"
+     ],
+     "lines": 6,
+     "name": "_compute_license_plate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_search_license_plate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_employee_cars_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('work_contact_id')"
+     ],
+     "lines": 8,
+     "name": "_check_work_contact_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "write"
+    }
+   ],
+   "name": "hr.employee",
+   "sel_methods": {
+    "_search_license_plate": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "hr.employee.public": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mobility_card": {
+     "readonly": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "hr.employee.public",
+   "transient": false
+  },
+  "mail.activity.plan.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "responsible_type": {
+     "ondelete": {
+      "fleet_manager": "set default"
+     },
+     "selection_add": [
+      [
+       "fleet_manager",
+       "Fleet Manager"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('plan_id', 'responsible_type')"
+     ],
+     "lines": 5,
+     "name": "_check_responsible_hr_fleet"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_determine_responsible"
+    }
+   ],
+   "name": "mail.activity.plan.template",
+   "sel_methods": {
+    "_determine_responsible": []
+   },
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "employee_cars_count": {
+     "related": "employee_id.employee_cars_count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "SELF_READABLE_FIELDS"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_open_employee_cars"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  }
+ },
+ "module": "hr_fleet",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/hr_fleet",
+ "stats": {
+  "fields": 17,
+  "methods": 26,
+  "models": 10,
+  "py_lines": 416
+ },
+ "summary": "Get history of driven cars by employees",
+ "title": "Fleet History",
+ "version": "1.0"
+}

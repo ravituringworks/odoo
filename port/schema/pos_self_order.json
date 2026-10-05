@@ -1,0 +1,1157 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Sales/Point Of Sale",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/pos_self_order.index.xml",
+  "views/qr_code.xml",
+  "views/pos_category_views.xml",
+  "views/pos_config_view.xml",
+  "views/pos_session_view.xml",
+  "views/custom_link_views.xml",
+  "views/pos_restaurant_views.xml",
+  "views/product_views.xml",
+  "data/init_access.xml",
+  "views/res_config_settings_views.xml",
+  "views/point_of_sale_dashboard.xml",
+  "data/kiosk_demo_data.xml"
+ ],
+ "depends": [
+  "pos_restaurant",
+  "http_routing"
+ ],
+ "models": {
+  "account.fiscal.position": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_load_pos_self_data"
+    }
+   ],
+   "name": "account.fiscal.position",
+   "transient": false
+  },
+  "ir.binary": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_find_record_check_access"
+    }
+   ],
+   "name": "ir.binary",
+   "sel_methods": {
+    "_find_record_check_access": []
+   },
+   "transient": false
+  },
+  "ir.http": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_translation_frontend_modules_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 28,
+     "name": "get_nearest_lang"
+    }
+   ],
+   "name": "ir.http",
+   "transient": false
+  },
+  "pos.category": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "hour_after": {
+     "default": 0.0,
+     "help": "The product will be available after this hour.",
+     "string": "Availability After",
+     "type": "Float"
+    },
+    "hour_until": {
+     "default": 24.0,
+     "help": "The product will be available until this hour.",
+     "string": "Availability Until",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('hour_until', 'hour_after')"
+     ],
+     "lines": 8,
+     "name": "_check_hour"
+    }
+   ],
+   "name": "pos.category",
+   "transient": false
+  },
+  "pos.config": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "has_paper": {
+     "default": true,
+     "string": "Has paper",
+     "type": "Boolean"
+    },
+    "self_ordering_available_language_ids": {
+     "comodel": "res.lang",
+     "default": {
+      "$ref": "_self_order_kiosk_default_languages"
+     },
+     "help": "Languages available for the kiosk mode",
+     "string": "Available Languages",
+     "type": "Many2many"
+    },
+    "self_ordering_default_language_id": {
+     "comodel": "res.lang",
+     "default": {
+      "$lambda": "self.env['res.lang'].search([('code', '=', self.env.lang)], limit=1)"
+     },
+     "help": "Default language for the kiosk mode",
+     "string": "Default Language",
+     "type": "Many2one"
+    },
+    "self_ordering_default_user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$ref": "_self_order_default_user"
+     },
+     "help": "Access rights of this user will be used when visiting self order website when no session is open.",
+     "string": "Default User",
+     "type": "Many2one"
+    },
+    "self_ordering_image_brand": {
+     "help": "Image to display on the self order screen",
+     "string": "Self Order Kiosk Image Brand",
+     "type": "Image"
+    },
+    "self_ordering_image_brand_name": {
+     "help": "Name of the image to display on the self order screen",
+     "string": "Self Order Kiosk Image Brand Name",
+     "type": "Char"
+    },
+    "self_ordering_image_home_ids": {
+     "comodel": "ir.attachment",
+     "help": "Image to display on the self order screen",
+     "string": "Add images",
+     "type": "Many2many"
+    },
+    "self_ordering_mode": {
+     "default": "nothing",
+     "help": "Choose the self ordering mode",
+     "required": true,
+     "selection": [
+      [
+       "nothing",
+       "Disable"
+      ],
+      [
+       "consultation",
+       "QR menu"
+      ],
+      [
+       "mobile",
+       "QR menu + Ordering"
+      ],
+      [
+       "kiosk",
+       "Kiosk"
+      ]
+     ],
+     "string": "Self Ordering Mode",
+     "type": "Selection"
+    },
+    "self_ordering_pay_after": {
+     "default": "meal",
+     "help": "Choose when the customer will pay",
+     "required": true,
+     "selection_method": "_compute_selection_pay_after",
+     "string": "Pay After:",
+     "type": "Selection"
+    },
+    "self_ordering_service_mode": {
+     "default": "counter",
+     "help": "Choose the kiosk mode",
+     "required": true,
+     "selection": [
+      [
+       "counter",
+       "Pickup zone"
+      ],
+      [
+       "table",
+       "Table"
+      ]
+     ],
+     "string": "Self Ordering Service Mode",
+     "type": "Selection"
+    },
+    "self_ordering_takeaway": {
+     "string": "Self Takeaway",
+     "type": "Boolean"
+    },
+    "self_ordering_url": {
+     "compute": "_compute_self_ordering_url",
+     "type": "Char"
+    },
+    "status": {
+     "compute": "_compute_status",
+     "selection": [
+      [
+       "inactive",
+       "Inactive"
+      ],
+      [
+       "active",
+       "Active"
+      ]
+     ],
+     "store": false,
+     "string": "Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_self_order_kiosk_default_languages"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_self_order_default_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_load_pos_self_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_update_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 5,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_prepare_self_order_splash_screen"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_prepare_self_order_custom_btn"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('module_pos_restaurant')"
+     ],
+     "lines": 4,
+     "name": "_compute_self_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_selection_pay_after"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('self_ordering_default_user_id')"
+     ],
+     "lines": 10,
+     "name": "_check_default_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('payment_method_ids', 'self_ordering_mode')"
+     ],
+     "lines": 3,
+     "name": "_onchange_payment_method_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_get_qr_code_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_self_order_route"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_self_order_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "preview_self_order_app"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_self_ordering_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_load_self_data_models"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "load_self_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_split_qr_codes_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_self_ordering_url"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_close_kiosk_session"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_status"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_open_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_kiosk_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 25,
+     "name": "load_onboarding_kiosk_scenario"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "get_pos_qr_order_data"
+    }
+   ],
+   "name": "pos.config",
+   "transient": false
+  },
+  "pos.load.mixin": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_load_pos_self_data"
+    }
+   ],
+   "name": "pos.load.mixin",
+   "transient": false
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "table_stand_number": {
+     "string": "Table Stand Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "sync_from_ui"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "remove_from_ui"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_send_notification"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 38,
+     "name": "_check_pos_order_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 45,
+     "name": "_check_pos_order"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "recompute_prices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_compute_line_price"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "_compute_combo_price"
+    }
+   ],
+   "name": "pos.order",
+   "sel_methods": {
+    "_check_pos_order_lines": [],
+    "_load_pos_self_data_domain": [
+     [
+      "id",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "pos.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "combo_id": {
+     "comodel": "product.combo",
+     "string": "Combo reference",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "write"
+    }
+   ],
+   "name": "pos.order.line",
+   "transient": false
+  },
+  "pos.payment.method": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_payment_request_from_kiosk"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_load_pos_self_data_domain"
+    }
+   ],
+   "name": "pos.payment.method",
+   "transient": false
+  },
+  "pos.session": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_create_pos_self_sessions_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_load_pos_self_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_load_pos_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_gc_sequence_prefix"
+    }
+   ],
+   "name": "pos.session",
+   "sel_methods": {
+    "_load_pos_self_data_domain": [
+     [
+      "config_id",
+      "="
+     ],
+     [
+      "state",
+      "="
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "pos_self_order.custom_link": {
+   "abstract": false,
+   "description": "Custom links that the restaurant can configure to be displayed on the self order screen",
+   "extension": false,
+   "fields": {
+    "link_html": {
+     "compute": "_compute_link_html",
+     "readonly": true,
+     "store": true,
+     "string": "Preview",
+     "type": "Html"
+    },
+    "name": {
+     "required": true,
+     "string": "Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "pos_config_ids": {
+     "comodel": "pos.config",
+     "domain": "[('self_ordering_mode', '!=', 'nothing')]",
+     "help": "Select for which points of sale you want to display this link. Leave empty to display it for all points of sale. You have to select among the points of sale that have the 'QR Code Menu' feature enabled.",
+     "string": "Points of Sale",
+     "type": "Many2many"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "style": {
+     "default": "primary",
+     "required": true,
+     "selection": [
+      [
+       "primary",
+       "Primary"
+      ],
+      [
+       "secondary",
+       "Secondary"
+      ],
+      [
+       "success",
+       "Success"
+      ],
+      [
+       "warning",
+       "Warning"
+      ],
+      [
+       "danger",
+       "Danger"
+      ],
+      [
+       "info",
+       "Info"
+      ],
+      [
+       "light",
+       "Light"
+      ],
+      [
+       "dark",
+       "Dark"
+      ]
+     ],
+     "string": "Style",
+     "type": "Selection"
+    },
+    "url": {
+     "required": true,
+     "string": "URL",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "pos.load.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'style')"
+     ],
+     "lines": 4,
+     "name": "_compute_link_html"
+    }
+   ],
+   "name": "pos_self_order.custom_link",
+   "sel_methods": {
+    "_load_pos_self_data_domain": [
+     [
+      "pos_config_ids",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_load_pos_self_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_load_pos_self_data_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_load_pos_self_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_compute_product_price_with_pricelist"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_filter_applicable_attributes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_send_availability_status"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "self_order_available": {
+     "default": true,
+     "help": "If this product is available in the Self Order screens",
+     "string": "Available in Self Order",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('available_in_pos')"
+     ],
+     "lines": 4,
+     "name": "_on_change_available_in_pos"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pos_self_ordering_available_language_ids": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_available_language_ids",
+     "type": "Many2many"
+    },
+    "pos_self_ordering_default_language_id": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_default_language_id",
+     "type": "Many2one"
+    },
+    "pos_self_ordering_default_user_id": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_default_user_id",
+     "type": "Many2one"
+    },
+    "pos_self_ordering_image_brand": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_image_brand",
+     "type": "Image"
+    },
+    "pos_self_ordering_image_brand_name": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_image_brand_name",
+     "type": "Char"
+    },
+    "pos_self_ordering_image_home_ids": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_image_home_ids",
+     "type": "Many2many"
+    },
+    "pos_self_ordering_mode": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_mode",
+     "required": true,
+     "type": "Selection"
+    },
+    "pos_self_ordering_pay_after": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_pay_after",
+     "required": true,
+     "type": "Selection"
+    },
+    "pos_self_ordering_service_mode": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_service_mode",
+     "required": true,
+     "type": "Selection"
+    },
+    "pos_self_ordering_takeaway": {
+     "readonly": false,
+     "related": "pos_config_id.self_ordering_takeaway",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_self_ordering_default_user_id')"
+     ],
+     "lines": 7,
+     "name": "_onchange_default_user"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_self_ordering_service_mode')"
+     ],
+     "lines": 3,
+     "name": "_onchange_pos_self_order_service_mode"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_self_ordering_default_language_id', 'pos_self_ordering_available_language_ids')"
+     ],
+     "lines": 5,
+     "name": "_onchange_pos_self_order_kiosk_default_language"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_self_ordering_mode', 'pos_module_pos_restaurant')"
+     ],
+     "lines": 12,
+     "name": "_onchange_pos_self_order_kiosk"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_payment_method_ids')"
+     ],
+     "lines": 3,
+     "name": "_onchange_pos_payment_method_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('pos_self_ordering_pay_after', 'pos_self_ordering_mode')"
+     ],
+     "lines": 9,
+     "name": "_onchange_pos_self_order_pay_after"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "custom_link_action"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_pos_qr_stands"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "generate_qr_codes_zip"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "generate_qr_codes_page"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "preview_self_order_app"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "update_access_tokens"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_self_ordering_mode')"
+     ],
+     "lines": 7,
+     "name": "_compute_pos_pricelist_id"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "restaurant.floor": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_domain"
+    }
+   ],
+   "name": "restaurant.floor",
+   "sel_methods": {
+    "_load_pos_self_data_domain": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "restaurant.table": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "identifier": {
+     "copy": false,
+     "default": {
+      "$lambda": "self._get_identifier()"
+     },
+     "required": true,
+     "string": "Security Token",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_identifier"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_update_identifier"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_load_pos_self_data_domain"
+    }
+   ],
+   "name": "restaurant.table",
+   "sel_methods": {
+    "_load_pos_self_data_domain": [
+     [
+      "floor_id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  }
+ },
+ "module": "pos_self_order",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/pos_self_order",
+ "stats": {
+  "fields": 35,
+  "methods": 87,
+  "models": 16,
+  "py_lines": 1708
+ },
+ "summary": "Addon for the POS App that allows customers to view the menu on their smartphone.",
+ "title": "POS Self Order",
+ "version": "1.0"
+}

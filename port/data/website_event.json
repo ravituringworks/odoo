@@ -1,0 +1,1469 @@
+{
+ "module": "website_event",
+ "records": [
+  {
+   "model": "website.menu",
+   "id": "menu_events",
+   "values": {
+    "name": "Events",
+    "url": "/event",
+    "parent_id": {
+     "$ref": "website.main_menu"
+    },
+    "sequence": "30"
+   }
+  },
+  {
+   "model": "ir.actions.act_url",
+   "id": "action_open_website",
+   "values": {
+    "name": "Website Home",
+    "target": "self",
+    "url": "/event"
+   }
+  },
+  {
+   "model": "ir.actions.todo",
+   "id": "base.open_menu",
+   "values": {
+    "action_id": {
+     "$ref": "action_open_website"
+    },
+    "state": "open"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_event_published",
+   "values": {
+    "name": "Event published",
+    "res_model": "event.event",
+    "default": false,
+    "description": "Event published"
+   }
+  },
+  {
+   "model": "mail.message.subtype",
+   "id": "mt_event_unpublished",
+   "values": {
+    "name": "Event unpublished",
+    "res_model": "event.event",
+    "default": false,
+    "description": "Event unpublished"
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "ir_filters_event_list_snippet",
+   "values": {
+    "name": "Upcoming Events",
+    "model_id": "event.event",
+    "user_id": false,
+    "domain": {
+     "$unevaluated": "[\n            ('date_begin', '>=', context_today()),\n            ('is_visible_on_website', '=', True)\n        ]"
+    },
+    "sort": "[\"date_begin asc\"]"
+   }
+  },
+  {
+   "model": "website.snippet.filter",
+   "id": "website_snippet_filter_event_list",
+   "values": {
+    "filter_id": {
+     "$ref": "website_event.ir_filters_event_list_snippet"
+    },
+    "field_names": "name,subtitle",
+    "limit": 16,
+    "name": "Upcoming Events"
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "ir_filters_event_list_snippet_unfinished",
+   "values": {
+    "name": "Upcoming and Ongoing Events",
+    "model_id": "event.event",
+    "user_id": false,
+    "domain": [
+     [
+      "is_finished",
+      "=",
+      false
+     ],
+     [
+      "is_visible_on_website",
+      "=",
+      true
+     ]
+    ],
+    "sort": "[\"date_begin asc\"]"
+   }
+  },
+  {
+   "model": "website.snippet.filter",
+   "id": "website_snippet_filter_event_list_unfinished",
+   "values": {
+    "filter_id": {
+     "$ref": "website_event.ir_filters_event_list_snippet_unfinished"
+    },
+    "field_names": "name,subtitle",
+    "limit": 16,
+    "name": "Upcoming and Ongoing Events"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "event_registration_action_from_visitor",
+   "values": {
+    "name": "Registrations",
+    "res_model": "event.registration",
+    "view_mode": "kanban,list,form",
+    "domain": {
+     "$unevaluated": "[('visitor_id', 'in', [active_id])]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "website_event_menu_action",
+   "values": {
+    "name": "Menus",
+    "res_model": "website.event.menu",
+    "view_mode": "list,form",
+    "context": {
+     "create": false
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_event_pages_list",
+   "values": {
+    "name": "Event Pages",
+    "res_model": "event.event",
+    "view_mode": "list,kanban",
+    "view_ids": [
+     [
+      5,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "list",
+       "view_id": {
+        "$ref": "event_pages_tree_view"
+       }
+      }
+     ],
+     [
+      0,
+      0,
+      {
+       "view_mode": "kanban",
+       "view_id": {
+        "$ref": "event_pages_kanban_view"
+       }
+      }
+     ]
+    ],
+    "context": {
+     "create_action": "website_event.event_event_action_add"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "event_event_action_add",
+   "values": {
+    "name": "New Event",
+    "res_model": "event.event",
+    "view_mode": "form",
+    "target": "new",
+    "view_id": {
+     "$ref": "event_event_view_form_add"
+    },
+    "context": {
+     "default_address_id": false
+    }
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "event_event_public",
+   "values": {
+    "name": "Event: public/portal: published read",
+    "model_id": {
+     "$ref": "event.model_event_event"
+    },
+    "domain_force": "[('website_published', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_event_tag_public",
+   "values": {
+    "name": "Event Tag: public/portal: color = published and category = published",
+    "model_id": {
+     "$ref": "event.model_event_tag"
+    },
+    "domain_force": "[('category_id.website_published', '=', True), ('color', '!=', False), ('color', '!=', 0)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_event_event_ticket_public",
+   "values": {
+    "name": "Event Ticket: public/portal: published read",
+    "model_id": {
+     "$ref": "event.model_event_event_ticket"
+    },
+    "domain_force": "[('event_id.website_published', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_event_question_published",
+   "values": {
+    "name": "Event Question: not event groups: event published read",
+    "model_id": {
+     "$ref": "event.model_event_question"
+    },
+    "domain_force": "[('event_id.is_published', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_event_question_event_user",
+   "values": {
+    "name": "Event Question: event user: read all",
+    "model_id": {
+     "$ref": "event.model_event_question"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "event.group_event_registration_desk"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_event_question_answer_published",
+   "values": {
+    "name": "Event Question Answer: not event groups: event published read",
+    "model_id": {
+     "$ref": "event.model_event_question_answer"
+    },
+    "domain_force": "[('question_id.event_id.is_published', '=', True)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_event_question_answer_event_user",
+   "values": {
+    "name": "Event Question Answer: event user: read all",
+    "model_id": {
+     "$ref": "event.model_event_question_answer"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "event.group_event_registration_desk"
+      }
+     ]
+    ],
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "event.group_event_manager",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "website.group_website_restricted_editor"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_1",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Wood Corner brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_2",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Acme Corporation brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_3",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Gemini Furniture brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_4",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Ready Mat brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_10",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "The Jackson Group brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_12",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Azure Interior brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "event.res_partner_event_1",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Bloem brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_5",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "OpenWood brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "event.res_partner_event_3",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Tree Dealers brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "event.res_partner_event_4",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Shangai Pterocarpus Furniture brings honesty and seriousness to wood industry while helping customers deal with trees, flowers and fungi.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_address_15",
+   "values": {
+    "is_published": true,
+    "website": "http://azure.example.com",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_address_16",
+   "values": {
+    "is_published": true,
+    "website": "http://azure.example.com",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_address_28",
+   "values": {
+    "is_published": true,
+    "website": "http://azure.example.com",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_address_17",
+   "values": {
+    "is_published": true,
+    "website": "http://jackson.group.example.com",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_address_18",
+   "values": {
+    "is_published": true,
+    "website": "http://jackson.group.example.com",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_address_3",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Douglas Fletcher is a mighty functional consultant at Acme Corporation",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_address_4",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Floyd Steward is a mighty analyst at Acme Corporation.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_address_31",
+   "values": {
+    "is_published": "True",
+    "website_short_description": "Addison Olson is a mighty sales representative at Acme Corporation.",
+    "website_description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "event.event",
+   "id": "event.event_0",
+   "values": {
+    "website_published": true,
+    "subtitle": "Get Inspired \u2022 Stay Connected \u2022 Have Fun",
+    "cover_properties": "{\"background-image\": \"url('/website_event/static/src/img/event_cover_0.jpg')\", \"resize_class\": \"o_record_has_cover o_half_screen_height\", \"opacity\": \"0.4\"}",
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "event.event",
+   "id": "event.event_1",
+   "values": {
+    "website_menu": true,
+    "website_published": true,
+    "subtitle": "The Great Reno Balloon Race is the world's largest free hot-air ballooning event.",
+    "cover_properties": "{\"background-image\": \"url('/website_event/static/src/img/event_cover_1.jpg')\", \"resize_class\": \"o_record_has_cover o_half_screen_height\", \"opacity\": \"0.4\"}",
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "event.event",
+   "id": "event.event_2",
+   "values": {
+    "website_published": true,
+    "subtitle": "Enhance your architectural business and improve professional skills.",
+    "cover_properties": "{\"background-image\": \"url('/website_event/static/src/img/event_cover_2.jpg')\", \"resize_class\": \"o_record_has_cover o_half_screen_height\", \"opacity\": \"0.4\"}",
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "event.event",
+   "id": "event.event_3",
+   "values": {
+    "website_published": true,
+    "subtitle": "Experience live music, local food and beverages.",
+    "cover_properties": "{\"background-image\": \"url('/website_event/static/src/img/event_cover_3.jpg')\", \"resize_class\": \"o_record_has_cover o_half_screen_height\", \"opacity\": \"0.4\"}",
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "event.event",
+   "id": "event.event_4",
+   "values": {
+    "website_published": true,
+    "subtitle": "Discover how to grow a sustainable business with our experts.",
+    "cover_properties": "{\"background-image\": \"url('/website_event/static/src/img/event_cover_4.jpg')\", \"resize_class\": \"o_record_has_cover o_half_screen_height\", \"opacity\": \"0.4\"}"
+   }
+  },
+  {
+   "model": "event.event",
+   "id": "event.event_5",
+   "values": {
+    "website_published": true,
+    "subtitle": "Bring your outdoor field hockey season to the next level by taking the field at this 9th annual Field Hockey tournament.",
+    "cover_properties": "{\"background-image\": \"url('/website_event/static/src/img/event_cover_5.jpg')\", \"resize_class\": \"o_record_has_cover o_half_screen_height\", \"opacity\": \"0.4\"}",
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "event.event",
+   "id": "event.event_6",
+   "values": {
+    "website_published": false,
+    "cover_properties": "{\"background-image\": \"none\", \"background-color\": \"secondary\", \"opacity\": \"0.6\"}"
+   }
+  },
+  {
+   "model": "event.event",
+   "id": "event.event_7",
+   "values": {
+    "website_menu": true,
+    "website_published": true,
+    "subtitle": "Our newest collection will be revealed online! Interact with us on our live streams!",
+    "cover_properties": "{\"background-image\": \"url('/website_event/static/src/img/event_cover_7.jpg')\", \"resize_class\": \"o_record_has_cover o_half_screen_height\", \"opacity\": \"0.4\"}",
+    "description": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_type_data_sports_question_0",
+   "values": {
+    "title": "How did you learn about this event?",
+    "once_per_order": false,
+    "event_type_id": {
+     "$ref": "event.event_type_2"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_type_data_sports_question_0_answer_0",
+   "values": {
+    "name": "Social Media",
+    "sequence": "1",
+    "question_id": {
+     "$ref": "website_event.event_type_data_sports_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_type_data_sports_question_0_answer_1",
+   "values": {
+    "name": "Blog Post",
+    "sequence": "2",
+    "question_id": {
+     "$ref": "website_event.event_type_data_sports_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_type_data_sports_question_0_answer_2",
+   "values": {
+    "name": "Radio Ad",
+    "sequence": "3",
+    "question_id": {
+     "$ref": "website_event.event_type_data_sports_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_0_question_0",
+   "values": {
+    "title": "Meal Type",
+    "question_type": "simple_choice",
+    "once_per_order": false,
+    "event_id": {
+     "$ref": "event.event_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_0_question_0_answer_0",
+   "values": {
+    "name": "Mixed",
+    "sequence": "1",
+    "question_id": {
+     "$ref": "website_event.event_0_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_0_question_0_answer_1",
+   "values": {
+    "name": "Vegetarian",
+    "sequence": "2",
+    "question_id": {
+     "$ref": "website_event.event_0_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_0_question_0_answer_2",
+   "values": {
+    "name": "Pastafarian",
+    "sequence": "3",
+    "question_id": {
+     "$ref": "website_event.event_0_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_0_question_1",
+   "values": {
+    "title": "Allergies",
+    "question_type": "text_box",
+    "once_per_order": false,
+    "event_id": {
+     "$ref": "event.event_0"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_0_question_2",
+   "values": {
+    "title": "How did you learn about this event?",
+    "question_type": "simple_choice",
+    "once_per_order": true,
+    "event_id": {
+     "$ref": "event.event_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_0_question_2_answer_0",
+   "values": {
+    "name": "Our website",
+    "sequence": "1",
+    "question_id": {
+     "$ref": "website_event.event_0_question_2"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_0_question_2_answer_1",
+   "values": {
+    "name": "Commercials",
+    "sequence": "2",
+    "question_id": {
+     "$ref": "website_event.event_0_question_2"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_0_question_2_answer_2",
+   "values": {
+    "name": "A friend",
+    "sequence": "3",
+    "question_id": {
+     "$ref": "website_event.event_0_question_2"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_1_question_0",
+   "values": {
+    "title": "How did you learn about this event?",
+    "question_type": "simple_choice",
+    "once_per_order": false,
+    "event_id": {
+     "$ref": "event.event_1"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_1_question_0_answer_0",
+   "values": {
+    "name": "Social Media",
+    "sequence": "1",
+    "question_id": {
+     "$ref": "website_event.event_1_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_1_question_0_answer_1",
+   "values": {
+    "name": "Blog Post",
+    "sequence": "2",
+    "question_id": {
+     "$ref": "website_event.event_1_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_1_question_0_answer_2",
+   "values": {
+    "name": "Radio Ad",
+    "sequence": "3",
+    "question_id": {
+     "$ref": "website_event.event_1_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_5_question_0",
+   "values": {
+    "title": "How did you learn about this event?",
+    "question_type": "simple_choice",
+    "once_per_order": false,
+    "event_id": {
+     "$ref": "event.event_5"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_5_question_0_answer_0",
+   "values": {
+    "name": "Social Media",
+    "sequence": "1",
+    "question_id": {
+     "$ref": "website_event.event_5_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_5_question_0_answer_1",
+   "values": {
+    "name": "Blog Post",
+    "sequence": "2",
+    "question_id": {
+     "$ref": "website_event.event_5_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_5_question_0_answer_2",
+   "values": {
+    "name": "Radio Ad",
+    "sequence": "3",
+    "question_id": {
+     "$ref": "website_event.event_5_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_5_question_1",
+   "values": {
+    "title": "What's your Hockey level?",
+    "question_type": "text_box",
+    "once_per_order": false,
+    "event_id": {
+     "$ref": "event.event_5"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_7_question_0",
+   "values": {
+    "title": "Which field are you working in",
+    "question_type": "simple_choice",
+    "once_per_order": false,
+    "event_id": {
+     "$ref": "event.event_7"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_7_question_0_answer_0",
+   "values": {
+    "name": "Consumers",
+    "sequence": "1",
+    "question_id": {
+     "$ref": "website_event.event_7_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_7_question_0_answer_1",
+   "values": {
+    "name": "Sales",
+    "sequence": "2",
+    "question_id": {
+     "$ref": "website_event.event_7_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question.answer",
+   "id": "event_7_question_0_answer_2",
+   "values": {
+    "name": "Research",
+    "sequence": "3",
+    "question_id": {
+     "$ref": "website_event.event_7_question_0"
+    }
+   }
+  },
+  {
+   "model": "event.question",
+   "id": "event_7_question_1",
+   "values": {
+    "title": "How did you hear about us?",
+    "question_type": "text_box",
+    "once_per_order": true,
+    "event_id": {
+     "$ref": "event.event_7"
+    }
+   }
+  },
+  {
+   "model": "event.registration",
+   "id": "event.event_registration_7_0",
+   "values": {
+    "visitor_id": {
+     "$ref": "website.website_visitor_0"
+    }
+   }
+  },
+  {
+   "model": "event.registration",
+   "id": "event.event_registration_7_1",
+   "values": {
+    "visitor_id": {
+     "$ref": "website.website_visitor_0"
+    }
+   }
+  },
+  {
+   "model": "event.registration",
+   "id": "event.event_registration_7_2",
+   "values": {
+    "visitor_id": {
+     "$ref": "website.website_visitor_1"
+    }
+   }
+  },
+  {
+   "model": "event.registration",
+   "id": "event.event_registration_7_3",
+   "values": {
+    "visitor_id": {
+     "$ref": "website.website_visitor_1"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_0_0_registration_answer_0",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_0_question_0_answer_0"
+    },
+    "question_id": {
+     "$ref": "website_event.event_0_question_0"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_0_0"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_0_0_registration_answer_1",
+   "values": {
+    "value_text_box": "Fish Nuts",
+    "question_id": {
+     "$ref": "website_event.event_0_question_1"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_0_0"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_0_0_registration_answer_2",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_0_question_2_answer_0"
+    },
+    "question_id": {
+     "$ref": "website_event.event_0_question_2"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_0_0"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_0_1_registration_answer_0",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_0_question_0_answer_1"
+    },
+    "question_id": {
+     "$ref": "website_event.event_0_question_0"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_0_1"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_0_1_registration_answer_1",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_0_question_2_answer_0"
+    },
+    "question_id": {
+     "$ref": "website_event.event_0_question_2"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_0_1"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_0_2_registration_answer_0",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_0_question_0_answer_2"
+    },
+    "question_id": {
+     "$ref": "website_event.event_0_question_0"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_0_2"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_0_2_registration_answer_1",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_0_question_2_answer_2"
+    },
+    "question_id": {
+     "$ref": "website_event.event_0_question_2"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_0_2"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_7_0_registration_answer_0",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_7_question_0_answer_0"
+    },
+    "question_id": {
+     "$ref": "website_event.event_7_question_0"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_7_0"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_7_1_registration_answer_0",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_7_question_0_answer_1"
+    },
+    "question_id": {
+     "$ref": "website_event.event_7_question_0"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_7_1"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_7_2_registration_answer_0",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_7_question_0_answer_2"
+    },
+    "question_id": {
+     "$ref": "website_event.event_7_question_0"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_7_2"
+    }
+   }
+  },
+  {
+   "model": "event.registration.answer",
+   "id": "event_registration_7_3_registration_answer_0",
+   "values": {
+    "value_answer_id": {
+     "$ref": "website_event.event_7_question_0_answer_0"
+    },
+    "question_id": {
+     "$ref": "website_event.event_7_question_0"
+    },
+    "registration_id": {
+     "$ref": "event.event_registration_7_3"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_website_event_menu",
+   "name": "Website Menus",
+   "parent": "event.menu_event_configuration",
+   "action": "website_event_menu_action",
+   "sequence": "99",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_event_pages",
+   "name": "Events",
+   "parent": "website.menu_content",
+   "action": "action_event_pages_list",
+   "sequence": "40"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_event_event_public",
+   "model": "event.event",
+   "model_xmlid": "model_event_event",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_event_portal",
+   "model": "event.event",
+   "model_xmlid": "model_event_event",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_event_employee",
+   "model": "event.event",
+   "model_xmlid": "model_event_event",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_event_ticket_public",
+   "model": "event.event.event.ticket",
+   "model_xmlid": "event.model_event_event_ticket",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_event_ticket_portal",
+   "model": "event.event.event.ticket",
+   "model_xmlid": "event.model_event_event_ticket",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_event_ticket_employee",
+   "model": "event.event.event.ticket",
+   "model_xmlid": "event.model_event_event_ticket",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_type",
+   "model": "event.event.type",
+   "model_xmlid": "event.model_event_type",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_tag_category_public",
+   "model": "event.event.tag.category",
+   "model_xmlid": "event.model_event_tag_category",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_tag_category_portal",
+   "model": "event.event.tag.category",
+   "model_xmlid": "event.model_event_tag_category",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_tag_category_employee",
+   "model": "event.event.tag.category",
+   "model_xmlid": "event.model_event_tag_category",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_tag_public",
+   "model": "event.event.tag",
+   "model_xmlid": "event.model_event_tag",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_tag_portal",
+   "model": "event.event.tag",
+   "model_xmlid": "event.model_event_tag",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_tag_employee",
+   "model": "event.event.tag",
+   "model_xmlid": "event.model_event_tag",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_event_menu_public",
+   "model": "website.event.menu",
+   "model_xmlid": "model_website_event_menu",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_event_menu_portal",
+   "model": "website.event.menu",
+   "model_xmlid": "model_website_event_menu",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_event_menu_employee",
+   "model": "website.event.menu",
+   "model_xmlid": "model_website_event_menu",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_website_event_menu_user",
+   "model": "website.event.menu",
+   "model_xmlid": "model_website_event_menu",
+   "group": "event.group_event_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_website_visitor_user",
+   "model": "website.visitor",
+   "model_xmlid": "model_website_visitor",
+   "group": "event.group_event_registration_desk",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_question_public",
+   "model": "event.event.question",
+   "model_xmlid": "event.model_event_question",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_question_portal",
+   "model": "event.event.question",
+   "model_xmlid": "event.model_event_question",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_question_user",
+   "model": "event.event.question",
+   "model_xmlid": "event.model_event_question",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_question_answer_public",
+   "model": "event.event.question.answer",
+   "model_xmlid": "event.model_event_question_answer",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_question_answer_portal",
+   "model": "event.event.question.answer",
+   "model_xmlid": "event.model_event_question_answer",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_event_question_answer_user",
+   "model": "event.event.question.answer",
+   "model_xmlid": "event.model_event_question_answer",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

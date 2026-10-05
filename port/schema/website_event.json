@@ -1,0 +1,795 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Marketing/Events",
+ "data_files": [
+  "data/event_data.xml",
+  "data/website_snippet_data.xml",
+  "views/event_snippets.xml",
+  "views/snippets/s_events.xml",
+  "views/snippets/s_event_upcoming_snippet_preview_data.xml",
+  "views/snippets/snippets.xml",
+  "views/event_templates_list.xml",
+  "views/event_templates_svg.xml",
+  "views/event_templates_page.xml",
+  "views/event_templates_page_registration.xml",
+  "views/event_templates_page_misc.xml",
+  "views/event_templates_widgets.xml",
+  "views/event_event_views.xml",
+  "views/event_registration_views.xml",
+  "views/event_tag_category_views.xml",
+  "views/event_tag_views.xml",
+  "views/event_type_views.xml",
+  "views/website_event_menu_views.xml",
+  "views/website_visitor_views.xml",
+  "views/event_menus.xml",
+  "views/website_pages_views.xml",
+  "views/event_event_add.xml",
+  "security/ir.model.access.csv",
+  "security/event_security.xml",
+  "data/res_partner_demo.xml",
+  "data/event_demo.xml",
+  "data/event_question_demo.xml",
+  "data/event_registration_demo.xml",
+  "data/event_registration_answer_demo.xml"
+ ],
+ "depends": [
+  "event",
+  "website",
+  "website_partner",
+  "website_mail"
+ ],
+ "models": {
+  "event.event": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "address_name": {
+     "related": "address_id.name",
+     "type": "Char"
+    },
+    "community_menu": {
+     "compute": "_compute_community_menu",
+     "help": "Display community tab on website",
+     "readonly": false,
+     "store": true,
+     "string": "Community Menu",
+     "type": "Boolean"
+    },
+    "community_menu_ids": {
+     "comodel": "website.event.menu",
+     "domain": [
+      [
+       "menu_type",
+       "=",
+       "community"
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "Event Community Menus",
+     "type": "One2many"
+    },
+    "event_register_url": {
+     "compute": "_compute_event_register_url",
+     "string": "Event Registration Link",
+     "type": "Char"
+    },
+    "introduction_menu": {
+     "compute": "_compute_website_menu_data",
+     "readonly": false,
+     "store": true,
+     "string": "Introduction Menu",
+     "type": "Boolean"
+    },
+    "introduction_menu_ids": {
+     "comodel": "website.event.menu",
+     "domain": [
+      [
+       "menu_type",
+       "=",
+       "introduction"
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "Introduction Menus",
+     "type": "One2many"
+    },
+    "is_done": {
+     "compute": "_compute_time_data",
+     "string": "Is Done",
+     "type": "Boolean"
+    },
+    "is_ongoing": {
+     "compute": "_compute_time_data",
+     "help": "Whether event has begun",
+     "string": "Is Ongoing",
+     "type": "Boolean"
+    },
+    "is_participating": {
+     "compute": "_compute_is_participating",
+     "string": "Is Participating",
+     "type": "Boolean"
+    },
+    "is_visible_on_website": {
+     "compute": "_compute_is_visible_on_website",
+     "string": "Visible On Website",
+     "type": "Boolean"
+    },
+    "location_menu": {
+     "compute": "_compute_website_menu_data",
+     "readonly": false,
+     "store": true,
+     "string": "Location Menu",
+     "type": "Boolean"
+    },
+    "location_menu_ids": {
+     "comodel": "website.event.menu",
+     "domain": [
+      [
+       "menu_type",
+       "=",
+       "location"
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "Location Menus",
+     "type": "One2many"
+    },
+    "menu_id": {
+     "comodel": "website.menu",
+     "copy": false,
+     "string": "Event Menu",
+     "type": "Many2one"
+    },
+    "register_menu": {
+     "compute": "_compute_website_menu_data",
+     "readonly": false,
+     "store": true,
+     "string": "Register Menu",
+     "type": "Boolean"
+    },
+    "register_menu_ids": {
+     "comodel": "website.event.menu",
+     "domain": [
+      [
+       "menu_type",
+       "=",
+       "register"
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "Register Menus",
+     "type": "One2many"
+    },
+    "start_remaining": {
+     "compute": "_compute_time_data",
+     "help": "Remaining time before event starts (minutes)",
+     "string": "Remaining before start",
+     "type": "Integer"
+    },
+    "start_today": {
+     "compute": "_compute_time_data",
+     "help": "Whether event is going to start today if still not ongoing",
+     "string": "Start Today",
+     "type": "Boolean"
+    },
+    "subtitle": {
+     "string": "Event Subtitle",
+     "translate": true,
+     "type": "Char"
+    },
+    "website_menu": {
+     "compute": "_compute_website_menu",
+     "help": "Allows to display and manage event-specific menus on website.",
+     "readonly": false,
+     "store": true,
+     "string": "Website Menu",
+     "type": "Boolean"
+    },
+    "website_published": {
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "website_visibility": {
+     "default": "public",
+     "help": "Defines the Visibility of the Event on the Website and searches.\n\n            Note that the Event is however always available via its link.",
+     "required": true,
+     "selection": [
+      [
+       "public",
+       "Public"
+      ],
+      [
+       "link",
+       "Via a Link"
+      ],
+      [
+       "logged_users",
+       "Logged Users"
+      ]
+     ],
+     "string": "Website Visibility",
+     "tracking": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "website.cover_properties.mixin",
+    "website.published.multi.mixin",
+    "website.searchable.mixin",
+    "website.seo.metadata"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_default_cover_properties"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('registration_ids')",
+      "api.depends_context('uid')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_participating"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_search_is_participating"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 34,
+     "name": "_fetch_is_participating_events"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('website_visibility', 'is_participating')"
+     ],
+     "lines": 11,
+     "name": "_compute_is_visible_on_website"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_search_is_visible_on_website"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('website_url')"
+     ],
+     "lines": 3,
+     "name": "_compute_event_register_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_website_menu"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id', 'website_menu', 'community_menu')"
+     ],
+     "lines": 5,
+     "name": "_compute_community_menu"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('website_menu')"
+     ],
+     "lines": 7,
+     "name": "_compute_website_menu_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_begin', 'date_end')"
+     ],
+     "lines": 15,
+     "name": "_compute_time_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 5,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('website_id')"
+     ],
+     "lines": 4,
+     "name": "_check_website_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "toggle_website_menu"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_menu_update_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_menu_type_field_matching"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_split_menus_state_by_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_menus_update_by_field"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_website_menu_entries"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_update_website_menus"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_update_website_menu_entry"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_create_menu"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "google_map_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_google_map_link"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_external_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_event_resource_urls"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_default_website_meta"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_backend_menu_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 40,
+     "name": "_search_build_dates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 83,
+     "name": "_search_get_detail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_search_render_results"
+    }
+   ],
+   "name": "event.event",
+   "sel_methods": {
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "event.registration": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "visitor_id": {
+     "comodel": "website.visitor",
+     "ondelete": "set null",
+     "string": "Visitor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_website_registration_allowed_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "get_base_url"
+    }
+   ],
+   "name": "event.registration",
+   "transient": false
+  },
+  "event.tag": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "website.published.multi.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "default_get"
+    }
+   ],
+   "name": "event.tag",
+   "transient": false
+  },
+  "event.tag.category": {
+   "abstract": false,
+   "extension": false,
+   "fields": {},
+   "inherit": [
+    "website.published.multi.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_is_published"
+    }
+   ],
+   "name": "event.tag.category",
+   "transient": false
+  },
+  "event.type": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "community_menu": {
+     "compute": "_compute_community_menu",
+     "help": "Display community tab on website",
+     "readonly": false,
+     "store": true,
+     "string": "Community Menu",
+     "type": "Boolean"
+    },
+    "website_menu": {
+     "string": "Display a dedicated menu on Website",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('website_menu')"
+     ],
+     "lines": 3,
+     "name": "_compute_community_menu"
+    }
+   ],
+   "name": "event.type",
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "get_suggested_controllers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "get_cta_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_search_get_details"
+    }
+   ],
+   "name": "website",
+   "transient": false
+  },
+  "website.event.menu": {
+   "abstract": false,
+   "description": "Website Event Menu",
+   "extension": false,
+   "fields": {
+    "event_id": {
+     "comodel": "event.event",
+     "ondelete": "cascade",
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "menu_id": {
+     "comodel": "website.menu",
+     "ondelete": "cascade",
+     "string": "Menu",
+     "type": "Many2one"
+    },
+    "menu_type": {
+     "required": true,
+     "selection": [
+      [
+       "community",
+       "Community Menu"
+      ],
+      [
+       "introduction",
+       "Introduction"
+      ],
+      [
+       "location",
+       "Location"
+      ],
+      [
+       "register",
+       "Info"
+      ]
+     ],
+     "string": "Menu Type",
+     "type": "Selection"
+    },
+    "view_id": {
+     "comodel": "ir.ui.view",
+     "help": "Used when not being an url based menu",
+     "ondelete": "cascade",
+     "string": "View",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    }
+   ],
+   "name": "website.event.menu",
+   "rec_name": "menu_id",
+   "transient": false
+  },
+  "website.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "unlink"
+    }
+   ],
+   "name": "website.menu",
+   "transient": false
+  },
+  "website.snippet.filter": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 40,
+     "name": "_get_hardcoded_sample"
+    }
+   ],
+   "name": "website.snippet.filter",
+   "transient": false
+  },
+  "website.visitor": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "event_registered_ids": {
+     "comodel": "event.event",
+     "compute": "_compute_event_registered_ids",
+     "groups": "event.group_event_registration_desk",
+     "string": "Registered Events",
+     "type": "Many2many"
+    },
+    "event_registration_count": {
+     "compute": "_compute_event_registration_count",
+     "groups": "event.group_event_registration_desk",
+     "string": "# Registrations",
+     "type": "Integer"
+    },
+    "event_registration_ids": {
+     "comodel": "event.registration",
+     "groups": "event.group_event_registration_desk",
+     "inverse_name": "visitor_id",
+     "string": "Event Registrations",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'event_registration_ids.name')"
+     ],
+     "lines": 7,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_registration_ids')"
+     ],
+     "lines": 7,
+     "name": "_compute_event_registration_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_registration_ids.email', 'event_registration_ids.phone')"
+     ],
+     "lines": 9,
+     "name": "_compute_email_phone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_registration_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_event_registered_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_search_event_registered_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inactive_visitors_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_merge_visitor"
+    }
+   ],
+   "name": "website.visitor",
+   "sel_methods": {
+    "_merge_visitor": [],
+    "_search_event_registered_ids": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  }
+ },
+ "module": "website_event",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_event",
+ "stats": {
+  "fields": 31,
+  "methods": 52,
+  "models": 10,
+  "py_lines": 1398
+ },
+ "summary": "Publish events, sell tickets",
+ "title": "Events",
+ "version": "1.4"
+}

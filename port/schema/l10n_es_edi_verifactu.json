@@ -1,0 +1,1035 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "wizard/account_move_reversal_views.xml",
+  "views/account_move_views.xml",
+  "views/account_tax_views.xml",
+  "views/certificate_certificate_views.xml",
+  "views/l10n_es_edi_verifactu_document_views.xml",
+  "views/report_invoice.xml",
+  "views/res_company_views.xml",
+  "views/res_config_settings_views.xml",
+  "data/ir_cron.xml",
+  "demo/demo_certificate.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "l10n_es",
+  "certificate"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_es_verifactu_account_tax_es_common"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_es_verifactu_account_tax_es_common_mainland"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_es_verifactu_account_tax_es_canary_common"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_edi_verifactu_available_clave_regimens": {
+     "compute": "_compute_l10n_es_edi_verifactu_available_clave_regimens",
+     "help": "Technical field to enable a dynamic selection of the field \"Veri*Factu Regime Key\"",
+     "string": "Available Veri*Factu Regime Key",
+     "type": "Char"
+    },
+    "l10n_es_edi_verifactu_clave_regimen": {
+     "compute": "_compute_l10n_es_edi_verifactu_clave_regimen",
+     "readonly": false,
+     "selection_method": "_l10n_es_edi_verifactu_clave_regimen_selection",
+     "store": true,
+     "string": "Veri*Factu Regime Key",
+     "type": "Selection"
+    },
+    "l10n_es_edi_verifactu_document_ids": {
+     "comodel": "l10n_es_edi_verifactu.document",
+     "inverse_name": "move_id",
+     "string": "Veri*Factu Documents",
+     "type": "One2many"
+    },
+    "l10n_es_edi_verifactu_qr_code": {
+     "compute": "_compute_l10n_es_edi_verifactu_qr_code",
+     "string": "Veri*Factu QR Code",
+     "type": "Char"
+    },
+    "l10n_es_edi_verifactu_refund_reason": {
+     "copy": false,
+     "selection": [
+      [
+       "R1",
+       "R1: Art 80.1 and 80.2 and error of law"
+      ],
+      [
+       "R2",
+       "R2: Art. 80.3"
+      ],
+      [
+       "R3",
+       "R3: Art. 80.4"
+      ],
+      [
+       "R4",
+       "R4: Rest"
+      ],
+      [
+       "R5",
+       "R5: Corrective invoices concerning simplified invoices"
+      ]
+     ],
+     "string": "Veri*Factu Refund Reason",
+     "type": "Selection"
+    },
+    "l10n_es_edi_verifactu_required": {
+     "related": "company_id.l10n_es_edi_verifactu_required",
+     "string": "Veri*Factu Required",
+     "type": "Boolean"
+    },
+    "l10n_es_edi_verifactu_show_cancel_button": {
+     "compute": "_compute_l10n_es_edi_verifactu_show_cancel_button",
+     "string": "Show Veri*Factu Cancel Button",
+     "type": "Boolean"
+    },
+    "l10n_es_edi_verifactu_state": {
+     "compute": "_compute_l10n_es_edi_verifactu_state",
+     "help": "- Rejected: Successfully sent to the AEAT, but it was rejected during validation\n                - Registered with Errors: Registered at the AEAT, but the AEAT has some issues with the sent document\n                - Accepted: Registered by the AEAT without errors\n                - Cancelled: Registered by the AEAT as cancelled",
+     "selection": [
+      [
+       "rejected",
+       "Rejected"
+      ],
+      [
+       "registered_with_errors",
+       "Registered with Errors"
+      ],
+      [
+       "accepted",
+       "Accepted"
+      ],
+      [
+       "cancelled",
+       "Cancelled"
+      ]
+     ],
+     "store": true,
+     "string": "Veri*Factu Status",
+     "type": "Selection"
+    },
+    "l10n_es_edi_verifactu_substituted_entry_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Substitution of",
+     "type": "Many2one"
+    },
+    "l10n_es_edi_verifactu_substitution_move_ids": {
+     "comodel": "account.move",
+     "inverse_name": "l10n_es_edi_verifactu_substituted_entry_id",
+     "string": "Substituted by",
+     "type": "One2many"
+    },
+    "l10n_es_edi_verifactu_warning": {
+     "compute": "_compute_l10n_es_edi_verifactu_warning",
+     "string": "Veri*Factu Warning",
+     "type": "Html"
+    },
+    "l10n_es_edi_verifactu_warning_level": {
+     "compute": "_compute_l10n_es_edi_verifactu_warning",
+     "string": "Veri*Factu Warning Level",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "_l10n_es_edi_verifactu_clave_regimen_selection"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_l10n_es_edi_verifactu_get_tax_applicability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_l10n_es_edi_verifactu_get_available_clave_regimens_map"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_l10n_es_edi_verifactu_get_suggested_clave_regimen"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_line_ids.tax_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_l10n_es_edi_verifactu_available_clave_regimens"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_line_ids.tax_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_l10n_es_edi_verifactu_clave_regimen"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_edi_verifactu_document_ids', 'l10n_es_edi_verifactu_document_ids.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_es_edi_verifactu_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_edi_verifactu_document_ids', 'l10n_es_edi_verifactu_document_ids.json_attachment_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_l10n_es_edi_verifactu_qr_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'l10n_es_edi_verifactu_state', 'l10n_es_edi_verifactu_document_ids', 'l10n_es_edi_verifactu_document_ids.state', 'l10n_es_edi_verifactu_document_ids.errors')"
+     ],
+     "lines": 27,
+     "name": "_compute_l10n_es_edi_verifactu_warning"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_edi_verifactu_state')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_es_edi_verifactu_show_cancel_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_es_edi_verifactu_state', 'l10n_es_edi_verifactu_document_ids', 'l10n_es_edi_verifactu_document_ids.state', 'l10n_es_edi_verifactu_document_ids.json_attachment_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_show_reset_to_draft_button"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_l10n_es_edi_verifactu_action_go_to_journal_entry"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "l10n_es_edi_verifactu_button_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_l10n_es_edi_verifactu_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 76,
+     "name": "_l10n_es_edi_verifactu_get_record_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_l10n_es_edi_verifactu_create_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_es_edi_verifactu_mark_for_next_batch"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_auto_init": [],
+    "_l10n_es_edi_verifactu_clave_regimen_selection": [
+     [
+      "01",
+      "General regime operation"
+     ],
+     [
+      "02",
+      "Export"
+     ],
+     [
+      "08",
+      "IPSI/IGIC"
+     ],
+     [
+      "11",
+      "Leasing of business premises"
+     ],
+     [
+      "17_iva",
+      "Operation under one of the regimes provided for in Chapter XI of Title IX (OSS and IOSS)."
+     ],
+     [
+      "18_iva",
+      "Recargo de equivalencia"
+     ],
+     [
+      "19_iva",
+      "Operations of activities included in the Special Regime for Agriculture, Livestock and Fishing (REAGYP)"
+     ],
+     [
+      "20_iva",
+      "Simplified Regime"
+     ],
+     [
+      "17_igic",
+      "Special retailer regime"
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "account.move.reversal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_edi_verifactu_refund_reason": {
+     "compute": "_compute_l10n_es_edi_verifactu_refund_reason",
+     "readonly": false,
+     "selection": [
+      [
+       "R1",
+       "R1: Art 80.1 and 80.2 and error of law"
+      ],
+      [
+       "R2",
+       "R2: Art. 80.3"
+      ],
+      [
+       "R3",
+       "R3: Art. 80.4"
+      ],
+      [
+       "R4",
+       "R4: Rest"
+      ],
+      [
+       "R5",
+       "R5: Corrective invoices concerning simplified invoices"
+      ]
+     ],
+     "store": true,
+     "string": "Veri*Factu Refund Reason",
+     "type": "Selection"
+    },
+    "l10n_es_edi_verifactu_required": {
+     "compute": "_compute_l10n_es_edi_verifactu_required",
+     "store": true,
+     "string": "Veri*Factu Required",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids.l10n_es_edi_verifactu_required')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_es_edi_verifactu_required"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids.l10n_es_edi_verifactu_required')"
+     ],
+     "lines": 6,
+     "name": "_compute_l10n_es_edi_verifactu_refund_reason"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_default_reversal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_modify_default_reverse_values"
+    }
+   ],
+   "name": "account.move.reversal",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "_l10n_es_edi_verifactu_get_move_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_is_es_verifactu_applicable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_all_extra_edis"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 47,
+     "name": "_call_web_service_before_invoice_pdf_render"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_hook_if_errors"
+    }
+   ],
+   "name": "account.move.send",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_applicability": {
+     "selection": [
+      [
+       "01",
+       "VAT"
+      ],
+      [
+       "02",
+       "IPSI"
+      ],
+      [
+       "03",
+       "IGIC"
+      ]
+     ],
+     "string": "Applicability (Spain)",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "_l10n_es_edi_verifactu_get_applicability_name_map"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_l10n_es_edi_verifactu_get_applicability"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 46,
+     "name": "_l10n_es_edi_verifactu_get_suggested_clave_regimen"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 38,
+     "name": "_l10n_es_edi_verifactu_get_tax_details_functions"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "certificate.certificate": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "scope": {
+     "selection_add": [
+      [
+       "verifactu",
+       "Veri*Factu"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_l10n_es_edi_verifactu_is_sello_certificate"
+    }
+   ],
+   "name": "certificate.certificate",
+   "transient": false
+  },
+  "l10n_es_edi_verifactu.document": {
+   "abstract": false,
+   "description": "Veri*Factu Document",
+   "extension": false,
+   "fields": {
+    "chain_index": {
+     "copy": false,
+     "help": "Index in the chain of Veri*Factu Documents. It is only set if the generation was succesful.",
+     "readonly": true,
+     "string": "Chain Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "document_type": {
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "submission",
+       "Submission"
+      ],
+      [
+       "cancellation",
+       "Cancellation"
+      ]
+     ],
+     "string": "Document Type",
+     "type": "Selection"
+    },
+    "errors": {
+     "copy": false,
+     "readonly": true,
+     "string": "Errors",
+     "type": "Html"
+    },
+    "json_attachment_base64": {
+     "related": "json_attachment_id.datas",
+     "string": "JSON",
+     "type": "Binary"
+    },
+    "json_attachment_filename": {
+     "compute": "_compute_json_attachment_filename",
+     "string": "JSON Filename",
+     "type": "Char"
+    },
+    "json_attachment_id": {
+     "comodel": "ir.attachment",
+     "copy": false,
+     "readonly": true,
+     "string": "JSON Attachment",
+     "type": "Many2one"
+    },
+    "move_id": {
+     "comodel": "account.move",
+     "readonly": true,
+     "string": "Journal Entry",
+     "type": "Many2one"
+    },
+    "response_csv": {
+     "copy": false,
+     "help": "The CSV of the response from the tax agency. There may not be one in case all documents of the batch were rejected.",
+     "readonly": true,
+     "string": "Response CSV",
+     "type": "Char"
+    },
+    "state": {
+     "copy": false,
+     "help": "- Rejected: Successfully sent to the AEAT, but it was rejected during validation\n                - Registered with Errors: Registered at the AEAT, but the AEAT has some issues with the sent record\n                - Accepted: Registered by the AEAT without errors",
+     "readonly": true,
+     "selection": [
+      [
+       "rejected",
+       "Rejected"
+      ],
+      [
+       "registered_with_errors",
+       "Registered with Errors"
+      ],
+      [
+       "accepted",
+       "Accepted"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('document_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('chain_index', 'document_type')"
+     ],
+     "lines": 5,
+     "name": "_compute_json_attachment_filename"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_never_unlink_chained_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_document_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_record_identifier"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 30,
+     "name": "_extract_record_identifiers"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_format_errors"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "_get_tax_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_filter_waiting"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_last"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_qr_code_img_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 101,
+     "name": "_check_record_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 84,
+     "name": "_create_for_record"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_format_date_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_round_format_number_2"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 39,
+     "name": "_render_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 82,
+     "name": "_render_vals_operation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 34,
+     "name": "_render_vals_previous_submissions"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 119,
+     "name": "_render_vals_monetary_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_db_identifier"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 27,
+     "name": "_render_vals_SistemaInformatico"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 27,
+     "name": "_update_render_vals_with_chaining_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_fingerprint"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 68,
+     "name": "trigger_next_batch"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 105,
+     "name": "_send_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 97,
+     "name": "_send_as_batch"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_send_as_batch_check"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_get_batch_dict"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_extract_record_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_cancel_after_sending"
+    }
+   ],
+   "name": "l10n_es_edi_verifactu.document",
+   "order": "create_date DESC, id DESC",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_edi_verifactu_certificate_ids": {
+     "comodel": "certificate.certificate",
+     "inverse_name": "company_id",
+     "string": "Veri*Factu Certificates",
+     "type": "One2many"
+    },
+    "l10n_es_edi_verifactu_chain_sequence_id": {
+     "comodel": "ir.sequence",
+     "copy": false,
+     "readonly": true,
+     "string": "Veri*Factu Document Chain Sequence",
+     "type": "Many2one"
+    },
+    "l10n_es_edi_verifactu_next_batch_time": {
+     "copy": false,
+     "help": "The Datetime at which the next submission to the AEAT can be made.",
+     "readonly": true,
+     "string": "Veri*Factu Next Batch Time",
+     "type": "Datetime"
+    },
+    "l10n_es_edi_verifactu_required": {
+     "copy": false,
+     "string": "Enable Veri*Factu",
+     "type": "Boolean"
+    },
+    "l10n_es_edi_verifactu_special_vat_regime": {
+     "help": "Leave empty for the normal regimen.",
+     "selection": [
+      [
+       "simplified",
+       "Simplified Regime"
+      ],
+      [
+       "reagyp",
+       "REAGYP (Special Regime for Agriculture, Livestock and Fisheries)"
+      ],
+      [
+       "recargo",
+       "Recargo de Equivalencia"
+      ]
+     ],
+     "string": "Veri*Factu VAT Regime",
+     "type": "Selection"
+    },
+    "l10n_es_edi_verifactu_test_environment": {
+     "copy": false,
+     "default": true,
+     "string": "Veri*Factu Test Environment",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_l10n_es_edi_verifactu_get_endpoints"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_l10n_es_edi_verifactu_get_certificate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_l10n_es_edi_verifactu_get_chain_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_l10n_es_edi_verifactu_get_last_document"
+    }
+   ],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_es_edi_verifactu_certificate_ids": {
+     "readonly": false,
+     "related": "company_id.l10n_es_edi_verifactu_certificate_ids",
+     "type": "One2many"
+    },
+    "l10n_es_edi_verifactu_required": {
+     "readonly": false,
+     "related": "company_id.l10n_es_edi_verifactu_required",
+     "type": "Boolean"
+    },
+    "l10n_es_edi_verifactu_special_vat_regime": {
+     "readonly": false,
+     "related": "company_id.l10n_es_edi_verifactu_special_vat_regime",
+     "type": "Selection"
+    },
+    "l10n_es_edi_verifactu_test_environment": {
+     "readonly": false,
+     "related": "company_id.l10n_es_edi_verifactu_test_environment",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_es_edi_verifactu_get_values"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_es_edi_verifactu",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_es_edi_verifactu",
+ "stats": {
+  "fields": 36,
+  "methods": 72,
+  "models": 10,
+  "py_lines": 2101
+ },
+ "summary": "Module for sending Spanish Veri*Factu XML to the AEAT",
+ "title": "Spain - Veri*Factu",
+ "version": "1.0"
+}

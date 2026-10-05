@@ -1,0 +1,1290 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Marketing",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/event_track_security.xml",
+  "data/event_data.xml",
+  "data/mail_template_data.xml",
+  "data/mail_templates.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/event_track_data.xml",
+  "views/event_templates.xml",
+  "views/event_track_templates_agenda.xml",
+  "views/event_track_templates_list.xml",
+  "views/event_track_templates_reminder.xml",
+  "views/event_track_templates_page.xml",
+  "views/event_track_templates_proposal.xml",
+  "views/event_track_views.xml",
+  "views/event_track_location_views.xml",
+  "views/event_track_tag_views.xml",
+  "views/event_track_stage_views.xml",
+  "views/event_track_visitor_views.xml",
+  "views/event_event_views.xml",
+  "views/event_type_views.xml",
+  "views/res_config_settings_view.xml",
+  "views/website_visitor_views.xml",
+  "views/event_menus.xml",
+  "views/snippets.xml",
+  "data/event_demo.xml",
+  "data/event_track_location_demo.xml",
+  "data/event_track_tag_demo.xml",
+  "data/event_track_demo.xml",
+  "data/event_track_demo_description.xml",
+  "data/event_track_visitor_demo.xml"
+ ],
+ "depends": [
+  "website_event"
+ ],
+ "models": {
+  "event.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "allowed_track_tag_ids": {
+     "comodel": "event.track.tag",
+     "relation_table": "event_allowed_track_tags_rel",
+     "string": "Available Track Tags",
+     "type": "Many2many"
+    },
+    "track_count": {
+     "compute": "_compute_track_count",
+     "string": "Track Count",
+     "type": "Integer"
+    },
+    "track_ids": {
+     "comodel": "event.track",
+     "inverse_name": "event_id",
+     "string": "Tracks",
+     "type": "One2many"
+    },
+    "track_menu_ids": {
+     "comodel": "website.event.menu",
+     "domain": [
+      [
+       "menu_type",
+       "=",
+       "track"
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "Event Tracks Menus",
+     "type": "One2many"
+    },
+    "track_proposal_menu_ids": {
+     "comodel": "website.event.menu",
+     "domain": [
+      [
+       "menu_type",
+       "=",
+       "track_proposal"
+      ]
+     ],
+     "inverse_name": "event_id",
+     "string": "Event Proposals Menus",
+     "type": "One2many"
+    },
+    "tracks_tag_ids": {
+     "comodel": "event.track.tag",
+     "compute": "_compute_tracks_tag_ids",
+     "relation_table": "event_track_tags_rel",
+     "store": true,
+     "string": "Track Tags",
+     "type": "Many2many"
+    },
+    "website_track": {
+     "compute": "_compute_website_track",
+     "readonly": false,
+     "store": true,
+     "string": "Tracks on Website",
+     "type": "Boolean"
+    },
+    "website_track_proposal": {
+     "compute": "_compute_website_track_proposal",
+     "readonly": false,
+     "store": true,
+     "string": "Proposals on Website",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_track_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id', 'website_menu')"
+     ],
+     "lines": 10,
+     "name": "_compute_website_track"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_type_id', 'website_track')"
+     ],
+     "lines": 8,
+     "name": "_compute_website_track_proposal"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('track_ids.tag_ids', 'track_ids.tag_ids.color')"
+     ],
+     "lines": 3,
+     "name": "_compute_tracks_tag_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "toggle_website_track"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "toggle_website_track_proposal"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_menu_update_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_update_website_menus"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_menu_type_field_matching"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_website_menu_entries"
+    }
+   ],
+   "name": "event.event",
+   "transient": false
+  },
+  "event.track": {
+   "abstract": false,
+   "description": "Event Track",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "color": {
+     "string": "Agenda Color",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "related": "event_id.company_id",
+     "type": "Many2one"
+    },
+    "contact_email": {
+     "compute": "_compute_contact_email",
+     "readonly": false,
+     "store": true,
+     "string": "Contact Email",
+     "tracking": 20,
+     "type": "Char"
+    },
+    "contact_phone": {
+     "compute": "_compute_contact_phone",
+     "readonly": false,
+     "store": true,
+     "string": "Contact Phone",
+     "tracking": 30,
+     "type": "Char"
+    },
+    "date": {
+     "string": "Track Date",
+     "type": "Datetime"
+    },
+    "date_end": {
+     "compute": "_compute_end_date",
+     "store": true,
+     "string": "Track End Date",
+     "type": "Datetime"
+    },
+    "description": {
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "duration": {
+     "default": 0.5,
+     "string": "Duration",
+     "type": "Float"
+    },
+    "event_id": {
+     "comodel": "event.event",
+     "required": true,
+     "string": "Event",
+     "type": "Many2one"
+    },
+    "event_track_visitor_ids": {
+     "comodel": "event.track.visitor",
+     "groups": "event.group_event_user",
+     "inverse_name": "track_id",
+     "string": "Track Visitors",
+     "type": "One2many"
+    },
+    "image": {
+     "compute": "_compute_partner_image",
+     "readonly": false,
+     "store": true,
+     "string": "Speaker Photo",
+     "type": "Image"
+    },
+    "is_reminder_on": {
+     "compute": "_compute_is_reminder_on",
+     "string": "Is Reminder On",
+     "type": "Boolean"
+    },
+    "is_track_done": {
+     "compute": "_compute_track_time_data",
+     "string": "Is Track Done",
+     "type": "Boolean"
+    },
+    "is_track_live": {
+     "compute": "_compute_track_time_data",
+     "string": "Is Track Live",
+     "type": "Boolean"
+    },
+    "is_track_soon": {
+     "compute": "_compute_track_time_data",
+     "string": "Is Track Soon",
+     "type": "Boolean"
+    },
+    "is_track_today": {
+     "compute": "_compute_track_time_data",
+     "string": "Is Track Today",
+     "type": "Boolean"
+    },
+    "is_track_upcoming": {
+     "compute": "_compute_track_time_data",
+     "string": "Is Track Upcoming",
+     "type": "Boolean"
+    },
+    "is_website_cta_live": {
+     "compute": "_compute_cta_time_data",
+     "help": "CTA button is available",
+     "string": "Is CTA Live",
+     "type": "Boolean"
+    },
+    "kanban_state": {
+     "copy": false,
+     "default": "normal",
+     "help": "A track's kanban state indicates special situations affecting it:\n * Grey is the default situation\n * Red indicates something is preventing the progress of this track\n * Green indicates the track is ready to be pulled to the next stage",
+     "required": true,
+     "selection": [
+      [
+       "normal",
+       "Grey"
+      ],
+      [
+       "done",
+       "Green"
+      ],
+      [
+       "blocked",
+       "Red"
+      ]
+     ],
+     "string": "Kanban State",
+     "type": "Selection"
+    },
+    "kanban_state_label": {
+     "compute": "_compute_kanban_state_label",
+     "store": true,
+     "string": "Kanban State Label",
+     "tracking": true,
+     "type": "Char"
+    },
+    "legend_blocked": {
+     "readonly": true,
+     "related": "stage_id.legend_blocked",
+     "string": "Kanban Blocked Explanation",
+     "type": "Char"
+    },
+    "legend_done": {
+     "readonly": true,
+     "related": "stage_id.legend_done",
+     "string": "Kanban Valid Explanation",
+     "type": "Char"
+    },
+    "legend_normal": {
+     "readonly": true,
+     "related": "stage_id.legend_normal",
+     "string": "Kanban Ongoing Explanation",
+     "type": "Char"
+    },
+    "location_id": {
+     "comodel": "event.track.location",
+     "string": "Location",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Title",
+     "translate": true,
+     "type": "Char"
+    },
+    "partner_biography": {
+     "compute": "_compute_partner_biography",
+     "readonly": false,
+     "store": true,
+     "string": "Biography",
+     "type": "Html"
+    },
+    "partner_company_name": {
+     "compute": "_compute_partner_company_name",
+     "readonly": false,
+     "store": true,
+     "string": "Company Name",
+     "type": "Char"
+    },
+    "partner_email": {
+     "compute": "_compute_partner_email",
+     "readonly": false,
+     "store": true,
+     "string": "Email",
+     "tracking": 20,
+     "type": "Char"
+    },
+    "partner_function": {
+     "compute": "_compute_partner_function",
+     "readonly": false,
+     "store": true,
+     "string": "Job Position",
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Contact",
+     "type": "Many2one"
+    },
+    "partner_name": {
+     "compute": "_compute_partner_name",
+     "readonly": false,
+     "store": true,
+     "string": "Name",
+     "tracking": 10,
+     "type": "Char"
+    },
+    "partner_phone": {
+     "compute": "_compute_partner_phone",
+     "readonly": false,
+     "store": true,
+     "string": "Phone",
+     "tracking": 30,
+     "type": "Char"
+    },
+    "partner_tag_line": {
+     "compute": "_compute_partner_tag_line",
+     "help": "Description of the partner (name, function and company name)",
+     "string": "Tag Line",
+     "type": "Char"
+    },
+    "priority": {
+     "default": "1",
+     "required": true,
+     "selection": [
+      [
+       "0",
+       "Low"
+      ],
+      [
+       "1",
+       "Medium"
+      ],
+      [
+       "2",
+       "High"
+      ],
+      [
+       "3",
+       "Highest"
+      ]
+     ],
+     "string": "Priority",
+     "type": "Selection"
+    },
+    "stage_id": {
+     "comodel": "event.track.stage",
+     "copy": false,
+     "default": {
+      "$ref": "_get_default_stage_id"
+     },
+     "index": true,
+     "ondelete": "restrict",
+     "required": true,
+     "string": "Stage",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "tag_ids": {
+     "comodel": "event.track.tag",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "track_start_relative": {
+     "compute": "_compute_track_time_data",
+     "help": "Relative time compared to track start (seconds)",
+     "string": "Minutes compare to track start",
+     "type": "Integer"
+    },
+    "track_start_remaining": {
+     "compute": "_compute_track_time_data",
+     "help": "Remaining time before track starts (seconds)",
+     "string": "Minutes before track starts",
+     "type": "Integer"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "website_cta": {
+     "help": "Display a Call to Action button to your Attendees while they watch your Track.",
+     "string": "Magic Button",
+     "type": "Boolean"
+    },
+    "website_cta_delay": {
+     "string": "Show Button",
+     "type": "Integer"
+    },
+    "website_cta_start_remaining": {
+     "compute": "_compute_cta_time_data",
+     "help": "Remaining time before CTA starts (seconds)",
+     "string": "Minutes before CTA starts",
+     "type": "Integer"
+    },
+    "website_cta_title": {
+     "string": "Button Title",
+     "type": "Char"
+    },
+    "website_cta_url": {
+     "string": "Button Target URL",
+     "type": "Char"
+    },
+    "website_image": {
+     "string": "Website Image",
+     "type": "Image"
+    },
+    "website_image_url": {
+     "compute": "_compute_website_image_url",
+     "store": false,
+     "string": "Image URL",
+     "type": "Char"
+    },
+    "wishlist_visitor_count": {
+     "compute": "_compute_wishlist_visitor_ids",
+     "groups": "event.group_event_user",
+     "string": "# Wishlisted",
+     "type": "Integer"
+    },
+    "wishlist_visitor_ids": {
+     "comodel": "website.visitor",
+     "compute": "_compute_wishlist_visitor_ids",
+     "groups": "event.group_event_user",
+     "string": "Visitor Wishlist",
+     "type": "Many2many"
+    },
+    "wishlisted_by_default": {
+     "help": "If set, the talk will be set as favorite for each attendee registered to the event.",
+     "string": "Always Wishlisted",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread",
+    "website.published.mixin",
+    "website.seo.metadata"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_default_stage_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 5,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('stage_id', 'kanban_state')"
+     ],
+     "lines": 8,
+     "name": "_compute_kanban_state_label"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_partner_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_partner_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_partner_phone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_partner_biography"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_partner_function"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'partner_id.company_type')"
+     ],
+     "lines": 6,
+     "name": "_compute_partner_company_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_name', 'partner_function', 'partner_company_name')"
+     ],
+     "lines": 22,
+     "name": "_compute_partner_tag_line"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_partner_image"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'partner_id.email')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_email"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id', 'partner_id.phone')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_phone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date', 'duration')"
+     ],
+     "lines": 7,
+     "name": "_compute_end_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('image', 'partner_id.image_256')"
+     ],
+     "lines": 6,
+     "name": "_compute_website_image_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('wishlisted_by_default', 'event_track_visitor_ids.visitor_id', 'event_track_visitor_ids.partner_id', 'event_track_visitor_ids.is_wishlisted', 'event_track_visitor_ids.is_blacklisted')",
+      "api.depends_context('uid')"
+     ],
+     "lines": 35,
+     "name": "_compute_is_reminder_on"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_track_visitor_ids.visitor_id', 'event_track_visitor_ids.is_wishlisted')"
+     ],
+     "lines": 10,
+     "name": "_compute_wishlist_visitor_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_search_wishlist_visitor_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date', 'date_end')"
+     ],
+     "lines": 22,
+     "name": "_compute_track_time_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date', 'date_end', 'website_cta', 'website_cta_delay')"
+     ],
+     "lines": 17,
+     "name": "_compute_cta_time_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 21,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_synchronize_with_stage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_mail_get_timezone_with_default"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_message_get_default_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_message_get_suggested_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_message_post_after_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_track_template"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "open_track_speakers_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "get_backend_menu_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_get_event_track_visitors"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 50,
+     "name": "_get_track_suggestions"
+    }
+   ],
+   "name": "event.track",
+   "order": "priority, date",
+   "sel_methods": {
+    "_message_post_after_hook": [],
+    "_search_wishlist_visitor_ids": [
+     [
+      "id",
+      "in"
+     ]
+    ],
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "event.track.location": {
+   "abstract": false,
+   "description": "Event Track Location",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Location",
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "help": "Define the order in which the location will appear on \"Agenda\" page",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "event.track.location",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "event.track.stage": {
+   "abstract": false,
+   "description": "Event Track Stage",
+   "extension": false,
+   "fields": {
+    "color": {
+     "string": "Color",
+     "type": "Integer"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "fold": {
+     "help": "This stage is folded in the kanban view when there are no records in that stage to display.",
+     "string": "Folded in Kanban",
+     "type": "Boolean"
+    },
+    "is_cancel": {
+     "string": "Cancelled Stage",
+     "type": "Boolean"
+    },
+    "is_fully_accessible": {
+     "compute": "_compute_is_fully_accessible",
+     "help": "If checked, automatically publish tracks so that access links to customers are provided.",
+     "store": true,
+     "string": "Fully accessible",
+     "type": "Boolean"
+    },
+    "is_visible_in_agenda": {
+     "compute": "_compute_is_visible_in_agenda",
+     "help": "If checked, the related tracks will be visible in the frontend.",
+     "store": true,
+     "string": "Visible in agenda",
+     "type": "Boolean"
+    },
+    "legend_blocked": {
+     "default": {
+      "$lambda": "s.env._('Blocked')"
+     },
+     "string": "Red Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "legend_done": {
+     "default": {
+      "$lambda": "s.env._('Ready for Next Stage')"
+     },
+     "string": "Green Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "legend_normal": {
+     "default": {
+      "$lambda": "s.env._('In Progress')"
+     },
+     "string": "Grey Kanban Label",
+     "translate": true,
+     "type": "Char"
+    },
+    "mail_template_id": {
+     "comodel": "mail.template",
+     "domain": [
+      [
+       "model",
+       "=",
+       "event.track"
+      ]
+     ],
+     "help": "If set an email will be sent to the customer when the track reaches this step.",
+     "string": "Email Template",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Stage Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_cancel', 'is_fully_accessible')"
+     ],
+     "lines": 6,
+     "name": "_compute_is_visible_in_agenda"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_cancel', 'is_visible_in_agenda')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_fully_accessible"
+    }
+   ],
+   "name": "event.track.stage",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "event.track.tag": {
+   "abstract": false,
+   "description": "Event Track Tag",
+   "extension": false,
+   "fields": {
+    "category_id": {
+     "comodel": "event.track.tag.category",
+     "ondelete": "set null",
+     "string": "Category",
+     "type": "Many2one"
+    },
+    "color": {
+     "default": {
+      "$lambda": "self._default_color()"
+     },
+     "help": "Note that colorless tags won't be available on the website.",
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Tag Name",
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "track_ids": {
+     "comodel": "event.track",
+     "string": "Tracks",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_default_color"
+    }
+   ],
+   "name": "event.track.tag",
+   "order": "category_id, sequence, name",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "event.track.tag.category": {
+   "abstract": false,
+   "description": "Event Track Tag Category",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "tag_ids": {
+     "comodel": "event.track.tag",
+     "inverse_name": "category_id",
+     "string": "Tags",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "event.track.tag.category",
+   "order": "sequence",
+   "transient": false
+  },
+  "event.track.visitor": {
+   "abstract": false,
+   "description": "Track / Visitor Link",
+   "extension": false,
+   "fields": {
+    "is_blacklisted": {
+     "help": "As key track cannot be un-favorited, this field store the partner choice to remove the reminder for key tracks.",
+     "string": "Is reminder off",
+     "type": "Boolean"
+    },
+    "is_wishlisted": {
+     "string": "Is Wishlisted",
+     "type": "Boolean"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_partner_id",
+     "index": true,
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "string": "Partner",
+     "type": "Many2one"
+    },
+    "track_id": {
+     "comodel": "event.track",
+     "index": true,
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Track",
+     "type": "Many2one"
+    },
+    "visitor_id": {
+     "comodel": "website.visitor",
+     "index": true,
+     "ondelete": "cascade",
+     "string": "Visitor",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('visitor_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_partner_id"
+    }
+   ],
+   "name": "event.track.visitor",
+   "order": "track_id",
+   "rec_name": "track_id",
+   "table": "event_track_visitor",
+   "transient": false
+  },
+  "event.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "website_track": {
+     "compute": "_compute_website_track_menu_data",
+     "readonly": false,
+     "store": true,
+     "string": "Tracks on Website",
+     "type": "Boolean"
+    },
+    "website_track_proposal": {
+     "compute": "_compute_website_track_menu_data",
+     "readonly": false,
+     "store": true,
+     "string": "Tracks Proposals on Website",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('website_menu')"
+     ],
+     "lines": 5,
+     "name": "_compute_website_track_menu_data"
+    }
+   ],
+   "name": "event.type",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "events_app_name": {
+     "readonly": false,
+     "related": "website_id.events_app_name",
+     "string": "Events App Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "app_icon": {
+     "compute": "_compute_app_icon",
+     "help": "This field holds the image used as mobile app icon on the website (PNG format).",
+     "readonly": true,
+     "store": true,
+     "string": "Website App Icon",
+     "type": "Image"
+    },
+    "events_app_name": {
+     "compute": "_compute_events_app_name",
+     "help": "This fields holds the Event's Progressive Web App name.",
+     "readonly": false,
+     "store": true,
+     "string": "Events App Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 4,
+     "name": "_compute_events_app_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('events_app_name')"
+     ],
+     "lines": 4,
+     "name": "_check_events_app_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('favicon')"
+     ],
+     "lines": 18,
+     "name": "_compute_app_icon"
+    }
+   ],
+   "name": "website",
+   "transient": false
+  },
+  "website.event.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "menu_type": {
+     "ondelete": {
+      "track": "cascade",
+      "track_proposal": "cascade"
+     },
+     "selection_add": [
+      [
+       "track",
+       "Event Tracks Menus"
+      ],
+      [
+       "track_proposal",
+       "Event Proposals Menus"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "website.event.menu",
+   "transient": false
+  },
+  "website.menu": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "unlink"
+    }
+   ],
+   "name": "website.menu",
+   "transient": false
+  },
+  "website.visitor": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "event_track_visitor_ids": {
+     "comodel": "event.track.visitor",
+     "groups": "event.group_event_user",
+     "inverse_name": "visitor_id",
+     "string": "Track Visitors",
+     "type": "One2many"
+    },
+    "event_track_wishlisted_count": {
+     "compute": "_compute_event_track_wishlisted_ids",
+     "groups": "event.group_event_user",
+     "string": "# Wishlisted",
+     "type": "Integer"
+    },
+    "event_track_wishlisted_ids": {
+     "comodel": "event.track",
+     "compute": "_compute_event_track_wishlisted_ids",
+     "groups": "event.group_event_user",
+     "string": "Wishlisted Tracks",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('event_track_visitor_ids.track_id', 'event_track_visitor_ids.is_wishlisted')"
+     ],
+     "lines": 10,
+     "name": "_compute_event_track_wishlisted_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_search_event_track_wishlisted_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_inactive_visitors_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_merge_visitor"
+    }
+   ],
+   "name": "website.visitor",
+   "sel_methods": {
+    "_merge_visitor": [],
+    "_search_event_track_wishlisted_ids": [
+     [
+      "id",
+      "in"
+     ]
+    ]
+   },
+   "transient": false
+  }
+ },
+ "module": "website_event_track",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_event_track",
+ "stats": {
+  "fields": 94,
+  "methods": 56,
+  "models": 13,
+  "py_lines": 1667
+ },
+ "summary": "Sponsors, Tracks, Agenda, Event News",
+ "title": "Advanced Events",
+ "version": "1.3"
+}

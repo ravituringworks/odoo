@@ -1,0 +1,267 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden/Tools",
+ "data_files": [
+  "data/services.xml",
+  "security/ir.model.access.csv",
+  "security/ir_rule.xml",
+  "views/iap_views.xml",
+  "views/res_config_settings.xml"
+ ],
+ "depends": [
+  "web",
+  "base_setup"
+ ],
+ "models": {
+  "iap.account": {
+   "abstract": false,
+   "description": "IAP Account",
+   "extension": false,
+   "fields": {
+    "account_token": {
+     "default": {
+      "$lambda": "uuid.uuid4().hex"
+     },
+     "help": "Account token is your authentication key for this service. Do not share it.",
+     "size": 43,
+     "type": "Char"
+    },
+    "balance": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "company_ids": {
+     "comodel": "res.company",
+     "type": "Many2many"
+    },
+    "description": {
+     "related": "service_id.description",
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "service_id": {
+     "comodel": "iap.service",
+     "required": true,
+     "type": "Many2one"
+    },
+    "service_locked": {
+     "default": false,
+     "type": "Boolean"
+    },
+    "service_name": {
+     "related": "service_id.technical_name",
+     "type": "Char"
+    },
+    "state": {
+     "readonly": true,
+     "selection": [
+      [
+       "banned",
+       "Banned"
+      ],
+      [
+       "registered",
+       "Registered"
+      ],
+      [
+       "unregistered",
+       "Unregistered"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "warning_threshold": {
+     "string": "Email Alert Threshold",
+     "type": "Float"
+    },
+    "warning_user_ids": {
+     "comodel": "res.users",
+     "string": "Email Alert Recipients",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('warning_threshold', 'warning_user_ids')"
+     ],
+     "lines": 10,
+     "name": "validate_warning_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "web_read"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "is_running_test_suite"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 36,
+     "name": "_get_account_information_from_iap"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_account_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 11,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 51,
+     "name": "get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "get_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "get_credits_url"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_buy_credits"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "get_config_account_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 20,
+     "name": "get_credits"
+    }
+   ],
+   "name": "iap.account",
+   "transient": false
+  },
+  "iap.enrich.api": {
+   "abstract": true,
+   "description": "IAP Lead Enrichment API",
+   "extension": false,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_contact_iap"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_request_enrich"
+    }
+   ],
+   "name": "iap.enrich.api",
+   "transient": false
+  },
+  "iap.service": {
+   "abstract": false,
+   "description": "IAP Service",
+   "extension": false,
+   "fields": {
+    "description": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    },
+    "integer_balance": {
+     "required": true,
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "type": "Char"
+    },
+    "technical_name": {
+     "readonly": true,
+     "required": true,
+     "type": "Char"
+    },
+    "unit_name": {
+     "required": true,
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "iap.service",
+   "sql_constraints": [
+    [
+     "unique_technical_name",
+     "UNIQUE(technical_name)",
+     "Only one service can exist with a specific technical_name"
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "iap",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/iap",
+ "stats": {
+  "fields": 16,
+  "methods": 15,
+  "models": 3,
+  "py_lines": 577
+ },
+ "summary": "Basic models and helpers to support In-App purchases.",
+ "title": "In-App Purchases",
+ "version": "1.1"
+}

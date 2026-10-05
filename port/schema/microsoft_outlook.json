@@ -1,0 +1,293 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "views/fetchmail_server_views.xml",
+  "views/ir_mail_server_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/templates.xml"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "fetchmail.server": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "server_type": {
+     "ondelete": {
+      "outlook": "set default"
+     },
+     "selection_add": [
+      [
+       "outlook",
+       "Outlook OAuth Authentication"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "microsoft.outlook.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_server_type_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('server_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_microsoft_outlook_configured"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('server_type', 'is_ssl')"
+     ],
+     "lines": 4,
+     "name": "_check_use_microsoft_outlook_service"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('server_type')"
+     ],
+     "lines": 11,
+     "name": "onchange_server_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_imap_login"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_connection_type"
+    }
+   ],
+   "name": "fetchmail.server",
+   "transient": false
+  },
+  "ir.mail_server": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "smtp_authentication": {
+     "ondelete": {
+      "outlook": "set default"
+     },
+     "selection_add": [
+      [
+       "outlook",
+       "Outlook OAuth Authentication"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "microsoft.outlook.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('smtp_authentication')"
+     ],
+     "lines": 4,
+     "name": "_compute_is_microsoft_outlook_configured"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_smtp_authentication_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('smtp_authentication', 'smtp_pass', 'smtp_encryption', 'smtp_user')"
+     ],
+     "lines": 17,
+     "name": "_check_use_microsoft_outlook_service"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('smtp_encryption')"
+     ],
+     "lines": 6,
+     "name": "_onchange_encryption"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('smtp_authentication')"
+     ],
+     "lines": 9,
+     "name": "_onchange_smtp_authentication_outlook"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('smtp_user', 'smtp_authentication')"
+     ],
+     "lines": 4,
+     "name": "_on_change_smtp_user_outlook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_smtp_login"
+    }
+   ],
+   "name": "ir.mail_server",
+   "transient": false
+  },
+  "microsoft.outlook.mixin": {
+   "abstract": true,
+   "description": "Microsoft Outlook Mixin",
+   "extension": false,
+   "fields": {
+    "is_microsoft_outlook_configured": {
+     "compute": "_compute_is_microsoft_outlook_configured",
+     "string": "Is Outlook Credential Configured",
+     "type": "Boolean"
+    },
+    "microsoft_outlook_access_token": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Outlook Access Token",
+     "type": "Char"
+    },
+    "microsoft_outlook_access_token_expiration": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Outlook Access Token Expiration Timestamp",
+     "type": "Integer"
+    },
+    "microsoft_outlook_refresh_token": {
+     "copy": false,
+     "groups": "base.group_system",
+     "string": "Outlook Refresh Token",
+     "type": "Char"
+    },
+    "microsoft_outlook_uri": {
+     "compute": "_compute_outlook_uri",
+     "groups": "base.group_system",
+     "help": "The URL to generate the authorization code from Outlook",
+     "string": "Authentication URI",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_is_microsoft_outlook_configured"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('is_microsoft_outlook_configured')"
+     ],
+     "lines": 23,
+     "name": "_compute_outlook_uri"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "open_microsoft_outlook_uri"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_fetch_outlook_refresh_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_fetch_outlook_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_fetch_outlook_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_generate_outlook_oauth2_string"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_outlook_csrf_token"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_microsoft_endpoint"
+    }
+   ],
+   "name": "microsoft.outlook.mixin",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "microsoft_outlook_client_identifier": {
+     "string": "Outlook Client Id",
+     "type": "Char"
+    },
+    "microsoft_outlook_client_secret": {
+     "string": "Outlook Client Secret",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "microsoft_outlook",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/microsoft_outlook",
+ "stats": {
+  "fields": 9,
+  "methods": 22,
+  "models": 4,
+  "py_lines": 454
+ },
+ "summary": "Outlook support for incoming / outgoing mail servers",
+ "title": "Microsoft Outlook",
+ "version": "1.1"
+}

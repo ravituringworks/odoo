@@ -1,0 +1,226 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "wizard/account_debit_note_view.xml",
+  "views/account_move_view.xml",
+  "views/account_journal_views.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "account"
+ ],
+ "models": {
+  "account.debit.note": {
+   "abstract": false,
+   "description": "Add Debit Note wizard",
+   "extension": false,
+   "fields": {
+    "copy_lines": {
+     "help": "In case you need to do corrections for every line, it can be in handy to copy them.  We won't copy them for debit notes from credit notes. ",
+     "string": "Copy Lines",
+     "type": "Boolean"
+    },
+    "country_code": {
+     "related": "move_ids.company_id.country_id.code",
+     "type": "Char"
+    },
+    "date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "required": true,
+     "string": "Debit Note Date",
+     "type": "Date"
+    },
+    "journal_id": {
+     "comodel": "account.journal",
+     "help": "If empty, uses the journal of the journal entry to be debited.",
+     "string": "Use Specific Journal",
+     "type": "Many2one"
+    },
+    "journal_type": {
+     "compute": "_compute_journal_type",
+     "type": "Char"
+    },
+    "move_ids": {
+     "column1": "debit_id",
+     "column2": "move_id",
+     "comodel": "account.move",
+     "domain": [
+      [
+       "state",
+       "=",
+       "posted"
+      ]
+     ],
+     "relation_table": "account_move_debit_move",
+     "type": "Many2many"
+    },
+    "move_type": {
+     "compute": "_compute_from_moves",
+     "type": "Char"
+    },
+    "reason": {
+     "string": "Reason",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 11,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_from_moves"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('move_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_journal_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_default_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "create_debit"
+    }
+   ],
+   "name": "account.debit.note",
+   "transient": true
+  },
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "debit_sequence": {
+     "compute": "_compute_debit_sequence",
+     "help": "Check this box if you don't want to share the same sequence for invoices and debit notes made from this journal",
+     "readonly": false,
+     "store": true,
+     "string": "Dedicated Debit Note Sequence",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('type')"
+     ],
+     "lines": 3,
+     "name": "_compute_debit_sequence"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "debit_note_count": {
+     "compute": "_compute_debit_count",
+     "string": "Number of Debit Notes",
+     "type": "Integer"
+    },
+    "debit_note_ids": {
+     "comodel": "account.move",
+     "help": "The debit notes created for this invoice",
+     "inverse_name": "debit_origin_id",
+     "string": "Debit Notes",
+     "type": "One2many"
+    },
+    "debit_origin_id": {
+     "comodel": "account.move",
+     "copy": false,
+     "index": "btree_not_null",
+     "readonly": true,
+     "string": "Original Invoice Debited",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('debit_note_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_debit_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_view_debit_notes"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_debit_note"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_last_sequence_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_starting_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_copy_message_content"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_get_copy_message_content": []
+   },
+   "transient": false
+  }
+ },
+ "module": "account_debit_note",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/account_debit_note",
+ "stats": {
+  "fields": 12,
+  "methods": 12,
+  "models": 3,
+  "py_lines": 183
+ },
+ "summary": "Debit Notes",
+ "title": "Debit Notes",
+ "version": "1.0"
+}

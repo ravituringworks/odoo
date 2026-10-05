@@ -1,0 +1,483 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden/Tools",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/certificate_security.xml",
+  "views/certificate_views.xml",
+  "views/key_views.xml",
+  "views/action_menus.xml",
+  "views/res_config_settings_view.xml"
+ ],
+ "depends": [
+  "base_setup"
+ ],
+ "models": {
+  "certificate.certificate": {
+   "abstract": false,
+   "description": "Certificate",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "Set active to false to archive the certificate",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "content": {
+     "readonly": false,
+     "required": true,
+     "string": "Certificate",
+     "type": "Binary"
+    },
+    "content_format": {
+     "compute": "_compute_pem_certificate",
+     "selection": [
+      [
+       "der",
+       "DER"
+      ],
+      [
+       "pem",
+       "PEM"
+      ],
+      [
+       "pkcs12",
+       "PKCS12"
+      ]
+     ],
+     "store": true,
+     "string": "Original certificate format",
+     "type": "Selection"
+    },
+    "country_code": {
+     "related": "company_id.country_code",
+     "type": "Char"
+    },
+    "date_end": {
+     "compute": "_compute_pem_certificate",
+     "help": "The date on which the certificate expires (UTC)",
+     "store": true,
+     "string": "Expiration date",
+     "type": "Datetime"
+    },
+    "date_start": {
+     "compute": "_compute_pem_certificate",
+     "help": "The date on which the certificate starts to be valid (UTC)",
+     "store": true,
+     "string": "Available date",
+     "type": "Datetime"
+    },
+    "is_valid": {
+     "compute": "_compute_is_valid",
+     "string": "Valid",
+     "type": "Boolean"
+    },
+    "issuer_cert_id": {
+     "comodel": "certificate.certificate",
+     "compute": "_compute_issuer_cert_id",
+     "string": "Issuer Certificate",
+     "type": "Many2one"
+    },
+    "loading_error": {
+     "compute": "_compute_pem_certificate",
+     "store": true,
+     "string": "Loading error",
+     "type": "Text"
+    },
+    "name": {
+     "string": "Name",
+     "type": "Char"
+    },
+    "pem_certificate": {
+     "compute": "_compute_pem_certificate",
+     "store": true,
+     "string": "Certificate in PEM format",
+     "type": "Binary"
+    },
+    "pkcs12_password": {
+     "help": "Password to decrypt the PKS file.",
+     "string": "Certificate Password",
+     "type": "Char"
+    },
+    "private_key_id": {
+     "comodel": "certificate.key",
+     "compute": "_compute_private_key",
+     "domain": [
+      [
+       "public",
+       "=",
+       false
+      ]
+     ],
+     "readonly": false,
+     "store": true,
+     "string": "Private Key",
+     "type": "Many2one"
+    },
+    "public_key_id": {
+     "comodel": "certificate.key",
+     "domain": [
+      [
+       "public",
+       "=",
+       true
+      ]
+     ],
+     "help": "Used to set a public key in case the one self-contained in the certificate is erroneus.\n                When a public key is set this way, it will be used instead of the one in the certificate.\n             ",
+     "string": "Public Key",
+     "type": "Many2one"
+    },
+    "scope": {
+     "selection": [
+      [
+       "general",
+       "General"
+      ]
+     ],
+     "string": "Certificate scope",
+     "type": "Selection"
+    },
+    "serial_number": {
+     "compute": "_compute_pem_certificate",
+     "help": "The serial number to add to electronic documents",
+     "store": true,
+     "string": "Serial number",
+     "type": "Char"
+    },
+    "subject_common_name": {
+     "compute": "_compute_pem_certificate",
+     "store": true,
+     "string": "Subject Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pem_certificate', 'subject_common_name', 'company_id')"
+     ],
+     "lines": 56,
+     "name": "_compute_issuer_cert_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pem_certificate')"
+     ],
+     "lines": 39,
+     "name": "_compute_private_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('content', 'pkcs12_password')"
+     ],
+     "lines": 41,
+     "name": "_compute_pem_certificate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('date_start', 'date_end', 'loading_error')"
+     ],
+     "lines": 11,
+     "name": "_compute_is_valid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_search_is_valid"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('pem_certificate', 'private_key_id', 'public_key_id')"
+     ],
+     "lines": 27,
+     "name": "_constrains_certificate_key_compatibility"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('content', 'pem_certificate')"
+     ],
+     "lines": 6,
+     "name": "_constrains_certificate_loaded"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_subject_key_identifier"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_authority_key_identifier"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_get_common_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 53,
+     "name": "_is_issued_by"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 36,
+     "name": "_parse_pem_certificate_bundle"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_parse_certificate_content"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 26,
+     "name": "_extract_and_filter_chain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 50,
+     "name": "_parse_chain_missing_ca_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_der_certificate_bytes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_fingerprint_bytes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_signature_bytes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_public_key_numbers_bytes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_get_public_key_bytes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_sign"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_certificate_chain"
+    }
+   ],
+   "name": "certificate.certificate",
+   "order": "date_end DESC",
+   "transient": false
+  },
+  "certificate.key": {
+   "abstract": false,
+   "description": "Cryptographic Keys",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "help": "Set active to false to archive the key.",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "content": {
+     "required": true,
+     "string": "Key file",
+     "type": "Binary"
+    },
+    "loading_error": {
+     "compute": "_compute_pem_key",
+     "store": true,
+     "string": "Loading error",
+     "type": "Text"
+    },
+    "name": {
+     "default": "New key",
+     "string": "Name",
+     "type": "Char"
+    },
+    "password": {
+     "string": "Private key password",
+     "type": "Char"
+    },
+    "pem_key": {
+     "compute": "_compute_pem_key",
+     "store": true,
+     "string": "Key bytes in PEM format",
+     "type": "Binary"
+    },
+    "public": {
+     "compute": "_compute_pem_key",
+     "store": true,
+     "string": "Public/Private key",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('content', 'password')"
+     ],
+     "lines": 51,
+     "name": "_compute_pem_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_sign"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_public_key_numbers_bytes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_public_key_bytes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_decrypt"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 45,
+     "name": "_sign_with_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 32,
+     "name": "_numbers_public_key_bytes_with_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_generate_ec_private_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 28,
+     "name": "_generate_rsa_private_key"
+    }
+   ],
+   "name": "certificate.key",
+   "transient": false
+  }
+ },
+ "module": "certificate",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/certificate",
+ "stats": {
+  "fields": 26,
+  "methods": 33,
+  "models": 2,
+  "py_lines": 1143
+ },
+ "summary": "Manage certificate",
+ "title": "Certificate",
+ "version": "0.1"
+}

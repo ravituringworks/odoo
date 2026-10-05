@@ -1,0 +1,896 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/account_payment_views.xml",
+  "views/account_tax_views.xml",
+  "views/report_payment_receipt_templates.xml",
+  "views/res_config_settings.xml",
+  "wizards/account_payment_register_views.xml"
+ ],
+ "depends": [
+  "account"
+ ],
+ "models": {
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "display_withholding": {
+     "compute": "_compute_display_withholding",
+     "type": "Boolean"
+    },
+    "outstanding_account_id": {
+     "readonly": false,
+     "type": "Many2one"
+    },
+    "should_withhold_tax": {
+     "compute": "_compute_should_withhold_tax",
+     "copy": false,
+     "help": "Withhold tax amounts from the payment amount.",
+     "readonly": false,
+     "store": true,
+     "string": "Withhold Tax Amounts",
+     "type": "Boolean"
+    },
+    "withholding_hide_tax_base_account": {
+     "compute": "_compute_withholding_hide_tax_base_account",
+     "type": "Boolean"
+    },
+    "withholding_line_ids": {
+     "comodel": "account.payment.withholding.line",
+     "inverse_name": "payment_id",
+     "string": "Withholding Lines",
+     "type": "One2many"
+    },
+    "withholding_payment_account_id": {
+     "related": "payment_method_line_id.payment_account_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 17,
+     "name": "_compute_display_withholding"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('withholding_line_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_should_withhold_tax"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_withholding_hide_tax_base_account"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('should_withhold_tax')"
+     ],
+     "lines": 3,
+     "name": "_compute_outstanding_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('withholding_line_ids')"
+     ],
+     "lines": 13,
+     "name": "_onchange_withholding_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_trigger_fields_to_synchronize"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_prepare_move_withholding_lines"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "account.payment.register": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "display_withholding": {
+     "compute": "_compute_display_withholding",
+     "type": "Boolean"
+    },
+    "should_withhold_tax": {
+     "compute": "_compute_should_withhold_tax",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Withhold Tax Amounts",
+     "type": "Boolean"
+    },
+    "withholding_default_account_id": {
+     "related": "journal_id.default_account_id",
+     "type": "Many2one"
+    },
+    "withholding_hide_tax_base_account": {
+     "compute": "_compute_withholding_hide_tax_base_account",
+     "type": "Boolean"
+    },
+    "withholding_line_ids": {
+     "comodel": "account.payment.register.withholding.line",
+     "compute": "_compute_withholding_line_ids",
+     "inverse_name": "payment_register_id",
+     "readonly": false,
+     "store": true,
+     "string": "Withholding Lines",
+     "type": "One2many"
+    },
+    "withholding_net_amount": {
+     "compute": "_compute_withholding_net_amount",
+     "help": "Net amount after deducting the withholding lines",
+     "store": true,
+     "string": "Net Amount",
+     "type": "Monetary"
+    },
+    "withholding_outstanding_account_id": {
+     "comodel": "account.account",
+     "compute": "_compute_withholding_outstanding_account_id",
+     "copy": false,
+     "domain": "['|', ('account_type', 'in', ('asset_current', 'liability_current')), ('id', '=', withholding_default_account_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "Outstanding Account",
+     "type": "Many2one"
+    },
+    "withholding_payment_account_id": {
+     "related": "payment_method_line_id.payment_account_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('withholding_line_ids.amount', 'amount')"
+     ],
+     "lines": 10,
+     "name": "_compute_withholding_net_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('withholding_payment_account_id', 'should_withhold_tax')"
+     ],
+     "lines": 27,
+     "name": "_compute_withholding_outstanding_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'can_edit_wizard', 'can_group_payments', 'group_payment')"
+     ],
+     "lines": 26,
+     "name": "_compute_display_withholding"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('can_edit_wizard', 'display_withholding')"
+     ],
+     "lines": 23,
+     "name": "_compute_withholding_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('withholding_line_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_should_withhold_tax"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_withholding_hide_tax_base_account"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('withholding_line_ids')"
+     ],
+     "lines": 14,
+     "name": "_onchange_withholding_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_create_payment_vals_from_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "_get_total_amount_in_wizard_currency"
+    }
+   ],
+   "name": "account.payment.register",
+   "transient": false
+  },
+  "account.payment.register.withholding.line": {
+   "abstract": false,
+   "description": "Payment register withholding line",
+   "extension": false,
+   "fields": {
+    "payment_register_id": {
+     "comodel": "account.payment.register",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "account.withholding.line"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.amount')"
+     ],
+     "lines": 3,
+     "name": "_compute_original_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.payment_type')"
+     ],
+     "lines": 6,
+     "name": "_compute_type_tax_use"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.amount', 'payment_register_id.can_edit_wizard')"
+     ],
+     "lines": 19,
+     "name": "_compute_comodel_percentage_paid_factor"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.payment_date')"
+     ],
+     "lines": 3,
+     "name": "_compute_comodel_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.payment_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_comodel_payment_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.company_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.currency_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_comodel_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_withholding_amls_create_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_valid_liquidity_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_comodel_partner"
+    }
+   ],
+   "name": "account.payment.register.withholding.line",
+   "sel_methods": {
+    "_prepare_withholding_amls_create_values": []
+   },
+   "transient": true
+  },
+  "account.payment.withholding.line": {
+   "abstract": false,
+   "description": "Payment withholding line",
+   "extension": false,
+   "fields": {
+    "payment_id": {
+     "comodel": "account.payment",
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "account.withholding.line"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_id.amount')"
+     ],
+     "lines": 3,
+     "name": "_compute_original_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_id.payment_type')"
+     ],
+     "lines": 6,
+     "name": "_compute_type_tax_use"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_register_id.amount')"
+     ],
+     "lines": 3,
+     "name": "_compute_comodel_full_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_id.date')"
+     ],
+     "lines": 3,
+     "name": "_compute_comodel_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_id.payment_type')"
+     ],
+     "lines": 3,
+     "name": "_compute_comodel_payment_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_comodel_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_withholding_amls_create_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_valid_liquidity_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_comodel_partner"
+    }
+   ],
+   "name": "account.payment.withholding.line",
+   "sel_methods": {
+    "_prepare_withholding_amls_create_values": []
+   },
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "is_withholding_tax_on_payment": {
+     "help": "If enabled, this tax will not affect your accounts until the registration of payments.",
+     "string": "Withhold On Payment",
+     "type": "Boolean"
+    },
+    "withholding_sequence_id": {
+     "comodel": "ir.sequence",
+     "copy": false,
+     "help": "This sequence will be used to generate default numbers on payment withholding lines.",
+     "string": "Withholding Sequence",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('is_withholding_tax_on_payment')"
+     ],
+     "lines": 5,
+     "name": "_onchange_is_withholding_tax_on_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('amount')"
+     ],
+     "lines": 4,
+     "name": "_onchange_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('amount_type', 'is_withholding_tax_on_payment')"
+     ],
+     "lines": 5,
+     "name": "_check_amount_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_add_tax_details_in_base_line"
+    }
+   ],
+   "name": "account.tax",
+   "transient": false
+  },
+  "account.withholding.line": {
+   "abstract": true,
+   "description": "withholding line",
+   "extension": false,
+   "fields": {
+    "account_id": {
+     "comodel": "account.account",
+     "compute": "_compute_account_id",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "amount": {
+     "compute": "_compute_amount",
+     "currency_field": "comodel_currency_id",
+     "readonly": false,
+     "store": true,
+     "string": "Withholding amount",
+     "type": "Monetary"
+    },
+    "base_amount": {
+     "compute": "_compute_base_amount",
+     "currency_field": "comodel_currency_id",
+     "readonly": false,
+     "store": true,
+     "string": "Withholding base",
+     "type": "Monetary"
+    },
+    "comodel_company_currency_id": {
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "comodel_currency_id": {
+     "comodel": "res.currency",
+     "compute": "_compute_comodel_currency_id",
+     "required": true,
+     "type": "Many2one"
+    },
+    "comodel_date": {
+     "compute": "_compute_comodel_date",
+     "type": "Date"
+    },
+    "comodel_payment_type": {
+     "compute": "_compute_comodel_payment_type",
+     "selection": [
+      [
+       "outbound",
+       "Send Money"
+      ],
+      [
+       "inbound",
+       "Receive Money"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "comodel_percentage_paid_factor": {
+     "compute": "_compute_comodel_percentage_paid_factor",
+     "type": "Float"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "required": true,
+     "store": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Sequence Number",
+     "type": "Char"
+    },
+    "original_base_amount": {
+     "compute": "_compute_original_amounts",
+     "currency_field": "comodel_currency_id",
+     "type": "Monetary"
+    },
+    "original_tax_amount": {
+     "compute": "_compute_original_amounts",
+     "currency_field": "comodel_currency_id",
+     "type": "Monetary"
+    },
+    "placeholder_type": {
+     "compute": "_compute_placeholder_type",
+     "readonly": false,
+     "required": true,
+     "selection": [
+      [
+       "given_by_sequence",
+       "Given By the Sequence"
+      ],
+      [
+       "given_by_name",
+       "Given By the Name"
+      ],
+      [
+       "not_defined",
+       "Not defined"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "placeholder_value": {
+     "help": "Populated by the comodel during edition of the line.",
+     "type": "Char"
+    },
+    "previous_placeholder_type": {
+     "compute": "_compute_placeholder_type",
+     "readonly": false,
+     "selection": [
+      [
+       "given_by_sequence",
+       "Given By the Sequence"
+      ],
+      [
+       "given_by_name",
+       "Given By the Name"
+      ],
+      [
+       "not_defined",
+       "Not defined"
+      ]
+     ],
+     "store": true,
+     "type": "Selection"
+    },
+    "source_base_amount": {
+     "currency_field": "comodel_company_currency_id",
+     "type": "Monetary"
+    },
+    "source_base_amount_currency": {
+     "currency_field": "source_currency_id",
+     "type": "Monetary"
+    },
+    "source_currency_id": {
+     "comodel": "res.currency",
+     "type": "Many2one"
+    },
+    "source_tax_amount": {
+     "currency_field": "comodel_company_currency_id",
+     "type": "Monetary"
+    },
+    "source_tax_amount_currency": {
+     "currency_field": "source_currency_id",
+     "type": "Monetary"
+    },
+    "source_tax_id": {
+     "comodel": "account.tax",
+     "type": "Many2one"
+    },
+    "tax_id": {
+     "comodel": "account.tax",
+     "domain": "[('type_tax_use', '=', type_tax_use), ('is_withholding_tax_on_payment', '=', True)]",
+     "required": true,
+     "type": "Many2one"
+    },
+    "type_tax_use": {
+     "compute": "_compute_type_tax_use",
+     "type": "Char"
+    },
+    "withholding_sequence_id": {
+     "related": "tax_id.withholding_sequence_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "analytic.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('withholding_sequence_id', 'name')"
+     ],
+     "lines": 15,
+     "name": "_compute_placeholder_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('source_base_amount_currency', 'source_base_amount', 'source_tax_amount_currency', 'source_tax_amount', 'source_currency_id', 'comodel_currency_id', 'company_id', 'comodel_date', 'tax_id')"
+     ],
+     "lines": 55,
+     "name": "_compute_original_amounts"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('original_base_amount', 'comodel_percentage_paid_factor')"
+     ],
+     "lines": 11,
+     "name": "_compute_base_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('source_tax_id', 'tax_id', 'base_amount')"
+     ],
+     "lines": 11,
+     "name": "_compute_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_type_tax_use"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_comodel_percentage_paid_factor"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_comodel_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_comodel_payment_type"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_comodel_currency_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_update_placeholders"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('base_amount')"
+     ],
+     "lines": 5,
+     "name": "_constrains_base_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('account_id')"
+     ],
+     "lines": 5,
+     "name": "_constrains_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_prepare_base_line_for_taxes_computation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 84,
+     "name": "_prepare_withholding_amls_create_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_withholding_tax_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_need_update_withholding_lines_placeholder"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_grouping_key"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 85,
+     "name": "_prepare_withholding_lines_commands"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_valid_liquidity_accounts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_comodel_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_is_refund"
+    }
+   ],
+   "name": "account.withholding.line",
+   "sel_methods": {
+    "_get_valid_liquidity_accounts": []
+   },
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_construct_tax_string"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "withholding_tax_base_account_id": {
+     "comodel": "account.account",
+     "help": "This account will be set on withholding tax base lines.",
+     "string": "Withholding Tax Base",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "withholding_tax_base_account_id": {
+     "readonly": false,
+     "related": "company_id.withholding_tax_base_account_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "l10n_account_withholding_tax",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_account_withholding_tax",
+ "stats": {
+  "fields": 44,
+  "methods": 65,
+  "models": 9,
+  "py_lines": 1364
+ },
+ "summary": "Allows to register withholding taxes during the payment of an invoice or bill.",
+ "title": "Withholding Tax on Payment",
+ "version": "1.0"
+}

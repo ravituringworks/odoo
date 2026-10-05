@@ -1,0 +1,475 @@
+{
+ "module": "sales_team",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_sales_sales",
+   "values": {
+    "description": "Helps you handle your quotations, sale orders and invoicing.",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_sale_salesman",
+   "values": {
+    "name": "User: Own Documents Only",
+    "category_id": {
+     "$ref": "base.module_category_sales_sales"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "comment": "the user will have access to his own data in the sales application."
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_sale_salesman_all_leads",
+   "values": {
+    "name": "User: All Documents",
+    "category_id": {
+     "$ref": "base.module_category_sales_sales"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_sale_salesman"
+      }
+     ]
+    ],
+    "comment": "the user will have access to all records of everyone in the sales application."
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_sale_manager",
+   "values": {
+    "name": "Administrator",
+    "comment": "the user will have an access to the sales configuration as well as statistic reports.",
+    "category_id": {
+     "$ref": "base.module_category_sales_sales"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_sale_salesman_all_leads"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "mail.group_mail_canned_response_admin"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "crm_rule_all_salesteam",
+   "values": {
+    "name": "All Salesteam",
+    "model_id": {
+     "$ref": "sales_team.model_crm_team"
+    },
+    "domain_force": "[(1,'=',1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_team_comp_rule",
+   "values": {
+    "name": "Sales Team multi-company",
+    "model_id": {
+     "$ref": "model_crm_team"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "team_sales_department",
+   "values": {
+    "name": "Sales",
+    "sequence": "0",
+    "company_id": false
+   }
+  },
+  {
+   "model": "crm.team.member",
+   "id": "crm_team_member_admin_sales",
+   "values": {
+    "crm_team_id": {
+     "$ref": "team_sales_department"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "salesteam_website_sales",
+   "values": {
+    "name": "Website",
+    "company_id": false,
+    "active": false
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "pos_sales_team",
+   "values": {
+    "name": "Point of Sale",
+    "company_id": false,
+    "active": false
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "sales_team_crm_tag_action",
+   "values": {
+    "name": "Tags",
+    "res_model": "crm.tag",
+    "view_id": {
+     "$ref": "sales_team_crm_tag_view_tree"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_team_action_sales",
+   "values": {
+    "name": "Sales Teams",
+    "res_model": "crm.team",
+    "view_mode": "kanban,form",
+    "context": {
+     "in_sales_app": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_team_action_pipeline",
+   "values": {
+    "name": "Teams",
+    "res_model": "crm.team",
+    "view_mode": "kanban,form",
+    "context": {},
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_team_action_config",
+   "values": {
+    "name": "Sales Teams",
+    "res_model": "crm.team",
+    "view_mode": "list,form",
+    "context": {},
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_team_member_action",
+   "values": {
+    "name": "Team Members",
+    "res_model": "crm.team.member",
+    "view_mode": "kanban,list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "mail_activity_type_action_config_sales",
+   "values": {
+    "name": "Activity Types",
+    "res_model": "mail.activity.type",
+    "view_mode": "list,kanban,form",
+    "domain": [
+     "|",
+     [
+      "res_model",
+      "=",
+      false
+     ],
+     [
+      "res_model",
+      "=",
+      "res.partner"
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "sales_team.group_sale_manager"
+      }
+     ],
+     [
+      3,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "team_sales_department",
+   "values": {
+    "name": "Sales"
+   }
+  },
+  {
+   "model": "crm.team",
+   "id": "crm_team_1",
+   "values": {
+    "name": "Pre-Sales",
+    "company_id": false
+   }
+  },
+  {
+   "model": "crm.team.member",
+   "id": "crm_team_member_demo_team_1",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "crm_team_id": {
+     "$ref": "sales_team.crm_team_1"
+    }
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "categ_oppor1",
+   "values": {
+    "name": "Product",
+    "color": 1
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "categ_oppor2",
+   "values": {
+    "name": "Software",
+    "color": 2
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "categ_oppor3",
+   "values": {
+    "name": "Services",
+    "color": 3
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "categ_oppor4",
+   "values": {
+    "name": "Information",
+    "color": 4
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "categ_oppor5",
+   "values": {
+    "name": "Design",
+    "color": 5
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "categ_oppor6",
+   "values": {
+    "name": "Training",
+    "color": 6
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "categ_oppor7",
+   "values": {
+    "name": "Consulting",
+    "color": 7
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "categ_oppor8",
+   "values": {
+    "name": "Other",
+    "color": 8
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_crm_team",
+   "model": "crm.team",
+   "model_xmlid": "model_crm_team",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_team_user",
+   "model": "crm.team",
+   "model_xmlid": "model_crm_team",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_team_manager",
+   "model": "crm.team",
+   "model_xmlid": "model_crm_team",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_crm_team_member_all",
+   "model": "crm.team.member",
+   "model_xmlid": "model_crm_team_member",
+   "group": null,
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_team_member_user",
+   "model": "crm.team.member",
+   "model_xmlid": "model_crm_team_member",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_team_member_manager",
+   "model": "crm.team.member",
+   "model_xmlid": "model_crm_team_member",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_crm_tag",
+   "model": "crm.tag",
+   "model_xmlid": "model_crm_tag",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_tag_salesman",
+   "model": "crm.tag",
+   "model_xmlid": "model_crm_tag",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_tag_manager",
+   "model": "crm.tag",
+   "model_xmlid": "model_crm_tag",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

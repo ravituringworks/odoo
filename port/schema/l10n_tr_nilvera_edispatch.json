@@ -1,0 +1,366 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/l10n_tr_nilvera_trailer_plate_views.xml",
+  "views/res_partner_views.xml",
+  "views/stock_picking_views.xml",
+  "templates/l10n_tr_nilvera_edispatch.xml"
+ ],
+ "depends": [
+  "l10n_tr_nilvera",
+  "stock",
+  "stock_account"
+ ],
+ "models": {
+  "l10n_tr.nilvera.trailer.plate": {
+   "abstract": false,
+   "description": "G\u0130B Plate numbers",
+   "extension": false,
+   "fields": {
+    "name": {
+     "string": "G\u0130B Plate Number",
+     "type": "Char"
+    },
+    "plate_number_type": {
+     "required": true,
+     "selection": [
+      [
+       "vehicle",
+       "Vehicle"
+      ],
+      [
+       "trailer",
+       "Plate"
+      ]
+     ],
+     "string": "Plate Number",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "l10n_tr.nilvera.trailer.plate",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "name_unique",
+     "unique(name,plate_number_type)",
+     "A Plate Number with that type already exists."
+    ]
+   ],
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_nilvera_edispatch_customs_zip": {
+     "help": "The postal code of the customs office used to ship to the destination country.",
+     "size": 5,
+     "string": "Customs ZIP",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_l10n_tr_nilvera_validate_partner_details"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_nilvera_buyer_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "help": "Used for the original party who purchases the good when the Delivery Address is for another recipient",
+     "string": "Buyer",
+     "type": "Many2one"
+    },
+    "l10n_tr_nilvera_buyer_originator_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "help": "Used for the original initiator of the goods acquisition and requesting process.",
+     "string": "Buyer Originator",
+     "type": "Many2one"
+    },
+    "l10n_tr_nilvera_carrier_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "help": "Used when the dispatch is made through a third-party carrier company. Populating this makes the Vehicle Plate and Drivers optional.",
+     "string": "Carrier (TR)",
+     "type": "Many2one"
+    },
+    "l10n_tr_nilvera_delivery_date": {
+     "copy": false,
+     "string": "Printed Delivery Note Date",
+     "type": "Date"
+    },
+    "l10n_tr_nilvera_delivery_notes": {
+     "copy": false,
+     "string": "Delivery Notes",
+     "type": "Char"
+    },
+    "l10n_tr_nilvera_delivery_printed_number": {
+     "copy": false,
+     "string": "Printed Delivery Note Number",
+     "type": "Char"
+    },
+    "l10n_tr_nilvera_dispatch_state": {
+     "copy": false,
+     "selection": [
+      [
+       "to_send",
+       "To Send"
+      ],
+      [
+       "sent",
+       "Sent"
+      ]
+     ],
+     "string": "e-Dispatch State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "l10n_tr_nilvera_dispatch_type": {
+     "copy": false,
+     "default": "SEVK",
+     "help": "Used to populate the type of dispatch.",
+     "selection": [
+      [
+       "SEVK",
+       "Online"
+      ],
+      [
+       "MATBUDAN",
+       "Pre-printed"
+      ]
+     ],
+     "string": "Dispatch Type",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "l10n_tr_nilvera_driver_ids": {
+     "comodel": "res.partner",
+     "copy": false,
+     "help": "Used for the individuals driving the truck.",
+     "string": "Drivers",
+     "type": "Many2many"
+    },
+    "l10n_tr_nilvera_edispatch_warnings": {
+     "compute": "_compute_edispatch_warnings",
+     "type": "Json"
+    },
+    "l10n_tr_nilvera_seller_supplier_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "help": "Used for the information of the supplier of the goods in the delivery note.",
+     "string": "Seller Supplier",
+     "type": "Many2one"
+    },
+    "l10n_tr_nilvera_trailer_plate_ids": {
+     "comodel": "l10n_tr.nilvera.trailer.plate",
+     "copy": false,
+     "domain": "[('plate_number_type', '=', 'trailer')]",
+     "help": "Used to input the plate numbers of the trailers attached to the truck.",
+     "relation_table": "l10n_tr_nilvera_delivery_vehicle_rel",
+     "string": "Trailer Plates",
+     "type": "Many2many"
+    },
+    "l10n_tr_vehicle_plate": {
+     "comodel": "l10n_tr.nilvera.trailer.plate",
+     "copy": false,
+     "domain": "[('plate_number_type', '=', 'vehicle')]",
+     "help": "Used to input the plate number of the truck.",
+     "string": "Vehicle Plate",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tr_nilvera_carrier_id', 'l10n_tr_nilvera_buyer_id', 'l10n_tr_nilvera_seller_supplier_id', 'l10n_tr_nilvera_buyer_originator_id', 'l10n_tr_nilvera_delivery_printed_number', 'l10n_tr_nilvera_delivery_date', 'l10n_tr_vehicle_plate', 'l10n_tr_nilvera_trailer_plate_ids', 'l10n_tr_nilvera_driver_ids', 'partner_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_edispatch_warnings"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "button_validate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 74,
+     "name": "_l10n_tr_validate_edispatch_on_done"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_l10n_tr_validate_edispatch_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_l10n_tr_generate_edispatch_xml"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_generate_l10n_tr_edispatch_xml"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_mark_l10n_tr_edispatch_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_tag_text"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_partner_vals_from_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_create_partner_from_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_find_or_create_products_from_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_import_receipt_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_import_vehicle_plate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_import_trailer_plate_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_import_drivers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_import_matbudan_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_import_partners"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_import_edispatch_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_update_data_from_xml"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_l10n_tr_create_receipts_from_attachment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "l10n_tr_import_ereceipts"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  },
+  "stock.picking.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('sequence_code')"
+     ],
+     "lines": 9,
+     "name": "_onchange_sequence_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_action"
+    }
+   ],
+   "name": "stock.picking.type",
+   "sel_methods": {
+    "_onchange_sequence_code": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_tr_nilvera_edispatch",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_tr_nilvera_edispatch",
+ "stats": {
+  "fields": 16,
+  "methods": 24,
+  "models": 4,
+  "py_lines": 639
+ },
+ "summary": "Allows the users to create the UBL 1.2.1 e-Dispatch file",
+ "title": "T\u00fcrkiye - e-Irsaliye (e-Dispatch)",
+ "version": "1.0"
+}

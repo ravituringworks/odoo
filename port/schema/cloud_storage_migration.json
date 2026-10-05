@@ -1,0 +1,231 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Technical Settings",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/data.xml",
+  "data/ir_cron.xml",
+  "views/cloud_storage_migration_report_views.xml",
+  "views/res_config_settings.xml"
+ ],
+ "depends": [
+  "cloud_storage"
+ ],
+ "models": {
+  "cloud.storage.migration.report": {
+   "abstract": false,
+   "description": "Cloud Storage Migration Report",
+   "extension": false,
+   "fields": {
+    "all_count": {
+     "help": "Total number of attachments associated with all records of this model",
+     "readonly": true,
+     "string": "Total Attachments Count",
+     "type": "Integer"
+    },
+    "all_max_size": {
+     "help": "Size in megabytes of the largest attachment associated with any record of this model",
+     "readonly": true,
+     "string": "Largest Attachment (MB)",
+     "type": "Integer"
+    },
+    "all_sum_size": {
+     "help": "Total size in megabytes of all attachments associated with records of this model",
+     "readonly": true,
+     "string": "Total Attachments Size (MB)",
+     "type": "Integer"
+    },
+    "all_to_migrate": {
+     "compute": "_compute_all_to_migrate",
+     "help": "Indicates whether all attachments associated with this model are scheduled for cloud storage migration",
+     "string": "All Attachments Migration",
+     "type": "Boolean"
+    },
+    "has_attachment_rel": {
+     "compute": "_compute_has_attachment_rel",
+     "help": "Indicates whether this model has a relational field linking to ir.attachment model",
+     "string": "Has Attachment Field",
+     "type": "Boolean"
+    },
+    "message_count": {
+     "help": "Total number of attachments linked to mail messages for this model",
+     "readonly": true,
+     "string": "Message Attachments Count",
+     "type": "Integer"
+    },
+    "message_max_size": {
+     "help": "Size in megabytes of the largest attachment linked to mail messages for this model",
+     "readonly": true,
+     "string": "Message Largest Attachment (MB)",
+     "type": "Integer"
+    },
+    "message_sum_size": {
+     "help": "Total size in megabytes of all attachments linked to mail messages for this model",
+     "readonly": true,
+     "string": "Message Attachments Size (MB)",
+     "type": "Integer"
+    },
+    "message_to_migrate": {
+     "compute": "_compute_message_to_migrate",
+     "help": "Indicates whether attachments linked to mail messages for this model are scheduled for cloud storage migration",
+     "string": "Message Attachments Migration",
+     "type": "Boolean"
+    },
+    "res_model": {
+     "readonly": true,
+     "string": "Model",
+     "type": "Char"
+    },
+    "res_model_name": {
+     "compute": "_compute_res_model_name",
+     "readonly": true,
+     "string": "Model Name",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model')"
+     ],
+     "lines": 5,
+     "name": "_compute_res_model_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model')"
+     ],
+     "lines": 5,
+     "name": "_compute_has_attachment_rel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_all_to_migrate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_message_to_migrate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_progress"
+    }
+   ],
+   "name": "cloud.storage.migration.report",
+   "order": "message_sum_size, all_sum_size DESC",
+   "transient": false
+  },
+  "ir.attachment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_migrate_local_to_cloud_storage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 145,
+     "name": "_cron_migrate_local_to_cloud_storage"
+    }
+   ],
+   "name": "ir.attachment",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "cloud_storage_migration_all_model_ids": {
+     "comodel": "ir.model",
+     "help": "Migrate Models' All Attachments",
+     "store": false,
+     "string": "All Attachments",
+     "type": "One2many"
+    },
+    "cloud_storage_migration_all_models": {
+     "type": "Char"
+    },
+    "cloud_storage_migration_message_model_ids": {
+     "comodel": "ir.model",
+     "help": "Migrate Models' Message Attachments",
+     "store": false,
+     "string": "Message Attachments",
+     "type": "One2many"
+    },
+    "cloud_storage_migration_message_models": {
+     "type": "Char"
+    },
+    "cloud_storage_migration_progress": {
+     "help": "Shows the progress of cloud storage migration (current/total)",
+     "string": "Migration Progress",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "get_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_inverse_cloud_storage_migration_message_model_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_inverse_cloud_storage_migration_all_model_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 16,
+     "name": "action_open_cloud_storage_migration_configurations"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "cloud_storage_migration",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/cloud_storage_migration",
+ "stats": {
+  "fields": 16,
+  "methods": 12,
+  "models": 3,
+  "py_lines": 363
+ },
+ "summary": "Migrate local attachments to cloud storage",
+ "title": "Cloud Storage Migration",
+ "version": "1.0"
+}

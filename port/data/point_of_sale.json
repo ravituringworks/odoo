@@ -1,0 +1,1873 @@
+{
+ "module": "point_of_sale",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_sales_point_of_sale",
+   "values": {
+    "description": "Helps you get the most out of your points of sale with fast sale encoding, simplified payment mode encoding, automatic picking lists generation and more.",
+    "sequence": "21"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_pos_user",
+   "values": {
+    "name": "User",
+    "category_id": {
+     "$ref": "base.module_category_sales_point_of_sale"
+    }
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_pos_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_sales_point_of_sale"
+    },
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "group_pos_user"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "stock.group_stock_user"
+      }
+     ]
+    ],
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_bank_statement_account_user",
+   "values": {
+    "name": "Point Of Sale Bank Statement Accountant",
+    "model_id": {
+     "$ref": "account.model_account_bank_statement"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_bank_statement_line_user",
+   "values": {
+    "name": "Point Of Sale Bank Statement Line POS User",
+    "model_id": {
+     "$ref": "account.model_account_bank_statement_line"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_pos_user"
+      }
+     ]
+    ],
+    "domain_force": "[('pos_session_id', '!=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_bank_statement_line_account_user",
+   "values": {
+    "name": "Point Of Sale Bank Statement Line Accountant",
+    "model_id": {
+     "$ref": "account.model_account_bank_statement_line"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "account.group_account_invoice"
+      }
+     ]
+    ],
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_multi_company",
+   "values": {
+    "name": "Point Of Sale Order",
+    "model_id": {
+     "$ref": "model_pos_order"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_order_line_multi_company",
+   "values": {
+    "name": "Point Of Sale Order Line",
+    "model_id": {
+     "$ref": "model_pos_order_line"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_session_multi_company",
+   "values": {
+    "name": "Point Of Sale Session",
+    "model_id": {
+     "$ref": "model_pos_session"
+    },
+    "domain_force": "[('config_id.company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_config_multi_company",
+   "values": {
+    "name": "Point Of Sale Config",
+    "model_id": {
+     "$ref": "model_pos_config"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_order_report_multi_company",
+   "values": {
+    "name": "Point Of Sale Order Analysis multi-company",
+    "model_id": {
+     "$ref": "model_report_pos_order"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_payment_method_multi_company",
+   "values": {
+    "name": "PoS Payment Method",
+    "model_id": {
+     "$ref": "model_pos_payment_method"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_pos_payment_multi_company",
+   "values": {
+    "name": "PoS Payment",
+    "model_id": {
+     "$ref": "model_pos_payment"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_invoice_pos_user",
+   "values": {
+    "name": "Invoice POS User",
+    "model_id": {
+     "$ref": "account.model_account_move"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_pos_user"
+      }
+     ]
+    ],
+    "domain_force": "[('pos_order_ids', '!=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "rule_invoice_line_pos_user",
+   "values": {
+    "name": "Invoice Line POS User",
+    "model_id": {
+     "$ref": "account.model_account_move_line"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_pos_user"
+      }
+     ]
+    ],
+    "domain_force": "[('move_id.pos_order_ids', '!=', False)]"
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "point_of_sale.group_pos_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "product_attribute_custom_value_pos_rule",
+   "values": {
+    "name": "product.attribute.custom.value: pos manager read all records",
+    "model_id": {
+     "$ref": "product.model_product_attribute_custom_value"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "group_pos_manager"
+      }
+     ]
+    ],
+    "domain_force": "[(1, '=', 1)]"
+   }
+  },
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_cashier",
+   "values": {
+    "name": "Cashier Barcodes",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "50",
+    "type": "cashier",
+    "encoding": "any",
+    "pattern": "041"
+   }
+  },
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_client",
+   "values": {
+    "name": "Customer Barcodes",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "40",
+    "type": "client",
+    "encoding": "any",
+    "pattern": "042"
+   }
+  },
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_discount",
+   "values": {
+    "name": "Discount Barcodes",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "20",
+    "type": "discount",
+    "encoding": "any",
+    "pattern": "22{NN}"
+   }
+  },
+  {
+   "model": "barcode.rule",
+   "id": "barcode_rule_price_two_dec",
+   "values": {
+    "name": "Price Barcodes 2 Decimals",
+    "barcode_nomenclature_id": {
+     "$ref": "barcodes.default_barcode_nomenclature"
+    },
+    "sequence": "14",
+    "type": "price",
+    "encoding": "ean13",
+    "pattern": "23.....{NNNDD}"
+   }
+  },
+  {
+   "model": "digest.digest",
+   "id": "digest.digest_digest_default",
+   "values": {
+    "kpi_pos_total": "True"
+   }
+  },
+  {
+   "model": "pos.note",
+   "id": "pos_note_wait",
+   "values": {
+    "name": "Wait",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "pos.note",
+   "id": "pos_note_serve",
+   "values": {
+    "name": "To Serve",
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "pos.note",
+   "id": "pos_note_emergency",
+   "values": {
+    "name": "Emergency",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "pos.note",
+   "id": "pos_note_no_dressing",
+   "values": {
+    "name": "No Dressing",
+    "sequence": "4"
+   }
+  },
+  {
+   "model": "web_tour.tour",
+   "id": "point_of_sale_tour",
+   "values": {
+    "name": "point_of_sale_tour",
+    "sequence": "45",
+    "rainbow_man_message": ""
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_payment",
+   "values": {
+    "name": "Payment",
+    "res_model": "pos.make.payment",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_report_pos_daily_sales_reports",
+   "values": {
+    "name": "Session Report",
+    "res_model": "pos.daily.sales.reports.wizard",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_configuration",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "point_of_sale",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_note_model",
+   "values": {
+    "name": "Note Models",
+    "res_model": "pos.note",
+    "view_mode": "list"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_pos_form",
+   "values": {
+    "name": "Orders",
+    "res_model": "pos.order",
+    "path": "pos-orders",
+    "view_mode": "list,form,kanban,pivot",
+    "view_id": false,
+    "domain": [],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_sale_graph",
+   "values": {
+    "name": "Orders",
+    "res_model": "pos.order",
+    "view_mode": "graph,list,form,kanban,pivot",
+    "domain": [
+     [
+      "state",
+      "not in",
+      [
+       "draft",
+       "cancel",
+       "invoiced"
+      ]
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_order_line",
+   "values": {
+    "name": "Sale line",
+    "res_model": "pos.order.line",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_pos_order_line"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_order_line_form",
+   "values": {
+    "name": "Sale line",
+    "res_model": "pos.order.line",
+    "view_mode": "form,list",
+    "view_id": {
+     "$ref": "view_pos_order_line_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_order_line_day",
+   "values": {
+    "name": "Sale line",
+    "res_model": "pos.order.line",
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "view_pos_order_line"
+    },
+    "domain": {
+     "$unevaluated": "[('create_date', '>=', time.strftime('%Y-%m-%d 00:00:00')),('create_date', '<=', time.strftime('%Y-%m-%d 23:59:59'))]"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_all_sales_lines",
+   "values": {
+    "name": "All sales lines",
+    "res_model": "pos.order.line",
+    "view_id": {
+     "$ref": "view_pos_order_tree_all_sales_lines"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_send_mail",
+   "values": {
+    "name": "Send Email",
+    "model_id": {
+     "$ref": "model_pos_order"
+    },
+    "binding_model_id": {
+     "$ref": "model_pos_order"
+    },
+    "binding_view_types": "list",
+    "state": "code",
+    "code": "action = records.action_send_mail()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "pos_order_set_cancel",
+   "values": {
+    "name": "Cancel Order",
+    "model_id": {
+     "$ref": "point_of_sale.model_pos_order"
+    },
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "point_of_sale.group_pos_user"
+      }
+     ]
+    ],
+    "binding_model_id": {
+     "$ref": "point_of_sale.model_pos_order"
+    },
+    "state": "code",
+    "binding_view_types": "list,form",
+    "code": "if records:\n    action = records.action_pos_order_cancel()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_pos_category_action",
+   "values": {
+    "name": "PoS Product Categories",
+    "res_model": "pos.category",
+    "view_mode": "list,kanban,form",
+    "view_id": false,
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_template_action_pos_product",
+   "values": {
+    "name": "Products",
+    "res_model": "product.template",
+    "view_mode": "kanban,list,form,activity",
+    "context": {
+     "search_default_filter_to_availabe_pos": 1,
+     "default_available_in_pos": true,
+     "create_variant_never": "no_variant",
+     "_pos_self_order": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_product_action",
+   "values": {
+    "name": "Product Variants",
+    "res_model": "product.product",
+    "view_mode": "kanban,list,form,activity",
+    "context": {
+     "search_default_filter_to_availabe_pos": 1,
+     "default_available_in_pos": true
+    },
+    "search_view_id": false,
+    "view_id": {
+     "$ref": "product.product_product_tree_view"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_category_action",
+   "values": {
+    "name": "Internal Categories",
+    "res_model": "product.category",
+    "search_view_id": {
+     "$ref": "product.product_category_search_view"
+    },
+    "view_id": {
+     "$ref": "product.product_category_list_view"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_product_action_add_pos",
+   "values": {
+    "name": "New Product",
+    "res_model": "product.product",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "default_available_in_pos": true,
+     "create_variant_never": "no_variant",
+     "dialog_size": "medium",
+     "can_be_sold": true,
+     "default_is_storable": true
+    },
+    "view_id": {
+     "$ref": "product_product_view_form_normalized_pos"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_product_action_edit_pos",
+   "values": {
+    "name": "Edit Product",
+    "res_model": "product.product",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+     "dialog_size": "medium"
+    },
+    "view_id": {
+     "$ref": "point_of_sale.product_product_view_form_normalized_pos"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_payment_method_form",
+   "values": {
+    "name": "Payment Methods",
+    "res_model": "pos.payment.method",
+    "view_mode": "list,kanban,form",
+    "view_id": false,
+    "domain": [],
+    "context": {
+     "search_default_group_by_account": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_payment_methods_tree",
+   "values": {
+    "context": {},
+    "name": "Payments Methods",
+    "res_model": "pos.payment.method",
+    "view_id": {
+     "$ref": "pos_payment_method_view_tree"
+    },
+    "view_mode": "list,form,kanban"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_payment_form",
+   "values": {
+    "name": "Payments",
+    "res_model": "pos.payment",
+    "view_mode": "list,form",
+    "view_id": false,
+    "domain": [],
+    "context": {
+     "search_default_group_by_payment_method": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_config_kanban",
+   "values": {
+    "name": "Point of Sale",
+    "path": "point-of-sale",
+    "res_model": "pos.config",
+    "view_mode": "kanban,list,form",
+    "domain": "",
+    "search_view_id": {
+     "$ref": "view_pos_config_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_config_tree",
+   "values": {
+    "name": "Point of Sale List",
+    "res_model": "pos.config",
+    "view_mode": "list,form",
+    "domain": "",
+    "search_view_id": {
+     "$ref": "view_pos_config_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_bill",
+   "values": {
+    "name": "Coins/Bills",
+    "res_model": "pos.bill",
+    "view_mode": "list,form"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_session",
+   "values": {
+    "name": "Sessions",
+    "res_model": "pos.session",
+    "path": "pos-sessions",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "view_pos_session_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "mail.activity.type",
+   "id": "mail_activity_old_session",
+   "values": {
+    "name": "Session open over 7 days",
+    "summary": "note",
+    "category": "default",
+    "res_model": "pos.session",
+    "icon": "fa-tasks",
+    "delay_count": "0"
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_pos_session",
+   "values": {
+    "name": "POS Session",
+    "code": "pos.session",
+    "prefix": "POS/",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_client_pos_menu",
+   "values": {
+    "name": "Reload POS Menu",
+    "tag": "reload",
+    "params": {
+     "menu_id": {
+      "$ref": "menu_point_root"
+     }
+    }
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "action_client_product_menu",
+   "values": {
+    "name": "Load Product Menu",
+    "tag": "reload",
+    "params": {
+     "menu_id": {
+      "$ref": "point_of_sale.menu_pos_products"
+     }
+    }
+   }
+  },
+  {
+   "model": "product.category",
+   "id": "product_category_pos",
+   "values": {
+    "parent_id": {
+     "$ref": "product.product_category_1"
+    },
+    "name": "PoS"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_tip",
+   "values": {
+    "name": "Tips",
+    "categ_id": {
+     "$ref": "point_of_sale.product_category_pos"
+    },
+    "default_code": "TIPS",
+    "weight": "0.01",
+    "available_in_pos": "False",
+    "taxes_id": [
+     [
+      5
+     ]
+    ]
+   }
+  },
+  {
+   "model": "uom.category",
+   "id": "uom.product_uom_categ_unit",
+   "values": {
+    "is_pos_groupable": "True"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "0_05",
+   "values": {
+    "name": "0.05",
+    "value": "0.05"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "0_10",
+   "values": {
+    "name": "0.10",
+    "value": "0.10"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "0_20",
+   "values": {
+    "name": "0.20",
+    "value": "0.20"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "0_25",
+   "values": {
+    "name": "0.25",
+    "value": "0.25"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "0_50",
+   "values": {
+    "name": "0.50",
+    "value": "0.50"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "1_00",
+   "values": {
+    "name": "1.00",
+    "value": "1.00"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "2_00",
+   "values": {
+    "name": "2.00",
+    "value": "2.00"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "5_00",
+   "values": {
+    "name": "5.00",
+    "value": "5.00"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "10_00",
+   "values": {
+    "name": "10.00",
+    "value": "10.00"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "20_00",
+   "values": {
+    "name": "20.00",
+    "value": "20.00"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "50_00",
+   "values": {
+    "name": "50.00",
+    "value": "50.00"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "100_00",
+   "values": {
+    "name": "100.00",
+    "value": "100.00"
+   }
+  },
+  {
+   "model": "pos.bill",
+   "id": "200_00",
+   "values": {
+    "name": "200.00",
+    "value": "200.00"
+   }
+  },
+  {
+   "model": "ir.filters",
+   "id": "filter_orders_per_session",
+   "values": {
+    "name": "Per session",
+    "model_id": "report.pos.order",
+    "user_id": false,
+    "context": {
+     "group_by": [
+      "date",
+      "session_id"
+     ]
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_report_pos_order_all",
+   "values": {
+    "name": "Orders Analysis",
+    "res_model": "report.pos.order",
+    "view_mode": "graph,pivot",
+    "search_view_id": {
+     "$ref": "view_report_pos_order_search"
+    },
+    "context": {
+     "group_by": [],
+     "search_default_not_cancelled": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_report_pos_details",
+   "values": {
+    "name": "Sales Details",
+    "res_model": "pos.details.wizard",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_action_edit_pos",
+   "values": {
+    "name": "Edit Partner",
+    "res_model": "res.partner",
+    "view_mode": "form",
+    "target": "new",
+    "view_id": {
+     "$ref": "base.view_partner_form"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_session_filtered",
+   "values": {
+    "name": "Sessions",
+    "res_model": "pos.session",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "view_pos_session_search"
+    },
+    "context": {
+     "$unevaluated": "{\n            'search_default_config_id': [active_id],\n            'default_config_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_order_filtered",
+   "values": {
+    "name": "Orders",
+    "res_model": "pos.order",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "view_pos_order_search"
+    },
+    "context": {
+     "$unevaluated": "{\n            'search_default_config_id': [active_id],\n            'default_config_id': active_id}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_report_pos_order_all_filtered",
+   "values": {
+    "name": "Orders Analysis",
+    "res_model": "report.pos.order",
+    "view_mode": "graph,pivot",
+    "search_view_id": {
+     "$ref": "view_report_pos_order_search"
+    },
+    "context": {
+     "$unevaluated": "{\n            'search_default_config_id': [active_id],\n            'default_config_id': active_id}"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_pos_printer_form",
+   "values": {
+    "name": "Preparation Printers",
+    "res_model": "pos.printer",
+    "view_mode": "list,kanban,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_point_root",
+   "name": "Point of Sale",
+   "sequence": "50",
+   "groups": "group_pos_manager,group_pos_user",
+   "web_icon": "point_of_sale,static/description/icon.png"
+  },
+  {
+   "id": "menu_point_of_sale",
+   "name": "Orders",
+   "parent": "menu_point_root",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_point_of_sale_customer",
+   "name": "Customers",
+   "parent": "menu_point_of_sale",
+   "action": "account.res_partner_action_customer",
+   "sequence": "100"
+  },
+  {
+   "id": "menu_point_rep",
+   "name": "Reporting",
+   "parent": "menu_point_root",
+   "sequence": "90"
+  },
+  {
+   "id": "menu_report_daily_details",
+   "name": "Session Report",
+   "parent": "menu_point_rep",
+   "action": "action_report_pos_daily_sales_reports",
+   "sequence": "5"
+  },
+  {
+   "id": "menu_point_config_product",
+   "name": "Configuration",
+   "parent": "menu_point_root",
+   "sequence": "100",
+   "groups": "group_pos_manager"
+  },
+  {
+   "id": "pos_menu_products_configuration",
+   "name": "Products",
+   "parent": "menu_point_config_product",
+   "sequence": "12"
+  },
+  {
+   "id": "menu_pos_global_settings",
+   "name": "Settings",
+   "parent": "menu_point_config_product",
+   "action": "action_pos_configuration",
+   "sequence": "0",
+   "groups": "base.group_system"
+  },
+  {
+   "id": "menu_pos_note_model",
+   "parent": "menu_point_config_product",
+   "action": "action_pos_note_model",
+   "sequence": "11"
+  },
+  {
+   "id": "menu_point_ofsale",
+   "parent": "menu_point_of_sale",
+   "action": "action_pos_pos_form",
+   "sequence": "2",
+   "groups": "group_pos_manager,group_pos_user"
+  },
+  {
+   "id": "pos_config_menu_catalog",
+   "name": "Products",
+   "parent": "point_of_sale.menu_point_root"
+  },
+  {
+   "id": "menu_pos_products",
+   "parent": "point_of_sale.pos_config_menu_catalog",
+   "action": "product_template_action_pos_product",
+   "sequence": "5"
+  },
+  {
+   "id": "pos_config_menu_action_product_product",
+   "name": "Product Variants",
+   "parent": "point_of_sale.pos_config_menu_catalog",
+   "action": "product_product_action",
+   "sequence": "10",
+   "groups": "product.group_product_variant"
+  },
+  {
+   "id": "point_of_sale.menu_product_combo",
+   "name": "Combo Choices",
+   "parent": "point_of_sale.pos_config_menu_catalog",
+   "action": "product.product_combo_action",
+   "sequence": "15"
+  },
+  {
+   "id": "pos_config_menu_action_product_pricelist",
+   "parent": "point_of_sale.pos_config_menu_catalog",
+   "action": "product.product_pricelist_action2",
+   "sequence": "20",
+   "groups": "product.group_product_pricelist"
+  },
+  {
+   "id": "menu_action_tax_form_open",
+   "parent": "point_of_sale.menu_point_config_product",
+   "action": "account.action_tax_form",
+   "sequence": "40",
+   "groups": "base.group_no_one"
+  },
+  {
+   "id": "menu_pos_payment_method",
+   "parent": "menu_point_config_product",
+   "action": "action_pos_payment_method_form",
+   "sequence": "3",
+   "groups": "group_pos_manager,group_pos_user"
+  },
+  {
+   "id": "menu_pos_payment",
+   "parent": "menu_point_of_sale",
+   "action": "action_pos_payment_form",
+   "sequence": "3",
+   "groups": "group_pos_manager,group_pos_user"
+  },
+  {
+   "id": "menu_products_pos_category",
+   "parent": "point_of_sale.pos_menu_products_configuration",
+   "action": "point_of_sale.product_pos_category_action",
+   "sequence": "1"
+  },
+  {
+   "id": "pos_menu_products_attribute_action",
+   "parent": "point_of_sale.pos_menu_products_configuration",
+   "action": "product.attribute_action",
+   "sequence": "2",
+   "groups": "product.group_product_variant"
+  },
+  {
+   "id": "menu_pos_dashboard",
+   "name": "Dashboard",
+   "parent": "menu_point_root",
+   "action": "action_pos_config_kanban",
+   "sequence": "1"
+  },
+  {
+   "id": "menu_point_of_sale_list",
+   "name": "Point of Sales",
+   "parent": "menu_point_config_product",
+   "action": "action_pos_config_tree",
+   "sequence": "10"
+  },
+  {
+   "id": "menu_pos_bill",
+   "name": "Coins/Bills",
+   "parent": "menu_point_config_product",
+   "action": "action_pos_bill",
+   "sequence": "4",
+   "groups": "group_pos_manager"
+  },
+  {
+   "id": "menu_pos_session_all",
+   "parent": "menu_point_of_sale",
+   "action": "action_pos_session",
+   "sequence": "2",
+   "groups": "group_pos_manager"
+  },
+  {
+   "id": "menu_report_pos_order_all",
+   "name": "Orders",
+   "parent": "menu_point_rep",
+   "action": "action_report_pos_order_all",
+   "sequence": "3"
+  },
+  {
+   "id": "menu_report_order_details",
+   "name": "Sales Details",
+   "parent": "menu_point_rep",
+   "action": "action_report_pos_details",
+   "sequence": "4"
+  },
+  {
+   "id": "point_of_sale.menu_pos_preparation_printer",
+   "name": "Preparation Printers",
+   "parent": "point_of_sale.menu_point_of_sale",
+   "action": "action_pos_printer_form",
+   "sequence": "99"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_pos_printer_manager",
+   "model": "pos.printer",
+   "model_xmlid": "model_pos_printer",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_pos_printer",
+   "model": "pos.printer",
+   "model_xmlid": "model_pos_printer",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_order",
+   "model": "pos.order",
+   "model_xmlid": "model_pos_order",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_pos_order_line",
+   "model": "pos.order.line",
+   "model_xmlid": "model_pos_order_line",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_pos_pack_operation_lot",
+   "model": "pos.pack.operation.lot",
+   "model_xmlid": "model_pos_pack_operation_lot",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_picking_pos_user",
+   "model": "stock.stock.picking",
+   "model_xmlid": "stock.model_stock_picking",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_stock_warehouse_pos_user",
+   "model": "stock.stock.warehouse",
+   "model_xmlid": "stock.model_stock_warehouse",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_order_stock_worker",
+   "model": "pos.order",
+   "model_xmlid": "model_pos_order",
+   "group": "stock.group_stock_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_move_pos_user",
+   "model": "stock.stock.move",
+   "model_xmlid": "stock.model_stock_move",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_report_pos_order",
+   "model": "report.pos.order",
+   "model_xmlid": "model_report_pos_order",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_pos_user",
+   "model": "account.account.journal",
+   "model_xmlid": "account.model_account_journal",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment_method_pos_user",
+   "model": "account.account.payment.method",
+   "model_xmlid": "account.model_account_payment_method",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_payment_method_line_pos_user",
+   "model": "account.account.payment.method.line",
+   "model_xmlid": "account.model_account_payment_method_line",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_bank_statement_line",
+   "model": "account.account.bank.statement.line",
+   "model_xmlid": "account.model_account_bank_statement_line",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_template_pos_user",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_pos_manager",
+   "model": "product.product.product",
+   "model_xmlid": "product.model_product_product",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_pos_manager",
+   "model": "product.product.template",
+   "model_xmlid": "product.model_product_template",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_pos_manager",
+   "model": "product.product.attribute",
+   "model_xmlid": "product.model_product_attribute",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_attribute_value_pos_manager",
+   "model": "product.product.attribute.value",
+   "model_xmlid": "product.model_product_attribute_value",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_update_product_attribute_value_pos_manager",
+   "model": "product.update.product.attribute.value",
+   "model_xmlid": "product.model_update_product_attribute_value",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_product_attribute_custom_value_pos_manager",
+   "model": "product.product.attribute.custom.value",
+   "model_xmlid": "product.model_product_attribute_custom_value",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_attribute_pos_manager",
+   "model": "product.product.template.attribute.value",
+   "model_xmlid": "product.model_product_template_attribute_value",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_attribute_exclusion_pos_manager",
+   "model": "product.product.template.attribute.exclusion",
+   "model_xmlid": "product.model_product_template_attribute_exclusion",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_template_attribute_line_pos_manager",
+   "model": "product.product.template.attribute.line",
+   "model_xmlid": "product.model_product_template_attribute_line",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_account_bank_statement_line_manager",
+   "model": "account.account.bank.statement.line",
+   "model_xmlid": "account.model_account_bank_statement_line",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_product_supplierinfo_user",
+   "model": "product.product.supplierinfo",
+   "model_xmlid": "product.model_product_supplierinfo",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_product_packaging_user",
+   "model": "product.product.packaging",
+   "model_xmlid": "product.model_product_packaging",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_warehouse_manager",
+   "model": "stock.stock.warehouse",
+   "model_xmlid": "stock.model_stock_warehouse",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_stock_location_manager",
+   "model": "stock.stock.location",
+   "model_xmlid": "stock.model_stock_location",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_uom_uom_manager",
+   "model": "uom.uom.uom",
+   "model_xmlid": "uom.model_uom_uom",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_category_manager",
+   "model": "product.product.category",
+   "model_xmlid": "product.model_product_category",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_manager",
+   "model": "product.product.pricelist",
+   "model_xmlid": "product.model_product_pricelist",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_pricelist_user",
+   "model": "product.product.pricelist",
+   "model_xmlid": "product.model_product_pricelist",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_tag_pos_manager",
+   "model": "product.product.tag",
+   "model_xmlid": "product.model_product_tag",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_pos_session_user",
+   "model": "pos.session",
+   "model_xmlid": "model_pos_session",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_config_user",
+   "model": "pos.config",
+   "model_xmlid": "model_pos_config",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_config_system_user",
+   "model": "pos.config",
+   "model_xmlid": "model_pos_config",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_config_manager",
+   "model": "pos.config",
+   "model_xmlid": "model_pos_config",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_category_pos_manager",
+   "model": "pos.category",
+   "model_xmlid": "model_pos_category",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_category_pos_user",
+   "model": "pos.category",
+   "model_xmlid": "model_pos_category",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_barcode_nomenclature_pos_user",
+   "model": "barcodes.barcode.nomenclature",
+   "model_xmlid": "barcodes.model_barcode_nomenclature",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_barcode_nomenclature_pos_manager",
+   "model": "barcodes.barcode.nomenclature",
+   "model_xmlid": "barcodes.model_barcode_nomenclature",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_barcode_rule_pos_user",
+   "model": "barcodes.barcode.rule",
+   "model_xmlid": "barcodes.model_barcode_rule",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_barcode_rule_pos_manager",
+   "model": "barcodes.barcode.rule",
+   "model_xmlid": "barcodes.model_barcode_rule",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_decimal_precision_user",
+   "model": "base.decimal.precision",
+   "model_xmlid": "base.model_decimal_precision",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_payment_user",
+   "model": "pos.payment",
+   "model_xmlid": "model_pos_payment",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_pos_payment_method_user",
+   "model": "pos.payment.method",
+   "model_xmlid": "model_pos_payment_method",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_payment_method_manager",
+   "model": "pos.payment.method",
+   "model_xmlid": "model_pos_payment_method",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_combo_pos_manager",
+   "model": "product.combo",
+   "model_xmlid": "model_product_combo",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_combo_pos_user",
+   "model": "product.combo",
+   "model_xmlid": "model_product_combo",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_product_combo_item_pos_manager",
+   "model": "product.combo.item",
+   "model_xmlid": "model_product_combo_item",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_product_combo_item_pos_user",
+   "model": "product.combo.item",
+   "model_xmlid": "model_product_combo_item",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_details_wizard",
+   "model": "pos.details.wizard",
+   "model_xmlid": "model_pos_details_wizard",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_make_payment",
+   "model": "pos.make.payment",
+   "model_xmlid": "model_pos_make_payment",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_close_session_wizard",
+   "model": "pos.close.session.wizard",
+   "model_xmlid": "model_pos_close_session_wizard",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_cash_rounding_pos_user",
+   "model": "account.account.cash.rounding",
+   "model_xmlid": "account.model_account_cash_rounding",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_bill",
+   "model": "pos.bill",
+   "model_xmlid": "model_pos_bill",
+   "group": "group_pos_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_pos_daily_sales_reports_wizard",
+   "model": "pos.daily.sales.reports.wizard",
+   "model_xmlid": "model_pos_daily_sales_reports_wizard",
+   "group": "group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_entry",
+   "model": "account.move",
+   "model_xmlid": "model_account_move",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_account_journal_item",
+   "model": "account.move.line",
+   "model_xmlid": "model_account_move_line",
+   "group": "group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_note",
+   "model": "pos.note",
+   "model_xmlid": "model_pos_note",
+   "group": "point_of_sale.group_pos_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_pos_note_manager",
+   "model": "pos.note",
+   "model_xmlid": "model_pos_note",
+   "group": "point_of_sale.group_pos_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

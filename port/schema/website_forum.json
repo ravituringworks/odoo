@@ -1,0 +1,1660 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/Website",
+ "data_files": [
+  "data/ir_config_parameter_data.xml",
+  "data/forum_forum_template_faq.xml",
+  "data/forum_forum_data.xml",
+  "data/forum_post_reason_data.xml",
+  "data/ir_actions_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/mail_templates.xml",
+  "data/website_menu_data.xml",
+  "data/website_forum_tour.xml",
+  "views/forum_post_views.xml",
+  "views/forum_post_reason_views.xml",
+  "views/forum_tag_views.xml",
+  "views/forum_forum_views.xml",
+  "views/res_users_views.xml",
+  "views/gamification_karma_tracking_views.xml",
+  "views/forum_menus.xml",
+  "views/base_contact_templates.xml",
+  "views/forum_forum_templates.xml",
+  "views/forum_forum_templates_forum_all.xml",
+  "views/forum_forum_templates_layout.xml",
+  "views/forum_forum_templates_moderation.xml",
+  "views/forum_forum_templates_post.xml",
+  "views/forum_forum_templates_tools.xml",
+  "views/forum_templates_mail.xml",
+  "views/website_profile_templates.xml",
+  "views/snippets/snippets.xml",
+  "security/ir.model.access.csv",
+  "security/ir_rule_data.xml",
+  "data/gamification_badge_data_question.xml",
+  "data/gamification_badge_data_answer.xml",
+  "data/gamification_badge_data_participation.xml",
+  "data/gamification_badge_data_moderation.xml",
+  "data/forum_tag_demo.xml",
+  "data/forum_post_demo.xml"
+ ],
+ "depends": [
+  "auth_signup",
+  "website_mail",
+  "website_profile"
+ ],
+ "models": {
+  "forum.forum": {
+   "abstract": false,
+   "description": "Forum",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "allow_share": {
+     "default": true,
+     "help": "After posting the user will be proposed to share its question or answer on social networks, enabling social network propagation of the forum content.",
+     "string": "Sharing Options",
+     "type": "Boolean"
+    },
+    "authorized_group_id": {
+     "comodel": "res.groups",
+     "string": "Authorized Group",
+     "type": "Many2one"
+    },
+    "can_moderate": {
+     "compute": "_compute_can_moderate",
+     "string": "Is a moderator",
+     "type": "Boolean"
+    },
+    "count_flagged_posts": {
+     "compute": "_compute_count_flagged_posts",
+     "string": "Number of flagged posts",
+     "type": "Integer"
+    },
+    "count_posts_waiting_validation": {
+     "compute": "_compute_count_posts_waiting_validation",
+     "string": "Number of posts waiting for validation",
+     "type": "Integer"
+    },
+    "default_order": {
+     "default": "last_activity_date desc",
+     "required": true,
+     "selection": [
+      [
+       "create_date desc",
+       "Newest"
+      ],
+      [
+       "last_activity_date desc",
+       "Last Updated"
+      ],
+      [
+       "vote_count desc",
+       "Most Voted"
+      ],
+      [
+       "relevancy desc",
+       "Relevance"
+      ],
+      [
+       "child_count desc",
+       "Answered"
+      ]
+     ],
+     "string": "Default",
+     "type": "Selection"
+    },
+    "description": {
+     "string": "Description",
+     "translate": true,
+     "type": "Text"
+    },
+    "faq": {
+     "string": "Guidelines",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    },
+    "has_pending_post": {
+     "compute": "_compute_has_pending_post",
+     "string": "Has pending post",
+     "type": "Boolean"
+    },
+    "karma_answer": {
+     "default": 3,
+     "string": "Answer questions",
+     "type": "Integer"
+    },
+    "karma_answer_accept_all": {
+     "default": 500,
+     "string": "Accept an answer to all questions",
+     "type": "Integer"
+    },
+    "karma_answer_accept_own": {
+     "default": 20,
+     "string": "Accept an answer on own questions",
+     "type": "Integer"
+    },
+    "karma_ask": {
+     "default": 3,
+     "string": "Ask questions",
+     "type": "Integer"
+    },
+    "karma_close_all": {
+     "default": 500,
+     "string": "Close all posts",
+     "type": "Integer"
+    },
+    "karma_close_own": {
+     "default": 100,
+     "string": "Close own posts",
+     "type": "Integer"
+    },
+    "karma_comment_all": {
+     "default": 1,
+     "string": "Comment all posts",
+     "type": "Integer"
+    },
+    "karma_comment_convert_all": {
+     "default": 500,
+     "string": "Convert all comments to answers",
+     "type": "Integer"
+    },
+    "karma_comment_convert_own": {
+     "default": 50,
+     "string": "Convert own comments to answers",
+     "type": "Integer"
+    },
+    "karma_comment_own": {
+     "default": 1,
+     "string": "Comment own posts",
+     "type": "Integer"
+    },
+    "karma_comment_unlink_all": {
+     "default": 500,
+     "string": "Delete all comments",
+     "type": "Integer"
+    },
+    "karma_comment_unlink_own": {
+     "default": 50,
+     "string": "Delete own comments",
+     "type": "Integer"
+    },
+    "karma_dofollow": {
+     "default": 500,
+     "help": "If the author has not enough karma, a nofollow attribute is added to links",
+     "string": "Nofollow links",
+     "type": "Integer"
+    },
+    "karma_downvote": {
+     "default": 50,
+     "string": "Downvote",
+     "type": "Integer"
+    },
+    "karma_edit_all": {
+     "default": 300,
+     "string": "Edit all posts",
+     "type": "Integer"
+    },
+    "karma_edit_own": {
+     "default": 1,
+     "string": "Edit own posts",
+     "type": "Integer"
+    },
+    "karma_edit_retag": {
+     "default": 75,
+     "string": "Change question tags",
+     "type": "Integer"
+    },
+    "karma_editor": {
+     "default": 30,
+     "string": "Editor Features: image and links",
+     "type": "Integer"
+    },
+    "karma_flag": {
+     "default": 500,
+     "string": "Flag a post as offensive",
+     "type": "Integer"
+    },
+    "karma_gen_answer_accept": {
+     "default": 2,
+     "string": "Accepting an answer",
+     "type": "Integer"
+    },
+    "karma_gen_answer_accepted": {
+     "default": 15,
+     "string": "Answer accepted",
+     "type": "Integer"
+    },
+    "karma_gen_answer_downvote": {
+     "default": -2,
+     "string": "Answer downvoted",
+     "type": "Integer"
+    },
+    "karma_gen_answer_flagged": {
+     "default": -100,
+     "string": "Answer flagged",
+     "type": "Integer"
+    },
+    "karma_gen_answer_upvote": {
+     "default": 10,
+     "string": "Answer upvoted",
+     "type": "Integer"
+    },
+    "karma_gen_question_downvote": {
+     "default": -2,
+     "string": "Question downvoted",
+     "type": "Integer"
+    },
+    "karma_gen_question_new": {
+     "default": 2,
+     "string": "Asking a question",
+     "type": "Integer"
+    },
+    "karma_gen_question_upvote": {
+     "default": 5,
+     "string": "Question upvoted",
+     "type": "Integer"
+    },
+    "karma_moderate": {
+     "default": 1000,
+     "string": "Moderate posts",
+     "type": "Integer"
+    },
+    "karma_post": {
+     "default": 100,
+     "string": "Ask questions without validation",
+     "type": "Integer"
+    },
+    "karma_tag_create": {
+     "default": 30,
+     "string": "Create new tags",
+     "type": "Integer"
+    },
+    "karma_unlink_all": {
+     "default": 1000,
+     "string": "Delete all posts",
+     "type": "Integer"
+    },
+    "karma_unlink_own": {
+     "default": 500,
+     "string": "Delete own posts",
+     "type": "Integer"
+    },
+    "karma_upvote": {
+     "default": 5,
+     "string": "Upvote",
+     "type": "Integer"
+    },
+    "karma_user_bio": {
+     "default": 750,
+     "string": "Display detailed user biography",
+     "type": "Integer"
+    },
+    "last_post_id": {
+     "comodel": "forum.post",
+     "compute": "_compute_last_post_id",
+     "type": "Many2one"
+    },
+    "mode": {
+     "default": "questions",
+     "help": "Questions mode: only one answer allowed\n Discussions mode: multiple answers allowed",
+     "required": true,
+     "selection": [
+      [
+       "questions",
+       "Questions (1 answer)"
+      ],
+      [
+       "discussions",
+       "Discussions (multiple answers)"
+      ]
+     ],
+     "string": "Mode",
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Forum Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "post_ids": {
+     "comodel": "forum.post",
+     "inverse_name": "forum_id",
+     "string": "Posts",
+     "type": "One2many"
+    },
+    "privacy": {
+     "default": "public",
+     "help": "Public: Forum is public\nSigned In: Forum is visible for signed in users\nSome users: Forum and their content are hidden for non members of selected group",
+     "selection": [
+      [
+       "public",
+       "Public"
+      ],
+      [
+       "connected",
+       "Signed In"
+      ],
+      [
+       "private",
+       "Some users"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "relevancy_post_vote": {
+     "default": 0.8,
+     "help": "This formula is used in order to sort by relevance. The variable 'votes' represents number of votes for a post, and 'days' is number of days since the post creation",
+     "string": "First Relevance Parameter",
+     "type": "Float"
+    },
+    "relevancy_time_decay": {
+     "default": 1.8,
+     "string": "Second Relevance Parameter",
+     "type": "Float"
+    },
+    "sequence": {
+     "default": 1,
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "tag_ids": {
+     "comodel": "forum.tag",
+     "inverse_name": "forum_id",
+     "string": "Tags",
+     "type": "One2many"
+    },
+    "tag_most_used_ids": {
+     "comodel": "forum.tag",
+     "compute": "_compute_tag_ids_usage",
+     "string": "Most used tags",
+     "type": "One2many"
+    },
+    "tag_unused_ids": {
+     "comodel": "forum.tag",
+     "compute": "_compute_tag_ids_usage",
+     "string": "Unused tags",
+     "type": "One2many"
+    },
+    "teaser": {
+     "compute": "_compute_teaser",
+     "store": true,
+     "string": "Teaser",
+     "type": "Text"
+    },
+    "total_answers": {
+     "compute": "_compute_forum_statistics",
+     "string": "# Answers",
+     "type": "Integer"
+    },
+    "total_favorites": {
+     "compute": "_compute_forum_statistics",
+     "string": "# Favorites",
+     "type": "Integer"
+    },
+    "total_posts": {
+     "compute": "_compute_forum_statistics",
+     "string": "# Posts",
+     "type": "Integer"
+    },
+    "total_views": {
+     "compute": "_compute_forum_statistics",
+     "string": "# Views",
+     "type": "Integer"
+    },
+    "welcome_message": {
+     "default": {
+      "$ref": "_get_default_welcome_message"
+     },
+     "string": "Welcome Message",
+     "translate": {
+      "$ref": "html_translate"
+     },
+     "type": "Html"
+    }
+   },
+   "inherit": [
+    "image.mixin",
+    "mail.thread",
+    "website.multi.mixin",
+    "website.searchable.mixin",
+    "website.seo.metadata"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_get_default_welcome_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 12,
+     "name": "_compute_has_pending_post"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('karma_moderate')"
+     ],
+     "lines": 3,
+     "name": "_compute_can_moderate"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('post_ids', 'post_ids.tag_ids', 'post_ids.tag_ids.posts_count', 'tag_ids')"
+     ],
+     "lines": 27,
+     "name": "_compute_tag_ids_usage"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('description')"
+     ],
+     "lines": 3,
+     "name": "_compute_teaser"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('post_ids')"
+     ],
+     "lines": 8,
+     "name": "_compute_last_post_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('post_ids.state', 'post_ids.views', 'post_ids.child_count', 'post_ids.favourite_count')"
+     ],
+     "lines": 21,
+     "name": "_compute_forum_statistics"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_count_posts_waiting_validation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_count_flagged_posts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_default_faq"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_tag_to_write_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_tags_first_char"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "go_to_website"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_search_get_detail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_search_render_results"
+    }
+   ],
+   "name": "forum.forum",
+   "order": "sequence, id",
+   "sel_methods": {
+    "_tag_to_write_vals": [
+     [
+      0,
+      0
+     ]
+    ]
+   },
+   "transient": false
+  },
+  "forum.post": {
+   "abstract": false,
+   "description": "Forum Post",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "can_accept": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Accept",
+     "type": "Boolean"
+    },
+    "can_answer": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Answer",
+     "type": "Boolean"
+    },
+    "can_ask": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Ask",
+     "type": "Boolean"
+    },
+    "can_close": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Close",
+     "type": "Boolean"
+    },
+    "can_comment": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Comment",
+     "type": "Boolean"
+    },
+    "can_comment_convert": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Convert to Comment",
+     "type": "Boolean"
+    },
+    "can_display_biography": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Is the author's biography visible from his post",
+     "type": "Boolean"
+    },
+    "can_downvote": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Downvote",
+     "type": "Boolean"
+    },
+    "can_edit": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Edit",
+     "type": "Boolean"
+    },
+    "can_flag": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Flag",
+     "type": "Boolean"
+    },
+    "can_moderate": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Moderate",
+     "type": "Boolean"
+    },
+    "can_post": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Automatically be Validated",
+     "type": "Boolean"
+    },
+    "can_unlink": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Unlink",
+     "type": "Boolean"
+    },
+    "can_upvote": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Upvote",
+     "type": "Boolean"
+    },
+    "can_use_full_editor": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can Use Full Editor",
+     "type": "Boolean"
+    },
+    "can_view": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Can View",
+     "type": "Boolean"
+    },
+    "child_count": {
+     "compute": "_compute_child_count",
+     "store": true,
+     "string": "Answers",
+     "type": "Integer"
+    },
+    "child_ids": {
+     "comodel": "forum.post",
+     "domain": "[('forum_id', '=', forum_id)]",
+     "inverse_name": "parent_id",
+     "string": "Post Answers",
+     "type": "One2many"
+    },
+    "closed_date": {
+     "copy": false,
+     "readonly": true,
+     "string": "Closed on",
+     "type": "Datetime"
+    },
+    "closed_reason_id": {
+     "comodel": "forum.post.reason",
+     "copy": false,
+     "string": "Reason",
+     "type": "Many2one"
+    },
+    "closed_uid": {
+     "comodel": "res.users",
+     "copy": false,
+     "readonly": true,
+     "string": "Closed by",
+     "type": "Many2one"
+    },
+    "content": {
+     "string": "Content",
+     "type": "Html"
+    },
+    "create_date": {
+     "index": true,
+     "readonly": true,
+     "string": "Asked on",
+     "type": "Datetime"
+    },
+    "create_uid": {
+     "comodel": "res.users",
+     "index": true,
+     "readonly": true,
+     "string": "Created by",
+     "type": "Many2one"
+    },
+    "favourite_count": {
+     "compute": "_compute_favorite_count",
+     "store": true,
+     "string": "Favorite",
+     "type": "Integer"
+    },
+    "favourite_ids": {
+     "comodel": "res.users",
+     "string": "Favourite",
+     "type": "Many2many"
+    },
+    "flag_user_id": {
+     "comodel": "res.users",
+     "string": "Flagged by",
+     "type": "Many2one"
+    },
+    "forum_id": {
+     "comodel": "forum.forum",
+     "required": true,
+     "string": "Forum",
+     "type": "Many2one"
+    },
+    "has_validated_answer": {
+     "compute": "_compute_has_validated_answer",
+     "store": true,
+     "string": "Is answered",
+     "type": "Boolean"
+    },
+    "is_correct": {
+     "help": "Correct answer or answer accepted",
+     "string": "Correct",
+     "type": "Boolean"
+    },
+    "karma_accept": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Convert comment to answer",
+     "type": "Integer"
+    },
+    "karma_close": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Karma to close",
+     "type": "Integer"
+    },
+    "karma_comment": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Karma to comment",
+     "type": "Integer"
+    },
+    "karma_comment_convert": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Karma to convert comment to answer",
+     "type": "Integer"
+    },
+    "karma_edit": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Karma to edit",
+     "type": "Integer"
+    },
+    "karma_flag": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Flag a post as offensive",
+     "type": "Integer"
+    },
+    "karma_unlink": {
+     "compute": "_compute_post_karma_rights",
+     "string": "Karma to unlink",
+     "type": "Integer"
+    },
+    "last_activity_date": {
+     "default": {
+      "$ref": "fields.Datetime.now"
+     },
+     "help": "Field to keep track of a post's last activity. Updated whenever it is replied to, or when a comment is added on the post or one of its replies.",
+     "readonly": true,
+     "required": true,
+     "string": "Last activity on",
+     "type": "Datetime"
+    },
+    "moderator_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "Reviewed by",
+     "type": "Many2one"
+    },
+    "name": {
+     "string": "Title",
+     "type": "Char"
+    },
+    "parent_id": {
+     "comodel": "forum.post",
+     "index": true,
+     "ondelete": "cascade",
+     "readonly": true,
+     "string": "Question",
+     "type": "Many2one"
+    },
+    "plain_content": {
+     "compute": "_compute_plain_content",
+     "store": true,
+     "string": "Plain Content",
+     "type": "Text"
+    },
+    "relevancy": {
+     "compute": "_compute_relevancy",
+     "store": true,
+     "string": "Relevance",
+     "type": "Float"
+    },
+    "self_reply": {
+     "compute": "_compute_self_reply",
+     "store": true,
+     "string": "Reply to own question",
+     "type": "Boolean"
+    },
+    "state": {
+     "default": "active",
+     "selection": [
+      [
+       "active",
+       "Active"
+      ],
+      [
+       "pending",
+       "Waiting Validation"
+      ],
+      [
+       "close",
+       "Closed"
+      ],
+      [
+       "offensive",
+       "Offensive"
+      ],
+      [
+       "flagged",
+       "Flagged"
+      ]
+     ],
+     "string": "Status",
+     "type": "Selection"
+    },
+    "tag_ids": {
+     "column1": "forum_post_id",
+     "column2": "forum_tag_id",
+     "comodel": "forum.tag",
+     "relation_table": "forum_tag_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "uid_has_answered": {
+     "compute": "_compute_uid_has_answered",
+     "string": "Has Answered",
+     "type": "Boolean"
+    },
+    "user_favourite": {
+     "compute": "_compute_user_favourite",
+     "string": "Is Favourite",
+     "type": "Boolean"
+    },
+    "user_vote": {
+     "compute": "_compute_user_vote",
+     "string": "My Vote",
+     "type": "Integer"
+    },
+    "views": {
+     "copy": false,
+     "default": 0,
+     "readonly": true,
+     "string": "Views",
+     "type": "Integer"
+    },
+    "vote_count": {
+     "compute": "_compute_vote_count",
+     "store": true,
+     "string": "Total Votes",
+     "type": "Integer"
+    },
+    "vote_ids": {
+     "comodel": "forum.post.vote",
+     "inverse_name": "post_id",
+     "string": "Votes",
+     "type": "One2many"
+    },
+    "website_id": {
+     "readonly": true,
+     "related": "forum_id.website_id",
+     "type": "Many2one"
+    },
+    "website_message_ids": {
+     "domain": {
+      "$lambda": "[('model', '=', self._name), ('message_type', 'in', ['email', 'comment', 'email_outgoing'])]"
+     },
+     "type": "One2many"
+    },
+    "website_url": {
+     "compute": "_compute_website_url",
+     "string": "Website URL",
+     "type": "Char"
+    },
+    "write_date": {
+     "index": true,
+     "readonly": true,
+     "string": "Updated on",
+     "type": "Datetime"
+    },
+    "write_uid": {
+     "comodel": "res.users",
+     "index": true,
+     "readonly": true,
+     "string": "Updated by",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "website.searchable.mixin",
+    "website.seo.metadata"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('parent_id')"
+     ],
+     "lines": 3,
+     "name": "_check_parent_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('content')"
+     ],
+     "lines": 3,
+     "name": "_compute_plain_content"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 5,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vote_count', 'forum_id.relevancy_post_vote', 'forum_id.relevancy_time_decay')"
+     ],
+     "lines": 7,
+     "name": "_compute_relevancy"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 5,
+     "name": "_compute_user_vote"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('vote_ids.vote')"
+     ],
+     "lines": 7,
+     "name": "_compute_vote_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 3,
+     "name": "_compute_user_favourite"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('favourite_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_favorite_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('create_uid', 'parent_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_self_reply"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('child_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_child_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 3,
+     "name": "_compute_uid_has_answered"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('child_ids.is_correct')"
+     ],
+     "lines": 3,
+     "name": "_compute_has_validated_answer"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')"
+     ],
+     "lines": 32,
+     "name": "_compute_post_karma_rights"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_search_can_view"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_default_website_meta"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 27,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_access_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_if_enough_karma"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_update_content"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_notify_state_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "reopen"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "close"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "validate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_refuse"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_flag"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_mark_as_offensive"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "mark_as_offensive_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "vote"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "convert_answer_to_comment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 42,
+     "name": "convert_comment_to_answer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "unlink_comment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_viewed"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_update_last_activity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 9,
+     "name": "_get_mail_message_access"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('mail.message', lambda value: value.id)"
+     ],
+     "lines": 20,
+     "name": "message_post"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_notify_thread_by_inbox"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_get_microdata"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_get_structured_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "go_to_website"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 64,
+     "name": "_search_get_detail"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_search_render_results"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_get_related_posts"
+    }
+   ],
+   "name": "forum.post",
+   "order": "is_correct DESC, vote_count DESC, last_activity_date DESC",
+   "sel_methods": {
+    "_get_mail_message_access": [],
+    "_notify_thread_by_inbox": []
+   },
+   "transient": false
+  },
+  "forum.post.reason": {
+   "abstract": false,
+   "description": "Post Closing Reason",
+   "extension": false,
+   "fields": {
+    "name": {
+     "required": true,
+     "string": "Closing Reason",
+     "translate": true,
+     "type": "Char"
+    },
+    "reason_type": {
+     "default": "basic",
+     "selection": [
+      [
+       "basic",
+       "Basic"
+      ],
+      [
+       "offensive",
+       "Offensive"
+      ]
+     ],
+     "string": "Reason Type",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "forum.post.reason",
+   "order": "name",
+   "transient": false
+  },
+  "forum.post.vote": {
+   "abstract": false,
+   "description": "Post Vote",
+   "extension": false,
+   "fields": {
+    "create_date": {
+     "index": true,
+     "readonly": true,
+     "string": "Create Date",
+     "type": "Datetime"
+    },
+    "forum_id": {
+     "comodel": "forum.forum",
+     "readonly": false,
+     "related": "post_id.forum_id",
+     "store": true,
+     "string": "Forum",
+     "type": "Many2one"
+    },
+    "post_id": {
+     "comodel": "forum.post",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Post",
+     "type": "Many2one"
+    },
+    "recipient_id": {
+     "comodel": "res.users",
+     "readonly": false,
+     "related": "post_id.create_uid",
+     "store": true,
+     "string": "To",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self._uid"
+     },
+     "ondelete": "cascade",
+     "required": true,
+     "string": "User",
+     "type": "Many2one"
+    },
+    "vote": {
+     "default": "1",
+     "required": true,
+     "selection": [
+      [
+       "1",
+       "1"
+      ],
+      [
+       "-1",
+       "-1"
+      ],
+      [
+       "0",
+       "0"
+      ]
+     ],
+     "string": "Vote",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_karma_value"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 17,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_check_general_rights"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_check_karma_rights"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_vote_update_karma"
+    }
+   ],
+   "name": "forum.post.vote",
+   "order": "create_date desc, id desc",
+   "sql_constraints": [
+    [
+     "vote_uniq",
+     "unique (post_id, user_id)",
+     "Vote already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "forum.tag": {
+   "abstract": false,
+   "description": "Forum Tag",
+   "extension": false,
+   "fields": {
+    "color": {
+     "string": "Color",
+     "type": "Integer"
+    },
+    "forum_id": {
+     "comodel": "forum.forum",
+     "index": true,
+     "required": true,
+     "string": "Forum",
+     "type": "Many2one"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "post_ids": {
+     "column1": "forum_tag_id",
+     "column2": "forum_post_id",
+     "comodel": "forum.post",
+     "domain": [
+      [
+       "state",
+       "=",
+       "active"
+      ]
+     ],
+     "relation_table": "forum_tag_rel",
+     "string": "Posts",
+     "type": "Many2many"
+    },
+    "posts_count": {
+     "compute": "_compute_posts_count",
+     "store": true,
+     "string": "Number of Posts",
+     "type": "Integer"
+    },
+    "website_url": {
+     "compute": "_compute_website_url",
+     "string": "Link to questions with the tag",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "website.searchable.mixin",
+    "website.seo.metadata"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('post_ids', 'post_ids.tag_ids', 'post_ids.state', 'post_ids.active')"
+     ],
+     "lines": 3,
+     "name": "_compute_posts_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('forum_id', 'forum_id.name', 'name')"
+     ],
+     "lines": 3,
+     "name": "_compute_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 21,
+     "name": "_search_get_detail"
+    }
+   ],
+   "name": "forum.tag",
+   "sql_constraints": [
+    [
+     "name_uniq",
+     "unique (name, forum_id)",
+     "Tag name already exists!"
+    ]
+   ],
+   "transient": false
+  },
+  "gamification.challenge": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "challenge_category": {
+     "ondelete": {
+      "forum": "set default"
+     },
+     "selection_add": [
+      [
+       "forum",
+       "Website / Forum"
+      ]
+     ],
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "gamification.challenge",
+   "transient": false
+  },
+  "gamification.karma.tracking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_origin_selection_values"
+    }
+   ],
+   "name": "gamification.karma.tracking",
+   "transient": false
+  },
+  "ir.attachment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_can_bypass_rights_on_media_dialog"
+    }
+   ],
+   "name": "ir.attachment",
+   "sel_methods": {
+    "_can_bypass_rights_on_media_dialog": []
+   },
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "create_date": {
+     "index": true,
+     "readonly": true,
+     "string": "Create Date",
+     "type": "Datetime"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "open_website_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_gamification_redirection_data"
+    }
+   ],
+   "name": "res.users",
+   "transient": false
+  },
+  "website": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "forum_count": {
+     "default": 0,
+     "readonly": true,
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "get_suggested_controllers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "configurator_get_footer_links"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "configurator_set_menu_links"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_search_get_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_update_forum_count"
+    }
+   ],
+   "name": "website",
+   "transient": false
+  }
+ },
+ "module": "website_forum",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_forum",
+ "stats": {
+  "fields": 136,
+  "methods": 84,
+  "models": 10,
+  "py_lines": 2468
+ },
+ "summary": "Manage a forum with FAQ and Q&A",
+ "title": "Forum",
+ "version": "1.2"
+}

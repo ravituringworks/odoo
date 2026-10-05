@@ -1,0 +1,609 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/l10n_tr_nilvera_einvoice_extended.tax.office.csv",
+  "data/account_incoterms_data.xml",
+  "data/ubl_tr_templates.xml",
+  "views/res_company_views.xml",
+  "views/l10n_tr_nilvera_einvoice_extended_account_tax_code_views.xml",
+  "views/l10n_tr_nilvera_einvoice_extended_tax_office_views.xml",
+  "views/res_partner_views.xml",
+  "views/account_move_views.xml",
+  "views/account_tax_views.xml",
+  "views/product_views.xml",
+  "views/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "l10n_tr_nilvera_einvoice",
+  "contacts"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_tr_withholding_account_tax"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_tr_withholding_account_tax_code"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.edi.xml.ubl.tr": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 59,
+     "name": "_export_invoice_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 29,
+     "name": "_get_ministry_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 19,
+     "name": "_get_tr_profile_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_get_tax_category_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_get_tax_grouping_key"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 67,
+     "name": "_get_tr_tax_totals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_get_invoice_tax_totals_vals_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_invoice_line_tax_totals_vals_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_invoice_line_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_invoice_monetary_total_vals"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 23,
+     "name": "_get_invoice_line_delivery_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_partner_party_tax_scheme_vals_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_export_invoice"
+    }
+   ],
+   "name": "account.edi.xml.ubl.tr",
+   "sel_methods": {
+    "_get_invoice_line_tax_totals_vals_list": []
+   },
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_exemption_code_domain_list": {
+     "compute": "_compute_l10n_tr_exemption_code_domain_list",
+     "type": "Binary"
+    },
+    "l10n_tr_exemption_code_id": {
+     "comodel": "l10n_tr_nilvera_einvoice_extended.account.tax.code",
+     "compute": "_compute_l10n_tr_exemption_code_id",
+     "help": "The exception reason of the invoice.",
+     "readonly": false,
+     "store": true,
+     "string": "Exemption Reason",
+     "type": "Many2one"
+    },
+    "l10n_tr_gib_invoice_scenario": {
+     "default": "TEMELFATURA",
+     "help": "The scenario of the invoice to be sent to G\u0130B.",
+     "selection": [
+      [
+       "TEMELFATURA",
+       "Basic"
+      ],
+      [
+       "KAMU",
+       "Public Sector"
+      ]
+     ],
+     "string": "Invoice Scenario",
+     "type": "Selection"
+    },
+    "l10n_tr_gib_invoice_type": {
+     "compute": "_compute_l10n_tr_gib_invoice_type",
+     "default": "SATIS",
+     "help": "The type of invoice to be sent to G\u0130B.",
+     "readonly": false,
+     "selection": [
+      [
+       "SATIS",
+       "Sales"
+      ],
+      [
+       "TEVKIFAT",
+       "Withholding"
+      ],
+      [
+       "IHRACKAYITLI",
+       "Registered for Export"
+      ],
+      [
+       "ISTISNA",
+       "Tax Exempt"
+      ]
+     ],
+     "store": true,
+     "string": "GIB Invoice Type",
+     "type": "Selection"
+    },
+    "l10n_tr_is_export_invoice": {
+     "string": "Is GIB Export",
+     "type": "Boolean"
+    },
+    "l10n_tr_nilvera_customer_status": {
+     "related": "partner_id.l10n_tr_nilvera_customer_status",
+     "string": "Partner Nilvera Status",
+     "type": "Selection"
+    },
+    "l10n_tr_shipping_type": {
+     "help": "The type of shipping.",
+     "selection": [
+      [
+       "1",
+       "Sea Transportation"
+      ],
+      [
+       "2",
+       "Railway Transportation"
+      ],
+      [
+       "3",
+       "Road Transportation"
+      ],
+      [
+       "4",
+       "Air Transportation"
+      ],
+      [
+       "5",
+       "Post"
+      ],
+      [
+       "6",
+       "Combined Transportation"
+      ],
+      [
+       "7",
+       "Fixed Transportation"
+      ],
+      [
+       "8",
+       "Domestic Water Transportation"
+      ],
+      [
+       "9",
+       "Invalid Transportation Method"
+      ]
+     ],
+     "string": "Shipping Method",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tr_gib_invoice_scenario', 'l10n_tr_gib_invoice_type', 'l10n_tr_is_export_invoice')"
+     ],
+     "lines": 10,
+     "name": "_compute_l10n_tr_exemption_code_domain_list"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tr_gib_invoice_scenario', 'l10n_tr_is_export_invoice')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_tr_gib_invoice_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tr_gib_invoice_scenario', 'l10n_tr_gib_invoice_type', 'partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_tr_exemption_code_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_partner_l10n_tr_nilvera_customer_alias_name"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_get_partner_l10n_tr_nilvera_customer_alias_name": []
+   },
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_ctsp_number": {
+     "compute": "_compute_l10n_tr_ctsp_number",
+     "readonly": false,
+     "store": true,
+     "string": "CTSP Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_id.l10n_tr_ctsp_number')"
+     ],
+     "lines": 3,
+     "name": "_compute_l10n_tr_ctsp_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_tr_ctsp_number')"
+     ],
+     "lines": 4,
+     "name": "_check_l10n_tr_ctsp_number"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "account.move.send": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_get_alerts"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_l10n_tr_tax_partner_tax_office_alert"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_get_l10n_tr_tax_company_tax_office_alert"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_l10n_tr_tax_partner_address_alert"
+    }
+   ],
+   "name": "account.move.send",
+   "sel_methods": {
+    "_get_l10n_tr_tax_partner_address_alert": []
+   },
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_tax_withholding_code_id": {
+     "comodel": "l10n_tr_nilvera_einvoice_extended.account.tax.code",
+     "domain": "[('code_type', '=', 'withholding')]",
+     "help": "The reason for withholding tax.",
+     "string": "Withholding Reason",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.tax",
+   "transient": false
+  },
+  "l10n_tr_nilvera_einvoice_extended.account.tax.code": {
+   "abstract": false,
+   "description": "Turkish Tax Codes (GIB Codes)",
+   "extension": false,
+   "fields": {
+    "code": {
+     "required": true,
+     "string": "Reason Code",
+     "type": "Integer"
+    },
+    "code_type": {
+     "required": true,
+     "selection": [
+      [
+       "withholding",
+       "Withholding"
+      ],
+      [
+       "exception",
+       "Exception"
+      ],
+      [
+       "export_exception",
+       "Export Exception"
+      ],
+      [
+       "export_registration",
+       "Export Registration"
+      ]
+     ],
+     "string": "Code Type",
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Reason",
+     "translate": true,
+     "type": "Char"
+    },
+    "percentage": {
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'percentage')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "l10n_tr_nilvera_einvoice_extended.account.tax.code",
+   "transient": false
+  },
+  "l10n_tr_nilvera_einvoice_extended.tax.office": {
+   "abstract": false,
+   "description": "Turkish Tax Office",
+   "extension": false,
+   "fields": {
+    "code": {
+     "type": "Integer"
+    },
+    "name": {
+     "translate": true,
+     "type": "Char"
+    },
+    "state_code": {
+     "related": "state_id.code",
+     "type": "Char"
+    },
+    "state_id": {
+     "comodel": "res.country.state",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "l10n_tr_nilvera_einvoice_extended.tax.office",
+   "transient": false
+  },
+  "product.product": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_ctsp_number": {
+     "copy": false,
+     "index": "btree_not_null",
+     "string": "CTSP Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_tr_ctsp_number')"
+     ],
+     "lines": 4,
+     "name": "_check_l10n_tr_ctsp_number"
+    }
+   ],
+   "name": "product.product",
+   "transient": false
+  },
+  "product.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_ctsp_number": {
+     "compute": "_compute_l10n_tr_ctsp_number",
+     "string": "CTSP Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_variant_ids.l10n_tr_ctsp_number')"
+     ],
+     "lines": 2,
+     "name": "_compute_l10n_tr_ctsp_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_set_l10n_tr_ctsp_number"
+    }
+   ],
+   "name": "product.template",
+   "transient": false
+  },
+  "res.company": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_nilvera_export_alias": {
+     "default": "urn:mail:ihracatpk@gtb.gov.tr",
+     "groups": "base.group_system",
+     "string": "Nilvera Export Alias",
+     "type": "Char"
+    },
+    "l10n_tr_tax_office_id": {
+     "readonly": false,
+     "related": "partner_id.l10n_tr_tax_office_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.company",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_nilvera_export_alias": {
+     "readonly": false,
+     "related": "company_id.l10n_tr_nilvera_export_alias",
+     "string": "Nilvera Export Alias",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_tr_tax_office_id": {
+     "comodel": "l10n_tr_nilvera_einvoice_extended.tax.office",
+     "string": "Turkish Tax Office",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_tr_tax_office_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_display_name"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  }
+ },
+ "module": "l10n_tr_nilvera_einvoice_extended",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_tr_nilvera_einvoice_extended",
+ "stats": {
+  "fields": 23,
+  "methods": 30,
+  "models": 13,
+  "py_lines": 703
+ },
+ "summary": "This module enhances the core Nilvera integration by adding additional invoice scenarios and types required for Turkish e-Invoicing compliance.",
+ "title": "T\u00fcrkiye - Nilvera E-Invoice Extended",
+ "version": "1.0"
+}

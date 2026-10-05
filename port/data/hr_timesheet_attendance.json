@@ -1,0 +1,135 @@
+{
+ "module": "hr_timesheet_attendance",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "hr_timesheet_attendance_report_restricted_company_rule",
+   "values": {
+    "name": "Restricted Timesheet attendance Record: multi-company",
+    "model_id": {
+     "$ref": "model_hr_timesheet_attendance_report"
+    },
+    "domain_force": "[('company_id', 'in', company_ids + [False])]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_timesheet_attendance_report_rule_user",
+   "values": {
+    "name": "Timesheet attendance Report: User",
+    "model_id": {
+     "$ref": "model_hr_timesheet_attendance_report"
+    },
+    "domain_force": "[('employee_id', '=', user.employee_id.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_timesheet.group_hr_timesheet_user"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_timesheet_attendance_report_rule_approver",
+   "values": {
+    "name": "Timesheet attendance Report: Approver",
+    "model_id": {
+     "$ref": "model_hr_timesheet_attendance_report"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_timesheet.group_hr_timesheet_approver"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_timesheet_attendance_report_rule_manager",
+   "values": {
+    "name": "Timesheet attendance Report: Administrator",
+    "model_id": {
+     "$ref": "model_hr_timesheet_attendance_report"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_timesheet.group_timesheet_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_timesheet_attendance_report",
+   "values": {
+    "name": "Timesheets / Attendance Analysis",
+    "res_model": "hr.timesheet.attendance.report",
+    "path": "timesheets-attendance-analysis",
+    "view_mode": "graph,pivot",
+    "view_id": false,
+    "context": {},
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_hr_timesheet_attendance_report_pivot",
+   "values": {
+    "sequence": 1,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "view_hr_timesheet_attendance_report_pivot"
+    },
+    "act_window_id": {
+     "$ref": "action_hr_timesheet_attendance_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_hr_timesheet_attendance_report_graph",
+   "values": {
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "hr_timesheet_attendance_report_view_graph"
+    },
+    "act_window_id": {
+     "$ref": "action_hr_timesheet_attendance_report"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_hr_timesheet_attendance_report",
+   "name": "Timesheets / Attendance Analysis",
+   "parent": "hr_timesheet.menu_timesheets_reports",
+   "action": "action_hr_timesheet_attendance_report"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_hr_timesheet_attendance_report",
+   "model": "hr.timesheet.attendance.report",
+   "model_xmlid": "model_hr_timesheet_attendance_report",
+   "group": "hr_timesheet.group_hr_timesheet_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

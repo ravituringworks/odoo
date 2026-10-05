@@ -1,0 +1,736 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "data/ir_cron.xml",
+  "data/res_partner.xml",
+  "security/myinvois_security.xml",
+  "security/ir.model.access.csv",
+  "views/account_tax_view.xml",
+  "views/myinvois_document_views.xml",
+  "views/myinvois_document_pos_views.xml",
+  "views/pos_order_views.xml",
+  "views/product_view.xml",
+  "wizard/myinvois_consolidate_invoice_wizard.xml",
+  "wizard/myinvois_status_update_wizard.xml"
+ ],
+ "depends": [
+  "l10n_my_edi_extended",
+  "point_of_sale"
+ ],
+ "models": {
+  "account.edi.xml.ubl_myinvois_my": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 38,
+     "name": "_export_invoice_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_invoice_line_item_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_export_invoice_constraints"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 12,
+     "name": "_is_consolidated_invoice_refund"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_consolidated_invoice_node"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 32,
+     "name": "_add_consolidated_invoice_config_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 81,
+     "name": "_add_consolidated_invoice_base_lines_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_add_consolidated_invoice_monetary_total_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_add_document_tax_grouping_function_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_add_consolidated_invoice_header_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_add_consolidated_invoice_accounting_supplier_party_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_add_consolidated_invoice_accounting_customer_party_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 69,
+     "name": "_get_consolidated_invoice_party_node"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_get_address_node"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_add_consolidated_invoice_monetary_total_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_add_consolidated_invoice_line_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_add_document_line_item_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_add_document_line_amount_nodes"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_add_document_line_gross_subtotal_and_discount_vals"
+    }
+   ],
+   "name": "account.edi.xml.ubl_myinvois_my",
+   "transient": false
+  },
+  "account.tax": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_my_tax_exemption_reason": {
+     "help": "The reason for tax exemption, used when submitting consolidated invoices including this tax.",
+     "string": "Malaysian Tax Exemption Reason",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "account.tax",
+   "transient": false
+  },
+  "myinvois.consolidate.invoice.wizard": {
+   "abstract": false,
+   "description": "Consolidate Invoice Wizard",
+   "extension": false,
+   "fields": {
+    "date_from": {
+     "required": true,
+     "string": "Date From",
+     "type": "Date"
+    },
+    "date_to": {
+     "required": true,
+     "string": "Date To",
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "button_consolidate_orders"
+    }
+   ],
+   "name": "myinvois.consolidate.invoice.wizard",
+   "transient": true
+  },
+  "myinvois.document": {
+   "abstract": false,
+   "description": "MyInvois Document",
+   "extension": true,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "company_currency_id": {
+     "related": "company_id.currency_id",
+     "string": "Company Currency",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "readonly": true,
+     "required": true,
+     "type": "Many2one"
+    },
+    "currency_id": {
+     "comodel": "res.currency",
+     "required": true,
+     "type": "Many2one"
+    },
+    "invoice_ids": {
+     "column1": "document_id",
+     "column2": "invoice_id",
+     "comodel": "account.move",
+     "relation_table": "myinvois_document_invoice_rel",
+     "type": "Many2many"
+    },
+    "linked_order_count": {
+     "compute": "_compute_linked_order_count",
+     "type": "Integer"
+    },
+    "myinvois_custom_form_reference": {
+     "help": "Reference Number of Customs Form No.1, 9, etc.",
+     "string": "Customs Form Reference Number",
+     "type": "Char"
+    },
+    "myinvois_document_long_id": {
+     "copy": false,
+     "readonly": true,
+     "string": "MyInvois Long ID",
+     "type": "Char"
+    },
+    "myinvois_error_document_hash": {
+     "copy": false,
+     "readonly": true,
+     "string": "Document Hash",
+     "type": "Char"
+    },
+    "myinvois_exemption_reason": {
+     "help": "Buyer\u2019s sales tax exemption certificate number, special exemption as per gazette orders, etc.\nOnly applicable if you are using a tax with a type 'Exempt'.",
+     "string": "Tax Exemption Reason",
+     "type": "Char"
+    },
+    "myinvois_external_uuid": {
+     "copy": false,
+     "help": "Unique ID assigned to a specific document when sent to MyInvois.",
+     "index": true,
+     "readonly": true,
+     "string": "MyInvois ID",
+     "type": "Char"
+    },
+    "myinvois_file": {
+     "copy": false,
+     "readonly": true,
+     "string": "MyInvois XML File",
+     "type": "Binary"
+    },
+    "myinvois_file_id": {
+     "comodel": "ir.attachment",
+     "compute": {
+      "$lambda": "self._compute_linked_attachment_id('myinvois_file_id', 'myinvois_file')"
+     },
+     "copy": false,
+     "type": "Many2one"
+    },
+    "myinvois_issuance_date": {
+     "copy": false,
+     "readonly": true,
+     "string": "Issuance Date",
+     "type": "Date"
+    },
+    "myinvois_retry_at": {
+     "copy": false,
+     "readonly": true,
+     "string": "Document Retry At",
+     "type": "Char"
+    },
+    "myinvois_state": {
+     "copy": false,
+     "help": "State of this document on the MyInvois portal.\nA document awaiting validation will be automatically updated once the validation status is available.",
+     "readonly": true,
+     "selection": [
+      [
+       "in_progress",
+       "Validation In Progress"
+      ],
+      [
+       "valid",
+       "Valid"
+      ],
+      [
+       "rejected",
+       "Rejected"
+      ],
+      [
+       "invalid",
+       "Invalid"
+      ],
+      [
+       "cancelled",
+       "Cancelled"
+      ]
+     ],
+     "string": "MyInvois State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "myinvois_submission_uid": {
+     "copy": false,
+     "help": "Unique ID assigned to a batch of documents when sent to MyInvois.",
+     "readonly": true,
+     "string": "Submission UID",
+     "type": "Char"
+    },
+    "myinvois_validation_time": {
+     "copy": false,
+     "readonly": true,
+     "string": "Validation Time",
+     "type": "Datetime"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "copy": false,
+     "index": "trigram",
+     "store": true,
+     "type": "Char"
+    },
+    "pos_config_id": {
+     "comodel": "pos.config",
+     "readonly": true,
+     "string": "PoS Config",
+     "type": "Many2one"
+    },
+    "pos_order_date_range": {
+     "compute": "_compute_pos_order_date_range",
+     "store": true,
+     "string": "Date Range",
+     "type": "Char"
+    },
+    "pos_order_ids": {
+     "column1": "document_id",
+     "column2": "order_id",
+     "comodel": "pos.order",
+     "relation_table": "myinvois_document_pos_order_rel",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread",
+    "sequence.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('myinvois_issuance_date')"
+     ],
+     "lines": 12,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_compute_linked_attachment_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name')"
+     ],
+     "lines": 3,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_starting_sequence"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "_get_last_sequence_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_sequence_date_range"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_check"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_submit_to_myinvois"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_submit_to_myinvois"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_update_submission_status"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 28,
+     "name": "action_generate_xml_file"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_cancel_submission"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_action_myinvois_update_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_myinvois_get_proxy_user"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_myinvois_generate_xml_file"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_myinvois_export_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_myinvois_export_document_constraints"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 95,
+     "name": "_myinvois_submit_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 58,
+     "name": "_myinvois_get_submission_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_myinvois_set_state"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_myinvois_set_validation_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_myinvois_single_status_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_myinvois_submission_statuses_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_myinvois_check_can_update_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_myinvois_update_document"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 42,
+     "name": "_myinvois_statuses_update_cron"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_can_commit"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_mail_thread_data_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_active_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_generate_myinvois_qr_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 67,
+     "name": "_myinvois_map_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_myinvois_log_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_linked_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('pos_order_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_pos_order_date_range"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_starting_sequence"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 22,
+     "name": "action_view_linked_orders"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 28,
+     "name": "action_open_consolidate_invoice_wizard"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 34,
+     "name": "_separate_orders_in_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_myinvois_export_document"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 52,
+     "name": "_myinvois_export_document_constraints"
+    }
+   ],
+   "name": "myinvois.document",
+   "order": "myinvois_issuance_date desc, id desc",
+   "sel_methods": {
+    "_get_sequence_date_range": []
+   },
+   "transient": false
+  },
+  "myinvois.document.status.update.wizard": {
+   "abstract": false,
+   "description": "Document Status Update Wizard",
+   "extension": false,
+   "fields": {
+    "document_id": {
+     "comodel": "myinvois.document",
+     "readonly": true,
+     "required": true,
+     "string": "Document To Update",
+     "type": "Many2one"
+    },
+    "new_status": {
+     "help": "New status to set on the document.",
+     "readonly": true,
+     "required": true,
+     "type": "Char"
+    },
+    "reason": {
+     "help": "Reason for updating the document.",
+     "required": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "button_request_update"
+    }
+   ],
+   "name": "myinvois.document.status.update.wizard",
+   "transient": true
+  },
+  "pos.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "consolidated_invoice_ids": {
+     "column1": "order_id",
+     "column2": "document_id",
+     "comodel": "myinvois.document",
+     "relation_table": "myinvois_document_pos_order_rel",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 37,
+     "name": "_process_order"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_order_fields"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 33,
+     "name": "_generate_pos_order_invoice"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_show_consolidated_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_active_consolidated_invoice"
+    }
+   ],
+   "name": "pos.order",
+   "sel_methods": {
+    "_generate_pos_order_invoice": [],
+    "_process_order": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_my_edi_pos",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_my_edi_pos",
+ "stats": {
+  "fields": 29,
+  "methods": 66,
+  "models": 6,
+  "py_lines": 1897
+ },
+ "summary": "Consolidated E-invoicing using MyInvois",
+ "title": "Malaysia - E-invoicing (POS)",
+ "version": "1.0"
+}

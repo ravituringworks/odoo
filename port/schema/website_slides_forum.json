@@ -1,0 +1,139 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/eLearning",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "security/website_slides_forum_security.xml",
+  "views/forum_forum_views.xml",
+  "views/forum_post_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/slide_channel_views.xml",
+  "views/website_slides_menu_views.xml",
+  "views/forum_forum_templates.xml",
+  "views/website_slides_templates.xml",
+  "views/snippets.xml",
+  "data/slide_channel_demo.xml"
+ ],
+ "depends": [
+  "website_slides",
+  "website_forum"
+ ],
+ "models": {
+  "forum.forum": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "image_1920": {
+     "compute": "_compute_image_1920",
+     "readonly": false,
+     "store": true,
+     "string": "Image",
+     "type": "Image"
+    },
+    "slide_channel_id": {
+     "comodel": "slide.channel",
+     "compute": "_compute_slide_channel_id",
+     "store": true,
+     "string": "Course",
+     "type": "Many2one"
+    },
+    "slide_channel_ids": {
+     "comodel": "slide.channel",
+     "help": "Edit the course linked to this forum on the course form.",
+     "inverse_name": "forum_id",
+     "string": "Courses",
+     "type": "One2many"
+    },
+    "visibility": {
+     "help": "Forum linked to a Course, the visibility is the one applied on the course.",
+     "related": "slide_channel_id.visibility",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('slide_channel_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_slide_channel_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('slide_channel_id', 'slide_channel_id.image_1920')"
+     ],
+     "lines": 3,
+     "name": "_compute_image_1920"
+    }
+   ],
+   "name": "forum.forum",
+   "transient": false
+  },
+  "slide.channel": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "forum_id": {
+     "comodel": "forum.forum",
+     "copy": false,
+     "string": "Course Forum",
+     "type": "Many2one"
+    },
+    "forum_total_posts": {
+     "related": "forum_id.total_posts",
+     "string": "Number of active forum posts",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_redirect_to_forum"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 4,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "write"
+    }
+   ],
+   "name": "slide.channel",
+   "sql_constraints": [
+    [
+     "forum_uniq",
+     "unique (forum_id)",
+     "Only one course per forum!"
+    ]
+   ],
+   "transient": false
+  }
+ },
+ "module": "website_slides_forum",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_slides_forum",
+ "stats": {
+  "fields": 6,
+  "methods": 5,
+  "models": 2,
+  "py_lines": 107
+ },
+ "summary": "Allows to link forum on a course",
+ "title": "Forum on Courses",
+ "version": "1.0"
+}

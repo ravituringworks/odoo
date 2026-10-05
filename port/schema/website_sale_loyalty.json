@@ -1,0 +1,405 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Website/Website",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/loyalty_card_views.xml",
+  "views/loyalty_program_views.xml",
+  "views/snippets.xml",
+  "views/website_sale_templates.xml",
+  "views/website_sale_loyalty_menus.xml",
+  "wizard/coupon_share_views.xml",
+  "wizard/res_config_settings_views.xml",
+  "data/product_demo.xml"
+ ],
+ "depends": [
+  "website_sale",
+  "website_links",
+  "sale_loyalty"
+ ],
+ "models": {
+  "coupon.share": {
+   "abstract": false,
+   "description": "Create links that apply a coupon and redirect to a specific page",
+   "extension": false,
+   "fields": {
+    "coupon_id": {
+     "comodel": "loyalty.card",
+     "domain": "[('program_id', '=', program_id)]",
+     "type": "Many2one"
+    },
+    "program_id": {
+     "comodel": "loyalty.program",
+     "domain": [
+      "|",
+      [
+       "program_type",
+       "=",
+       "coupons"
+      ],
+      "|",
+      [
+       "trigger",
+       "=",
+       "with_code"
+      ],
+      [
+       "rule_ids.code",
+       "!=",
+       false
+      ]
+     ],
+     "required": true,
+     "type": "Many2one"
+    },
+    "program_website_id": {
+     "comodel": "website",
+     "related": "program_id.website_id",
+     "string": "Program Website",
+     "type": "Many2one"
+    },
+    "promo_code": {
+     "compute": "_compute_promo_code",
+     "type": "Char"
+    },
+    "redirect": {
+     "default": "/shop",
+     "required": true,
+     "type": "Char"
+    },
+    "share_link": {
+     "compute": "_compute_share_link",
+     "type": "Char"
+    },
+    "website_id": {
+     "comodel": "website",
+     "default": {
+      "$ref": "_get_default_website_id"
+     },
+     "required": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_default_website_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('coupon_id', 'program_id')"
+     ],
+     "lines": 3,
+     "name": "_check_program"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('website_id', 'program_id')"
+     ],
+     "lines": 3,
+     "name": "_check_website"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('coupon_id.code', 'program_id.rule_ids.code')"
+     ],
+     "lines": 3,
+     "name": "_compute_promo_code"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('website_id', 'redirect')",
+      "api.depends_context('use_short_link')"
+     ],
+     "lines": 15,
+     "name": "_compute_share_link"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_generate_short_link"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 15,
+     "name": "create_share_action"
+    }
+   ],
+   "name": "coupon.share",
+   "transient": true
+  },
+  "loyalty.card": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_coupon_share"
+    }
+   ],
+   "name": "loyalty.card",
+   "transient": false
+  },
+  "loyalty.program": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "ecommerce_ok": {
+     "default": true,
+     "string": "Available on Website",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "website.multi.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_program_share"
+    }
+   ],
+   "name": "loyalty.program",
+   "transient": false
+  },
+  "loyalty.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "website_id": {
+     "related": "program_id.website_id",
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('code', 'website_id', 'active')"
+     ],
+     "lines": 25,
+     "name": "_constrains_code"
+    }
+   ],
+   "name": "loyalty.rule",
+   "transient": false
+  },
+  "payment.provider": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_compatible_providers"
+    }
+   ],
+   "name": "payment.provider",
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "disabled_auto_rewards": {
+     "comodel": "loyalty.reward",
+     "relation_table": "sale_order_disabled_auto_rewards_rel",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_program_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_trigger_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_program_timezone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_try_pending_coupon"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_update_programs_and_rewards"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_auto_apply_rewards"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 47,
+     "name": "_compute_website_order_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_cart_info"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_promo_code_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "get_promo_code_success_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_set_delivery_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_remove_delivery_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_cart_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_non_delivery_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_free_shipping_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_allow_nominative_programs"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 14,
+     "name": "_gc_abandoned_coupons"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_get_claimable_and_showable_rewards"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_cart_find_product_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_zero_priced_lines"
+    }
+   ],
+   "name": "sale.order",
+   "sel_methods": {
+    "_update_programs_and_rewards": []
+   },
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_show_in_cart"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "unlink"
+    }
+   ],
+   "name": "sale.order.line",
+   "transient": false
+  }
+ },
+ "module": "website_sale_loyalty",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/website_sale_loyalty",
+ "stats": {
+  "fields": 10,
+  "methods": 33,
+  "models": 7,
+  "py_lines": 730
+ },
+ "summary": "Use coupon, promotion, gift cards and loyalty programs in your eCommerce store",
+ "title": "Coupons, Promotions, Gift Card and Loyalty for eCommerce",
+ "version": "1.0"
+}

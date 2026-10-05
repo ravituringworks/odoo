@@ -1,0 +1,372 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Productivity/Data Cleaning",
+ "data_files": [
+  "data/ir_cron_data.xml",
+  "views/data_recycle_model_views.xml",
+  "views/data_recycle_record_views.xml",
+  "views/data_cleaning_menu.xml",
+  "views/data_recycle_templates.xml",
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "data_recycle.model": {
+   "abstract": false,
+   "description": "Recycling Model",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "domain": {
+     "compute": "_compute_domain",
+     "readonly": false,
+     "store": true,
+     "string": "Filter",
+     "type": "Char"
+    },
+    "include_archived": {
+     "type": "Boolean"
+    },
+    "last_notification": {
+     "readonly": true,
+     "type": "Datetime"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "copy": true,
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Name",
+     "type": "Char"
+    },
+    "notify_frequency": {
+     "default": 1,
+     "string": "Notify",
+     "type": "Integer"
+    },
+    "notify_frequency_period": {
+     "default": "weeks",
+     "selection": [
+      [
+       "days",
+       "Days"
+      ],
+      [
+       "weeks",
+       "Weeks"
+      ],
+      [
+       "months",
+       "Months"
+      ]
+     ],
+     "string": "Notify Frequency Period",
+     "type": "Selection"
+    },
+    "notify_user_ids": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "domain": {
+      "$lambda": "[('groups_id', 'in', self.env.ref('base.group_system').id)]"
+     },
+     "help": "List of users to notify when there are new records to recycle",
+     "string": "Notify Users",
+     "type": "Many2many"
+    },
+    "records_to_recycle_count": {
+     "compute": "_compute_records_to_recycle_count",
+     "string": "Records To Recycle",
+     "type": "Integer"
+    },
+    "recycle_action": {
+     "default": "unlink",
+     "required": true,
+     "selection": [
+      [
+       "archive",
+       "Archive"
+      ],
+      [
+       "unlink",
+       "Delete"
+      ]
+     ],
+     "string": "Recycle Action",
+     "type": "Selection"
+    },
+    "recycle_mode": {
+     "default": "manual",
+     "required": true,
+     "selection": [
+      [
+       "manual",
+       "Manual"
+      ],
+      [
+       "automatic",
+       "Automatic"
+      ]
+     ],
+     "string": "Recycle Mode",
+     "type": "Selection"
+    },
+    "recycle_record_ids": {
+     "comodel": "data_recycle.record",
+     "inverse_name": "recycle_model_id",
+     "type": "One2many"
+    },
+    "res_model_id": {
+     "comodel": "ir.model",
+     "ondelete": "cascade",
+     "required": true,
+     "string": "Model",
+     "type": "Many2one"
+    },
+    "res_model_name": {
+     "readonly": true,
+     "related": "res_model_id.model",
+     "store": true,
+     "string": "Model Name",
+     "type": "Char"
+    },
+    "time_field_delta": {
+     "default": 1,
+     "string": "Delta",
+     "type": "Integer"
+    },
+    "time_field_delta_unit": {
+     "default": "months",
+     "selection": [
+      [
+       "days",
+       "Days"
+      ],
+      [
+       "weeks",
+       "Weeks"
+      ],
+      [
+       "months",
+       "Months"
+      ],
+      [
+       "years",
+       "Years"
+      ]
+     ],
+     "string": "Delta Unit",
+     "type": "Selection"
+    },
+    "time_field_id": {
+     "comodel": "ir.model.fields",
+     "domain": "[('model_id', '=', res_model_id), ('ttype', 'in', ('date', 'datetime')), ('store', '=', True)]",
+     "ondelete": "cascade",
+     "string": "Time Field",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('recycle_action')"
+     ],
+     "lines": 4,
+     "name": "_check_recycle_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_domain"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_model_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_records_to_recycle_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_cron_recycle_records"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_recycle_records"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "_notify_records_to_recycle"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_send_notification"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "open_records"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_recycle_records"
+    }
+   ],
+   "name": "data_recycle.model",
+   "order": "name",
+   "sql_constraints": [
+    [
+     "check_notif_freq",
+     "CHECK(notify_frequency > 0)",
+     "The notification frequency should be greater than 0"
+    ]
+   ],
+   "transient": false
+  },
+  "data_recycle.record": {
+   "abstract": false,
+   "description": "Recycling Record",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "string": "Record Name",
+     "type": "Char"
+    },
+    "recycle_model_id": {
+     "comodel": "data_recycle.model",
+     "ondelete": "cascade",
+     "string": "Recycle Model",
+     "type": "Many2one"
+    },
+    "res_id": {
+     "index": true,
+     "string": "Record ID",
+     "type": "Integer"
+    },
+    "res_model_id": {
+     "readonly": true,
+     "related": "recycle_model_id.res_model_id",
+     "store": true,
+     "type": "Many2one"
+    },
+    "res_model_name": {
+     "readonly": true,
+     "related": "recycle_model_id.res_model_name",
+     "store": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('res_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_original_records"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_validate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_discard"
+    }
+   ],
+   "name": "data_recycle.record",
+   "transient": false
+  }
+ },
+ "module": "data_recycle",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/data_recycle",
+ "stats": {
+  "fields": 24,
+  "methods": 17,
+  "models": 2,
+  "py_lines": 306
+ },
+ "summary": "Find old records and archive/delete them",
+ "title": "Data Recycle",
+ "version": "1.3"
+}

@@ -1,0 +1,1006 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Inventory/Inventory",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/stock_picking_batch_views.xml",
+  "views/stock_picking_type_views.xml",
+  "views/stock_move_line_views.xml",
+  "views/stock_picking_wave_views.xml",
+  "views/stock_picking_views.xml",
+  "data/stock_picking_batch_data.xml",
+  "wizard/stock_picking_to_batch_views.xml",
+  "wizard/stock_add_to_wave_views.xml",
+  "report/stock_picking_batch_report_views.xml",
+  "report/report_picking_batch.xml",
+  "security/stock_picking_batch_security.xml",
+  "data/stock_picking_batch_demo.xml"
+ ],
+ "depends": [
+  "stock"
+ ],
+ "models": {
+  "stock.add.to.wave": {
+   "abstract": false,
+   "description": "Wave Transfer Lines",
+   "extension": false,
+   "fields": {
+    "line_ids": {
+     "comodel": "stock.move.line",
+     "type": "Many2many"
+    },
+    "mode": {
+     "default": "existing",
+     "selection": [
+      [
+       "existing",
+       "an existing wave transfer"
+      ],
+      [
+       "new",
+       "a new wave transfer"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "type": "Many2many"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "type": "Many2one"
+    },
+    "wave_id": {
+     "comodel": "stock.picking.batch",
+     "domain": "[('is_wave', '=', True), ('state', 'in', ('draft', 'in_progress'))]",
+     "string": "Wave Transfer",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 16,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "attach_pickings"
+    }
+   ],
+   "name": "stock.add.to.wave",
+   "transient": true
+  },
+  "stock.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_search_picking_for_assignation_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_assign_picking_post_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_action_assign"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_batch_moves"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "batch_id": {
+     "related": "picking_id.batch_id",
+     "store": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_open_add_to_wave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 66,
+     "name": "_add_to_wave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_is_auto_waveable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_auto_wave"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_potential_existing_waves_extra_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_potential_new_waves_extra_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_potential_existing_wave_extra"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_new_potential_line_extra"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 93,
+     "name": "_auto_wave_lines_into_existing_waves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 113,
+     "name": "_auto_wave_lines_into_new_waves"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_auto_wave_description"
+    }
+   ],
+   "name": "stock.move.line",
+   "transient": false
+  },
+  "stock.package.destination": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_move_line_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_done"
+    }
+   ],
+   "name": "stock.package.destination",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "batch_id": {
+     "comodel": "stock.picking.batch",
+     "copy": false,
+     "help": "Batch associated to this transfer",
+     "index": true,
+     "string": "Batch Transfer",
+     "type": "Many2one"
+    },
+    "batch_sequence": {
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 8,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "write"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 20,
+     "name": "action_add_operations"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "button_validate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_create_backorder"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_should_show_transfers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_find_auto_batch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_is_auto_batchable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_get_possible_pickings_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_get_possible_batches_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_auto_batch_description"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_package_move_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_add_to_wave_post_picking_split_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "assign_batch_user"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_view_batch"
+    }
+   ],
+   "name": "stock.picking",
+   "sel_methods": {
+    "_create_backorder": [],
+    "_get_possible_batches_domain": [
+     [
+      "state",
+      "in"
+     ],
+     [
+      "picking_type_id",
+      "="
+     ],
+     [
+      "company_id",
+      "="
+     ],
+     [
+      "is_wave",
+      "="
+     ]
+    ],
+    "_get_possible_pickings_domain": [
+     [
+      "id",
+      "!="
+     ],
+     [
+      "company_id",
+      "="
+     ],
+     [
+      "state",
+      "="
+     ],
+     [
+      "picking_type_id",
+      "="
+     ],
+     [
+      "batch_id",
+      "="
+     ]
+    ],
+    "_package_move_lines": [],
+    "_should_show_transfers": []
+   },
+   "transient": false
+  },
+  "stock.picking.batch": {
+   "abstract": false,
+   "description": "Batch Transfer",
+   "extension": false,
+   "fields": {
+    "allowed_picking_ids": {
+     "comodel": "stock.picking",
+     "compute": "_compute_allowed_picking_ids",
+     "type": "One2many"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "index": true,
+     "readonly": true,
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Char"
+    },
+    "estimated_shipping_volume": {
+     "compute": "_compute_estimated_shipping_capacity",
+     "digits": "Product Unit of Measure",
+     "string": "shipping_volume",
+     "type": "Float"
+    },
+    "estimated_shipping_weight": {
+     "compute": "_compute_estimated_shipping_capacity",
+     "digits": "Product Unit of Measure",
+     "string": "shipping_weight",
+     "type": "Float"
+    },
+    "is_wave": {
+     "string": "This batch is a wave",
+     "type": "Boolean"
+    },
+    "move_ids": {
+     "comodel": "stock.move",
+     "compute": "_compute_move_ids",
+     "string": "Stock moves",
+     "type": "One2many"
+    },
+    "move_line_ids": {
+     "comodel": "stock.move.line",
+     "compute": "_compute_move_line_ids",
+     "string": "Stock move lines",
+     "type": "One2many"
+    },
+    "name": {
+     "copy": false,
+     "default": {
+      "$lambda": "_('New')"
+     },
+     "readonly": true,
+     "required": true,
+     "string": "Batch Transfer",
+     "type": "Char"
+    },
+    "picking_ids": {
+     "comodel": "stock.picking",
+     "domain": "[('id', 'in', allowed_picking_ids)]",
+     "help": "List of transfers associated to this batch",
+     "inverse_name": "batch_id",
+     "string": "Transfers",
+     "type": "One2many"
+    },
+    "picking_type_code": {
+     "related": "picking_type_id.code",
+     "type": "Selection"
+    },
+    "picking_type_id": {
+     "comodel": "stock.picking.type",
+     "copy": false,
+     "index": true,
+     "string": "Operation Type",
+     "type": "Many2one"
+    },
+    "properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "scheduled_date": {
+     "compute": "_compute_scheduled_date",
+     "copy": false,
+     "help": "Scheduled date for the transfers to be processed.\n              - If manually set then scheduled date for all transfers in batch will automatically update to this date.\n              - If not manually changed and transfers are added/removed/updated then this will be their earliest scheduled date\n                but this scheduled date will not be set for all transfers in batch.",
+     "readonly": false,
+     "store": true,
+     "string": "Scheduled Date",
+     "type": "Datetime"
+    },
+    "show_allocation": {
+     "compute": "_compute_show_allocation",
+     "string": "Show Allocation Button",
+     "type": "Boolean"
+    },
+    "show_check_availability": {
+     "compute": "_compute_move_ids",
+     "string": "Show Check Availability",
+     "type": "Boolean"
+    },
+    "show_lots_text": {
+     "compute": "_compute_show_lots_text",
+     "type": "Boolean"
+    },
+    "state": {
+     "compute": "_compute_state",
+     "copy": false,
+     "default": "draft",
+     "index": true,
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "draft",
+       "Draft"
+      ],
+      [
+       "in_progress",
+       "In progress"
+      ],
+      [
+       "done",
+       "Done"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "store": true,
+     "tracking": true,
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "warehouse_id": {
+     "comodel": "stock.warehouse",
+     "related": "picking_type_id.warehouse_id",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('description')",
+      "api.depends_context('add_to_existing_batch')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_type_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_show_lots_text"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_compute_estimated_shipping_capacity"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'picking_type_id', 'state')"
+     ],
+     "lines": 15,
+     "name": "_compute_allowed_picking_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.move_line_ids', 'picking_ids.move_ids', 'picking_ids.move_ids.state')"
+     ],
+     "lines": 4,
+     "name": "_compute_move_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.move_line_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_move_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_search_move_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('state', 'move_ids', 'picking_type_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_show_allocation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.state')"
+     ],
+     "lines": 11,
+     "name": "_compute_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_ids', 'picking_ids.scheduled_date')"
+     ],
+     "lines": 3,
+     "name": "_compute_scheduled_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('scheduled_date')"
+     ],
+     "lines": 3,
+     "name": "onchange_scheduled_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_set_move_line_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 9,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_if_not_done"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_confirm"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_cancel"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_print"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 37,
+     "name": "action_done"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_assign"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 14,
+     "name": "action_put_in_pack"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_view_reception_report"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_open_label_layout"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_sanity_check"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_is_picking_auto_mergeable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_is_line_auto_mergeable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_are_moves_auto_mergeable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_are_pickings_auto_mergeable"
+    }
+   ],
+   "name": "stock.picking.batch",
+   "order": "name desc",
+   "sel_methods": {
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "stock.picking.to.batch": {
+   "abstract": false,
+   "description": "Batch Transfer Lines",
+   "extension": false,
+   "fields": {
+    "batch_id": {
+     "comodel": "stock.picking.batch",
+     "domain": "[('is_wave', '=', False), ('state', 'in', ('draft', 'in_progress'))]",
+     "string": "Batch Transfer",
+     "type": "Many2one"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Char"
+    },
+    "is_create_draft": {
+     "help": "When checked, create the batch in draft status",
+     "string": "Draft",
+     "type": "Boolean"
+    },
+    "mode": {
+     "default": "new",
+     "selection": [
+      [
+       "existing",
+       "an existing batch transfer"
+      ],
+      [
+       "new",
+       "a new batch transfer"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "attach_pickings"
+    }
+   ],
+   "name": "stock.picking.to.batch",
+   "transient": true
+  },
+  "stock.picking.type": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "auto_batch": {
+     "help": "Automatically put pickings into batches as they are confirmed when possible.",
+     "string": "Automatic Batches",
+     "type": "Boolean"
+    },
+    "batch_auto_confirm": {
+     "default": true,
+     "string": "Auto-confirm",
+     "type": "Boolean"
+    },
+    "batch_group_by_dest_loc": {
+     "help": "Automatically group batches by their destination location.",
+     "string": "Group by Destination Location",
+     "type": "Boolean"
+    },
+    "batch_group_by_destination": {
+     "help": "Automatically group batches by destination country.",
+     "string": "Destination Country",
+     "type": "Boolean"
+    },
+    "batch_group_by_partner": {
+     "help": "Automatically group batches by contacts.",
+     "string": "Contact",
+     "type": "Boolean"
+    },
+    "batch_group_by_src_loc": {
+     "help": "Automatically group batches by their source location.",
+     "string": "Group by Source Location",
+     "type": "Boolean"
+    },
+    "batch_max_lines": {
+     "help": "A transfer will not be automatically added to batches that will exceed this number of lines if the transfer is added to it.\nLeave this value as '0' if no line limit.",
+     "string": "Maximum lines",
+     "type": "Integer"
+    },
+    "batch_max_pickings": {
+     "help": "A transfer will not be automatically added to batches that will exceed this number of transfers.\nLeave this value as '0' if no transfer limit.",
+     "string": "Maximum transfers",
+     "type": "Integer"
+    },
+    "batch_properties_definition": {
+     "string": "Batch Properties",
+     "type": "PropertiesDefinition"
+    },
+    "count_picking_batch": {
+     "compute": "_compute_picking_count",
+     "type": "Integer"
+    },
+    "count_picking_wave": {
+     "compute": "_compute_picking_count",
+     "type": "Integer"
+    },
+    "wave_category_ids": {
+     "comodel": "product.category",
+     "help": "Categories to consider when grouping waves.",
+     "string": "Wave Product Categories",
+     "type": "Many2many"
+    },
+    "wave_group_by_category": {
+     "help": "Split transfers by product category, then group transfers that have the same product category.",
+     "string": "Product Category",
+     "type": "Boolean"
+    },
+    "wave_group_by_location": {
+     "help": "Split transfers by defined locations, then group transfers with the same location.",
+     "string": "Location",
+     "type": "Boolean"
+    },
+    "wave_group_by_product": {
+     "help": "Split transfers by product then group transfers that have the same product.",
+     "string": "Product",
+     "type": "Boolean"
+    },
+    "wave_location_ids": {
+     "comodel": "stock.location",
+     "domain": "[('usage', '=', 'internal')]",
+     "help": "Locations to consider when grouping waves.",
+     "string": "Wave Locations",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_picking_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_batch"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_is_auto_batch_grouped"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_is_auto_wave_grouped"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_batch_group_by_keys"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_wave_group_by_keys"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_batch_and_wave_group_by_keys"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains(lambda self: self._get_batch_group_by_keys() + ['auto_batch'])"
+     ],
+     "lines": 7,
+     "name": "_validate_auto_batch_group_by"
+    }
+   ],
+   "name": "stock.picking.type",
+   "transient": false
+  },
+  "stock.warehouse": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_get_picking_type_create_values"
+    }
+   ],
+   "name": "stock.warehouse",
+   "transient": false
+  }
+ },
+ "module": "stock_picking_batch",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/stock_picking_batch",
+ "stats": {
+  "fields": 49,
+  "methods": 77,
+  "models": 9,
+  "py_lines": 1308
+ },
+ "summary": "This module adds the batch transfer option in warehouse management",
+ "title": "Warehouse Management: Batch Transfer",
+ "version": "1.0"
+}

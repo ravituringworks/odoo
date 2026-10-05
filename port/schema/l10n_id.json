@@ -1,0 +1,268 @@
+{
+ "application": false,
+ "author": "vitraining.com",
+ "category": "Accounting/Localizations/Account Charts",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "data/ir_cron.xml",
+  "views/account_move_views.xml",
+  "views/res_bank.xml",
+  "demo/demo_company.xml"
+ ],
+ "depends": [
+  "account",
+  "base_iban",
+  "base_vat"
+ ],
+ "models": {
+  "account.chart.template": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_get_id_template_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_get_id_res_company"
+    }
+   ],
+   "name": "account.chart.template",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_id_qris_transaction_ids": {
+     "comodel": "l10n_id.qris.transaction",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_generate_qr_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_l10n_id_cron_update_payment_status"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 13,
+     "name": "action_l10n_id_update_payment_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_l10n_id_update_payment_status"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_l10n_id_get_qris_qr_statuses"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_l10n_id_process_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 31,
+     "name": "_compute_tax_totals"
+    }
+   ],
+   "name": "account.move",
+   "sel_methods": {
+    "_generate_qr_code": []
+   },
+   "transient": false
+  },
+  "l10n_id.qris.transaction": {
+   "abstract": false,
+   "description": "Record of QRIS transactions",
+   "extension": false,
+   "fields": {
+    "bank_id": {
+     "comodel": "res.partner.bank",
+     "help": "Bank used to generate the current QRIS transaction",
+     "type": "Many2one"
+    },
+    "model": {
+     "string": "Model",
+     "type": "Char"
+    },
+    "model_id": {
+     "string": "Model ID",
+     "type": "Char"
+    },
+    "paid": {
+     "help": "Payment Status of QRIS",
+     "type": "Boolean"
+    },
+    "qris_amount": {
+     "readonly": true,
+     "type": "Integer"
+    },
+    "qris_content": {
+     "readonly": true,
+     "type": "Char"
+    },
+    "qris_creation_datetime": {
+     "readonly": true,
+     "type": "Datetime"
+    },
+    "qris_invoice_id": {
+     "readonly": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_supported_models"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('model')"
+     ],
+     "lines": 4,
+     "name": "_constraint_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_record"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "_get_latest_transaction"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 26,
+     "name": "_l10n_id_get_qris_qr_statuses"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.autovacuum"
+     ],
+     "lines": 7,
+     "name": "_gc_remove_pointless_qris_transactions"
+    }
+   ],
+   "name": "l10n_id.qris.transaction",
+   "transient": false
+  },
+  "res.partner.bank": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_id_qris_api_key": {
+     "groups": "base.group_system",
+     "string": "QRIS API Key",
+     "type": "Char"
+    },
+    "l10n_id_qris_mid": {
+     "groups": "base.group_system",
+     "string": "QRIS Merchant ID",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "_get_available_qr_methods"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_error_messages_for_qr"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_for_qr_code_errors"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 57,
+     "name": "_get_qr_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_qr_code_generation_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_l10n_id_qris_fetch_status"
+    }
+   ],
+   "name": "res.partner.bank",
+   "sel_methods": {
+    "_check_for_qr_code_errors": [],
+    "_get_error_messages_for_qr": [],
+    "_get_qr_code_generation_params": [],
+    "_get_qr_vals": []
+   },
+   "transient": false
+  }
+ },
+ "module": "l10n_id",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_id",
+ "stats": {
+  "fields": 11,
+  "methods": 21,
+  "models": 4,
+  "py_lines": 430
+ },
+ "summary": "This is the latest Indonesian Odoo localisation necessary to run Odoo accounting for SMEs with:",
+ "title": "Indonesian - Accounting",
+ "version": "1.3"
+}

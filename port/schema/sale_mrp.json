@@ -1,0 +1,272 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv",
+  "views/mrp_production_views.xml",
+  "views/sale_order_views.xml",
+  "views/sale_portal_templates.xml"
+ ],
+ "depends": [
+  "mrp",
+  "sale_stock"
+ ],
+ "models": {
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 39,
+     "name": "_stock_account_get_anglo_saxon_price_unit"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "mrp.bom": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "toggle_active"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_ensure_bom_is_free"
+    }
+   ],
+   "name": "mrp.bom",
+   "transient": false
+  },
+  "mrp.production": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "sale_line_id": {
+     "comodel": "sale.order.line",
+     "domain": "[('display_type', '=', False)]",
+     "string": "Origin sale order line",
+     "type": "Many2one"
+    },
+    "sale_order_count": {
+     "compute": "_compute_sale_order_count",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Count of Source SO",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('procurement_group_id.mrp_production_ids.move_dest_ids.group_id.sale_id', 'procurement_group_id.sale_id', 'sale_line_id.order_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_sale_order_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_linked_sale_orders"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 19,
+     "name": "action_view_sale_orders"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_confirm"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_post_run_manufacture"
+    }
+   ],
+   "name": "mrp.production",
+   "sel_methods": {
+    "_post_run_manufacture": []
+   },
+   "transient": false
+  },
+  "sale.order": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "mrp_production_count": {
+     "compute": "_compute_mrp_production_ids",
+     "groups": "mrp.group_mrp_user",
+     "string": "Count of MO generated",
+     "type": "Integer"
+    },
+    "mrp_production_ids": {
+     "comodel": "mrp.production",
+     "compute": "_compute_mrp_production_ids",
+     "groups": "mrp.group_mrp_user",
+     "string": "Manufacturing orders associated with this sales order.",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('procurement_group_id.stock_move_ids.created_production_id.procurement_group_id.mrp_production_ids')"
+     ],
+     "lines": 12,
+     "name": "_compute_mrp_production_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 18,
+     "name": "action_view_mrp_production"
+    }
+   ],
+   "name": "sale.order",
+   "transient": false
+  },
+  "sale.order.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('product_uom_qty', 'qty_delivered', 'product_id', 'state')"
+     ],
+     "lines": 20,
+     "name": "_compute_qty_to_deliver"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 56,
+     "name": "_compute_qty_delivered"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "compute_uom_qty"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_get_bom_component_qty"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 32,
+     "name": "_get_incoming_outgoing_moves_filter"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_get_qty_procurement"
+    }
+   ],
+   "name": "sale.order.line",
+   "sel_methods": {
+    "_get_qty_procurement": []
+   },
+   "transient": false
+  },
+  "stock.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_sale_price"
+    }
+   ],
+   "name": "stock.move.line",
+   "transient": false
+  },
+  "stock.rule": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_prepare_mo_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_stock_move_values"
+    }
+   ],
+   "name": "stock.rule",
+   "transient": false
+  }
+ },
+ "module": "sale_mrp",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/sale_mrp",
+ "stats": {
+  "fields": 4,
+  "methods": 21,
+  "models": 7,
+  "py_lines": 434
+ },
+ "summary": "This module provides facility to the user to install mrp and sales modulesat a time.",
+ "title": "Sales and MRP Management",
+ "version": "1.0"
+}

@@ -1,0 +1,78 @@
+{
+ "module": "l10n_fr_pos_cert",
+ "records": [
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_list_view_account_sale_closing",
+   "values": {
+    "name": "Sales Closings",
+    "res_model": "account.sale.closing",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_check_pos_hash_integrity",
+   "values": {
+    "name": "POS Inalterability Check",
+    "model_id": {
+     "$ref": "account.model_res_company"
+    },
+    "state": "code",
+    "code": "action = env.company._action_check_pos_hash_integrity()"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account_sale_closing_multi_company",
+   "values": {
+    "name": "Sale Closing multi-company",
+    "model_id": {
+     "$ref": "model_account_sale_closing"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_account_closing_reporting",
+   "parent": "l10n_fr_account.account_reports_fr_statements_menu",
+   "action": "action_list_view_account_sale_closing",
+   "sequence": "90"
+  },
+  {
+   "id": "pos_fr_statements_menu",
+   "name": "French Statements",
+   "parent": "point_of_sale.menu_point_rep",
+   "sequence": "9"
+  },
+  {
+   "id": "menu_account_closing",
+   "parent": "pos_fr_statements_menu",
+   "action": "l10n_fr_pos_cert.action_list_view_account_sale_closing",
+   "sequence": "80"
+  },
+  {
+   "id": "menu_check_move_integrity_reporting",
+   "parent": "pos_fr_statements_menu",
+   "action": "l10n_fr_pos_cert.action_check_pos_hash_integrity",
+   "sequence": "90"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_l10n_fr_pos_cert_account_sale_closing_user",
+   "model": "l10n.fr.pos.cert.account.sale.closing",
+   "model_xmlid": "l10n_fr_pos_cert.model_account_sale_closing",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

@@ -1,0 +1,974 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Manufacturing/Maintenance",
+ "data_files": [
+  "security/maintenance.xml",
+  "security/ir.model.access.csv",
+  "data/maintenance_data.xml",
+  "data/mail_activity_type_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "views/maintenance_views.xml",
+  "views/mail_activity_views.xml",
+  "views/res_config_settings_views.xml",
+  "data/maintenance_demo.xml"
+ ],
+ "depends": [
+  "mail"
+ ],
+ "models": {
+  "maintenance.equipment": {
+   "abstract": false,
+   "description": "Maintenance Equipment",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "assign_date": {
+     "string": "Assigned Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "category_id": {
+     "comodel": "maintenance.equipment.category",
+     "string": "Equipment Category",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "cost": {
+     "string": "Cost",
+     "type": "Float"
+    },
+    "equipment_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "location": {
+     "string": "Location",
+     "type": "Char"
+    },
+    "maintenance_ids": {
+     "comodel": "maintenance.request",
+     "inverse_name": "equipment_id",
+     "type": "One2many"
+    },
+    "match_serial": {
+     "compute": "_compute_match_serial",
+     "type": "Boolean"
+    },
+    "model": {
+     "string": "Model",
+     "type": "Char"
+    },
+    "name": {
+     "required": true,
+     "string": "Equipment Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "note": {
+     "string": "Note",
+     "type": "Html"
+    },
+    "owner_user_id": {
+     "comodel": "res.users",
+     "string": "Owner",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Vendor",
+     "type": "Many2one"
+    },
+    "partner_ref": {
+     "string": "Vendor Reference",
+     "type": "Char"
+    },
+    "scrap_date": {
+     "string": "Scrap Date",
+     "type": "Date"
+    },
+    "serial_no": {
+     "copy": false,
+     "string": "Serial Number",
+     "type": "Char"
+    },
+    "warranty_date": {
+     "string": "Warranty Expiration Date",
+     "type": "Date"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread",
+    "maintenance.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('serial_no')"
+     ],
+     "lines": 6,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('serial_no')"
+     ],
+     "lines": 12,
+     "name": "_compute_match_serial"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('category_id')"
+     ],
+     "lines": 2,
+     "name": "_onchange_category_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_read_group_category_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 8,
+     "name": "action_open_matched_serial"
+    }
+   ],
+   "name": "maintenance.equipment",
+   "sel_methods": {
+    "_track_subtype": []
+   },
+   "sql_constraints": [
+    [
+     "serial_no",
+     "unique(serial_no)",
+     "Another asset already exists with this serial number!"
+    ]
+   ],
+   "transient": false
+  },
+  "maintenance.equipment.category": {
+   "abstract": false,
+   "description": "Maintenance Equipment Category",
+   "extension": false,
+   "fields": {
+    "alias_id": {
+     "help": "Email alias for this equipment category. New emails will automatically create a new equipment under this category.",
+     "type": "Many2one"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "equipment_count": {
+     "compute": "_compute_equipment_count",
+     "string": "Equipment Count",
+     "type": "Integer"
+    },
+    "equipment_ids": {
+     "comodel": "maintenance.equipment",
+     "copy": false,
+     "inverse_name": "category_id",
+     "string": "Equipment",
+     "type": "One2many"
+    },
+    "equipment_properties_definition": {
+     "string": "Equipment Properties",
+     "type": "PropertiesDefinition"
+    },
+    "fold": {
+     "compute": "_compute_fold",
+     "store": true,
+     "string": "Folded in Maintenance Pipe",
+     "type": "Boolean"
+    },
+    "maintenance_count": {
+     "compute": "_compute_maintenance_count",
+     "string": "Maintenance Count",
+     "type": "Integer"
+    },
+    "maintenance_ids": {
+     "comodel": "maintenance.request",
+     "copy": false,
+     "inverse_name": "category_id",
+     "type": "One2many"
+    },
+    "maintenance_open_count": {
+     "compute": "_compute_maintenance_count",
+     "string": "Current Maintenance",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Category Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "note": {
+     "string": "Comments",
+     "translate": true,
+     "type": "Html"
+    },
+    "technician_user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.uid"
+     },
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.alias.mixin",
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('equipment_ids')"
+     ],
+     "lines": 6,
+     "name": "_compute_fold"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_equipment_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_compute_maintenance_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 4,
+     "name": "_unlink_except_contains_maintenance_requests"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_alias_get_creation_values"
+    }
+   ],
+   "name": "maintenance.equipment.category",
+   "transient": false
+  },
+  "maintenance.mixin": {
+   "abstract": true,
+   "description": "Maintenance Maintained Item",
+   "extension": false,
+   "fields": {
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "effective_date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "help": "This date will be used to compute the Mean Time Between Failure.",
+     "required": true,
+     "string": "Effective Date",
+     "type": "Date"
+    },
+    "estimated_next_failure": {
+     "compute": "_compute_maintenance_request",
+     "help": "Computed as Latest Failure Date + MTBF",
+     "string": "Estimated time before next failure (in days)",
+     "type": "Date"
+    },
+    "expected_mtbf": {
+     "help": "Expected Mean Time Between Failure",
+     "string": "Expected MTBF",
+     "type": "Integer"
+    },
+    "latest_failure_date": {
+     "compute": "_compute_maintenance_request",
+     "string": "Latest Failure Date",
+     "type": "Date"
+    },
+    "maintenance_count": {
+     "compute": "_compute_maintenance_count",
+     "store": true,
+     "string": "Maintenance Count",
+     "type": "Integer"
+    },
+    "maintenance_ids": {
+     "comodel": "maintenance.request",
+     "type": "One2many"
+    },
+    "maintenance_open_count": {
+     "compute": "_compute_maintenance_count",
+     "store": true,
+     "string": "Current Maintenance",
+     "type": "Integer"
+    },
+    "maintenance_team_id": {
+     "comodel": "maintenance.team",
+     "compute": "_compute_maintenance_team_id",
+     "readonly": false,
+     "store": true,
+     "string": "Maintenance Team",
+     "type": "Many2one"
+    },
+    "mtbf": {
+     "compute": "_compute_maintenance_request",
+     "help": "Mean Time Between Failure, computed based on done corrective maintenances.",
+     "string": "MTBF",
+     "type": "Integer"
+    },
+    "mttr": {
+     "compute": "_compute_maintenance_request",
+     "help": "Mean Time To Repair",
+     "string": "MTTR",
+     "type": "Integer"
+    },
+    "technician_user_id": {
+     "comodel": "res.users",
+     "string": "Technician",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_maintenance_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('effective_date', 'maintenance_ids.stage_id', 'maintenance_ids.close_date', 'maintenance_ids.request_date')"
+     ],
+     "lines": 7,
+     "name": "_compute_maintenance_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('maintenance_ids.stage_id.done', 'maintenance_ids.archive')"
+     ],
+     "lines": 4,
+     "name": "_compute_maintenance_count"
+    }
+   ],
+   "name": "maintenance.mixin",
+   "transient": false
+  },
+  "maintenance.request": {
+   "abstract": false,
+   "description": "Maintenance Request",
+   "extension": false,
+   "fields": {
+    "archive": {
+     "default": false,
+     "help": "Set archive to true to hide the maintenance request without deleting it.",
+     "type": "Boolean"
+    },
+    "category_id": {
+     "comodel": "maintenance.equipment.category",
+     "readonly": true,
+     "related": "equipment_id.category_id",
+     "store": true,
+     "string": "Category",
+     "type": "Many2one"
+    },
+    "close_date": {
+     "help": "Date the maintenance was finished. ",
+     "string": "Close Date",
+     "type": "Date"
+    },
+    "color": {
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "required": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "description": {
+     "string": "Description",
+     "type": "Html"
+    },
+    "done": {
+     "related": "stage_id.done",
+     "type": "Boolean"
+    },
+    "duration": {
+     "help": "Duration in hours.",
+     "type": "Float"
+    },
+    "equipment_id": {
+     "comodel": "maintenance.equipment",
+     "index": true,
+     "ondelete": "restrict",
+     "string": "Equipment",
+     "type": "Many2one"
+    },
+    "instruction_google_slide": {
+     "help": "Paste the url of your Google Slide. Make sure the access to the document is public.",
+     "string": "Google Slide",
+     "type": "Char"
+    },
+    "instruction_pdf": {
+     "string": "PDF",
+     "type": "Binary"
+    },
+    "instruction_text": {
+     "string": "Text",
+     "type": "Html"
+    },
+    "instruction_type": {
+     "default": "text",
+     "selection": [
+      [
+       "pdf",
+       "PDF"
+      ],
+      [
+       "google_slide",
+       "Google Slide"
+      ],
+      [
+       "text",
+       "Text"
+      ]
+     ],
+     "string": "Instruction",
+     "type": "Selection"
+    },
+    "kanban_state": {
+     "default": "normal",
+     "required": true,
+     "selection": [
+      [
+       "normal",
+       "In Progress"
+      ],
+      [
+       "blocked",
+       "Blocked"
+      ],
+      [
+       "done",
+       "Ready for next stage"
+      ]
+     ],
+     "string": "Kanban State",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "maintenance_team_id": {
+     "comodel": "maintenance.team",
+     "compute": "_compute_maintenance_team_id",
+     "default": {
+      "$ref": "_get_default_team_id"
+     },
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Team",
+     "type": "Many2one"
+    },
+    "maintenance_type": {
+     "default": "corrective",
+     "selection": [
+      [
+       "corrective",
+       "Corrective"
+      ],
+      [
+       "preventive",
+       "Preventive"
+      ]
+     ],
+     "string": "Maintenance Type",
+     "type": "Selection"
+    },
+    "name": {
+     "required": true,
+     "string": "Subjects",
+     "type": "Char"
+    },
+    "owner_user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "s.env.uid"
+     },
+     "string": "Created by User",
+     "type": "Many2one"
+    },
+    "priority": {
+     "selection": [
+      [
+       "0",
+       "Very Low"
+      ],
+      [
+       "1",
+       "Low"
+      ],
+      [
+       "2",
+       "Normal"
+      ],
+      [
+       "3",
+       "High"
+      ]
+     ],
+     "string": "Priority",
+     "type": "Selection"
+    },
+    "recurring_maintenance": {
+     "compute": "_compute_recurring_maintenance",
+     "readonly": false,
+     "store": true,
+     "string": "Recurrent",
+     "type": "Boolean"
+    },
+    "repeat_interval": {
+     "default": 1,
+     "string": "Repeat Every",
+     "type": "Integer"
+    },
+    "repeat_type": {
+     "default": "forever",
+     "selection": [
+      [
+       "forever",
+       "Forever"
+      ],
+      [
+       "until",
+       "Until"
+      ]
+     ],
+     "string": "Until",
+     "type": "Selection"
+    },
+    "repeat_unit": {
+     "default": "week",
+     "selection": [
+      [
+       "day",
+       "Days"
+      ],
+      [
+       "week",
+       "Weeks"
+      ],
+      [
+       "month",
+       "Months"
+      ],
+      [
+       "year",
+       "Years"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "repeat_until": {
+     "string": "End Date",
+     "type": "Date"
+    },
+    "request_date": {
+     "default": {
+      "$ref": "fields.Date.context_today"
+     },
+     "help": "Date requested for the maintenance to happen",
+     "string": "Request Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "schedule_date": {
+     "help": "Date the maintenance team plans the maintenance.  It should not differ much from the Request Date. ",
+     "string": "Scheduled Date",
+     "type": "Datetime"
+    },
+    "stage_id": {
+     "comodel": "maintenance.stage",
+     "copy": false,
+     "default": {
+      "$ref": "_default_stage"
+     },
+     "ondelete": "restrict",
+     "string": "Stage",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_user_id",
+     "readonly": false,
+     "store": true,
+     "string": "Technician",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread.cc"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.returns('self')"
+     ],
+     "lines": 2,
+     "name": "_default_stage"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_creation_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_default_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "archive_equipment_request"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "reset_equipment_request"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('repeat_interval')"
+     ],
+     "lines": 4,
+     "name": "_check_repeat_interval"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'equipment_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_maintenance_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id', 'equipment_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('maintenance_type')"
+     ],
+     "lines": 4,
+     "name": "_compute_recurring_maintenance"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 14,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 29,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_need_new_activity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_get_activity_note"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "activity_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_add_followers"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 6,
+     "name": "_read_group_stage_ids"
+    }
+   ],
+   "name": "maintenance.request",
+   "order": "id desc",
+   "sel_methods": {
+    "_track_subtype": []
+   },
+   "transient": false
+  },
+  "maintenance.stage": {
+   "abstract": false,
+   "description": "Maintenance Stage",
+   "extension": false,
+   "fields": {
+    "done": {
+     "string": "Request Done",
+     "type": "Boolean"
+    },
+    "fold": {
+     "string": "Folded in Maintenance Pipe",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "sequence": {
+     "default": 20,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "maintenance.stage",
+   "order": "sequence, id",
+   "transient": false
+  },
+  "maintenance.team": {
+   "abstract": false,
+   "description": "Maintenance Teams",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "type": "Boolean"
+    },
+    "color": {
+     "default": 0,
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "default": {
+      "$lambda": "self.env.company"
+     },
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "equipment_ids": {
+     "comodel": "maintenance.equipment",
+     "copy": false,
+     "inverse_name": "maintenance_team_id",
+     "type": "One2many"
+    },
+    "member_ids": {
+     "comodel": "res.users",
+     "domain": "[('company_ids', 'in', company_id)]",
+     "relation_table": "maintenance_team_users_rel",
+     "string": "Team Members",
+     "type": "Many2many"
+    },
+    "name": {
+     "required": true,
+     "string": "Team Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "request_ids": {
+     "comodel": "maintenance.request",
+     "copy": false,
+     "inverse_name": "maintenance_team_id",
+     "type": "One2many"
+    },
+    "todo_request_count": {
+     "compute": "_compute_todo_requests",
+     "string": "Number of Requests",
+     "type": "Integer"
+    },
+    "todo_request_count_block": {
+     "compute": "_compute_todo_requests",
+     "string": "Number of Requests Blocked",
+     "type": "Integer"
+    },
+    "todo_request_count_date": {
+     "compute": "_compute_todo_requests",
+     "string": "Number of Requests Scheduled",
+     "type": "Integer"
+    },
+    "todo_request_count_high_priority": {
+     "compute": "_compute_todo_requests",
+     "string": "Number of Requests in High Priority",
+     "type": "Integer"
+    },
+    "todo_request_count_unscheduled": {
+     "compute": "_compute_todo_requests",
+     "string": "Number of Requests Unscheduled",
+     "type": "Integer"
+    },
+    "todo_request_ids": {
+     "comodel": "maintenance.request",
+     "compute": "_compute_todo_requests",
+     "copy": false,
+     "string": "Requests",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('request_ids.stage_id.done')"
+     ],
+     "lines": 13,
+     "name": "_compute_todo_requests"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('equipment_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_equipment"
+    }
+   ],
+   "name": "maintenance.team",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "module_maintenance_worksheet": {
+     "string": "Custom Maintenance Worksheets",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "maintenance",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/maintenance",
+ "stats": {
+  "fields": 89,
+  "methods": 35,
+  "models": 7,
+  "py_lines": 472
+ },
+ "summary": "Track equipment and manage maintenance requests",
+ "title": "Maintenance",
+ "version": "1.0"
+}

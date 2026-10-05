@@ -1,0 +1,598 @@
+{
+ "module": "l10n_es_modelo130",
+ "records": [
+  {
+   "model": "account.report",
+   "id": "mod_130",
+   "values": {
+    "name": "Tax Report(Mod 130)",
+    "sequence": "130",
+    "filter_analytic": false,
+    "filter_date_range": false,
+    "filter_period_comparison": false,
+    "filter_unfold_all": true,
+    "filter_journals": true,
+    "country_id": {
+     "$ref": "base.es"
+    },
+    "filter_multi_company": "tax_units",
+    "root_report_id": {
+     "$ref": "account.generic_tax_report"
+    },
+    "column_ids": {
+     "$unevaluated": "xml"
+    },
+    "line_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.column",
+   "id": "mod_130_column",
+   "values": {
+    "name": "Balance",
+    "expression_label": "balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_title_1",
+   "values": {
+    "name": "I. Economic activities in the direct assessment system, normal or simplified mode, other than agriculture, livestock farming, forestry and fishing.",
+    "code": "aeat_mod_130_title_1",
+    "hierarchy_level": "0",
+    "children_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_01",
+   "values": {
+    "name": "[01] Revenue",
+    "code": "aeat_mod_130_01",
+    "groupby": "account_id",
+    "foldable": true,
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_01_balance",
+   "values": {
+    "label": "balance",
+    "engine": "domain",
+    "formula": [
+     [
+      "account_id.internal_group",
+      "=",
+      "income"
+     ],
+     "|",
+     [
+      "partner_id.industry_id",
+      "=",
+      false
+     ],
+     [
+      "partner_id.industry_id.name",
+      "!=",
+      "Agriculture"
+     ]
+    ],
+    "subformula": "-sum",
+    "date_scope": "from_fiscalyear"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_02",
+   "values": {
+    "name": "[02] Supplies",
+    "code": "aeat_mod_130_02",
+    "groupby": "account_id",
+    "foldable": true,
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_02_balance",
+   "values": {
+    "label": "balance",
+    "engine": "domain",
+    "formula": [
+     [
+      "account_id.internal_group",
+      "=",
+      "expense"
+     ],
+     "|",
+     [
+      "partner_id.industry_id",
+      "=",
+      false
+     ],
+     [
+      "partner_id.industry_id.name",
+      "!=",
+      "Agriculture"
+     ]
+    ],
+    "subformula": "sum",
+    "date_scope": "from_fiscalyear"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_03",
+   "values": {
+    "name": "[03] Box 01 - Box 02",
+    "code": "aeat_mod_130_03",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_03_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_01.balance - aeat_mod_130_02.balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_04",
+   "values": {
+    "name": "[04] 20% (or custom %) applied on Box 03",
+    "code": "aeat_mod_130_04",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_04_percentage",
+   "values": {
+    "label": "percentage",
+    "engine": "aggregation",
+    "formula": "20",
+    "figure_type": "percentage"
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_04_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_03.balance * (aeat_mod_130_04.percentage / 100)",
+    "subformula": "if_above(EUR(0))"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_05",
+   "values": {
+    "name": "[05] Residual amounts of past quarters",
+    "code": "aeat_mod_130_05",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_05_balance",
+   "values": {
+    "label": "balance",
+    "engine": "external",
+    "formula": "sum",
+    "subformula": "editable;rounding=2"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_06",
+   "values": {
+    "name": "[06] Sum of withholding's",
+    "code": "aeat_mod_130_06",
+    "groupby": "account_id",
+    "foldable": true,
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_06_tax_tags",
+   "values": {
+    "label": "tags",
+    "engine": "tax_tags",
+    "formula": "mod130[06]",
+    "date_scope": "from_fiscalyear"
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_06_balance",
+   "values": {
+    "label": "balance",
+    "engine": "domain",
+    "formula": [
+     [
+      "tax_tag_ids",
+      "=",
+      "-mod130[06]"
+     ],
+     "|",
+     [
+      "partner_id.industry_id",
+      "=",
+      false
+     ],
+     [
+      "partner_id.industry_id.name",
+      "!=",
+      "Agriculture"
+     ]
+    ],
+    "subformula": "sum",
+    "date_scope": "from_fiscalyear"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_07",
+   "values": {
+    "name": "[07] Box 04 - Box 05 - Box 06",
+    "code": "aeat_mod_130_07",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_07_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_04.balance - aeat_mod_130_05.balance - aeat_mod_130_06.balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_title_2",
+   "values": {
+    "name": "II. Agriculture, livestock farming, forestry and fishing in the direct assessment system, normal or simplified mode.",
+    "code": "aeat_mod_130_title_2",
+    "hierarchy_level": "0",
+    "children_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_08",
+   "values": {
+    "name": "[08] Revenue",
+    "code": "aeat_mod_130_08",
+    "groupby": "account_id",
+    "foldable": true,
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_08_balance",
+   "values": {
+    "label": "balance",
+    "engine": "domain",
+    "formula": [
+     [
+      "account_id.internal_group",
+      "=",
+      "income"
+     ],
+     [
+      "partner_id.industry_id.name",
+      "=",
+      "Agriculture"
+     ]
+    ],
+    "subformula": "-sum",
+    "date_scope": "from_fiscalyear"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_09",
+   "values": {
+    "name": "[09] 2% (or custom %) applied on Box 08",
+    "code": "aeat_mod_130_09",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_09_percentage",
+   "values": {
+    "label": "percentage",
+    "engine": "aggregation",
+    "formula": "2",
+    "figure_type": "percentage"
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_09_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_08.balance * (aeat_mod_130_09.percentage / 100)",
+    "subformula": "if_above(EUR(0))"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_10",
+   "values": {
+    "name": "[10] Sum of withholding's",
+    "code": "aeat_mod_130_10",
+    "groupby": "account_id",
+    "foldable": true,
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_10_tax_tags",
+   "values": {
+    "label": "tags",
+    "engine": "tax_tags",
+    "formula": "mod130[06]",
+    "date_scope": "from_fiscalyear"
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_10_balance",
+   "values": {
+    "label": "balance",
+    "engine": "domain",
+    "formula": [
+     [
+      "tax_tag_ids",
+      "=",
+      "-mod130[06]"
+     ],
+     [
+      "partner_id.industry_id.name",
+      "=",
+      "Agriculture"
+     ]
+    ],
+    "subformula": "sum",
+    "date_scope": "from_fiscalyear"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_11",
+   "values": {
+    "name": "[11] Box 09 - Box 10",
+    "code": "aeat_mod_130_11",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_11_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_09.balance - aeat_mod_130_10.balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_title_3",
+   "values": {
+    "name": "III. Total settlement.",
+    "code": "aeat_mod_130_title_3",
+    "hierarchy_level": "0",
+    "children_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_12",
+   "values": {
+    "name": "[12] Box 07 + Box 11",
+    "code": "aeat_mod_130_12",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_12_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_07.balance + aeat_mod_130_11.balance",
+    "subformula": "if_above(EUR(0))"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_13",
+   "values": {
+    "name": "[13] Value of the reduction based on sum of net earnings from the previous tax year",
+    "code": "aeat_mod_130_13",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_13_balance",
+   "values": {
+    "label": "balance",
+    "engine": "external",
+    "formula": "sum",
+    "subformula": "editable;rounding=2"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_14",
+   "values": {
+    "name": "[14] Box 12 - Box 13",
+    "code": "aeat_mod_130_14",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_14_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_12.balance - aeat_mod_130_13.balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_15",
+   "values": {
+    "name": "[15] Negative amount of previous self-assessments",
+    "code": "aeat_mod_130_15",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_15_balance",
+   "values": {
+    "label": "balance",
+    "engine": "external",
+    "formula": "sum",
+    "subformula": "editable;rounding=2"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_16",
+   "values": {
+    "name": "[16] Deduction for allocating amounts to the payment of loans for the acquisition or rehabilitation",
+    "code": "aeat_mod_130_16",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_16_balance",
+   "values": {
+    "label": "balance",
+    "engine": "external",
+    "formula": "sum",
+    "subformula": "editable;rounding=2"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_17",
+   "values": {
+    "name": "[17] Box 14 - Box 15 - Box 16",
+    "code": "aeat_mod_130_17",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_17_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_14.balance - aeat_mod_130_15.balance - aeat_mod_130_16.balance"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_18",
+   "values": {
+    "name": "[18] Complementary declaration",
+    "code": "aeat_mod_130_18",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_18_balance",
+   "values": {
+    "label": "balance",
+    "engine": "external",
+    "formula": "sum",
+    "subformula": "editable;rounding=2;if_above(EUR(0))"
+   }
+  },
+  {
+   "model": "account.report.line",
+   "id": "mod_130_casilla_19",
+   "values": {
+    "name": "[19] Box 17 - Box 18",
+    "code": "aeat_mod_130_19",
+    "expression_ids": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "account.report.expression",
+   "id": "mod_130_casilla_19_balance",
+   "values": {
+    "label": "balance",
+    "engine": "aggregation",
+    "formula": "aeat_mod_130_17.balance - aeat_mod_130_18.balance"
+   }
+  }
+ ],
+ "menus": [],
+ "access": []
+}

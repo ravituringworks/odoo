@@ -1,0 +1,104 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations",
+ "data_files": [
+  "views/account_journal_view.xml"
+ ],
+ "depends": [
+  "l10n_dk"
+ ],
+ "models": {
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_reference_model": {
+     "ondelete": {
+      "$expr": "{'dk_fik_71': lambda recs: recs.write({'invoice_reference_model': 'odoo'}), 'dk_fik_75': lambda recs: recs.write({'invoice_reference_model': 'odoo'})}"
+     },
+     "selection_add": [
+      [
+       "dk_fik_71",
+       "Denmark FIK Number (+71)"
+      ],
+      [
+       "dk_fik_75",
+       "Denmark FIK Number (+75)"
+      ]
+     ],
+     "type": "Selection"
+    },
+    "l10n_dk_fik_creditor_number": {
+     "compute": "_compute_l10n_dk_fik_creditor_number",
+     "readonly": false,
+     "store": true,
+     "string": "FIK Creditor Number",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_reference_model', 'company_id.bank_ids.acc_number')"
+     ],
+     "lines": 13,
+     "name": "_compute_l10n_dk_fik_creditor_number"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('l10n_dk_fik_creditor_number', 'invoice_reference_model')"
+     ],
+     "lines": 8,
+     "name": "_check_fik_creditor_number"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_invoice_reference_dk_fik"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_invoice_reference_dk_fik_71_invoice"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_invoice_reference_dk_fik_75_invoice"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  }
+ },
+ "module": "l10n_dk_fik",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_dk_fik",
+ "stats": {
+  "fields": 2,
+  "methods": 5,
+  "models": 2,
+  "py_lines": 90
+ },
+ "summary": "Use FIK Number as Payment reference",
+ "title": "Denmark - FIK Number",
+ "version": "1.0"
+}

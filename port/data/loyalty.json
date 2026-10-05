@@ -1,0 +1,480 @@
+{
+ "module": "loyalty",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "sale_loyalty_program_company_rule",
+   "values": {
+    "name": "Loyalty program multi company rule",
+    "model_id": {
+     "$ref": "model_loyalty_program"
+    },
+    "domain_force": "['|', ('company_id', 'in', company_ids + [False]), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_loyalty_card_company_rule",
+   "values": {
+    "name": "Loyalty card multi company rule",
+    "model_id": {
+     "$ref": "model_loyalty_card"
+    },
+    "domain_force": "['|', ('company_id', 'in', company_ids + [False]), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "loyalty_history_company_rule",
+   "values": {
+    "name": "Loyalty history multi company rule",
+    "model_id": {
+     "$ref": "model_loyalty_history"
+    },
+    "domain_force": "['|', ('company_id', 'in', company_ids + [False]), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_loyalty_rule_company_rule",
+   "values": {
+    "name": "Loyalty rule multi company rule",
+    "model_id": {
+     "$ref": "model_loyalty_rule"
+    },
+    "domain_force": "['|', ('company_id', 'in', company_ids + [False]), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "sale_loyalty_reward_company_rule",
+   "values": {
+    "name": "Loyalty reward multi company rule",
+    "model_id": {
+     "$ref": "model_loyalty_reward"
+    },
+    "domain_force": "['|', ('company_id', 'in', company_ids + [False]), ('company_id', 'parent_of', company_ids)]"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "gift_card_product_50",
+   "values": {
+    "name": "Gift Card",
+    "list_price": "50",
+    "type": "service",
+    "purchase_ok": false,
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "ewallet_product_50",
+   "values": {
+    "name": "Top-up eWallet",
+    "list_price": "50",
+    "type": "service",
+    "purchase_ok": false
+   }
+  },
+  {
+   "model": "ir.config_parameter",
+   "id": "config_online_sync_proxy_mode",
+   "values": {
+    "key": "loyalty.compute_all_discount_product_ids",
+    "value": "False"
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "gift_card_program",
+   "values": {
+    "name": "Gift Cards",
+    "program_type": "gift_card",
+    "applies_on": "future",
+    "trigger": "auto",
+    "portal_visible": "True",
+    "portal_point_name": "$",
+    "mail_template_id": {
+     "$ref": "loyalty.mail_template_gift_card"
+    }
+   }
+  },
+  {
+   "model": "loyalty.reward",
+   "id": "gift_card_program_reward",
+   "values": {
+    "reward_type": "discount",
+    "discount_mode": "per_point",
+    "discount": "1",
+    "discount_applicability": "order",
+    "required_points": "1",
+    "program_id": {
+     "$ref": "loyalty.gift_card_program"
+    }
+   }
+  },
+  {
+   "model": "loyalty.rule",
+   "id": "gift_card_program_rule",
+   "values": {
+    "reward_point_amount": "1",
+    "reward_point_mode": "money",
+    "reward_point_split": "True",
+    "product_ids": [
+     [
+      4,
+      {
+       "$ref": "loyalty.gift_card_product_50"
+      }
+     ]
+    ],
+    "program_id": {
+     "$ref": "loyalty.gift_card_program"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "loyalty_generate_wizard_action",
+   "values": {
+    "name": "Generate",
+    "res_model": "loyalty.generate.wizard",
+    "view_mode": "form",
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "loyalty_card_action",
+   "values": {
+    "name": "Coupons",
+    "res_model": "loyalty.card",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "[('program_id', '=', active_id)]"
+    },
+    "context": {
+     "create": false
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "loyalty_program_discount_loyalty_action",
+   "values": {
+    "name": "Discount & Loyalty",
+    "res_model": "loyalty.program",
+    "view_mode": "list,form",
+    "domain": [
+     [
+      "program_type",
+      "not in",
+      [
+       "gift_card",
+       "ewallet"
+      ]
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_loyalty_program_tree_discount_loyalty",
+   "values": {
+    "view_mode": "list",
+    "sequence": "1",
+    "view_id": {
+     "$ref": "loyalty_program_view_tree"
+    },
+    "act_window_id": {
+     "$ref": "loyalty_program_discount_loyalty_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_loyalty_program_form_discount_loyalty",
+   "values": {
+    "view_mode": "form",
+    "sequence": "2",
+    "view_id": {
+     "$ref": "loyalty_program_view_form"
+    },
+    "act_window_id": {
+     "$ref": "loyalty_program_discount_loyalty_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "loyalty_program_gift_ewallet_action",
+   "values": {
+    "name": "Gift cards & eWallet",
+    "res_model": "loyalty.program",
+    "view_mode": "list,form",
+    "context": {
+     "menu_type": "gift_ewallet",
+     "default_program_type": "gift_card"
+    },
+    "domain": [
+     [
+      "program_type",
+      "in",
+      [
+       "gift_card",
+       "ewallet"
+      ]
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_loyalty_program_tree_gift_card_ewallet",
+   "values": {
+    "view_mode": "list",
+    "sequence": "1",
+    "view_id": {
+     "$ref": "loyalty_program_view_tree"
+    },
+    "act_window_id": {
+     "$ref": "loyalty_program_gift_ewallet_action"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_loyalty_program_form_gift_card_ewallet",
+   "values": {
+    "view_mode": "form",
+    "sequence": "2",
+    "view_id": {
+     "$ref": "loyalty_program_gift_ewallet_view_form"
+    },
+    "act_window_id": {
+     "$ref": "loyalty_program_gift_ewallet_action"
+    }
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "10_percent_with_code",
+   "values": {
+    "name": "Code for 10% on orders",
+    "program_type": "promo_code",
+    "trigger": "with_code",
+    "portal_visible": "False",
+    "portal_point_name": "Discount point(s)"
+   }
+  },
+  {
+   "model": "loyalty.rule",
+   "id": "10_percent_with_code_rule",
+   "values": {
+    "mode": "with_code",
+    "code": "10pc",
+    "program_id": {
+     "$ref": "loyalty.10_percent_with_code"
+    }
+   }
+  },
+  {
+   "model": "loyalty.reward",
+   "id": "10_percent_with_code_reward",
+   "values": {
+    "reward_type": "discount",
+    "discount": "10",
+    "discount_mode": "percent",
+    "discount_applicability": "order",
+    "program_id": {
+     "$ref": "loyalty.10_percent_with_code"
+    }
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "3_cabinets_plus_1_free",
+   "values": {
+    "name": "Buy 3 large cabinets, get one for free",
+    "program_type": "buy_x_get_y",
+    "applies_on": "current",
+    "trigger": "auto",
+    "portal_visible": "False",
+    "portal_point_name": "Credit(s)"
+   }
+  },
+  {
+   "model": "loyalty.rule",
+   "id": "3_cabinets_plus_1_free_rule",
+   "values": {
+    "minimum_qty": "3",
+    "reward_point_mode": "unit",
+    "reward_point_amount": "1",
+    "product_ids": [
+     [
+      4,
+      {
+       "$ref": "product.product_product_6"
+      }
+     ]
+    ],
+    "program_id": {
+     "$ref": "loyalty.3_cabinets_plus_1_free"
+    }
+   }
+  },
+  {
+   "model": "loyalty.reward",
+   "id": "3_cabinets_plus_1_free_reward",
+   "values": {
+    "reward_type": "product",
+    "reward_product_id": {
+     "$ref": "product.product_product_6"
+    },
+    "required_points": "3",
+    "program_id": {
+     "$ref": "loyalty.3_cabinets_plus_1_free"
+    }
+   }
+  },
+  {
+   "model": "loyalty.program",
+   "id": "10_percent_coupon",
+   "values": {
+    "name": "10% Discount Coupons",
+    "program_type": "coupons",
+    "applies_on": "current",
+    "trigger": "with_code",
+    "portal_point_name": "Coupon points"
+   }
+  },
+  {
+   "model": "loyalty.rule",
+   "id": "10_percent_coupon_rule",
+   "values": {
+    "program_id": {
+     "$ref": "loyalty.10_percent_coupon"
+    }
+   }
+  },
+  {
+   "model": "loyalty.reward",
+   "id": "10_percent_coupon_reward",
+   "values": {
+    "reward_type": "discount",
+    "discount": "10",
+    "discount_mode": "percent",
+    "discount_applicability": "order",
+    "program_id": {
+     "$ref": "loyalty.10_percent_coupon"
+    }
+   }
+  },
+  {
+   "model": "loyalty.mail",
+   "id": "10_percent_coupon_communication",
+   "values": {
+    "trigger": "create",
+    "mail_template_id": {
+     "$ref": "loyalty.mail_template_loyalty_card"
+    },
+    "program_id": {
+     "$ref": "loyalty.10_percent_coupon"
+    }
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_loyalty_card",
+   "model": "loyalty.card",
+   "model_xmlid": "model_loyalty_card",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_mail",
+   "model": "loyalty.mail",
+   "model_xmlid": "model_loyalty_mail",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_program",
+   "model": "loyalty.program",
+   "model_xmlid": "model_loyalty_program",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_reward",
+   "model": "loyalty.reward",
+   "model_xmlid": "model_loyalty_reward",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_rule",
+   "model": "loyalty.rule",
+   "model_xmlid": "model_loyalty_rule",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_generate_wizard",
+   "model": "loyalty.generate.wizard",
+   "model_xmlid": "model_loyalty_generate_wizard",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_history",
+   "model": "loyalty.history",
+   "model_xmlid": "model_loyalty_history",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_loyalty_card_update_balance_user",
+   "model": "loyalty.card.update.balance",
+   "model_xmlid": "model_loyalty_card_update_balance",
+   "group": "base.group_user",
+   "read": false,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

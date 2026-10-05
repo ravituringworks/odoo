@@ -1,0 +1,753 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Localizations/EDI",
+ "data_files": [
+  "security/ir_rules.xml",
+  "security/ir.model.access.csv",
+  "data/ewaybill_type_data.xml",
+  "views/l10n_in_ewaybill_views.xml",
+  "views/stock_picking_views.xml",
+  "report/ewaybill_report_views.xml",
+  "report/ewaybill_report.xml",
+  "wizard/l10n_in_ewaybill_cancel_views.xml"
+ ],
+ "depends": [
+  "l10n_in_stock",
+  "l10n_in_edi_ewaybill"
+ ],
+ "models": {
+  "l10n.in.ewaybill": {
+   "abstract": false,
+   "description": "e-Waybill",
+   "extension": false,
+   "fields": {
+    "blocking_level": {
+     "readonly": true,
+     "selection": [
+      [
+       "warning",
+       "Warning"
+      ],
+      [
+       "error",
+       "Error"
+      ]
+     ],
+     "string": "Blocking Level",
+     "type": "Selection"
+    },
+    "cancel_reason": {
+     "copy": false,
+     "selection": [
+      [
+       "1",
+       "Duplicate"
+      ],
+      [
+       "2",
+       "Data Entry Mistake"
+      ],
+      [
+       "3",
+       "Order Cancelled"
+      ],
+      [
+       "4",
+       "Others"
+      ]
+     ],
+     "string": "Cancel reason",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "cancel_remarks": {
+     "copy": false,
+     "string": "Cancel remarks",
+     "tracking": true,
+     "type": "Char"
+    },
+    "company_currency_id": {
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "related": "picking_id.company_id",
+     "type": "Many2one"
+    },
+    "content": {
+     "compute": "_compute_content",
+     "type": "Binary"
+    },
+    "distance": {
+     "string": "Distance",
+     "tracking": true,
+     "type": "Integer"
+    },
+    "document_date": {
+     "related": "picking_id.date_done",
+     "string": "Document Date",
+     "type": "Datetime"
+    },
+    "document_number": {
+     "related": "picking_id.name",
+     "string": "Document",
+     "type": "Char"
+    },
+    "error_message": {
+     "readonly": true,
+     "type": "Html"
+    },
+    "ewaybill_date": {
+     "copy": false,
+     "readonly": true,
+     "string": "e-Waybill Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "ewaybill_expiry_date": {
+     "copy": false,
+     "readonly": true,
+     "string": "e-Waybill Valid Upto",
+     "tracking": true,
+     "type": "Date"
+    },
+    "fiscal_position_id": {
+     "comodel": "account.fiscal.position",
+     "compute": "_compute_fiscal_position",
+     "readonly": false,
+     "store": true,
+     "string": "Fiscal Position",
+     "type": "Many2one"
+    },
+    "is_bill_from_editable": {
+     "compute": "_compute_is_editable",
+     "type": "Boolean"
+    },
+    "is_bill_to_editable": {
+     "compute": "_compute_is_editable",
+     "type": "Boolean"
+    },
+    "is_ship_from_editable": {
+     "compute": "_compute_is_editable",
+     "type": "Boolean"
+    },
+    "is_ship_to_editable": {
+     "compute": "_compute_is_editable",
+     "type": "Boolean"
+    },
+    "mode": {
+     "copy": false,
+     "default": "1",
+     "selection": [
+      [
+       "1",
+       "By Road"
+      ],
+      [
+       "2",
+       "Rail"
+      ],
+      [
+       "3",
+       "Air"
+      ],
+      [
+       "4",
+       "Ship or Ship Cum Road/Rail"
+      ]
+     ],
+     "string": "Transportation Mode",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "move_ids": {
+     "related": "picking_id.move_ids",
+     "type": "One2many"
+    },
+    "name": {
+     "copy": false,
+     "readonly": true,
+     "string": "e-Waybill Number",
+     "tracking": true,
+     "type": "Char"
+    },
+    "partner_bill_from_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_document_partners_details",
+     "readonly": false,
+     "store": true,
+     "string": "Bill From",
+     "type": "Many2one"
+    },
+    "partner_bill_to_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_document_partners_details",
+     "readonly": false,
+     "store": true,
+     "string": "Bill To",
+     "type": "Many2one"
+    },
+    "partner_ship_from_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_document_partners_details",
+     "readonly": false,
+     "store": true,
+     "string": "Dispatch From",
+     "type": "Many2one"
+    },
+    "partner_ship_to_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_document_partners_details",
+     "readonly": false,
+     "store": true,
+     "string": "Ship To",
+     "type": "Many2one"
+    },
+    "picking_id": {
+     "comodel": "stock.picking",
+     "copy": false,
+     "string": "Stock Transfer",
+     "type": "Many2one"
+    },
+    "picking_type_code": {
+     "related": "picking_id.picking_type_id.code",
+     "type": "Selection"
+    },
+    "state": {
+     "copy": false,
+     "default": "pending",
+     "readonly": true,
+     "required": true,
+     "selection": [
+      [
+       "pending",
+       "Pending"
+      ],
+      [
+       "challan",
+       "Challan"
+      ],
+      [
+       "generated",
+       "Generated"
+      ],
+      [
+       "cancel",
+       "Cancelled"
+      ]
+     ],
+     "string": "Status",
+     "tracking": true,
+     "type": "Selection"
+    },
+    "sub_type_code": {
+     "related": "type_id.sub_type_code",
+     "type": "Char"
+    },
+    "supply_type": {
+     "compute": "_compute_supply_type",
+     "selection": [
+      [
+       "O",
+       "Outward"
+      ],
+      [
+       "I",
+       "Inward"
+      ]
+     ],
+     "string": "Supply Type",
+     "type": "Selection"
+    },
+    "transportation_doc_date": {
+     "copy": false,
+     "string": "Transporter Doc Date",
+     "tracking": true,
+     "type": "Date"
+    },
+    "transportation_doc_no": {
+     "copy": false,
+     "string": "Transporter Doc No",
+     "tracking": true,
+     "type": "Char"
+    },
+    "transporter_id": {
+     "comodel": "res.partner",
+     "copy": false,
+     "string": "Transporter",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "type_description": {
+     "string": "Description",
+     "type": "Char"
+    },
+    "type_id": {
+     "comodel": "l10n.in.ewaybill.type",
+     "required": true,
+     "string": "Document Type",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "vehicle_no": {
+     "copy": false,
+     "string": "Vehicle Number",
+     "tracking": true,
+     "type": "Char"
+    },
+    "vehicle_type": {
+     "compute": "_compute_vehicle_type",
+     "copy": false,
+     "readonly": false,
+     "selection": [
+      [
+       "R",
+       "Regular"
+      ],
+      [
+       "O",
+       "Over Dimensional Cargo"
+      ]
+     ],
+     "store": true,
+     "string": "Vehicle Type",
+     "tracking": true,
+     "type": "Selection"
+    }
+   },
+   "inherit": [
+    "mail.activity.mixin",
+    "mail.thread",
+    "portal.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_supply_type"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('picking_id')"
+     ],
+     "lines": 22,
+     "name": "_compute_document_partners_details"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_bill_from_id', 'partner_bill_to_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_fiscal_position"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_ship_from_id', 'partner_ship_to_id', 'partner_bill_from_id', 'partner_bill_to_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_is_editable"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_compute_content"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('name', 'state')"
+     ],
+     "lines": 7,
+     "name": "_compute_display_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('mode')"
+     ],
+     "lines": 4,
+     "name": "_compute_vehicle_type"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_export_json"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "generate_ewaybill"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "cancel_ewaybill"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "reset_to_pending"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_set_to_challan"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 23,
+     "name": "action_print"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_is_overseas"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 7,
+     "name": "_get_default_help_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_check_configuration"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_check_transporter"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_check_partners"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_l10n_in_validate_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_check_document_number"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_check_lines"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_check_gst_treatment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_gst_treatment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_write_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_write_successfully_response"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_lock_ewaybill"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_handle_internal_warning_if_present"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_handle_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_ewaybill_cancel"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_l10n_in_ewaybill_stock_handle_zero_distance_alert_if_present"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_generate_ewaybill_direct"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 18,
+     "name": "_indian_timezone_to_odoo_utc"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_get_partner_state_code"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_l10n_in_tax_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_l10n_in_tax_details_by_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_get_l10n_in_ewaybill_line_details"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 63,
+     "name": "_prepare_ewaybill_base_json_payload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_prepare_ewaybill_transportation_json_payload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_prepare_ewaybill_tax_details_json_payload"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_ewaybill_generate_direct_json"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 3,
+     "name": "_unlink_l10n_in_ewaybill_prevent"
+    }
+   ],
+   "name": "l10n.in.ewaybill",
+   "sel_methods": {
+    "_check_document_number": [],
+    "_check_gst_treatment": []
+   },
+   "transient": false
+  },
+  "l10n.in.ewaybill.cancel": {
+   "abstract": false,
+   "description": "Cancel Ewaybill",
+   "extension": false,
+   "fields": {
+    "cancel_reason": {
+     "required": true,
+     "selection": [
+      [
+       "1",
+       "Duplicate"
+      ],
+      [
+       "2",
+       "Data Entry Mistake"
+      ],
+      [
+       "3",
+       "Order Cancelled"
+      ],
+      [
+       "4",
+       "Others"
+      ]
+     ],
+     "string": "Cancel Reason",
+     "type": "Selection"
+    },
+    "cancel_remarks": {
+     "string": "Cancel Remarks",
+     "type": "Char"
+    },
+    "l10n_in_ewaybill_id": {
+     "comodel": "l10n.in.ewaybill",
+     "required": true,
+     "string": "Ewaybill",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "cancel_ewaybill"
+    }
+   ],
+   "name": "l10n.in.ewaybill.cancel",
+   "transient": true
+  },
+  "stock.move": {
+   "abstract": false,
+   "description": "Stock Move Ewaybill",
+   "extension": true,
+   "fields": {
+    "company_currency_id": {
+     "related": "company_id.currency_id",
+     "type": "Many2one"
+    },
+    "ewaybill_price_unit": {
+     "compute": "_compute_l10n_in_ewaybill_price_unit",
+     "currency_field": "company_currency_id",
+     "readonly": false,
+     "store": true,
+     "type": "Monetary"
+    },
+    "ewaybill_tax_ids": {
+     "comodel": "account.tax",
+     "compute": "_compute_l10n_in_tax_ids",
+     "readonly": false,
+     "store": true,
+     "string": "Taxes",
+     "type": "Many2many"
+    },
+    "l10n_in_ewaybill_id": {
+     "related": "picking_id.l10n_in_ewaybill_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_in_ewaybill_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_l10n_in_ewaybill_price_unit"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('l10n_in_ewaybill_id.fiscal_position_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_l10n_in_tax_ids"
+    }
+   ],
+   "name": "stock.move",
+   "transient": false
+  },
+  "stock.picking": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "l10n_in_ewaybill_id": {
+     "comodel": "l10n.in.ewaybill",
+     "inverse_name": "picking_id",
+     "string": "Ewaybill",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_get_l10n_in_ewaybill_form_action"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 24,
+     "name": "action_l10n_in_ewaybill_create"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_open_l10n_in_ewaybill"
+    }
+   ],
+   "name": "stock.picking",
+   "transient": false
+  }
+ },
+ "module": "l10n_in_ewaybill_stock",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/l10n_in_ewaybill_stock",
+ "stats": {
+  "fields": 44,
+  "methods": 47,
+  "models": 4,
+  "py_lines": 1007
+ },
+ "summary": "Indian E-waybill for Stock",
+ "title": "Indian - E-waybill Stock",
+ "version": "1.0"
+}

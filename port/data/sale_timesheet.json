@@ -1,0 +1,6216 @@
+{
+ "module": "sale_timesheet",
+ "records": [
+  {
+   "model": "product.product",
+   "id": "time_product",
+   "values": {
+    "name": "Service on Timesheets",
+    "type": "service",
+    "list_price": "40",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "delivered_timesheet",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_user",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "uom.group_uom"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "account_analytic_line_export_template_line_so_line",
+   "values": {
+    "export_id": {
+     "$ref": "hr_timesheet.account_analytic_line_export_template"
+    },
+    "name": "so_line"
+   }
+  },
+  {
+   "model": "ir.exports",
+   "id": "aal_costs_revenues_export_template",
+   "values": {
+    "name": "Project Costs & Revenues",
+    "resource": "account.analytic.line"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "aal_costs_revenues_export_template_line_date",
+   "values": {
+    "export_id": {
+     "$ref": "aal_costs_revenues_export_template"
+    },
+    "name": "date"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "aal_costs_revenues_export_template_line_name",
+   "values": {
+    "export_id": {
+     "$ref": "aal_costs_revenues_export_template"
+    },
+    "name": "name"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "aal_costs_revenues_export_template_line_project_id",
+   "values": {
+    "export_id": {
+     "$ref": "aal_costs_revenues_export_template"
+    },
+    "name": "project_id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "aal_costs_revenues_export_template_line_product_id",
+   "values": {
+    "export_id": {
+     "$ref": "aal_costs_revenues_export_template"
+    },
+    "name": "product_id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "aal_costs_revenues_export_template_line_unit_amount",
+   "values": {
+    "export_id": {
+     "$ref": "aal_costs_revenues_export_template"
+    },
+    "name": "unit_amount"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "aal_costs_revenues_export_template_line_partner_id",
+   "values": {
+    "export_id": {
+     "$ref": "aal_costs_revenues_export_template"
+    },
+    "name": "partner_id"
+   }
+  },
+  {
+   "model": "ir.exports.line",
+   "id": "aal_costs_revenues_export_template_line_amount",
+   "values": {
+    "export_id": {
+     "$ref": "aal_costs_revenues_export_template"
+    },
+    "name": "amount"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account.account_analytic_line_rule_readonly_user",
+   "values": {
+    "domain_force": "[('project_id', '=', False)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "account.account_analytic_line_rule_billing_user",
+   "values": {
+    "domain_force": "[('project_id', '=', False)]"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_timesheet_from_invoice",
+   "values": {
+    "name": "Timesheets",
+    "res_model": "account.analytic.line",
+    "view_mode": "list,form,graph,pivot,kanban",
+    "context": {
+     "create": false,
+     "edit": false,
+     "delete": false,
+     "is_timesheet": 1
+    },
+    "domain": {
+     "$unevaluated": "[('timesheet_invoice_id', '=', active_id)]"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_timesheet_from_invoice_view_tree",
+   "values": {
+    "sequence": 1,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "hr_timesheet.hr_timesheet_line_tree"
+    },
+    "act_window_id": {
+     "$ref": "action_timesheet_from_invoice"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_timesheet_from_invoice_view_form",
+   "values": {
+    "sequence": 4,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "hr_timesheet.hr_timesheet_line_form"
+    },
+    "act_window_id": {
+     "$ref": "action_timesheet_from_invoice"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_timesheet_from_invoice_view_kanban",
+   "values": {
+    "sequence": 5,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "hr_timesheet.view_kanban_account_analytic_line"
+    },
+    "act_window_id": {
+     "$ref": "action_timesheet_from_invoice"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_timesheet_from_invoice_view_pivot",
+   "values": {
+    "sequence": 6,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "hr_timesheet.view_hr_timesheet_line_pivot"
+    },
+    "act_window_id": {
+     "$ref": "action_timesheet_from_invoice"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "action_timesheet_from_invoice_view_graph",
+   "values": {
+    "sequence": 7,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "hr_timesheet.view_hr_timesheet_line_graph"
+    },
+    "act_window_id": {
+     "$ref": "action_timesheet_from_invoice"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "product_template_action_default_services",
+   "values": {
+    "name": "Services",
+    "res_model": "product.template",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "sale_timesheet.product_template_view_search_sale_timesheet"
+    },
+    "context": {
+     "search_default_services": 1,
+     "default_type": "service"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "timesheet_action_from_sales_order",
+   "values": {
+    "name": "Timesheets",
+    "res_model": "account.analytic.line",
+    "search_view_id": {
+     "$ref": "hr_timesheet.hr_timesheet_line_search"
+    },
+    "context": {
+     "is_timesheet": 1
+    },
+    "domain": [
+     [
+      "project_id",
+      "!=",
+      false
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_from_sales_order_tree",
+   "values": {
+    "sequence": 4,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "hr_timesheet.timesheet_view_tree_user"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_from_sales_order"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_from_sales_order_form",
+   "values": {
+    "sequence": 5,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "hr_timesheet.timesheet_view_form_user"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_from_sales_order"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "timesheet_action_from_sales_order_item",
+   "values": {
+    "name": "Timesheets",
+    "res_model": "account.analytic.line",
+    "search_view_id": {
+     "$ref": "hr_timesheet.hr_timesheet_line_search"
+    },
+    "domain": {
+     "$unevaluated": "[('project_id', '!=', False), ('so_line', '=', active_id)]"
+    },
+    "context": {
+     "$unevaluated": "{\n            'search_default_billable_timesheet': True,\n            'search_default_week': 1,\n            'default_so_line': active_id,\n            'default_is"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_from_sales_order_item_tree",
+   "values": {
+    "sequence": 10,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "hr_timesheet.timesheet_view_tree_user"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_from_sales_order_item"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_from_sales_order_item_kanban",
+   "values": {
+    "sequence": 20,
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "hr_timesheet.view_kanban_account_analytic_line"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_from_sales_order_item"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_from_sales_order_item_pivot",
+   "values": {
+    "sequence": 30,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "view_hr_timesheet_line_pivot_inherited"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_from_sales_order_item"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_from_sales_order_item_graph",
+   "values": {
+    "sequence": 40,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "view_hr_timesheet_line_graph_employee_per_date"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_from_sales_order_item"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_from_sales_order_item_form",
+   "values": {
+    "sequence": 50,
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "hr_timesheet.timesheet_view_form_user"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_from_sales_order_item"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "timesheet_action_plan_pivot",
+   "values": {
+    "name": "Timesheet",
+    "res_model": "account.analytic.line",
+    "view_mode": "pivot,list,form",
+    "domain": [
+     [
+      "project_id",
+      "!=",
+      false
+     ]
+    ],
+    "context": {
+     "is_timesheet": 1
+    },
+    "search_view_id": {
+     "$ref": "hr_timesheet.hr_timesheet_line_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "timesheet_action_from_plan",
+   "values": {
+    "name": "Timesheet",
+    "res_model": "account.analytic.line",
+    "view_mode": "list,form",
+    "domain": [
+     [
+      "project_id",
+      "!=",
+      false
+     ]
+    ],
+    "context": {
+     "is_timesheet": 1
+    },
+    "search_view_id": {
+     "$ref": "hr_timesheet.hr_timesheet_line_search"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "timesheet_action_billing_report",
+   "values": {
+    "name": "Timesheets by Billing Type",
+    "res_model": "timesheets.analysis.report",
+    "path": "timesheets-billing",
+    "domain": [
+     [
+      "project_id",
+      "!=",
+      false
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    },
+    "search_view_id": {
+     "$ref": "hr_timesheet.hr_timesheet_report_search"
+    },
+    "view_mode": "pivot,graph"
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_view_report_by_billing_rate_pivot",
+   "values": {
+    "sequence": 5,
+    "view_mode": "pivot",
+    "view_id": {
+     "$ref": "timesheets_analysis_report_pivot_invoice_type"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_billing_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_view_report_by_billing_rate_graph",
+   "values": {
+    "sequence": 6,
+    "view_mode": "graph",
+    "view_id": {
+     "$ref": "timesheets_analysis_report_graph_invoice_type"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_billing_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window.view",
+   "id": "timesheet_action_view_report_by_billing_rate_list",
+   "values": {
+    "sequence": 10,
+    "view_mode": "list",
+    "view_id": {
+     "$ref": "hr_timesheet.timesheets_analysis_report_list"
+    },
+    "act_window_id": {
+     "$ref": "timesheet_action_billing_report"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "project_project_action_multi_create_invoice",
+   "values": {
+    "name": "Create Invoice",
+    "res_model": "project.create.invoice",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "project_create_invoice_view_form"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_interior_designer",
+   "values": {
+    "name": "Interior Designer",
+    "no_of_recruitment": "5",
+    "contract_type_id": {
+     "$ref": "hr.contract_type_permanent"
+    }
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_engineer",
+   "values": {
+    "name": "Site Manager",
+    "no_of_recruitment": "7",
+    "contract_type_id": {
+     "$ref": "hr.contract_type_permanent"
+    }
+   }
+  },
+  {
+   "model": "hr.job",
+   "id": "job_labour",
+   "values": {
+    "name": "Handyman",
+    "no_of_recruitment": "10",
+    "contract_type_id": {
+     "$ref": "hr.contract_type_permanent"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_jjo",
+   "values": {
+    "name": "Jessica Johnson",
+    "email": "jessica.johnson45@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_jjo",
+   "values": {
+    "name": "Jessica Johnson",
+    "parent_id": {
+     "$ref": "hr.employee_al"
+    },
+    "job_id": {
+     "$ref": "sale_timesheet.job_engineer"
+    },
+    "job_title": "Site Manager",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "hr.employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "hr.work_location_1"
+    },
+    "work_phone": "(535)-495-4164",
+    "work_contact_id": {
+     "$ref": "sale_timesheet.work_contact_jjo"
+    },
+    "image_1920": "",
+    "create_date": "2020-02-02 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_awa",
+   "values": {
+    "name": "Amy Watson",
+    "email": "amy.watson21@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_awa",
+   "values": {
+    "name": "Amy Watson",
+    "parent_id": {
+     "$ref": "sale_timesheet.employee_jjo"
+    },
+    "job_id": {
+     "$ref": "sale_timesheet.job_interior_designer"
+    },
+    "job_title": "Interior Designer",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "hr.employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "hr.work_location_1"
+    },
+    "work_phone": "(535)-495-4222",
+    "work_contact_id": {
+     "$ref": "sale_timesheet.work_contact_awa"
+    },
+    "image_1920": "",
+    "create_date": "2020-01-01 00:00:00"
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "work_contact_jsm",
+   "values": {
+    "name": "Justin Smith",
+    "email": "justin.smith57@example.com",
+    "image_1920": ""
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "employee_jsm",
+   "values": {
+    "name": "Justin Smith",
+    "parent_id": {
+     "$ref": "sale_timesheet.employee_jjo"
+    },
+    "job_id": {
+     "$ref": "sale_timesheet.job_labour"
+    },
+    "job_title": "Handyman",
+    "category_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "hr.employee_category_4"
+       }
+      ]
+     ]
+    ],
+    "work_location_id": {
+     "$ref": "hr.work_location_1"
+    },
+    "work_phone": "(535)-495-4444",
+    "work_contact_id": {
+     "$ref": "sale_timesheet.work_contact_jsm"
+    },
+    "image_1920": "",
+    "create_date": "2020-02-02 00:00:00"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_services",
+   "values": {
+    "order_id": {
+     "$ref": "sale.sale_order_3"
+    },
+    "product_id": {
+     "$ref": "sale.advance_product_0"
+    },
+    "price_unit": "150.0",
+    "product_uom_qty": "5.0"
+   }
+  },
+  {
+   "model": "account.analytic.account",
+   "id": "account_analytic_account_project_support",
+   "values": {
+    "name": "After-Sales Services",
+    "code": "INT",
+    "active": true,
+    "plan_id": {
+     "$ref": "analytic.analytic_plan_projects"
+    },
+    "company_id": false
+   }
+  },
+  {
+   "model": "project.project",
+   "id": "project_support",
+   "values": {
+    "name": "After-Sales Services",
+    "description": "Services provided to customers who have purchased products.",
+    "user_id": {
+     "$unevaluated": ""
+    },
+    "account_id": {
+     "$ref": "account_analytic_account_project_support"
+    },
+    "allow_billable": true,
+    "type_ids": [
+     [
+      4,
+      {
+       "$ref": "project.project_stage_0"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project.project_stage_1"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "project.project_stage_2"
+      }
+     ]
+    ],
+    "label_tasks": "Services",
+    "privacy_visibility": "followers"
+   }
+  },
+  {
+   "model": "mail.followers",
+   "id": "support_follower_admin",
+   "values": {
+    "res_model": "project.project",
+    "res_id": {
+     "$ref": "project_support"
+    },
+    "partner_id": {
+     "$ref": "base.partner_admin"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_task_internal",
+   "values": {
+    "name": "Internal training",
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(months=5)"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_2",
+   "values": {
+    "service_type": "timesheet",
+    "service_tracking": "project_only"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product.product_product_1",
+   "values": {
+    "service_type": "timesheet",
+    "service_tracking": "task_global_project"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_order_timesheet",
+   "values": {
+    "name": "Customer Care (Prepaid Hours)",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "type": "service",
+    "list_price": "250.00",
+    "standard_price": "190.00",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "service_upsell_threshold": "0.8"
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_deliver_timesheet_1",
+   "values": {
+    "name": "Senior Architect (Invoice on Timesheets)",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "list_price": "200.00",
+    "standard_price": "150.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "delivered_timesheet",
+    "service_tracking": "task_in_project",
+    "project_template_id": {
+     "$ref": "sale_project.so_template_project"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_deliver_timesheet_2",
+   "values": {
+    "name": "Junior Architect (Invoice on Timesheets)",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "list_price": "100.00",
+    "standard_price": "85.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "delivered_timesheet",
+    "service_tracking": "task_in_project",
+    "project_template_id": {
+     "$ref": "sale_project.so_template_project"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_deliver_milestones",
+   "values": {
+    "name": "Kitchen Assembly (Milestones)",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "list_price": "500",
+    "standard_price": "420.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "service_type": {
+     "$unevaluated": "'milestones' if obj().env.user.has_group('project.group_project_milestone') else 'manual'"
+    },
+    "service_tracking": "task_in_project",
+    "project_template_id": {
+     "$ref": "sale_project.so_template_project"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_elevator_installation",
+   "values": {
+    "name": "Elevator Installation",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "5500.00",
+    "standard_price": "5000.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "ordered_prepaid",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_solar_installation",
+   "values": {
+    "name": "Solar Panel Installation",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "4050.00",
+    "standard_price": "4000.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "delivered_timesheet",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_interior_designing",
+   "values": {
+    "name": "Interior Designing",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "2500.00",
+    "standard_price": "2000.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "delivered_milestones",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_product_roofing",
+   "values": {
+    "name": "Roofing",
+    "categ_id": {
+     "$ref": "product.product_category_construction"
+    },
+    "list_price": "4000.00",
+    "standard_price": "3500.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_hour"
+    },
+    "service_policy": "delivered_manual",
+    "service_tracking": "task_global_project",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    }
+   }
+  },
+  {
+   "model": "product.product",
+   "id": "product_service_deliver_manual",
+   "values": {
+    "name": "Furniture Delivery (Manual)",
+    "categ_id": {
+     "$ref": "product.product_category_3"
+    },
+    "list_price": "200",
+    "standard_price": "150.00",
+    "type": "service",
+    "uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "uom_po_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "service_policy": "delivered_manual",
+    "service_tracking": "task_in_project",
+    "project_template_id": {
+     "$ref": "sale_project.so_template_project"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_1",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "client_order_ref": "AGR",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor6"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_11",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_1"
+    },
+    "sequence": 1,
+    "product_id": {
+     "$ref": "product_service_order_timesheet"
+    },
+    "product_uom_qty": "20"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_13",
+   "values": {
+    "order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product_service_deliver_timesheet_1"
+    },
+    "sequence": 2,
+    "discount": "10",
+    "product_uom_qty": "25"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_12",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_1"
+    },
+    "sequence": 3,
+    "product_id": {
+     "$ref": "product_service_deliver_milestones"
+    },
+    "product_uom_qty": "4"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_14",
+   "values": {
+    "order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product_service_deliver_timesheet_1"
+    },
+    "sequence": 2,
+    "price_unit": "220",
+    "product_uom_qty": "15"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_15",
+   "values": {
+    "order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product_service_deliver_timesheet_1"
+    },
+    "sequence": 2,
+    "price_unit": "230",
+    "product_uom_qty": "20"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_16",
+   "values": {
+    "order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product_service_deliver_timesheet_2"
+    },
+    "sequence": 2,
+    "price_unit": "120",
+    "product_uom_qty": "10"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_17",
+   "values": {
+    "order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "product_id": {
+     "$ref": "product_service_deliver_timesheet_2"
+    },
+    "sequence": 2,
+    "price_unit": "110",
+    "product_uom_qty": "10"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_18",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_1"
+    },
+    "sequence": 3,
+    "product_id": {
+     "$ref": "product_service_deliver_manual"
+    },
+    "product_uom_qty": "1"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_2",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "client_order_ref": "DPC",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor3"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor5"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_21",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_2"
+    },
+    "sequence": 1,
+    "product_id": {
+     "$ref": "product_service_order_timesheet"
+    },
+    "product_uom_qty": "150"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_22",
+   "values": {
+    "order_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "sequence": 2,
+    "product_id": {
+     "$ref": "product_service_deliver_timesheet_2"
+    },
+    "product_uom_qty": "20"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_23",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_2"
+    },
+    "sequence": 3,
+    "product_id": {
+     "$ref": "product_service_deliver_manual"
+    },
+    "product_uom_qty": "1"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_24",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_2"
+    },
+    "sequence": 4,
+    "product_id": {
+     "$ref": "product_service_deliver_milestones"
+    },
+    "product_uom_qty": "4"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_3",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "client_order_ref": "ACME",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor7"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_31",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_3"
+    },
+    "sequence": 1,
+    "product_id": {
+     "$ref": "product_service_order_timesheet"
+    },
+    "product_uom_qty": "5"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_32",
+   "values": {
+    "order_id": {
+     "$ref": "sale_timesheet.sale_order_3"
+    },
+    "sequence": 2,
+    "product_id": {
+     "$ref": "product_service_deliver_timesheet_1"
+    },
+    "product_uom_qty": "15"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_33",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_3"
+    },
+    "sequence": 3,
+    "product_id": {
+     "$ref": "product_service_deliver_manual"
+    },
+    "product_uom_qty": "10"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_34",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_2"
+    },
+    "sequence": 4,
+    "product_id": {
+     "$ref": "product_service_deliver_milestones"
+    },
+    "product_uom_qty": "14"
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_4_construction",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "tag_ids": [
+     [
+      4,
+      {
+       "$ref": "sales_team.categ_oppor6"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_41",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_4_construction"
+    },
+    "sequence": 1,
+    "product_id": {
+     "$ref": "product_product_elevator_installation"
+    },
+    "product_uom_qty": "20"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_42",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_4_construction"
+    },
+    "product_id": {
+     "$ref": "product_product_solar_installation"
+    },
+    "sequence": 2,
+    "discount": "18",
+    "product_uom_qty": "10"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_43",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_4_construction"
+    },
+    "sequence": 1,
+    "product_id": {
+     "$ref": "product_product_interior_designing"
+    },
+    "product_uom_qty": "15"
+   }
+  },
+  {
+   "model": "sale.order.line",
+   "id": "sale_line_construction_44",
+   "values": {
+    "order_id": {
+     "$ref": "sale_order_4_construction"
+    },
+    "product_id": {
+     "$ref": "product_product_roofing"
+    },
+    "sequence": 2,
+    "discount": "10",
+    "product_uom_qty": "20"
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "sale_timesheet_activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "res_model_id": {
+     "$ref": "sale.model_sale_order"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Call to follow-up",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_1",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() + relativedelta(weekday=0, weeks=-3)"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_2",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() + relativedelta(weekday=0, weeks=-5)"
+    }
+   }
+  },
+  {
+   "model": "sale.order",
+   "id": "sale_order_3",
+   "values": {
+    "date_order": {
+     "$unevaluated": "datetime.now() + relativedelta(weekday=0, weeks=-1)"
+    }
+   }
+  },
+  {
+   "model": "project.milestone",
+   "id": "agr_milestone_0",
+   "values": {
+    "name": "Preparation and Delivery Phase",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "deadline": {
+     "$unevaluated": "(datetime.now() + relativedelta(weekday=0, weeks=-1)).strftime('%Y-%m-%d')"
+    }
+   }
+  },
+  {
+   "model": "project.milestone",
+   "id": "agr_milestone_1",
+   "values": {
+    "name": "Cabinets",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "is_reached": "True",
+    "sale_line_id": {
+     "$ref": "sale_line_12"
+    },
+    "quantity_percentage": "0.25"
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_dpc",
+   "values": {
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "name": "Weekly review",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "progress": 5,
+    "status": "off_track"
+   }
+  },
+  {
+   "model": "mail.followers",
+   "id": "agr_follower_portal",
+   "values": {
+    "res_model": "project.project",
+    "res_id": {
+     "$unevaluated": "search"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "project.collaborator",
+   "id": "agr_collaborator",
+   "values": {
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "agr_task_1",
+   "values": {
+    "name": "Kitchen Assembly",
+    "sale_line_id": {
+     "$ref": "sale_line_12"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "milestone_id": {
+     "$ref": "agr_milestone_1"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_task_agr_activity_1",
+   "values": {
+    "res_id": {
+     "$unevaluated": "search"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_upload_document"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=2)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Upload new plans",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_agr_activity_1",
+   "values": {
+    "res_id": {
+     "$unevaluated": "search"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_project"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(days=3)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Review progress with the customer",
+    "create_uid": {
+     "$ref": "base.user_admin"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_12_task_timesheet_1",
+   "values": {
+    "name": "Prepare",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "6.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_12"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_12_task_timesheet_2",
+   "values": {
+    "name": "Install",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_12"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_12_task_timesheet_3",
+   "values": {
+    "name": "Improve",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "10.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_12"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_12_task_timesheet_4",
+   "values": {
+    "name": "Decorate",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=1,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_12"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_13_task_timesheet_1",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "5.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_13_task_timesheet_2",
+   "values": {
+    "name": "Fine tuning",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "5.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_13_task_timesheet_3",
+   "values": {
+    "name": "Assembling",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "5.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_13_task_timesheet_4",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=1,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "5.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_15_task_timesheet_1",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_15_task_timesheet_2",
+   "values": {
+    "name": "Planning",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_15_task_timesheet_3",
+   "values": {
+    "name": "Building",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "5.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_15_task_timesheet_4",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=4,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_15_task_timesheet_5",
+   "values": {
+    "name": "Quality Check",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=5,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "5.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_16_task_timesheet_1",
+   "values": {
+    "name": "Requirement Analysis",
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_16_task_timesheet_2",
+   "values": {
+    "name": "Research",
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_16_task_timesheet_3",
+   "values": {
+    "name": "Quality Check",
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_18_task_timesheet_1",
+   "values": {
+    "name": "Packing",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "6.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_18"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_18_task_timesheet_2",
+   "values": {
+    "name": "Loading",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_18"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_18_task_timesheet_3",
+   "values": {
+    "name": "Shifting",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "10.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_18"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_18_task_timesheet_4",
+   "values": {
+    "name": "Unloading",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=1,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_18"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_1",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_2",
+   "values": {
+    "name": "Client meeting",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=1,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_3",
+   "values": {
+    "name": "Requirements check",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_4",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_5",
+   "values": {
+    "name": "Building",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=4,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_6",
+   "values": {
+    "name": "Research",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_7",
+   "values": {
+    "name": "Assembling",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=1,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_8",
+   "values": {
+    "name": "Quality  check",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_9",
+   "values": {
+    "name": "Assembling",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=3,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_11_task_timesheet_10",
+   "values": {
+    "name": "Wood chopping",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=4,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_22_task_timesheet_1",
+   "values": {
+    "name": "Research and Development",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=1,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_22_task_timesheet_2",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_22_task_timesheet_3",
+   "values": {
+    "name": "Repair",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_22_task_timesheet_4",
+   "values": {
+    "name": "Initial design improvement",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=4,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_21_task_timesheet_1",
+   "values": {
+    "name": "Knowledge transfer",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_21_task_timesheet_2",
+   "values": {
+    "name": "Document analysis",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_21_task_timesheet_3",
+   "values": {
+    "name": "Design analysis",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_21_task_timesheet_4",
+   "values": {
+    "name": "Requirements meeting",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_24_task_timesheet_1",
+   "values": {
+    "name": "Prepare",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=1,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_24"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_24_task_timesheet_2",
+   "values": {
+    "name": "Install",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_24"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_24_task_timesheet_3",
+   "values": {
+    "name": "Improve",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_24"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_24_task_timesheet_4",
+   "values": {
+    "name": "Decorate",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=4,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_24"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_23_task_timesheet_1",
+   "values": {
+    "name": "Packing",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_23"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_23_task_timesheet_2",
+   "values": {
+    "name": "Shifting",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_23"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_23_task_timesheet_3",
+   "values": {
+    "name": "Loading",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_23"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_23_task_timesheet_4",
+   "values": {
+    "name": "Unloading",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_23"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_34_task_timesheet_1",
+   "values": {
+    "name": "Prepare",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=1,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_34"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_34_task_timesheet_2",
+   "values": {
+    "name": "Install",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=2,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_34"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_34_task_timesheet_3",
+   "values": {
+    "name": "Improve",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_34"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_34_task_timesheet_4",
+   "values": {
+    "name": "Decorate",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=4,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_34"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_33_task_timesheet_1",
+   "values": {
+    "name": "Packing",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_33"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_33_task_timesheet_2",
+   "values": {
+    "name": "Shifting",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_33"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_33_task_timesheet_3",
+   "values": {
+    "name": "Loading",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_33"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_33_task_timesheet_4",
+   "values": {
+    "name": "Unloading",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "project_id": {
+     "$ref": "project_support"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_33"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_41_task_timesheet",
+   "values": {
+    "name": "Elevator Installation",
+    "employee_id": {
+     "$ref": "sale_timesheet.employee_jsm"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "5.00",
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    },
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "so_line": {
+     "$ref": "sale_line_construction_41"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_42_task_timesheet",
+   "values": {
+    "name": "Solar Panel Installation",
+    "employee_id": {
+     "$ref": "sale_timesheet.employee_jsm"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "4.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    },
+    "so_line": {
+     "$ref": "sale_line_construction_42"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_43_task_timesheet",
+   "values": {
+    "name": "House Interior Designing",
+    "employee_id": {
+     "$ref": "sale_timesheet.employee_jjo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "8.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    },
+    "so_line": {
+     "$ref": "sale_line_construction_43"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "sale_line_44_task_timesheet",
+   "values": {
+    "name": "House Renovation",
+    "employee_id": {
+     "$ref": "sale_timesheet.employee_awa"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(weekday=0,weeks=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "10.00",
+    "task_id": {
+     "$unevaluated": "search"
+    },
+    "project_id": {
+     "$ref": "project.project_home_construction"
+    },
+    "so_line": {
+     "$ref": "sale_line_construction_44"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_task_internal_timesheet_1",
+   "values": {
+    "name": "Technical training",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(months=-2, days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "8.00",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "task_id": {
+     "$ref": "project_task_internal"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_task_internal_timesheet_2",
+   "values": {
+    "name": "Internal training",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(months=-2, days=-12)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "8.00",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "task_id": {
+     "$ref": "project_task_internal"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_task_internal_timesheet_3",
+   "values": {
+    "name": "Internal discussion",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(months=-2, days=-13)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "8.00",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "task_id": {
+     "$ref": "project_task_internal"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_task_internal_timesheet_4",
+   "values": {
+    "name": "Details improvement",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(months=-2, days=-11)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "8.00",
+    "project_id": {
+     "$ref": "project.project_project_1"
+    },
+    "task_id": {
+     "$ref": "project_task_internal"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "account_analytic_line_inv_1",
+   "values": {
+    "name": {
+     "$unevaluated": "obj().env.ref('product.product_product_3').get_product_multiline_description_sale()"
+    },
+    "account_id": {
+     "$unevaluated": "search"
+    },
+    "partner_id": {
+     "$ref": "base.partner_root"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "amount": "-300.00",
+    "product_id": {
+     "$ref": "product.product_product_3"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "unit_amount": "10.00"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "account_analytic_line_exp_1",
+   "values": {
+    "name": {
+     "$unevaluated": "obj().env.ref('product.expense_product').get_product_multiline_description_sale()"
+    },
+    "account_id": {
+     "$unevaluated": "search"
+    },
+    "partner_id": {
+     "$ref": "base.partner_root"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "amount": "-100.00",
+    "product_id": {
+     "$ref": "product.expense_product"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "unit_amount": "1.00"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "account_analytic_line_inv_2",
+   "values": {
+    "name": {
+     "$unevaluated": "obj().env.ref('product.product_product_3').get_product_multiline_description_sale()"
+    },
+    "account_id": {
+     "$unevaluated": "search"
+    },
+    "partner_id": {
+     "$ref": "base.partner_root"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "amount": "-400.00",
+    "product_id": {
+     "$ref": "product.product_product_3"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "unit_amount": "15.00"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "account_analytic_line_exp_2",
+   "values": {
+    "name": {
+     "$unevaluated": "obj().env.ref('product.expense_hotel').get_product_multiline_description_sale()"
+    },
+    "account_id": {
+     "$unevaluated": "search"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=0)).strftime('%Y-%m-%d')"
+    },
+    "amount": "-75.00",
+    "product_id": {
+     "$ref": "product.expense_hotel"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_day"
+    },
+    "unit_amount": "1.00"
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_agr_task_1",
+   "values": {
+    "name": "Decoration",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_13"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_2"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_agr_task_2",
+   "values": {
+    "name": "Planning",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_13"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_2"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "milestone_id": {
+     "$ref": "sale_timesheet.agr_milestone_0"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_agr_task_3",
+   "values": {
+    "name": "Furniture",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_13"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_1"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "milestone_id": {
+     "$ref": "sale_timesheet.agr_milestone_0"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_agr_task_4",
+   "values": {
+    "name": "Furniture Delivery",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_1"
+    },
+    "state": "1_done",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_13"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_1"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "milestone_id": {
+     "$ref": "sale_timesheet.agr_milestone_0"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_dpc_task_1",
+   "values": {
+    "name": "Plastering",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_22"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_1"
+    },
+    "state": "1_done",
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_dpc_task_2",
+   "values": {
+    "name": "Project Planning",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_22"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_2"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_dpc_task_3",
+   "values": {
+    "name": "Wall Painting",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_22"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_1"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_dpc_task_3_activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "project_dpc_task_3"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_todo"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(hours=4)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Order paint",
+    "create_uid": {
+     "$ref": "base.user_demo"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_dpc_task_4",
+   "values": {
+    "name": "Carpet fitting",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_0"
+    },
+    "state": "02_changes_requested",
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=4)"
+    },
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_22"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_dpc_task_4_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_dpc_task_4"
+    },
+    "body": "Hello Admin,\n                I know you wanted my help to fit the carpet, but I unfortunately won't be available.\n                Sorry for the short notice.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(days=2)).strftime('%Y-%m-%d 14:09:16')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_dpc_task_4_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_dpc_task_4"
+    },
+    "parent_id": {
+     "$ref": "project_dpc_task_4_message_1"
+    },
+    "body": "Demo, I did not expect you to pull the rug out from under me like that!",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(days=2)).strftime('%Y-%m-%d 14:45:52')"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_dpc_task_5",
+   "values": {
+    "name": "Electricity",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_2"
+    },
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_22"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "create_date": {
+     "$unevaluated": "DateTime.now() - relativedelta(days=4)"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_dpc_task_5_message_1",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_dpc_task_5"
+    },
+    "body": "Demo, I'm shocked to see this negative review, what happened with the cables?",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(days=1)).strftime('%Y-%m-%d 10:26:23')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_dpc_task_5_message_2",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_dpc_task_5"
+    },
+    "parent_id": {
+     "$ref": "project_dpc_task_5_message_1"
+    },
+    "body": "Hello Admin, I'm currently investigating the problem with the client.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_demo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(days=1)).strftime('%Y-%m-%d 10:37:56')"
+    }
+   }
+  },
+  {
+   "model": "mail.message",
+   "id": "project_dpc_task_5_message_3",
+   "values": {
+    "model": "project.task",
+    "res_id": {
+     "$ref": "project_dpc_task_5"
+    },
+    "parent_id": {
+     "$ref": "project_dpc_task_5_message_2"
+    },
+    "body": "Hopefully, this will help throw some light over this situation. Please do not charge the customer any extra time spent on this.",
+    "message_type": "comment",
+    "author_id": {
+     "$ref": "base.partner_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() - relativedelta(days=1)).strftime('%Y-%m-%d 10:41:14')"
+    }
+   }
+  },
+  {
+   "model": "mail.activity",
+   "id": "project_dpc_task_5_activity_1",
+   "values": {
+    "res_id": {
+     "$ref": "project_dpc_task_5"
+    },
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "activity_type_id": {
+     "$ref": "mail.mail_activity_data_call"
+    },
+    "date_deadline": {
+     "$unevaluated": "(DateTime.today() + relativedelta(hours=1)).strftime('%Y-%m-%d %H:%M')"
+    },
+    "summary": "Call customer",
+    "create_uid": {
+     "$ref": "base.user_demo"
+    },
+    "user_id": {
+     "$ref": "base.user_demo"
+    }
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_dpc_task_6",
+   "values": {
+    "name": "Ceiling fan",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_0"
+    },
+    "state": "02_changes_requested",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_22"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "project.task",
+   "id": "project_dpc_task_7",
+   "values": {
+    "name": "Plumbing",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "stage_id": {
+     "$ref": "project.project_stage_0"
+    },
+    "state": "02_changes_requested",
+    "sale_line_id": {
+     "$ref": "sale_timesheet.sale_line_22"
+    },
+    "sale_order_id": {
+     "$ref": "sale_timesheet.sale_order_2"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "user_ids": [
+     [
+      4,
+      {
+       "$ref": "base.user_demo"
+      }
+     ]
+    ],
+    "active": false
+   }
+  },
+  {
+   "model": "mail.followers",
+   "id": "project_dpc_task_1_follower_portal",
+   "values": {
+    "res_model": "project.task",
+    "res_id": {
+     "$ref": "project_dpc_task_1"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "mail.followers",
+   "id": "project_dpc_task_4_follower_portal",
+   "values": {
+    "res_model": "project.task",
+    "res_id": {
+     "$ref": "project_dpc_task_4"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "mail.followers",
+   "id": "project_dpc_task_6_follower_portal",
+   "values": {
+    "res_model": "project.task",
+    "res_id": {
+     "$ref": "project_dpc_task_6"
+    },
+    "partner_id": {
+     "$ref": "base.partner_demo_portal"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_task_1",
+   "values": {
+    "access_token": "TS_0",
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "res_id": {
+     "$ref": "project_agr_task_1"
+    }
+   }
+  },
+  {
+   "model": "rating.rating",
+   "id": "rating_task_2",
+   "values": {
+    "access_token": "TS_1",
+    "res_model_id": {
+     "$ref": "project.model_project_task"
+    },
+    "rated_partner_id": {
+     "$ref": "base.partner_admin"
+    },
+    "partner_id": {
+     "$ref": "base.res_partner_4"
+    },
+    "res_id": {
+     "$ref": "project_dpc_task_5"
+    }
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_1",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jgo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_2",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_chs"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_3",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_4",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_fpi"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_5",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_6",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_7",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_niv"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_8",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_jgo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_9",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_10",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_11",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_niv"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_12",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_13",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_14",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_al"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_15",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_16",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_ngh"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_17",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_niv"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_18",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_lur"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_19",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_niv"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_20",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_21",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_22",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_1_account_analytic_line_23",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_1"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_1",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_vad"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_2",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_al"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_3",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_4",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_5",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_6",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_ngh"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_7",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_8",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_9",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_vad"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_10",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_11",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_12",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_13",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_14",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_15",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jgo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_16",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_17",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_chs"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_18",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_19",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_fpi"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_20",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_jgo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_21",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_jgo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_22",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_vad"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_23",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_fpi"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_24",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_25",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_26",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_27",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_28",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_29",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_niv"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_30",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_fpi"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_31",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jgo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_32",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_jgo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_33",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jgo"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_34",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_ngh"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_35",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_vad"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_2_account_analytic_line_36",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_2"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_1",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_2",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_3",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_4",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_ngh"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_5",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_6",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_vad"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_7",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_8",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_9",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_10",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_lur"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_11",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_vad"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_12",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_ngh"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_13",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_lur"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_14",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_15",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_jep"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_16",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_17",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_18",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_19",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_20",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_21",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_niv"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_22",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_23",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_24",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_25",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_26",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_jep"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_27",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_ngh"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_28",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_3_account_analytic_line_29",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_3"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_1",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_2",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_3",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-1)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_4",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_5",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_6",
+   "values": {
+    "name": "Sprint",
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-2)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_7",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_8",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-3)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_9",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_10",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_11",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jep"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "3",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-90.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_12",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-4)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_13",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_jth"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_14",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_15",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-5)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_16",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_17",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_vad"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_18",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_jve"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-6)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_19",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_20",
+   "values": {
+    "name": "On Site Visit",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_21",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_ngh"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_22",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_stw"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_23",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_al"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_24",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_fme"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-7)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_25",
+   "values": {
+    "name": "Requirements analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jod"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_26",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_chs"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_27",
+   "values": {
+    "name": "Training",
+    "employee_id": {
+     "$ref": "hr.employee_mit"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-8)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-60.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_28",
+   "values": {
+    "name": "Presentation",
+    "employee_id": {
+     "$ref": "hr.employee_han"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "2",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_29",
+   "values": {
+    "name": "Call",
+    "employee_id": {
+     "$ref": "hr.employee_ngh"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-9)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_30",
+   "values": {
+    "name": "Quality analysis",
+    "employee_id": {
+     "$ref": "hr.employee_jog"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "so_line": "",
+    "is_so_line_edited": "True"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_31",
+   "values": {
+    "name": "Design",
+    "employee_id": {
+     "$ref": "hr.employee_hne"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "account.analytic.line",
+   "id": "project_agr_task_4_account_analytic_line_32",
+   "values": {
+    "name": "Delivery",
+    "employee_id": {
+     "$ref": "hr.employee_fpi"
+    },
+    "date": {
+     "$unevaluated": "(DateTime.now() + relativedelta(days=-10)).strftime('%Y-%m-%d')"
+    },
+    "unit_amount": "1",
+    "project_id": {
+     "$unevaluated": "search"
+    },
+    "task_id": {
+     "$ref": "sale_timesheet.project_agr_task_4"
+    },
+    "amount": "-30.0"
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_1",
+   "values": {
+    "name": "Weekly review",
+    "user_id": {
+     "$ref": "base.user_demo"
+    },
+    "progress": 50,
+    "status": "on_track"
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_2",
+   "values": {
+    "name": "Weekly review",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "progress": 35,
+    "status": "on_hold"
+   }
+  },
+  {
+   "model": "project.update",
+   "id": "project_update_3",
+   "values": {
+    "name": "Review of the situation",
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "progress": 30,
+    "status": "at_risk"
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_timesheet_billing_analysis",
+   "name": "By Billing Type",
+   "parent": "hr_timesheet.menu_timesheets_reports_timesheet",
+   "action": "timesheet_action_billing_report",
+   "sequence": "40"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_project_sale_line_employee_map",
+   "model": "project.sale.line.employee.map",
+   "model_xmlid": "model_project_sale_line_employee_map",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_project_sale_line_employee_map_manager",
+   "model": "project.sale.line.employee.map",
+   "model_xmlid": "model_project_sale_line_employee_map",
+   "group": "project.group_project_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_project_create_invoice",
+   "model": "project.create.invoice",
+   "model_xmlid": "model_project_create_invoice",
+   "group": "sales_team.group_sale_salesman_all_leads",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}

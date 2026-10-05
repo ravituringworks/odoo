@@ -1,0 +1,374 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Hidden",
+ "data_files": [
+  "security/ir.model.access.csv"
+ ],
+ "depends": [
+  "mass_mailing",
+  "mass_mailing_sms",
+  "sms_twilio",
+  "test_mail",
+  "test_mail_sms"
+ ],
+ "models": {
+  "ir.qweb": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_bundles_to_pregenarate"
+    }
+   ],
+   "name": "ir.qweb",
+   "transient": false
+  },
+  "mailing.performance": {
+   "abstract": false,
+   "description": "Mailing: base performance",
+   "extension": false,
+   "fields": {
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mailing.performance",
+   "transient": false
+  },
+  "mailing.performance.blacklist": {
+   "abstract": false,
+   "description": "Mailing: blacklist performance",
+   "extension": false,
+   "fields": {
+    "container_id": {
+     "comodel": "mail.test.container",
+     "string": "Meta Container Record",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mailing.performance.blacklist",
+   "transient": false
+  },
+  "mailing.test.blacklist": {
+   "abstract": false,
+   "description": "Mailing Blacklist Enabled",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_message_get_default_recipients"
+    }
+   ],
+   "name": "mailing.test.blacklist",
+   "order": "name ASC, id DESC",
+   "transient": false
+  },
+  "mailing.test.customer": {
+   "abstract": false,
+   "description": "Mailing with partner",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "email_from": {
+     "compute": "_compute_email_from",
+     "readonly": false,
+     "store": true,
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('customer_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_email_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_message_get_default_recipients"
+    }
+   ],
+   "name": "mailing.test.customer",
+   "transient": false
+  },
+  "mailing.test.optout": {
+   "abstract": false,
+   "description": "Mailing Blacklist / Optout Enabled",
+   "extension": false,
+   "fields": {
+    "customer_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "opt_out": {
+     "type": "Boolean"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "string": "Responsible",
+     "tracking": true,
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_mailing_get_opt_out_list"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_message_get_default_recipients"
+    }
+   ],
+   "name": "mailing.test.optout",
+   "order": "id ASC",
+   "transient": false
+  },
+  "mailing.test.partner": {
+   "abstract": false,
+   "description": "Mailing Model with partner_id",
+   "extension": false,
+   "fields": {
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "string": "Customer",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mailing.test.partner",
+   "transient": false
+  },
+  "mailing.test.partner.unstored": {
+   "abstract": false,
+   "description": "Mailing Model without stored partner_id",
+   "extension": false,
+   "fields": {
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_partner_id",
+     "store": false,
+     "string": "Customer",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [
+    "mail.thread.blacklist"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_from')"
+     ],
+     "lines": 11,
+     "name": "_compute_partner_id"
+    }
+   ],
+   "name": "mailing.test.partner.unstored",
+   "transient": false
+  },
+  "mailing.test.simple": {
+   "abstract": false,
+   "description": "Simple Mailing",
+   "extension": false,
+   "fields": {
+    "email_from": {
+     "type": "Char"
+    },
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mailing.test.simple",
+   "transient": false
+  },
+  "mailing.test.utm": {
+   "abstract": false,
+   "description": "Mailing: UTM enabled to test UTM sync with mailing",
+   "extension": false,
+   "fields": {
+    "name": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "utm.mixin"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "mailing.test.utm",
+   "transient": false
+  },
+  "utm.test.source.mixin": {
+   "abstract": false,
+   "description": "UTM Source Mixin Test Model",
+   "extension": false,
+   "fields": {
+    "name": {
+     "type": "Char"
+    },
+    "title": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "utm.source.mixin"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "utm.test.source.mixin",
+   "order": "id DESC",
+   "rec_name": "title",
+   "transient": false
+  },
+  "utm.test.source.mixin.other": {
+   "abstract": false,
+   "description": "UTM Source Mixin Test Model (another)",
+   "extension": false,
+   "fields": {
+    "name": {
+     "type": "Char"
+    },
+    "title": {
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "mail.thread",
+    "utm.source.mixin"
+   ],
+   "inherits": {},
+   "methods": [],
+   "name": "utm.test.source.mixin.other",
+   "order": "id DESC",
+   "rec_name": "title",
+   "transient": false
+  }
+ },
+ "module": "test_mass_mailing",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/test_mass_mailing",
+ "stats": {
+  "fields": 31,
+  "methods": 7,
+  "models": 12,
+  "py_lines": 292
+ },
+ "summary": "Mass Mail Tests: feature and performance tests for mass mailing",
+ "title": "Mass Mail Tests",
+ "version": "1.0"
+}

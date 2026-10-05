@@ -1,0 +1,876 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "data/ir_config_parameter.xml",
+  "data/onboarding_data.xml",
+  "security/ir.model.access.csv",
+  "security/ir_rules.xml",
+  "views/account_payment_menus.xml",
+  "views/account_portal_templates.xml",
+  "views/account_move_views.xml",
+  "views/account_journal_views.xml",
+  "views/account_payment_views.xml",
+  "views/payment_form_templates.xml",
+  "views/payment_provider_views.xml",
+  "views/payment_transaction_views.xml",
+  "wizards/account_payment_register_views.xml",
+  "wizards/payment_link_wizard_views.xml",
+  "wizards/payment_refund_wizard_views.xml",
+  "wizards/res_config_settings_views.xml"
+ ],
+ "depends": [
+  "account",
+  "payment"
+ ],
+ "models": {
+  "account.journal": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_get_available_payment_method_lines"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 9,
+     "name": "_unlink_except_linked_to_payment_provider"
+    }
+   ],
+   "name": "account.journal",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "amount_paid": {
+     "compute": "_compute_amount_paid",
+     "string": "Amount paid",
+     "type": "Monetary"
+    },
+    "authorized_transaction_ids": {
+     "comodel": "payment.transaction",
+     "compute": "_compute_authorized_transaction_ids",
+     "copy": false,
+     "readonly": true,
+     "string": "Authorized Transactions",
+     "type": "Many2many"
+    },
+    "transaction_count": {
+     "compute": "_compute_transaction_count",
+     "string": "Transaction Count",
+     "type": "Integer"
+    },
+    "transaction_ids": {
+     "column1": "invoice_id",
+     "column2": "transaction_id",
+     "comodel": "payment.transaction",
+     "copy": false,
+     "readonly": true,
+     "relation_table": "account_invoice_transaction_rel",
+     "string": "Transactions",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 5,
+     "name": "_compute_authorized_transaction_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_transaction_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_ids')"
+     ],
+     "lines": 9,
+     "name": "_compute_amount_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_has_to_be_paid"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_online_payment_error"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "get_portal_last_transaction"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "payment_action_capture"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "payment_action_void"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 11,
+     "name": "action_view_payment_transactions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_get_default_payment_link_values"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.payment": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "amount_available_for_refund": {
+     "compute": "_compute_amount_available_for_refund",
+     "type": "Monetary"
+    },
+    "payment_token_id": {
+     "comodel": "payment.token",
+     "domain": "[\n            ('id', 'in', suitable_payment_token_ids),\n        ]",
+     "help": "Note that only tokens from providers allowing to capture the amount are available.",
+     "string": "Saved Payment Token",
+     "type": "Many2one"
+    },
+    "payment_transaction_id": {
+     "comodel": "payment.transaction",
+     "readonly": true,
+     "string": "Payment Transaction",
+     "type": "Many2one"
+    },
+    "refunds_count": {
+     "compute": "_compute_refunds_count",
+     "string": "Refunds Count",
+     "type": "Integer"
+    },
+    "source_payment_id": {
+     "comodel": "account.payment",
+     "help": "The source payment of related refund payments",
+     "index": "btree_not_null",
+     "readonly": true,
+     "related": "payment_transaction_id.source_transaction_id.payment_id",
+     "store": true,
+     "string": "Source Payment",
+     "type": "Many2one"
+    },
+    "suitable_payment_token_ids": {
+     "comodel": "payment.token",
+     "compute": "_compute_suitable_payment_token_ids",
+     "type": "Many2many"
+    },
+    "use_electronic_payment_method": {
+     "compute": "_compute_use_electronic_payment_method",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 22,
+     "name": "_compute_amount_available_for_refund"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id')"
+     ],
+     "lines": 11,
+     "name": "_compute_suitable_payment_token_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_use_electronic_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_compute_refunds_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('partner_id', 'payment_method_line_id', 'journal_id')"
+     ],
+     "lines": 12,
+     "name": "_onchange_set_payment_token_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 28,
+     "name": "action_post"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_refund_wizard"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_view_refunds"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_create_payment_transaction"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_prepare_payment_transaction_vals"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_payment_refund_wizard_values"
+    }
+   ],
+   "name": "account.payment",
+   "transient": false
+  },
+  "account.payment.method": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "_get_payment_method_information"
+    }
+   ],
+   "name": "account.payment.method",
+   "transient": false
+  },
+  "account.payment.method.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "payment_provider_id": {
+     "comodel": "payment.provider",
+     "compute": "_compute_payment_provider_id",
+     "domain": "[('code', '=', code)]",
+     "readonly": false,
+     "store": true,
+     "type": "Many2one"
+    },
+    "payment_provider_state": {
+     "related": "payment_provider_id.state",
+     "type": "Selection"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_provider_id.name')"
+     ],
+     "lines": 5,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_id')"
+     ],
+     "lines": 33,
+     "name": "_compute_payment_provider_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 11,
+     "name": "_unlink_except_active_provider"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_open_provider_form"
+    }
+   ],
+   "name": "account.payment.method.line",
+   "transient": false
+  },
+  "account.payment.register": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "payment_token_id": {
+     "comodel": "payment.token",
+     "compute": "_compute_payment_token_id",
+     "domain": "[\n            ('id', 'in', suitable_payment_token_ids),\n        ]",
+     "help": "Note that tokens from providers set to only authorize transactions (instead of capturing the amount) are not available.",
+     "readonly": false,
+     "store": true,
+     "string": "Saved payment token",
+     "type": "Many2one"
+    },
+    "suitable_payment_token_ids": {
+     "comodel": "payment.token",
+     "compute": "_compute_suitable_payment_token_ids",
+     "type": "Many2many"
+    },
+    "use_electronic_payment_method": {
+     "compute": "_compute_use_electronic_payment_method",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_suitable_payment_token_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_method_line_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_use_electronic_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('can_edit_wizard', 'suitable_payment_token_ids', 'journal_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_payment_token_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_create_payment_vals_from_wizard"
+    }
+   ],
+   "name": "account.payment.register",
+   "transient": false
+  },
+  "onboarding.onboarding.step": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "action_open_step_payment_provider"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "action_validate_step_payment_provider"
+    }
+   ],
+   "name": "onboarding.onboarding.step",
+   "transient": false
+  },
+  "payment.link.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "discount_date": {
+     "type": "Date"
+    },
+    "display_open_installments": {
+     "compute": "_compute_display_open_installments",
+     "type": "Boolean"
+    },
+    "epd_info": {
+     "compute": "_compute_epd_info",
+     "string": "Early Payment Discount Information",
+     "type": "Char"
+    },
+    "has_eligible_epd": {
+     "type": "Boolean"
+    },
+    "invoice_amount_due": {
+     "compute": "_compute_invoice_amount_due",
+     "currency_field": "currency_id",
+     "string": "Amount Due",
+     "type": "Monetary"
+    },
+    "open_installments": {
+     "type": "Json"
+    },
+    "open_installments_preview": {
+     "compute": "_compute_open_installments_preview",
+     "type": "Html"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_warning_message"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount_max')"
+     ],
+     "lines": 3,
+     "name": "_compute_invoice_amount_due"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('open_installments')"
+     ],
+     "lines": 18,
+     "name": "_compute_open_installments_preview"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount')"
+     ],
+     "lines": 6,
+     "name": "_compute_epd_info"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('open_installments')"
+     ],
+     "lines": 5,
+     "name": "_compute_display_open_installments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_url"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_prepare_query_params"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_access_token"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_anchor"
+    }
+   ],
+   "name": "payment.link.wizard",
+   "transient": false
+  },
+  "payment.provider": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "journal_id": {
+     "comodel": "account.journal",
+     "compute": "_compute_journal_id",
+     "copy": false,
+     "domain": "[(\"type\", \"=\", \"bank\")]",
+     "help": "The journal in which the successful transactions are posted.",
+     "string": "Payment Journal",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 51,
+     "name": "_ensure_payment_method_line"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_payment_method_outstanding_account_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('code', 'state', 'company_id')"
+     ],
+     "lines": 19,
+     "name": "_compute_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_journal_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 2,
+     "name": "_get_provider_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 4,
+     "name": "_setup_provider"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_setup_payment_method"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_check_existing_payment"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 8,
+     "name": "_remove_provider"
+    }
+   ],
+   "name": "payment.provider",
+   "transient": false
+  },
+  "payment.refund.wizard": {
+   "abstract": false,
+   "description": "Payment Refund Wizard",
+   "extension": false,
+   "fields": {
+    "amount_available_for_refund": {
+     "related": "payment_id.amount_available_for_refund",
+     "string": "Maximum Refund Allowed",
+     "type": "Monetary"
+    },
+    "amount_to_refund": {
+     "compute": "_compute_amount_to_refund",
+     "readonly": false,
+     "store": true,
+     "string": "Refund Amount",
+     "type": "Monetary"
+    },
+    "currency_id": {
+     "related": "transaction_id.currency_id",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "has_pending_refund": {
+     "compute": "_compute_has_pending_refund",
+     "string": "Has a pending refund",
+     "type": "Boolean"
+    },
+    "payment_amount": {
+     "related": "payment_id.amount",
+     "string": "Payment Amount",
+     "type": "Monetary"
+    },
+    "payment_id": {
+     "comodel": "account.payment",
+     "default": {
+      "$lambda": "self.env.context.get('active_id')"
+     },
+     "readonly": true,
+     "string": "Payment",
+     "type": "Many2one"
+    },
+    "refunded_amount": {
+     "compute": "_compute_refunded_amount",
+     "string": "Refunded Amount",
+     "type": "Monetary"
+    },
+    "support_refund": {
+     "compute": "_compute_support_refund",
+     "selection": [
+      [
+       "none",
+       "Unsupported"
+      ],
+      [
+       "full_only",
+       "Full Only"
+      ],
+      [
+       "partial",
+       "Partial"
+      ]
+     ],
+     "string": "Refund",
+     "type": "Selection"
+    },
+    "transaction_id": {
+     "related": "payment_id.payment_transaction_id",
+     "string": "Payment Transaction",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('amount_to_refund')"
+     ],
+     "lines": 7,
+     "name": "_check_amount_to_refund_within_boundaries"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount_available_for_refund')"
+     ],
+     "lines": 3,
+     "name": "_compute_refunded_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('amount_available_for_refund')"
+     ],
+     "lines": 4,
+     "name": "_compute_amount_to_refund"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('transaction_id.provider_id', 'transaction_id.payment_method_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_support_refund"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('payment_id')"
+     ],
+     "lines": 8,
+     "name": "_compute_has_pending_refund"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_refund"
+    }
+   ],
+   "name": "payment.refund.wizard",
+   "transient": true
+  },
+  "payment.transaction": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "invoice_ids": {
+     "column1": "transaction_id",
+     "column2": "invoice_id",
+     "comodel": "account.move",
+     "copy": false,
+     "domain": [
+      [
+       "move_type",
+       "in",
+       [
+        "out_invoice",
+        "out_refund",
+        "in_invoice",
+        "in_refund"
+       ]
+      ]
+     ],
+     "readonly": true,
+     "relation_table": "account_invoice_transaction_rel",
+     "string": "Invoices",
+     "type": "Many2many"
+    },
+    "invoices_count": {
+     "compute": "_compute_invoices_count",
+     "string": "Invoices Count",
+     "type": "Integer"
+    },
+    "payment_id": {
+     "comodel": "account.payment",
+     "readonly": true,
+     "string": "Payment",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('invoice_ids')"
+     ],
+     "lines": 15,
+     "name": "_compute_invoices_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 26,
+     "name": "action_view_invoices"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 27,
+     "name": "_compute_reference_prefix"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "_post_process"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 82,
+     "name": "_create_payment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_log_message_on_linked_documents"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_invoices_to_notify"
+    }
+   ],
+   "name": "payment.transaction",
+   "sel_methods": {
+    "_compute_reference_prefix": []
+   },
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "pay_invoices_online": {
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.config.settings",
+   "transient": false
+  }
+ },
+ "module": "account_payment",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/account_payment",
+ "stats": {
+  "fields": 37,
+  "methods": 65,
+  "models": 12,
+  "py_lines": 1590
+ },
+ "summary": "Enable customers to pay invoices on the portal and post payments when transactions are processed.",
+ "title": "Payment - Account",
+ "version": "2.0"
+}

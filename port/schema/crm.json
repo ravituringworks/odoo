@@ -1,0 +1,3058 @@
+{
+ "application": true,
+ "author": null,
+ "category": "Sales/CRM",
+ "data_files": [
+  "security/crm_security.xml",
+  "security/ir.model.access.csv",
+  "data/crm_lead_merge_template.xml",
+  "data/crm_lead_prediction_data.xml",
+  "data/crm_lost_reason_data.xml",
+  "data/crm_stage_data.xml",
+  "data/crm_team_data.xml",
+  "data/digest_data.xml",
+  "data/ir_action_data.xml",
+  "data/ir_cron_data.xml",
+  "data/mail_message_subtype_data.xml",
+  "data/crm_recurring_plan_data.xml",
+  "data/crm_tour.xml",
+  "wizard/crm_lead_lost_views.xml",
+  "wizard/crm_lead_to_opportunity_views.xml",
+  "wizard/crm_lead_to_opportunity_mass_views.xml",
+  "wizard/crm_merge_opportunities_views.xml",
+  "wizard/crm_lead_pls_update_views.xml",
+  "views/calendar_views.xml",
+  "views/crm_recurring_plan_views.xml",
+  "views/crm_lost_reason_views.xml",
+  "views/crm_stage_views.xml",
+  "views/crm_lead_views.xml",
+  "views/crm_team_member_views.xml",
+  "views/digest_views.xml",
+  "views/mail_activity_plan_views.xml",
+  "views/mail_activity_views.xml",
+  "views/res_config_settings_views.xml",
+  "views/res_partner_views.xml",
+  "views/utm_campaign_views.xml",
+  "report/crm_activity_report_views.xml",
+  "report/crm_opportunity_report_views.xml",
+  "views/crm_team_views.xml",
+  "views/crm_menu_views.xml",
+  "views/crm_helper_templates.xml",
+  "data/crm_team_demo.xml",
+  "data/mail_template_demo.xml",
+  "data/crm_team_member_demo.xml",
+  "data/mail_activity_type_demo.xml",
+  "data/crm_lead_demo.xml"
+ ],
+ "depends": [
+  "base_setup",
+  "sales_team",
+  "mail",
+  "calendar",
+  "resource",
+  "utm",
+  "web_tour",
+  "contacts",
+  "digest",
+  "phone_validation"
+ ],
+ "models": {
+  "calendar.event": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "opportunity_id": {
+     "comodel": "crm.lead",
+     "domain": "[('type', '=', 'opportunity')]",
+     "index": true,
+     "ondelete": "set null",
+     "string": "Opportunity",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_is_highlighted"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_is_crm_lead"
+    }
+   ],
+   "name": "calendar.event",
+   "transient": false
+  },
+  "crm.activity.report": {
+   "abstract": false,
+   "description": "CRM Activity Analysis",
+   "extension": false,
+   "fields": {
+    "active": {
+     "readonly": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "author_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Assigned To",
+     "type": "Many2one"
+    },
+    "body": {
+     "readonly": true,
+     "string": "Activity Description",
+     "type": "Html"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "readonly": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "readonly": true,
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "date": {
+     "readonly": true,
+     "string": "Completion Date",
+     "type": "Datetime"
+    },
+    "date_closed": {
+     "readonly": true,
+     "string": "Closed Date",
+     "type": "Datetime"
+    },
+    "date_conversion": {
+     "readonly": true,
+     "string": "Conversion Date",
+     "type": "Datetime"
+    },
+    "date_deadline": {
+     "readonly": true,
+     "string": "Expected Closing",
+     "type": "Date"
+    },
+    "lead_create_date": {
+     "readonly": true,
+     "string": "Creation Date",
+     "type": "Datetime"
+    },
+    "lead_id": {
+     "comodel": "crm.lead",
+     "readonly": true,
+     "string": "Opportunity",
+     "type": "Many2one"
+    },
+    "lead_type": {
+     "help": "Type is used to separate Leads and Opportunities",
+     "selection": [
+      [
+       "lead",
+       "Lead"
+      ],
+      [
+       "opportunity",
+       "Opportunity"
+      ]
+     ],
+     "string": "Type",
+     "type": "Selection"
+    },
+    "mail_activity_type_id": {
+     "comodel": "mail.activity.type",
+     "readonly": true,
+     "string": "Activity Type",
+     "type": "Many2one"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "readonly": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "stage_id": {
+     "comodel": "crm.stage",
+     "readonly": true,
+     "string": "Stage",
+     "type": "Many2one"
+    },
+    "subtype_id": {
+     "comodel": "mail.message.subtype",
+     "readonly": true,
+     "string": "Subtype",
+     "type": "Many2one"
+    },
+    "tag_ids": {
+     "readonly": true,
+     "related": "lead_id.tag_ids",
+     "type": "Many2many"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "readonly": true,
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "readonly": true,
+     "string": "Salesperson",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_select"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_join"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_where"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "init"
+    }
+   ],
+   "name": "crm.activity.report",
+   "rec_name": "id",
+   "transient": false
+  },
+  "crm.lead": {
+   "abstract": false,
+   "description": "Lead/Opportunity",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "tracking": true,
+     "type": "Boolean"
+    },
+    "automated_probability": {
+     "compute": "_compute_probabilities",
+     "readonly": true,
+     "store": true,
+     "string": "Automated Probability",
+     "type": "Float"
+    },
+    "calendar_event_ids": {
+     "comodel": "calendar.event",
+     "inverse_name": "opportunity_id",
+     "string": "Meetings",
+     "type": "One2many"
+    },
+    "campaign_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "city": {
+     "compute": "_compute_partner_address_values",
+     "readonly": false,
+     "store": true,
+     "string": "City",
+     "type": "Char"
+    },
+    "color": {
+     "default": 0,
+     "string": "Color Index",
+     "type": "Integer"
+    },
+    "company_currency": {
+     "comodel": "res.currency",
+     "compute": "_compute_company_currency",
+     "string": "Currency",
+     "type": "Many2one"
+    },
+    "company_id": {
+     "comodel": "res.company",
+     "compute": "_compute_company_id",
+     "index": true,
+     "readonly": false,
+     "store": true,
+     "string": "Company",
+     "type": "Many2one"
+    },
+    "contact_name": {
+     "compute": "_compute_contact_name",
+     "index": "trigram",
+     "readonly": false,
+     "store": true,
+     "string": "Contact Name",
+     "tracking": 30,
+     "type": "Char"
+    },
+    "country_id": {
+     "comodel": "res.country",
+     "compute": "_compute_partner_address_values",
+     "readonly": false,
+     "store": true,
+     "string": "Country",
+     "type": "Many2one"
+    },
+    "date_automation_last": {
+     "readonly": true,
+     "string": "Last Action",
+     "type": "Datetime"
+    },
+    "date_closed": {
+     "copy": false,
+     "readonly": true,
+     "string": "Closed Date",
+     "type": "Datetime"
+    },
+    "date_conversion": {
+     "readonly": true,
+     "string": "Conversion Date",
+     "type": "Datetime"
+    },
+    "date_deadline": {
+     "help": "Estimate of the date on which the opportunity will be won.",
+     "string": "Expected Closing",
+     "type": "Date"
+    },
+    "date_last_stage_update": {
+     "compute": "_compute_date_last_stage_update",
+     "index": true,
+     "readonly": true,
+     "store": true,
+     "string": "Last Stage Update",
+     "type": "Datetime"
+    },
+    "date_open": {
+     "compute": "_compute_date_open",
+     "readonly": true,
+     "store": true,
+     "string": "Assignment Date",
+     "type": "Datetime"
+    },
+    "day_close": {
+     "compute": "_compute_day_close",
+     "store": true,
+     "string": "Days to Close",
+     "type": "Float"
+    },
+    "day_open": {
+     "compute": "_compute_day_open",
+     "store": true,
+     "string": "Days to Assign",
+     "type": "Float"
+    },
+    "description": {
+     "string": "Notes",
+     "type": "Html"
+    },
+    "duplicate_lead_count": {
+     "compute": "_compute_potential_lead_duplicates",
+     "string": "Potential Duplicate Lead Count",
+     "type": "Integer"
+    },
+    "duplicate_lead_ids": {
+     "comodel": "crm.lead",
+     "compute": "_compute_potential_lead_duplicates",
+     "string": "Potential Duplicate Lead",
+     "type": "Many2many"
+    },
+    "email_domain_criterion": {
+     "compute": "_compute_email_domain_criterion",
+     "index": "btree_not_null",
+     "store": true,
+     "string": "Email Domain Criterion",
+     "type": "Char"
+    },
+    "email_from": {
+     "compute": "_compute_email_from",
+     "index": "trigram",
+     "readonly": false,
+     "store": true,
+     "string": "Email",
+     "tracking": 40,
+     "type": "Char"
+    },
+    "email_normalized": {
+     "index": "trigram",
+     "type": "Char"
+    },
+    "email_state": {
+     "compute": "_compute_email_state",
+     "selection": [
+      [
+       "correct",
+       "Correct"
+      ],
+      [
+       "incorrect",
+       "Incorrect"
+      ]
+     ],
+     "store": true,
+     "string": "Email Quality",
+     "type": "Selection"
+    },
+    "expected_revenue": {
+     "currency_field": "company_currency",
+     "default": 0.0,
+     "string": "Expected Revenue",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "function": {
+     "compute": "_compute_function",
+     "readonly": false,
+     "store": true,
+     "string": "Job Position",
+     "type": "Char"
+    },
+    "is_automated_probability": {
+     "compute": "_compute_is_automated_probability",
+     "string": "Is automated probability?",
+     "type": "Boolean"
+    },
+    "is_partner_visible": {
+     "compute": "_compute_is_partner_visible",
+     "string": "Is Partner Visible",
+     "type": "Boolean"
+    },
+    "lang_active_count": {
+     "compute": "_compute_lang_active_count",
+     "type": "Integer"
+    },
+    "lang_code": {
+     "related": "lang_id.code",
+     "type": "Char"
+    },
+    "lang_id": {
+     "comodel": "res.lang",
+     "compute": "_compute_lang_id",
+     "readonly": false,
+     "store": true,
+     "string": "Language",
+     "type": "Many2one"
+    },
+    "lead_properties": {
+     "copy": true,
+     "string": "Properties",
+     "type": "Properties"
+    },
+    "lost_reason_id": {
+     "comodel": "crm.lost.reason",
+     "index": true,
+     "ondelete": "restrict",
+     "string": "Lost Reason",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "medium_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "meeting_display_date": {
+     "compute": "_compute_meeting_display",
+     "type": "Date"
+    },
+    "meeting_display_label": {
+     "compute": "_compute_meeting_display",
+     "type": "Char"
+    },
+    "mobile": {
+     "compute": "_compute_mobile",
+     "readonly": false,
+     "store": true,
+     "string": "Mobile",
+     "type": "Char"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "index": "trigram",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Opportunity",
+     "type": "Char"
+    },
+    "partner_email_update": {
+     "compute": "_compute_partner_email_update",
+     "string": "Partner Email will Update",
+     "type": "Boolean"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "help": "Linked partner (optional). Usually created when converting the lead. You can find a partner by its Name, TIN, Email or Internal Reference.",
+     "index": true,
+     "string": "Customer",
+     "tracking": 10,
+     "type": "Many2one"
+    },
+    "partner_is_blacklisted": {
+     "readonly": true,
+     "related": "partner_id.is_blacklisted",
+     "string": "Partner is blacklisted",
+     "type": "Boolean"
+    },
+    "partner_name": {
+     "compute": "_compute_partner_name",
+     "help": "The name of the future partner company that will be created while converting the lead into opportunity",
+     "index": "trigram",
+     "readonly": false,
+     "store": true,
+     "string": "Company Name",
+     "tracking": 20,
+     "type": "Char"
+    },
+    "partner_phone_update": {
+     "compute": "_compute_partner_phone_update",
+     "string": "Partner Phone will Update",
+     "type": "Boolean"
+    },
+    "phone": {
+     "compute": "_compute_phone",
+     "readonly": false,
+     "store": true,
+     "string": "Phone",
+     "tracking": 50,
+     "type": "Char"
+    },
+    "phone_sanitized": {
+     "index": "btree_not_null",
+     "type": "Char"
+    },
+    "phone_state": {
+     "compute": "_compute_phone_state",
+     "selection": [
+      [
+       "correct",
+       "Correct"
+      ],
+      [
+       "incorrect",
+       "Incorrect"
+      ]
+     ],
+     "store": true,
+     "string": "Phone Quality",
+     "type": "Selection"
+    },
+    "priority": {
+     "default": {
+      "$expr": "crm_stage.AVAILABLE_PRIORITIES[0][0]"
+     },
+     "index": true,
+     "selection": [
+      [
+       "0",
+       "Low"
+      ],
+      [
+       "1",
+       "Medium"
+      ],
+      [
+       "2",
+       "High"
+      ],
+      [
+       "3",
+       "Very High"
+      ]
+     ],
+     "string": "Priority",
+     "type": "Selection"
+    },
+    "probability": {
+     "compute": "_compute_probabilities",
+     "copy": false,
+     "readonly": false,
+     "store": true,
+     "string": "Probability",
+     "type": "Float"
+    },
+    "prorated_revenue": {
+     "compute": "_compute_prorated_revenue",
+     "currency_field": "company_currency",
+     "store": true,
+     "string": "Prorated Revenue",
+     "type": "Monetary"
+    },
+    "recurring_plan": {
+     "comodel": "crm.recurring.plan",
+     "string": "Recurring Plan",
+     "type": "Many2one"
+    },
+    "recurring_revenue": {
+     "currency_field": "company_currency",
+     "default": 0.0,
+     "string": "Recurring Revenues",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "recurring_revenue_monthly": {
+     "compute": "_compute_recurring_revenue_monthly",
+     "currency_field": "company_currency",
+     "store": true,
+     "string": "Expected MRR",
+     "type": "Monetary"
+    },
+    "recurring_revenue_monthly_prorated": {
+     "compute": "_compute_recurring_revenue_monthly_prorated",
+     "currency_field": "company_currency",
+     "store": true,
+     "string": "Prorated MRR",
+     "type": "Monetary"
+    },
+    "recurring_revenue_prorated": {
+     "compute": "_compute_recurring_revenue_prorated",
+     "currency_field": "company_currency",
+     "store": true,
+     "string": "Prorated Recurring Revenues",
+     "type": "Monetary"
+    },
+    "referred": {
+     "string": "Referred By",
+     "type": "Char"
+    },
+    "source_id": {
+     "ondelete": "set null",
+     "type": "Many2one"
+    },
+    "stage_id": {
+     "comodel": "crm.stage",
+     "compute": "_compute_stage_id",
+     "copy": false,
+     "domain": "['|', ('team_id', '=', False), ('team_id', '=', team_id)]",
+     "index": true,
+     "ondelete": "restrict",
+     "readonly": false,
+     "store": true,
+     "string": "Stage",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "state_id": {
+     "comodel": "res.country.state",
+     "compute": "_compute_partner_address_values",
+     "domain": "[('country_id', '=?', country_id)]",
+     "readonly": false,
+     "store": true,
+     "string": "State",
+     "type": "Many2one"
+    },
+    "street": {
+     "compute": "_compute_partner_address_values",
+     "readonly": false,
+     "store": true,
+     "string": "Street",
+     "type": "Char"
+    },
+    "street2": {
+     "compute": "_compute_partner_address_values",
+     "readonly": false,
+     "store": true,
+     "string": "Street2",
+     "type": "Char"
+    },
+    "tag_ids": {
+     "column1": "lead_id",
+     "column2": "tag_id",
+     "comodel": "crm.tag",
+     "help": "Classify and analyze your lead/opportunity categories like: Training, Service",
+     "relation_table": "crm_tag_rel",
+     "string": "Tags",
+     "type": "Many2many"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "compute": "_compute_team_id",
+     "index": true,
+     "ondelete": "set null",
+     "readonly": false,
+     "store": true,
+     "string": "Sales Team",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "title": {
+     "comodel": "res.partner.title",
+     "compute": "_compute_title",
+     "readonly": false,
+     "store": true,
+     "string": "Title",
+     "type": "Many2one"
+    },
+    "type": {
+     "default": {
+      "$lambda": "'lead' if self.env.user.has_group('crm.group_use_lead') else 'opportunity'"
+     },
+     "index": true,
+     "required": true,
+     "selection": [
+      [
+       "lead",
+       "Lead"
+      ],
+      [
+       "opportunity",
+       "Opportunity"
+      ]
+     ],
+     "tracking": 15,
+     "type": "Selection"
+    },
+    "user_company_ids": {
+     "comodel": "res.company",
+     "compute": "_compute_user_company_ids",
+     "help": "UX: Limit to lead company or all if no company",
+     "type": "Many2many"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "default": {
+      "$lambda": "self.env.user"
+     },
+     "domain": "[('share', '=', False)]",
+     "index": true,
+     "string": "Salesperson",
+     "tracking": true,
+     "type": "Many2one"
+    },
+    "website": {
+     "compute": "_compute_website",
+     "help": "Website of the contact",
+     "readonly": false,
+     "store": true,
+     "string": "Website",
+     "type": "Char"
+    },
+    "zip": {
+     "compute": "_compute_partner_address_values",
+     "readonly": false,
+     "store": true,
+     "string": "Zip",
+     "type": "Char"
+    }
+   },
+   "inherit": [
+    "format.address.mixin",
+    "mail.activity.mixin",
+    "mail.thread.blacklist",
+    "mail.thread.cc",
+    "mail.thread.phone",
+    "mail.tracking.duration.mixin",
+    "utm.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 7,
+     "name": "_compute_user_company_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('company_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_company_currency"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id', 'type')"
+     ],
+     "lines": 14,
+     "name": "_compute_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id', 'team_id', 'partner_id')"
+     ],
+     "lines": 35,
+     "name": "_compute_company_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('team_id', 'type')"
+     ],
+     "lines": 4,
+     "name": "_compute_stage_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_date_open"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('stage_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_date_last_stage_update"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('create_date', 'date_open')"
+     ],
+     "lines": 9,
+     "name": "_compute_day_open"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('create_date', 'date_closed')"
+     ],
+     "lines": 9,
+     "name": "_compute_day_close"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_contact_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_partner_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_function"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_title"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_mobile"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 5,
+     "name": "_compute_website"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 14,
+     "name": "_compute_lang_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lang_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_lang_active_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id')"
+     ],
+     "lines": 4,
+     "name": "_compute_partner_address_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id.email')"
+     ],
+     "lines": 4,
+     "name": "_compute_email_from"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_email_from"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_normalized')"
+     ],
+     "lines": 6,
+     "name": "_compute_email_domain_criterion"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('partner_id.phone')"
+     ],
+     "lines": 4,
+     "name": "_compute_phone"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_inverse_phone"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('phone', 'country_id.code')"
+     ],
+     "lines": 11,
+     "name": "_compute_phone_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_from')"
+     ],
+     "lines": 10,
+     "name": "_compute_email_state"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('probability', 'automated_probability')"
+     ],
+     "lines": 5,
+     "name": "_compute_is_automated_probability"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends(lambda self: ['stage_id', 'team_id'] + self._pls_get_safe_fields())"
+     ],
+     "lines": 8,
+     "name": "_compute_probabilities"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('expected_revenue', 'probability')"
+     ],
+     "lines": 3,
+     "name": "_compute_prorated_revenue"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurring_revenue', 'recurring_plan.number_of_months')"
+     ],
+     "lines": 3,
+     "name": "_compute_recurring_revenue_monthly"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurring_revenue_monthly', 'probability')"
+     ],
+     "lines": 3,
+     "name": "_compute_recurring_revenue_monthly_prorated"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('recurring_revenue', 'probability')"
+     ],
+     "lines": 3,
+     "name": "_compute_recurring_revenue_prorated"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('calendar_event_ids', 'calendar_event_ids.start')"
+     ],
+     "lines": 22,
+     "name": "_compute_meeting_display"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_domain_criterion', 'email_normalized', 'partner_id', 'phone_sanitized')"
+     ],
+     "lines": 54,
+     "name": "_compute_potential_lead_duplicates"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('email_from', 'partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_email_update"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('phone', 'partner_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_phone_update"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends_context('uid')",
+      "api.depends('partner_id', 'type')"
+     ],
+     "lines": 15,
+     "name": "_compute_is_partner_visible"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('phone', 'country_id', 'company_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_phone_validation"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('mobile', 'country_id', 'company_id')"
+     ],
+     "lines": 3,
+     "name": "_onchange_mobile_validation"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_prepare_values_from_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_prepare_address_values_from_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_prepare_contact_name_from_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_prepare_partner_name_from_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_partner_email_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_get_partner_phone_update"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_auto_init"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 11,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 49,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 78,
+     "name": "search_fetch"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_handle_won_lost"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "copy_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 14,
+     "name": "_read_group_stage_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_stage_find"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "toggle_active"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 6,
+     "name": "action_set_lost"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 25,
+     "name": "action_set_won"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 2,
+     "name": "action_set_automated_probability"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 15,
+     "name": "action_set_won_rainbowman"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "get_rainbowman_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 54,
+     "name": "_get_rainbowman_message"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 28,
+     "name": "action_schedule_meeting"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 71,
+     "name": "_get_opportunity_meeting_view_parameters"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_reschedule_meeting"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_show_potential_duplicates"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 5,
+     "name": "action_snooze"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "redirect_lead_opportunity_view"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 31,
+     "name": "get_empty_list_help"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "log_meeting"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_merge_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "merge_opportunity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 55,
+     "name": "_merge_opportunity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_merge_get_fields_address"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_merge_get_fields_specific"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_merge_get_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_merge_dependences"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_merge_dependences_history"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 24,
+     "name": "_merge_dependences_attachments"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_merge_dependences_calendar_events"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 43,
+     "name": "_merge_followers"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_merge_log_summary"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_format_properties"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_convert_opportunity_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "convert_opportunity"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 15,
+     "name": "_handle_partner_assignment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_handle_salesmen_assignment"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 28,
+     "name": "_get_lead_duplicates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_sort_by_confidence_level"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_find_matching_partner"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 23,
+     "name": "_create_customer"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_get_customer_information"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 33,
+     "name": "_prepare_customer_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_creation_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_creation_message"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 13,
+     "name": "_track_subtype"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_notify_by_email_prepare_rendering_context"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 34,
+     "name": "_notify_get_recipients_groups"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_notify_get_reply_to"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_message_get_default_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_message_get_suggested_recipients"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 24,
+     "name": "message_new"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 17,
+     "name": "_message_post_after_hook"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 25,
+     "name": "_message_partner_info_from_emails"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 5,
+     "name": "get_import_templates"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 144,
+     "name": "_pls_get_naive_bayes_probabilities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 20,
+     "name": "_pls_increment_frequencies"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_cron_update_automated_probabilities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_rebuild_pls_frequency_table"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 77,
+     "name": "_update_automated_probabilities"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 92,
+     "name": "_pls_prepare_update_frequency_table"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 41,
+     "name": "_pls_update_frequency_table"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_pls_get_safe_start_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_pls_get_safe_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 14,
+     "name": "_pls_get_won_lost_total_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 42,
+     "name": "_pls_prepare_frequencies"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_pls_increment_frequency_dict"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 81,
+     "name": "_pls_get_lead_pls_values"
+    }
+   ],
+   "name": "crm.lead",
+   "order": "priority desc, id desc",
+   "sel_methods": {
+    "_message_post_after_hook": [],
+    "_track_subtype": []
+   },
+   "sql_constraints": [
+    [
+     "check_probability",
+     "check(probability >= 0 and probability <= 100)",
+     "The probability of closing the deal should be between 0% and 100%!"
+    ]
+   ],
+   "transient": false
+  },
+  "crm.lead.lost": {
+   "abstract": false,
+   "description": "Get Lost Reason",
+   "extension": false,
+   "fields": {
+    "lead_ids": {
+     "comodel": "crm.lead",
+     "string": "Leads",
+     "type": "Many2many"
+    },
+    "lost_feedback": {
+     "string": "Closing Note",
+     "type": "Html"
+    },
+    "lost_reason_id": {
+     "comodel": "crm.lost.reason",
+     "string": "Lost Reason",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_lost_reason_apply"
+    }
+   ],
+   "name": "crm.lead.lost",
+   "transient": true
+  },
+  "crm.lead.pls.update": {
+   "abstract": false,
+   "description": "Update the probabilities",
+   "extension": false,
+   "fields": {
+    "pls_fields": {
+     "comodel": "crm.lead.scoring.frequency.field",
+     "default": {
+      "$ref": "_get_default_pls_fields"
+     },
+     "type": "Many2many"
+    },
+    "pls_start_date": {
+     "default": {
+      "$ref": "_get_default_pls_start_date"
+     },
+     "required": true,
+     "type": "Date"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_get_default_pls_start_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_get_default_pls_fields"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_update_crm_lead_probabilities"
+    }
+   ],
+   "name": "crm.lead.pls.update",
+   "transient": true
+  },
+  "crm.lead.scoring.frequency": {
+   "abstract": false,
+   "description": "Lead Scoring Frequency",
+   "extension": false,
+   "fields": {
+    "lost_count": {
+     "digits": [
+      16,
+      1
+     ],
+     "string": "Lost Count",
+     "type": "Float"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "ondelete": "cascade",
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "value": {
+     "string": "Value",
+     "type": "Char"
+    },
+    "variable": {
+     "index": true,
+     "string": "Variable",
+     "type": "Char"
+    },
+    "won_count": {
+     "digits": [
+      16,
+      1
+     ],
+     "string": "Won Count",
+     "type": "Float"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "crm.lead.scoring.frequency",
+   "transient": false
+  },
+  "crm.lead.scoring.frequency.field": {
+   "abstract": false,
+   "description": "Fields that can be used for predictive lead scoring computation",
+   "extension": false,
+   "fields": {
+    "field_id": {
+     "comodel": "ir.model.fields",
+     "domain": [
+      [
+       "model_id.model",
+       "=",
+       "crm.lead"
+      ]
+     ],
+     "ondelete": "cascade",
+     "required": true,
+     "type": "Many2one"
+    },
+    "name": {
+     "related": "field_id.field_description",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "crm.lead.scoring.frequency.field",
+   "transient": false
+  },
+  "crm.lead2opportunity.partner": {
+   "abstract": false,
+   "description": "Convert Lead to Opportunity (not in mass)",
+   "extension": false,
+   "fields": {
+    "action": {
+     "compute": "_compute_action",
+     "readonly": false,
+     "selection": [
+      [
+       "create",
+       "Create a new customer"
+      ],
+      [
+       "exist",
+       "Link to an existing customer"
+      ],
+      [
+       "nothing",
+       "Do not link to a customer"
+      ]
+     ],
+     "store": true,
+     "string": "Related Customer",
+     "type": "Selection"
+    },
+    "duplicated_lead_ids": {
+     "comodel": "crm.lead",
+     "compute": "_compute_duplicated_lead_ids",
+     "readonly": false,
+     "store": true,
+     "string": "Opportunities",
+     "type": "Many2many"
+    },
+    "force_assignment": {
+     "default": true,
+     "help": "If checked, forces salesman to be updated on updated opportunities even if already set.",
+     "string": "Force assignment",
+     "type": "Boolean"
+    },
+    "lead_id": {
+     "comodel": "crm.lead",
+     "required": true,
+     "string": "Associated Lead",
+     "type": "Many2one"
+    },
+    "name": {
+     "compute": "_compute_name",
+     "readonly": false,
+     "selection": [
+      [
+       "convert",
+       "Convert to opportunity"
+      ],
+      [
+       "merge",
+       "Merge with existing opportunities"
+      ]
+     ],
+     "store": true,
+     "string": "Conversion Action",
+     "type": "Selection"
+    },
+    "partner_id": {
+     "comodel": "res.partner",
+     "compute": "_compute_partner_id",
+     "readonly": false,
+     "store": true,
+     "string": "Customer",
+     "type": "Many2one"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "compute": "_compute_team_id",
+     "readonly": false,
+     "store": true,
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "compute": "_compute_user_id",
+     "readonly": false,
+     "store": true,
+     "string": "Salesperson",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('duplicated_lead_ids')"
+     ],
+     "lines": 4,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_id', 'partner_id')"
+     ],
+     "lines": 9,
+     "name": "_compute_duplicated_lead_ids"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('action', 'lead_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_id')"
+     ],
+     "lines": 3,
+     "name": "_compute_user_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id')"
+     ],
+     "lines": 12,
+     "name": "_compute_team_id"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_apply"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 18,
+     "name": "_action_merge"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_action_convert"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 16,
+     "name": "_convert_and_allocate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_convert_handle_partner"
+    }
+   ],
+   "name": "crm.lead2opportunity.partner",
+   "transient": true
+  },
+  "crm.lead2opportunity.partner.mass": {
+   "abstract": false,
+   "description": "Convert Lead to Opportunity (in mass)",
+   "extension": false,
+   "fields": {
+    "action": {
+     "ondelete": {
+      "$expr": "{'each_exist_or_create': lambda recs: recs.write({'action': 'exist'})}"
+     },
+     "selection_add": [
+      [
+       "each_exist_or_create",
+       "Use existing partner or create"
+      ]
+     ],
+     "string": "Related Customer",
+     "type": "Selection"
+    },
+    "deduplicate": {
+     "default": true,
+     "help": "Merge with existing leads/opportunities of each partner",
+     "string": "Apply deduplication",
+     "type": "Boolean"
+    },
+    "force_assignment": {
+     "default": false,
+     "type": "Boolean"
+    },
+    "lead_id": {
+     "required": false,
+     "type": "Many2one"
+    },
+    "lead_tomerge_ids": {
+     "comodel": "crm.lead",
+     "default": {
+      "$lambda": "self.env.context.get('active_ids', [])"
+     },
+     "relation_table": "crm_convert_lead_mass_lead_rel",
+     "string": "Active Leads",
+     "type": "Many2many"
+    },
+    "user_ids": {
+     "comodel": "res.users",
+     "string": "Salespersons",
+     "type": "Many2many"
+    }
+   },
+   "inherit": [
+    "crm.lead2opportunity.partner"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('duplicated_lead_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_name"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_tomerge_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_action"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_tomerge_ids')"
+     ],
+     "lines": 3,
+     "name": "_compute_partner_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_ids')"
+     ],
+     "lines": 12,
+     "name": "_compute_team_id"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('lead_tomerge_ids')"
+     ],
+     "lines": 11,
+     "name": "_compute_duplicated_lead_ids"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_convert_and_allocate"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 24,
+     "name": "action_mass_convert"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_convert_handle_partner"
+    }
+   ],
+   "name": "crm.lead2opportunity.partner.mass",
+   "sel_methods": {
+    "_convert_and_allocate": [],
+    "_convert_handle_partner": []
+   },
+   "transient": true
+  },
+  "crm.lost.reason": {
+   "abstract": false,
+   "description": "Opp. Lost Reason",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "leads_count": {
+     "compute": "_compute_leads_count",
+     "string": "Leads Count",
+     "type": "Integer"
+    },
+    "name": {
+     "required": true,
+     "string": "Description",
+     "translate": true,
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_leads_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 9,
+     "name": "action_lost_leads"
+    }
+   ],
+   "name": "crm.lost.reason",
+   "transient": false
+  },
+  "crm.merge.opportunity": {
+   "abstract": false,
+   "description": "Merge Opportunities",
+   "extension": false,
+   "fields": {
+    "opportunity_ids": {
+     "column1": "merge_id",
+     "column2": "opportunity_id",
+     "comodel": "crm.lead",
+     "relation_table": "merge_opportunity_rel",
+     "string": "Leads/Opportunities",
+     "type": "Many2many"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "compute": "_compute_team_id",
+     "readonly": false,
+     "store": true,
+     "string": "Sales Team",
+     "type": "Many2one"
+    },
+    "user_id": {
+     "comodel": "res.users",
+     "domain": "[('share', '=', False)]",
+     "string": "Salesperson",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 13,
+     "name": "default_get"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 4,
+     "name": "action_merge"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id')"
+     ],
+     "lines": 10,
+     "name": "_compute_team_id"
+    }
+   ],
+   "name": "crm.merge.opportunity",
+   "transient": true
+  },
+  "crm.recurring.plan": {
+   "abstract": false,
+   "description": "CRM Recurring revenue plans",
+   "extension": false,
+   "fields": {
+    "active": {
+     "default": true,
+     "string": "Active",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Plan Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "number_of_months": {
+     "required": true,
+     "string": "# Months",
+     "type": "Integer"
+    },
+    "sequence": {
+     "default": 10,
+     "string": "Sequence",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "crm.recurring.plan",
+   "order": "sequence",
+   "sql_constraints": [
+    [
+     "check_number_of_months",
+     "CHECK(number_of_months >= 0)",
+     "The number of month can't be negative."
+    ]
+   ],
+   "transient": false
+  },
+  "crm.stage": {
+   "abstract": false,
+   "description": "CRM Stages",
+   "extension": false,
+   "fields": {
+    "fold": {
+     "help": "This stage is folded in the kanban view when there are no records in that stage to display.",
+     "string": "Folded in Pipeline",
+     "type": "Boolean"
+    },
+    "is_won": {
+     "string": "Is Won Stage?",
+     "type": "Boolean"
+    },
+    "name": {
+     "required": true,
+     "string": "Stage Name",
+     "translate": true,
+     "type": "Char"
+    },
+    "requirements": {
+     "help": "Enter here the internal requirements for this stage (ex: Offer sent to customer). It will appear as a tooltip over the stage's name.",
+     "string": "Requirements",
+     "type": "Text"
+    },
+    "sequence": {
+     "default": 1,
+     "help": "Used to order stages. Lower is better.",
+     "string": "Sequence",
+     "type": "Integer"
+    },
+    "team_count": {
+     "compute": "_compute_team_count",
+     "string": "team_count",
+     "type": "Integer"
+    },
+    "team_id": {
+     "comodel": "crm.team",
+     "help": "Specific team that uses this stage. Other teams will not be able to see or use this stage.",
+     "ondelete": "set null",
+     "string": "Sales Team",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 10,
+     "name": "default_get"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('team_id')"
+     ],
+     "lines": 2,
+     "name": "_compute_team_count"
+    }
+   ],
+   "name": "crm.stage",
+   "order": "sequence, name, id",
+   "rec_name": "name",
+   "transient": false
+  },
+  "crm.team": {
+   "abstract": false,
+   "description": "Sales Team",
+   "extension": false,
+   "fields": {
+    "alias_id": {
+     "help": "The email address associated with this channel. New emails received will automatically create new leads assigned to the channel.",
+     "type": "Many2one"
+    },
+    "assignment_auto_enabled": {
+     "compute": "_compute_assignment_enabled",
+     "string": "Auto Assignment",
+     "type": "Boolean"
+    },
+    "assignment_domain": {
+     "help": "Additional filter domain when fetching unassigned leads to allocate to the team.",
+     "string": "Assignment Domain",
+     "tracking": true,
+     "type": "Char"
+    },
+    "assignment_enabled": {
+     "compute": "_compute_assignment_enabled",
+     "string": "Lead Assign",
+     "type": "Boolean"
+    },
+    "assignment_max": {
+     "compute": "_compute_assignment_max",
+     "help": "Monthly average leads capacity for all salesmen belonging to the team",
+     "string": "Lead Average Capacity",
+     "type": "Integer"
+    },
+    "assignment_optout": {
+     "string": "Skip auto assignment",
+     "type": "Boolean"
+    },
+    "lead_all_assigned_month_count": {
+     "compute": "_compute_lead_all_assigned_month_count",
+     "help": "Number of leads and opportunities assigned this last month.",
+     "string": "# Leads/Opps assigned this month",
+     "type": "Integer"
+    },
+    "lead_all_assigned_month_exceeded": {
+     "compute": "_compute_lead_all_assigned_month_count",
+     "help": "True if the monthly lead assignment count is greater than the maximum assignment limit, false otherwise.",
+     "string": "Exceed monthly lead assignement",
+     "type": "Boolean"
+    },
+    "lead_properties_definition": {
+     "string": "Lead Properties",
+     "type": "PropertiesDefinition"
+    },
+    "lead_unassigned_count": {
+     "compute": "_compute_lead_unassigned_count",
+     "string": "# Unassigned Leads",
+     "type": "Integer"
+    },
+    "opportunities_amount": {
+     "compute": "_compute_opportunities_data",
+     "string": "Opportunities Revenues",
+     "type": "Monetary"
+    },
+    "opportunities_count": {
+     "compute": "_compute_opportunities_data",
+     "string": "# Opportunities",
+     "type": "Integer"
+    },
+    "opportunities_overdue_amount": {
+     "compute": "_compute_opportunities_overdue_data",
+     "string": "Overdue Opportunities Revenues",
+     "type": "Monetary"
+    },
+    "opportunities_overdue_count": {
+     "compute": "_compute_opportunities_overdue_data",
+     "string": "# Overdue Opportunities",
+     "type": "Integer"
+    },
+    "use_leads": {
+     "help": "Check this box to filter and qualify incoming requests as leads before converting them into opportunities and assigning them to a salesperson.",
+     "string": "Leads",
+     "type": "Boolean"
+    },
+    "use_opportunities": {
+     "default": true,
+     "help": "Check this box to manage a presales process with opportunities.",
+     "string": "Pipeline",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [
+    "mail.alias.mixin"
+   ],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_team_member_ids.assignment_max')"
+     ],
+     "lines": 3,
+     "name": "_compute_assignment_max"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_compute_assignment_enabled"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_lead_unassigned_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_team_member_ids.lead_month_count', 'assignment_max')"
+     ],
+     "lines": 4,
+     "name": "_compute_lead_all_assigned_month_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_compute_opportunities_data"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_opportunities_overdue_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('use_leads', 'use_opportunities')"
+     ],
+     "lines": 3,
+     "name": "_onchange_use_leads_opportunities"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('assignment_domain')"
+     ],
+     "lines": 8,
+     "name": "_constrains_assignment_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 35,
+     "name": "unlink"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 11,
+     "name": "_alias_get_creation_values"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 22,
+     "name": "_cron_assign_leads"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 36,
+     "name": "action_assign_leads"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 30,
+     "name": "_action_assign_leads"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 65,
+     "name": "_action_assign_leads_logs"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 165,
+     "name": "_allocate_leads"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 48,
+     "name": "_allocate_leads_deduplicate"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_lead_to_assign_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 86,
+     "name": "_assign_and_convert_leads"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "action_your_pipeline"
+    },
+    {
+     "action": true,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 3,
+     "name": "action_opportunity_forecast"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model"
+     ],
+     "lines": 17,
+     "name": "_action_update_to_pipeline"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_compute_dashboard_button_name"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_primary_channel_button"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_get_model"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_date_column"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_y_query"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_extra_sql_conditions"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "_graph_title_and_key"
+    }
+   ],
+   "name": "crm.team",
+   "sel_methods": {
+    "_extra_sql_conditions": [],
+    "_get_lead_to_assign_domain": [
+     [
+      "user_id",
+      "="
+     ],
+     [
+      "date_open",
+      "="
+     ],
+     [
+      "team_id",
+      "in"
+     ]
+    ],
+    "_graph_date_column": [],
+    "_graph_get_model": [],
+    "_graph_title_and_key": [],
+    "_graph_y_query": []
+   },
+   "transient": false
+  },
+  "crm.team.member": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "assignment_domain": {
+     "string": "Assignment Domain",
+     "tracking": true,
+     "type": "Char"
+    },
+    "assignment_enabled": {
+     "related": "crm_team_id.assignment_enabled",
+     "type": "Boolean"
+    },
+    "assignment_max": {
+     "default": 30,
+     "string": "Average Leads Capacity (on 30 days)",
+     "type": "Integer"
+    },
+    "assignment_optout": {
+     "string": "Skip auto assignment",
+     "type": "Boolean"
+    },
+    "lead_day_count": {
+     "compute": "_compute_lead_day_count",
+     "help": "Lead assigned to this member this last day (lost one excluded)",
+     "string": "Leads (last 24h)",
+     "type": "Integer"
+    },
+    "lead_month_count": {
+     "compute": "_compute_lead_month_count",
+     "help": "Lead assigned to this member those last 30 days",
+     "string": "Leads (30 days)",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id', 'crm_team_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_lead_day_count"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('user_id', 'crm_team_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_lead_month_count"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 12,
+     "name": "_get_lead_from_date"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.constrains('assignment_domain')"
+     ],
+     "lines": 11,
+     "name": "_constrains_assignment_domain"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_get_assignment_quota"
+    }
+   ],
+   "name": "crm.team.member",
+   "transient": false
+  },
+  "digest.digest": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "kpi_crm_lead_created": {
+     "string": "New Leads",
+     "type": "Boolean"
+    },
+    "kpi_crm_lead_created_value": {
+     "compute": "_compute_kpi_crm_lead_created_value",
+     "type": "Integer"
+    },
+    "kpi_crm_opportunities_won": {
+     "string": "Opportunities Won",
+     "type": "Boolean"
+    },
+    "kpi_crm_opportunities_won_value": {
+     "compute": "_compute_kpi_crm_opportunities_won_value",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 5,
+     "name": "_compute_kpi_crm_lead_created_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 10,
+     "name": "_compute_kpi_crm_opportunities_won_value"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_kpis_actions"
+    }
+   ],
+   "name": "digest.digest",
+   "transient": false
+  },
+  "ir.config_parameter": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.model_create_multi"
+     ],
+     "lines": 6,
+     "name": "create"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "unlink"
+    }
+   ],
+   "name": "ir.config_parameter",
+   "transient": false
+  },
+  "mail.activity": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 17,
+     "name": "action_create_calendar_event"
+    }
+   ],
+   "name": "mail.activity",
+   "transient": false
+  },
+  "res.config.settings": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "crm_auto_assignment_action": {
+     "compute": "_compute_crm_auto_assignment_data",
+     "help": "Manual assign allow to trigger assignment from team form view using an action button. Automatic configures a cron running repeatedly assignment in all teams.",
+     "readonly": false,
+     "selection": [
+      [
+       "manual",
+       "Manually"
+      ],
+      [
+       "auto",
+       "Repeatedly"
+      ]
+     ],
+     "store": true,
+     "string": "Auto Assignment Action",
+     "type": "Selection"
+    },
+    "crm_auto_assignment_interval_number": {
+     "compute": "_compute_crm_auto_assignment_data",
+     "help": "Number of interval type between each cron run (e.g. each 2 days or each 4 days)",
+     "readonly": false,
+     "store": true,
+     "string": "Repeat every",
+     "type": "Integer"
+    },
+    "crm_auto_assignment_interval_type": {
+     "compute": "_compute_crm_auto_assignment_data",
+     "help": "Interval type between each cron run (e.g. each 2 days or each 2 hours)",
+     "readonly": false,
+     "selection": [
+      [
+       "minutes",
+       "Minutes"
+      ],
+      [
+       "hours",
+       "Hours"
+      ],
+      [
+       "days",
+       "Days"
+      ],
+      [
+       "weeks",
+       "Weeks"
+      ]
+     ],
+     "store": true,
+     "string": "Auto Assignment Interval Unit",
+     "type": "Selection"
+    },
+    "crm_auto_assignment_run_datetime": {
+     "compute": "_compute_crm_auto_assignment_data",
+     "readonly": false,
+     "store": true,
+     "string": "Auto Assignment Next Execution Date",
+     "type": "Datetime"
+    },
+    "crm_use_auto_assignment": {
+     "string": "Rule-Based Assignment",
+     "type": "Boolean"
+    },
+    "group_use_lead": {
+     "string": "Leads",
+     "type": "Boolean"
+    },
+    "group_use_recurring_revenues": {
+     "string": "Recurring Revenues",
+     "type": "Boolean"
+    },
+    "is_membership_multi": {
+     "string": "Multi Teams",
+     "type": "Boolean"
+    },
+    "lead_enrich_auto": {
+     "default": "auto",
+     "selection": [
+      [
+       "manual",
+       "Enrich leads on demand only"
+      ],
+      [
+       "auto",
+       "Enrich all leads automatically"
+      ]
+     ],
+     "string": "Enrich lead automatically",
+     "type": "Selection"
+    },
+    "lead_mining_in_pipeline": {
+     "string": "Create a lead mining request directly from the opportunity pipeline.",
+     "type": "Boolean"
+    },
+    "module_crm_iap_enrich": {
+     "string": "Enrich your leads automatically with company data based on their email address.",
+     "type": "Boolean"
+    },
+    "module_crm_iap_mine": {
+     "string": "Generate new leads based on their country, industries, size, etc.",
+     "type": "Boolean"
+    },
+    "module_website_crm_iap_reveal": {
+     "string": "Create Leads/Opportunities from your website's traffic",
+     "type": "Boolean"
+    },
+    "predictive_lead_scoring_field_labels": {
+     "compute": "_compute_predictive_lead_scoring_field_labels",
+     "type": "Char"
+    },
+    "predictive_lead_scoring_fields": {
+     "comodel": "crm.lead.scoring.frequency.field",
+     "compute": "_compute_pls_fields",
+     "string": "Lead Scoring Frequency Fields",
+     "type": "Many2many"
+    },
+    "predictive_lead_scoring_fields_str": {
+     "string": "Lead Scoring Frequency Fields in String",
+     "type": "Char"
+    },
+    "predictive_lead_scoring_start_date": {
+     "compute": "_compute_pls_start_date",
+     "string": "Lead Scoring Starting Date",
+     "type": "Date"
+    },
+    "predictive_lead_scoring_start_date_str": {
+     "string": "Lead Scoring Starting Date in String",
+     "type": "Char"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('crm_use_auto_assignment')"
+     ],
+     "lines": 13,
+     "name": "_compute_crm_auto_assignment_data"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.onchange('crm_auto_assignment_interval_type', 'crm_auto_assignment_interval_number')"
+     ],
+     "lines": 10,
+     "name": "_onchange_crm_auto_assignment_run_datetime"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('predictive_lead_scoring_fields_str')"
+     ],
+     "lines": 10,
+     "name": "_compute_pls_fields"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 8,
+     "name": "_inverse_pls_fields_str"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('predictive_lead_scoring_start_date_str')"
+     ],
+     "lines": 14,
+     "name": "_compute_pls_start_date"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_inverse_pls_start_date_str"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('predictive_lead_scoring_fields')"
+     ],
+     "lines": 7,
+     "name": "_compute_predictive_lead_scoring_field_labels"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 27,
+     "name": "set_values"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 6,
+     "name": "_get_crm_auto_assignmment_run_datetime"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 3,
+     "name": "action_crm_assign_leads"
+    }
+   ],
+   "name": "res.config.settings",
+   "transient": false
+  },
+  "res.partner": {
+   "abstract": false,
+   "extension": false,
+   "fields": {
+    "opportunity_count": {
+     "compute": "_compute_opportunity_count",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Opportunity Count",
+     "type": "Integer"
+    },
+    "opportunity_ids": {
+     "comodel": "crm.lead",
+     "domain": [
+      [
+       "type",
+       "=",
+       "opportunity"
+      ]
+     ],
+     "inverse_name": "partner_id",
+     "string": "Opportunities",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_compute_opportunity_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_view_opportunity"
+    }
+   ],
+   "name": "res.partner",
+   "transient": false
+  },
+  "res.users": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "target_sales_done": {
+     "string": "Activities Done Target",
+     "type": "Integer"
+    },
+    "target_sales_won": {
+     "string": "Won in Opportunities Target",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [],
+   "name": "res.users",
+   "transient": false
+  },
+  "utm.campaign": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "crm_lead_count": {
+     "compute": "_compute_crm_lead_count",
+     "groups": "sales_team.group_sale_salesman",
+     "string": "Leads/Opportunities count",
+     "type": "Integer"
+    },
+    "use_leads": {
+     "compute": "_compute_use_leads",
+     "string": "Use Leads",
+     "type": "Boolean"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_use_leads"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_compute_crm_lead_count"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 7,
+     "name": "action_redirect_to_leads_opportunities"
+    }
+   ],
+   "name": "utm.campaign",
+   "transient": false
+  }
+ },
+ "module": "crm",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/crm",
+ "stats": {
+  "fields": 182,
+  "methods": 213,
+  "models": 22,
+  "py_lines": 4626
+ },
+ "summary": "Track leads and close opportunities",
+ "title": "CRM",
+ "version": "1.8"
+}

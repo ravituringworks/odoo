@@ -1,0 +1,761 @@
+{
+ "module": "hr_attendance",
+ "records": [
+  {
+   "model": "ir.module.category",
+   "id": "base.module_category_human_resources_attendances",
+   "values": {
+    "sequence": "14"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_hr_attendance_own_reader",
+   "values": {
+    "name": "User: Read his own attendances",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    },
+    "comment": "The user will have access to his own attendances on his user / employee profile"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "base.group_user",
+   "values": {
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_own_reader"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_hr_attendance_officer",
+   "values": {
+    "name": "Officer: Manage attendances",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    },
+    "comment": "The user will have access to the attendance records and reporting of employees where he's set as an attendance manager",
+    "implied_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "base.group_user"
+       }
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_hr_attendance_manager",
+   "values": {
+    "name": "Administrator",
+    "category_id": {
+     "$ref": "base.module_category_human_resources_attendances"
+    },
+    "users": [
+     [
+      4,
+      {
+       "$ref": "base.user_root"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.user_admin"
+      }
+     ]
+    ],
+    "implied_ids": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_officer"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.default_user",
+   "values": {
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_attendance_rule_employee_company",
+   "values": {
+    "name": "Employee multi company rule",
+    "model_id": {
+     "$ref": "model_hr_attendance"
+    },
+    "global": true,
+    "domain_force": "['|',('employee_id.company_id','=',False),('employee_id.company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_attendance_rule_attendance_admin",
+   "values": {
+    "name": "Attendance Administrator: Full access",
+    "model_id": {
+     "$ref": "model_hr_attendance"
+    },
+    "domain_force": "[(1,'=',1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_attendance_rule_attendance_manager_restrict",
+   "values": {
+    "name": "Attendance Officer: Restrict Attendances to managed employees",
+    "model_id": {
+     "$ref": "model_hr_attendance"
+    },
+    "domain_force": "[\n                '|',\n                '&',\n                 ('employee_id.attendance_manager_id', '=', user.id),\n                 ('employee_id.user_id', '=', user.id),\n                '&',\n                ('employee_id.user_id', '!=', user.id),\n                ('employee_id.attendance_manager_id', '=', user.id)\n                ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_officer"
+      }
+     ]
+    ],
+    "perm_create": 1,
+    "perm_write": 1,
+    "perm_unlink": 1,
+    "perm_read": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_attendance_rule_attendance_simple_user",
+   "values": {
+    "name": "Attendance base user: Read his own attendances in other apps",
+    "model_id": {
+     "$ref": "model_hr_attendance"
+    },
+    "domain_force": "[('employee_id.user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_own_reader"
+      }
+     ]
+    ],
+    "perm_create": 0,
+    "perm_write": 0,
+    "perm_unlink": 0,
+    "perm_read": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_attendance_overtime_rule_employee_company",
+   "values": {
+    "name": "Employee multi company rule",
+    "model_id": {
+     "$ref": "model_hr_attendance_overtime"
+    },
+    "global": true,
+    "domain_force": "['|',('employee_id.company_id','=',False),('employee_id.company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_attendance_rule_attendance_officer_overtime_restrict",
+   "values": {
+    "name": "Attendance Officer: Restrict Overtime to managed employees",
+    "model_id": {
+     "$ref": "model_hr_attendance_overtime"
+    },
+    "domain_force": "[\n                '|',\n                '&',\n                 ('employee_id.attendance_manager_id', '=', user.id),\n                 ('employee_id.user_id', '=', user.id),\n                '&',\n                ('employee_id.user_id', '!=', user.id),\n                ('employee_id.attendance_manager_id', '=', user.id)\n                ]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_officer"
+      }
+     ]
+    ],
+    "perm_create": 1,
+    "perm_write": 1,
+    "perm_unlink": 1,
+    "perm_read": 1
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_attendance_rule_attendance_overtime_admin",
+   "values": {
+    "name": "Attendance Admin: full access",
+    "model_id": {
+     "$ref": "model_hr_attendance_overtime"
+    },
+    "domain_force": "[(1,'=',1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "hr_attendance_rule_attendance_overtime_simple_user",
+   "values": {
+    "name": "Attendance base user: Read his own overtime",
+    "model_id": {
+     "$ref": "model_hr_attendance_overtime"
+    },
+    "domain_force": "[('employee_id.user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_own_reader"
+      }
+     ]
+    ],
+    "perm_create": 0,
+    "perm_write": 0,
+    "perm_unlink": 0,
+    "perm_read": 1
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_try_kiosk",
+   "values": {
+    "name": "Try kiosk",
+    "model_id": {
+     "$ref": "hr_attendance.model_hr_attendance"
+    },
+    "state": "code",
+    "code": "action = model.action_try_kiosk()"
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "action_load_demo_data",
+   "values": {
+    "name": "Load demo data",
+    "model_id": {
+     "$ref": "hr_attendance.model_hr_attendance"
+    },
+    "state": "code",
+    "code": "action = model._load_demo_data()"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_attendance_action",
+   "values": {
+    "name": "Attendances",
+    "path": "attendances",
+    "res_model": "hr.attendance",
+    "view_mode": "list,form",
+    "context": {
+     "search_default_groupby_name": 1,
+     "search_default_employee": 2
+    },
+    "search_view_id": {
+     "$ref": "hr_attendance_view_filter"
+    },
+    "help": ""
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_attendance_reporting",
+   "values": {
+    "name": "Attendances",
+    "res_model": "hr.attendance",
+    "view_mode": "pivot,graph",
+    "search_view_id": {
+     "$ref": "hr_attendance_view_filter"
+    },
+    "context": {
+     "search_default_employee": 2,
+     "search_default_activeemployees": 1,
+     "search_default_last_three_months": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_attendance_management_action",
+   "values": {
+    "name": "Management",
+    "res_model": "hr.attendance",
+    "view_mode": "list,form",
+    "search_view_id": {
+     "$ref": "hr_attendance_management_view_filter"
+    },
+    "view_id": {
+     "$ref": "view_attendance_tree_management"
+    },
+    "context": {
+     "search_default_to_approve": 1,
+     "search_default_activeemployees": 1
+    },
+    "domain": [
+     [
+      "check_out",
+      "!=",
+      false
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "hr_attendance_action_greeting_message",
+   "values": {
+    "name": "Message",
+    "tag": "hr_attendance_greeting_message"
+   }
+  },
+  {
+   "model": "ir.actions.client",
+   "id": "hr_attendance_action_install_kiosk_pwa",
+   "values": {
+    "name": "Attendance Kiosk",
+    "target": "new",
+    "res_model": "hr.attendance",
+    "tag": "install_kiosk_pwa",
+    "context": {
+     "$unevaluated": "{'app_id': 'hr_attendance', 'footer': false}"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.server",
+   "id": "open_kiosk_url",
+   "values": {
+    "name": "Open Kiosk Url",
+    "model_id": {
+     "$ref": "hr_attendance.model_res_company"
+    },
+    "path": "attendance-kiosk",
+    "binding_model_id": {
+     "$ref": "hr_attendance.model_res_company"
+    },
+    "state": "code",
+    "code": "action = model._action_open_kiosk_mode()",
+    "groups_id": [
+     [
+      4,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_attendance_overtime_action",
+   "values": {
+    "name": "Extra Hours",
+    "res_model": "hr.attendance.overtime",
+    "view_mode": "graph,pivot,list",
+    "context": {
+     "search_default_groupby_date": 1,
+     "search_default_employee": 1,
+     "search_default_last_three_months": 1
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_employee_attendance_action_kanban",
+   "values": {
+    "name": "Employees",
+    "res_model": "hr.employee.public",
+    "view_mode": "kanban",
+    "view_id": {
+     "$ref": "hr_employees_view_kanban"
+    },
+    "target": "fullscreen",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_hr_attendance_settings",
+   "values": {
+    "name": "Settings",
+    "res_model": "res.config.settings",
+    "view_mode": "form",
+    "target": "inline",
+    "context": {
+     "module": "hr_attendance",
+     "bin_size": false
+    }
+   }
+  },
+  {
+   "model": "res.users",
+   "id": "base.user_demo",
+   "values": {
+    "groups_id": [
+     [
+      3,
+      {
+       "$ref": "hr_attendance.group_hr_attendance_manager"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "hr.employee_al",
+   "values": {
+    "barcode": "123"
+   }
+  },
+  {
+   "model": "hr.employee",
+   "id": "hr.employee_admin",
+   "values": {
+    "barcode": "456"
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance_root1",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1, days=-1)).strftime('%Y-%m-%d 08:00:24')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1, days=-1)).strftime('%Y-%m-%d 12:01:33')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance_root2",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1, days=-1)).strftime('%Y-%m-%d 13:02:58')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1, days=-1)).strftime('%Y-%m-%d 18:09:22')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_admin"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance1",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-01 08:21')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-01 15:51')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance2",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-02 08:47')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-02 15:53')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance3",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-03 08:32')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-03 15:22')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance4",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-04 08:01')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-04 16:21')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance5",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-05 10:10')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-05 14:42')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance6",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-06 10:10')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-06 17:34')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance7",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-07 08:21')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-07 17:29')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance8",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-08 09:21')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-08 14:54')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance9",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-09 10:32')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-09 17:31')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  },
+  {
+   "model": "hr.attendance",
+   "id": "attendance10",
+   "values": {
+    "check_in": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-10 08:00')"
+    },
+    "check_out": {
+     "$unevaluated": "(datetime.now()+relativedelta(months=-1)).strftime('%Y-%m-10 17:00')"
+    },
+    "employee_id": {
+     "$ref": "hr.employee_qdp"
+    }
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_hr_attendance_root",
+   "name": "Attendances",
+   "sequence": "205",
+   "groups": "hr_attendance.group_hr_attendance_officer",
+   "web_icon": "hr_attendance,static/description/icon.png"
+  },
+  {
+   "id": "menu_action_open_form",
+   "name": "Kiosk Mode",
+   "parent": "menu_hr_attendance_root",
+   "action": "open_kiosk_url",
+   "sequence": "10",
+   "groups": "hr_attendance.group_hr_attendance_manager"
+  },
+  {
+   "id": "menu_hr_attendance_reporting",
+   "name": "Reporting",
+   "parent": "menu_hr_attendance_root",
+   "action": "hr_attendance_reporting",
+   "sequence": "15",
+   "groups": "hr_attendance.group_hr_attendance_officer"
+  },
+  {
+   "id": "menu_hr_attendance_view_attendances",
+   "name": "Overview",
+   "parent": "menu_hr_attendance_root",
+   "action": "hr_attendance_action",
+   "sequence": "5",
+   "groups": "hr_attendance.group_hr_attendance_officer"
+  },
+  {
+   "id": "menu_hr_attendance_view_attendances_management",
+   "name": "Management",
+   "parent": "menu_hr_attendance_root",
+   "action": "hr_attendance_management_action",
+   "sequence": "6",
+   "groups": "hr_attendance.group_hr_attendance_officer"
+  },
+  {
+   "id": "hr_attendance.menu_hr_attendance_settings",
+   "name": "Configuration",
+   "parent": "menu_hr_attendance_root",
+   "action": "action_hr_attendance_settings",
+   "sequence": "99",
+   "groups": "hr_attendance.group_hr_attendance_manager"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_hr_attendance_admin",
+   "model": "hr.attendance",
+   "model_xmlid": "model_hr_attendance",
+   "group": "group_hr_attendance_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_attendance_admin_overtime",
+   "model": "hr.attendance.overtime",
+   "model_xmlid": "model_hr_attendance_overtime",
+   "group": "group_hr_attendance_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_attendance_officer",
+   "model": "hr.attendance",
+   "model_xmlid": "model_hr_attendance",
+   "group": "group_hr_attendance_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_attendance_officer_overtime",
+   "model": "hr.attendance.overtime",
+   "model_xmlid": "model_hr_attendance_overtime",
+   "group": "group_hr_attendance_officer",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_attendance_user",
+   "model": "hr.attendance",
+   "model_xmlid": "model_hr_attendance",
+   "group": "group_hr_attendance_own_reader",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_attendance_overtime_user",
+   "model": "hr.attendance.overtime",
+   "model_xmlid": "model_hr_attendance_overtime",
+   "group": "group_hr_attendance_own_reader",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  }
+ ]
+}

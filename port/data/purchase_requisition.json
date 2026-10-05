@@ -1,0 +1,381 @@
+{
+ "module": "purchase_requisition",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "purchase_requisition_comp_rule",
+   "values": {
+    "name": "Purchase Requisition multi-company",
+    "model_id": {
+     "$ref": "model_purchase_requisition"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "purchase_requisition_line_comp_rule",
+   "values": {
+    "name": "Purchase requisition Line multi-company",
+    "model_id": {
+     "$ref": "model_purchase_requisition_line"
+    },
+    "domain_force": "[('company_id', 'in', company_ids)]"
+   }
+  },
+  {
+   "model": "res.groups",
+   "id": "group_purchase_alternatives",
+   "values": {
+    "name": "Manage Purchase Alternatives",
+    "category_id": {
+     "$ref": "base.module_category_hidden"
+    }
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_blanket_order",
+   "values": {
+    "name": "Blanket Order",
+    "code": "purchase.requisition.blanket.order",
+    "prefix": "BO",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.sequence",
+   "id": "seq_purchase_template",
+   "values": {
+    "name": "Purchase Template",
+    "code": "purchase.requisition.purchase.template",
+    "prefix": "PT",
+    "padding": "5",
+    "company_id": false
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_purchase_requisition_to_so",
+   "values": {
+    "name": "Request for Quotation",
+    "res_model": "purchase.order",
+    "view_mode": "form,list",
+    "domain": {
+     "$unevaluated": "[('requisition_id','=',active_id)]"
+    },
+    "context": {
+     "$unevaluated": "{\n            \"default_requisition_id\":active_id,\n            }"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_purchase_requisition_list",
+   "values": {
+    "name": "Request for Quotations",
+    "res_model": "purchase.order",
+    "view_mode": "list,form",
+    "domain": {
+     "$unevaluated": "[('requisition_id','=',active_id)]"
+    },
+    "context": {
+     "$unevaluated": "{\n            \"default_requisition_id\":active_id,\n            }"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_purchase_requisition",
+   "values": {
+    "name": "Purchase Agreements",
+    "res_model": "purchase.requisition",
+    "view_mode": "list,kanban,form",
+    "context": {},
+    "search_view_id": {
+     "$ref": "view_purchase_requisition_filter"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "purchase.requisition",
+   "id": "bo_requisition",
+   "values": {
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "vendor_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "requisition_type": "blanket_order"
+   }
+  },
+  {
+   "model": "purchase.requisition.line",
+   "id": "bo_requisition_line",
+   "values": {
+    "requisition_id": {
+     "$ref": "bo_requisition"
+    },
+    "product_id": {
+     "$ref": "product.product_product_13"
+    },
+    "product_uom_id": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "product_qty": "100",
+    "price_unit": "60"
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "rfq1",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "requisition_id": {
+     "$ref": "bo_requisition"
+    }
+   }
+  },
+  {
+   "model": "purchase.order.line",
+   "id": "rfq1_line",
+   "values": {
+    "order_id": {
+     "$ref": "rfq1"
+    },
+    "name": {
+     "$unevaluated": "obj().env.ref('product.product_product_13').partner_ref"
+    },
+    "date_planned": {
+     "$unevaluated": "time.strftime('%Y-%m-10')"
+    },
+    "product_id": {
+     "$ref": "product.product_product_13"
+    },
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "price_unit": "60",
+    "product_qty": "25"
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "rfq2",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    },
+    "requisition_id": {
+     "$ref": "bo_requisition"
+    }
+   }
+  },
+  {
+   "model": "purchase.order.line",
+   "id": "rfq2_line",
+   "values": {
+    "order_id": {
+     "$ref": "rfq2"
+    },
+    "name": {
+     "$unevaluated": "obj().env.ref('product.product_product_13').partner_ref"
+    },
+    "date_planned": {
+     "$unevaluated": "time.strftime('%Y-%m-15')"
+    },
+    "product_id": {
+     "$ref": "product.product_product_13"
+    },
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "price_unit": "60",
+    "product_qty": "10"
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "rfq3",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_1"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "purchase.order.line",
+   "id": "rfq3_line",
+   "values": {
+    "order_id": {
+     "$ref": "rfq3"
+    },
+    "name": {
+     "$unevaluated": "obj().env.ref('product.product_product_13').partner_ref"
+    },
+    "date_planned": {
+     "$unevaluated": "time.strftime('%Y-%m-10')"
+    },
+    "product_id": {
+     "$ref": "product.product_product_13"
+    },
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "price_unit": "100",
+    "product_qty": "5"
+   }
+  },
+  {
+   "model": "purchase.order",
+   "id": "rfq4",
+   "values": {
+    "partner_id": {
+     "$ref": "base.res_partner_2"
+    },
+    "user_id": {
+     "$ref": "base.user_admin"
+    }
+   }
+  },
+  {
+   "model": "purchase.order.line",
+   "id": "rfq4_line",
+   "values": {
+    "order_id": {
+     "$ref": "rfq4"
+    },
+    "name": {
+     "$unevaluated": "obj().env.ref('product.product_product_13').partner_ref"
+    },
+    "date_planned": {
+     "$unevaluated": "time.strftime('%Y-%m-15')"
+    },
+    "product_id": {
+     "$ref": "product.product_product_13"
+    },
+    "product_uom": {
+     "$ref": "uom.product_uom_unit"
+    },
+    "price_unit": "120",
+    "product_qty": "4"
+   }
+  },
+  {
+   "model": "purchase.order.group",
+   "id": "rfq_group",
+   "values": {
+    "order_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "purchase_requisition.rfq3"
+       },
+       {
+        "$ref": "purchase_requisition.rfq4"
+       }
+      ]
+     ]
+    ]
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu_purchase_requisition_pro_mgt",
+   "parent": "purchase.menu_procurement_management",
+   "action": "action_purchase_requisition",
+   "sequence": "10"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_purchase_requisition",
+   "model": "purchase.requisition",
+   "model_xmlid": "model_purchase_requisition",
+   "group": "purchase.group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_purchase_requisition_line_purchase_user",
+   "model": "purchase.requisition.line",
+   "model_xmlid": "model_purchase_requisition_line",
+   "group": "purchase.group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_purchase_requisition_manager",
+   "model": "purchase.requisition",
+   "model_xmlid": "model_purchase_requisition",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_requisition_line_manager",
+   "model": "purchase.requisition.line",
+   "model_xmlid": "model_purchase_requisition_line",
+   "group": "purchase.group_purchase_manager",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_purchase_requisition_alternative_warning",
+   "model": "purchase.requisition.alternative.warning",
+   "model_xmlid": "model_purchase_requisition_alternative_warning",
+   "group": "purchase.group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_purchase_requisition_create_alternative",
+   "model": "purchase.requisition.create.alternative",
+   "model_xmlid": "model_purchase_requisition_create_alternative",
+   "group": "purchase.group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_purchase_requisition_purchase_order_group",
+   "model": "purchase.order.group",
+   "model_xmlid": "model_purchase_order_group",
+   "group": "purchase.group_purchase_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

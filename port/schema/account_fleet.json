@@ -1,0 +1,220 @@
+{
+ "application": false,
+ "author": null,
+ "category": "Accounting/Accounting",
+ "data_files": [
+  "data/fleet_service_type_data.xml",
+  "views/account_move_views.xml",
+  "views/fleet_vehicle_views.xml",
+  "views/fleet_vehicle_log_services_views.xml"
+ ],
+ "depends": [
+  "fleet",
+  "account"
+ ],
+ "models": {
+  "account.automatic.entry.wizard": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 7,
+     "name": "_get_move_line_dict_vals_change_period"
+    }
+   ],
+   "name": "account.automatic.entry.wizard",
+   "transient": false
+  },
+  "account.move": {
+   "abstract": false,
+   "extension": true,
+   "fields": {},
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 21,
+     "name": "_post"
+    }
+   ],
+   "name": "account.move",
+   "transient": false
+  },
+  "account.move.line": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "need_vehicle": {
+     "compute": "_compute_need_vehicle",
+     "type": "Boolean"
+    },
+    "vehicle_id": {
+     "comodel": "fleet.vehicle",
+     "index": "btree_not_null",
+     "string": "Vehicle",
+     "type": "Many2one"
+    },
+    "vehicle_log_service_ids": {
+     "comodel": "fleet.vehicle.log.services",
+     "inverse_name": "account_move_line_id",
+     "type": "One2many"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 2,
+     "name": "_compute_need_vehicle"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 9,
+     "name": "_prepare_fleet_log_service"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 4,
+     "name": "write"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "unlink"
+    }
+   ],
+   "name": "account.move.line",
+   "transient": false
+  },
+  "fleet.vehicle": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_move_ids": {
+     "comodel": "account.move",
+     "compute": "_compute_move_ids",
+     "type": "One2many"
+    },
+    "bill_count": {
+     "compute": "_compute_move_ids",
+     "string": "Bills Count",
+     "type": "Integer"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 19,
+     "name": "_compute_move_ids"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 12,
+     "name": "action_view_bills"
+    }
+   ],
+   "name": "fleet.vehicle",
+   "transient": false
+  },
+  "fleet.vehicle.log.services": {
+   "abstract": false,
+   "extension": true,
+   "fields": {
+    "account_move_line_id": {
+     "comodel": "account.move.line",
+     "type": "Many2one"
+    },
+    "account_move_state": {
+     "related": "account_move_line_id.parent_state",
+     "type": "Selection"
+    },
+    "amount": {
+     "compute": "_compute_amount",
+     "readonly": false,
+     "store": true,
+     "string": "Cost",
+     "tracking": true,
+     "type": "Monetary"
+    },
+    "vehicle_id": {
+     "comodel": "fleet.vehicle",
+     "compute": "_compute_vehicle_id",
+     "readonly": false,
+     "required": true,
+     "store": true,
+     "string": "Vehicle",
+     "type": "Many2one"
+    }
+   },
+   "inherit": [],
+   "inherits": {},
+   "methods": [
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_move_line_id.vehicle_id')"
+     ],
+     "lines": 6,
+     "name": "_compute_vehicle_id"
+    },
+    {
+     "action": false,
+     "decorators": [],
+     "lines": 3,
+     "name": "_inverse_amount"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.depends('account_move_line_id.price_subtotal')"
+     ],
+     "lines": 3,
+     "name": "_compute_amount"
+    },
+    {
+     "action": true,
+     "decorators": [],
+     "lines": 10,
+     "name": "action_open_account_move"
+    },
+    {
+     "action": false,
+     "decorators": [
+      "api.ondelete(at_uninstall=False)"
+     ],
+     "lines": 5,
+     "name": "_unlink_if_no_linked_bill"
+    }
+   ],
+   "name": "fleet.vehicle.log.services",
+   "transient": false
+  }
+ },
+ "module": "account_fleet",
+ "path": "/Volumes/fast01/source/git-oss/odoo/addons/account_fleet",
+ "stats": {
+  "fields": 9,
+  "methods": 13,
+  "models": 5,
+  "py_lines": 182
+ },
+ "summary": "Manage accounting with fleets",
+ "title": "Accounting/Fleet bridge",
+ "version": "1.0"
+}

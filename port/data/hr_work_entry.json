@@ -1,0 +1,153 @@
+{
+ "module": "hr_work_entry",
+ "records": [
+  {
+   "model": "ir.rule",
+   "id": "hr_user_work_entry_employee",
+   "values": {
+    "name": "Work entries/Employee calendar filter: only self",
+    "model_id": {
+     "$ref": "model_hr_user_work_entry_employee"
+    },
+    "domain_force": "[('user_id', '=', user.id)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_user"
+      }
+     ]
+    ],
+    "perm_create": 1,
+    "perm_write": 1,
+    "perm_unlink": 1,
+    "perm_read": 0
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_hr_work_entry_type_multi_company",
+   "values": {
+    "name": "HR Work Entry: Multi Company",
+    "model_id": {
+     "$ref": "model_hr_work_entry_type"
+    },
+    "domain_force": "[('country_id', 'in', user.env.companies.mapped('country_id').ids + [False])]"
+   }
+  },
+  {
+   "model": "hr.work.entry.type",
+   "id": "work_entry_type_attendance",
+   "values": {
+    "name": "Attendance",
+    "color": "0",
+    "code": "WORK100"
+   }
+  },
+  {
+   "model": "hr.work.entry.type",
+   "id": "overtime_work_entry_type",
+   "values": {
+    "name": "Overtime Hours",
+    "color": "4",
+    "code": "OVERTIME"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_work_entry_action_conflict",
+   "values": {
+    "name": "Work Entry",
+    "res_model": "hr.work.entry",
+    "context": {
+     "search_default_work_entries_error": 1
+    },
+    "view_mode": "list,calendar,form,pivot"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_work_entry_action",
+   "values": {
+    "name": "Work Entry",
+    "res_model": "hr.work.entry",
+    "path": "work-entries",
+    "view_mode": "calendar,list,form,pivot",
+    "context": {
+     "search_default_work_entries_error": true
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "hr_work_entry_type_action",
+   "values": {
+    "name": "Work Entry Types",
+    "res_model": "hr.work.entry.type",
+    "view_mode": "list,kanban,form",
+    "search_view_id": {
+     "$ref": "hr_work_entry_type_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_hr_work_entry_officer",
+   "model": "hr.work.entry",
+   "model_xmlid": "model_hr_work_entry",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_work_entry_system",
+   "model": "hr.work.entry",
+   "model_xmlid": "model_hr_work_entry",
+   "group": "base.group_system",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_work_entry_type_officer",
+   "model": "hr.work.entry.type",
+   "model_xmlid": "model_hr_work_entry_type",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_hr_work_entry_type_manager",
+   "model": "hr.work.entry.type",
+   "model_xmlid": "model_hr_work_entry_type",
+   "group": "hr.group_hr_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_hr_work_entry_employee",
+   "model": "hr.user.work.entry.employee",
+   "model_xmlid": "model_hr_user_work_entry_employee",
+   "group": "hr.group_hr_user",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

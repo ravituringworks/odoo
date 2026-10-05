@@ -1,0 +1,62 @@
+{
+ "module": "event_sms",
+ "records": [
+  {
+   "model": "sms.template",
+   "id": "sms_template_data_event_registration",
+   "values": {
+    "name": "Event: Registration",
+    "model_id": {
+     "$ref": "event.model_event_registration"
+    },
+    "body": "{{ object.event_id.organizer_id.name or object.event_id.company_id.name or user.env.company.name }}: We are happy to confirm your registration for the {{ object.event_id.name }} event.",
+    "lang": "{{ object.partner_id.lang }}"
+   }
+  },
+  {
+   "model": "sms.template",
+   "id": "sms_template_data_event_reminder",
+   "values": {
+    "name": "Event: Reminder",
+    "model_id": {
+     "$ref": "event.model_event_registration"
+    },
+    "body": "Ready for \"{{ object.event_id.name }}\" {{ object.event_date_range }}?\n{{ 'It starts at %s' % format_time(time=object.event_begin_date, tz=object.event_id.date_tz, time_format='short', lang_code=object.partner_id.lang) + (', at %s' % object.event_id.address_inline if object.event_id.address_inline else '') + '.\\nSee you there!' if object.event_id.address_inline or 'website_published' not in object.event_id._fields else 'Join us on %s/event/%i!' % (object.get_base_url(), object.event_id.id) }}",
+    "lang": "{{ object.partner_id.lang }}"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_sms_template_event_manager",
+   "values": {
+    "name": "SMS Template: event manager CUD on event / registrations templates",
+    "model_id": {
+     "$ref": "sms.model_sms_template"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "event.group_event_manager"
+      }
+     ]
+    ],
+    "domain_force": "[('model_id.model', 'in', ('event.event', 'event.registration'))]",
+    "perm_read": false
+   }
+  }
+ ],
+ "menus": [],
+ "access": [
+  {
+   "id": "access_sms_template_event_manager",
+   "model": "sms.sms.template",
+   "model_xmlid": "sms.model_sms_template",
+   "group": "event.group_event_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  }
+ ]
+}

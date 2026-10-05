@@ -1,0 +1,573 @@
+{
+ "module": "website_crm_partner_assign",
+ "records": [
+  {
+   "model": "crm.tag",
+   "id": "tag_portal_lead_partner_unavailable",
+   "values": {
+    "name": "No more partner available",
+    "color": "3"
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "tag_portal_lead_is_spam",
+   "values": {
+    "name": "Spam",
+    "color": "3"
+   }
+  },
+  {
+   "model": "crm.tag",
+   "id": "tag_portal_lead_own_opp",
+   "values": {
+    "name": "Created by Partner",
+    "color": "4"
+   }
+  },
+  {
+   "model": "res.partner.activation",
+   "id": "res_partner_activation_data_fully_operational",
+   "values": {
+    "name": "Fully Operational",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "res.partner.activation",
+   "id": "res_partner_activation_data_ramp_up",
+   "values": {
+    "name": "Ramp-up",
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "res.partner.activation",
+   "id": "res_partner_activation_data_first_contact",
+   "values": {
+    "name": "First Contact",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "res.partner.grade",
+   "id": "res_partner_grade_data_gold",
+   "values": {
+    "name": "Gold",
+    "sequence": "1"
+   }
+  },
+  {
+   "model": "res.partner.grade",
+   "id": "res_partner_grade_data_silver",
+   "values": {
+    "name": "Silver",
+    "sequence": "2"
+   }
+  },
+  {
+   "model": "res.partner.grade",
+   "id": "res_partner_grade_data_bronze",
+   "values": {
+    "name": "Bronze",
+    "sequence": "3"
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "assigned_lead_portal_rule_1",
+   "values": {
+    "name": "Portal Graded Partner: read and write assigned leads",
+    "model_id": {
+     "$ref": "crm.model_crm_lead"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ]
+    ],
+    "domain_force": "[('partner_assigned_id','child_of',user.commercial_partner_id.id)]",
+    "perm_read": true,
+    "perm_write": false,
+    "perm_create": false,
+    "perm_unlink": false
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "res_partner_grade_rule_portal_public",
+   "values": {
+    "name": "Portal/Public user: read only website published",
+    "model_id": {
+     "$ref": "website_crm_partner_assign.model_res_partner_grade"
+    },
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "base.group_portal"
+      }
+     ],
+     [
+      4,
+      {
+       "$ref": "base.group_public"
+      }
+     ]
+    ],
+    "domain_force": "[('website_published','=', True)]",
+    "perm_read": true
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_crm_partner_report_assign_all",
+   "values": {
+    "name": "CRM partner assign report: All Assignations",
+    "model_id": {
+     "$ref": "model_crm_partner_report_assign"
+    },
+    "domain_force": "[(1, '=', 1)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman_all_leads"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.rule",
+   "id": "ir_rule_crm_partner_report_assign_salesman",
+   "values": {
+    "name": "CRM partner assign report: Personal / Global Assignations",
+    "model_id": {
+     "$ref": "model_crm_partner_report_assign"
+    },
+    "domain_force": "['|', ('user_id', '=', user.id), ('user_id', '=', False)]",
+    "groups": [
+     [
+      4,
+      {
+       "$ref": "sales_team.group_sale_salesman"
+      }
+     ]
+    ]
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "crm_lead_forward_to_partner_act",
+   "values": {
+    "name": "Forward to Partner",
+    "res_model": "crm.lead.forward.to.partner",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "crm_lead_forward_to_partner_form"
+    },
+    "target": "new"
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_crm_send_mass_forward",
+   "values": {
+    "name": "Forward to partner",
+    "res_model": "crm.lead.forward.to.partner",
+    "view_mode": "form",
+    "view_id": {
+     "$ref": "crm_lead_forward_to_partner_form"
+    },
+    "target": "new",
+    "context": {
+     "default_composition_mode": "mass_mail"
+    },
+    "binding_model_id": {
+     "$ref": "model_crm_lead"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_activation_act",
+   "values": {
+    "name": "Partner Activations",
+    "res_model": "res.partner.activation",
+    "view_mode": "list,form",
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "res_partner_grade_action",
+   "values": {
+    "name": "Partner Levels",
+    "res_model": "res.partner.grade",
+    "search_view_id": {
+     "$ref": "res_partner_grade_view_search"
+    },
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "ir.actions.act_window",
+   "id": "action_report_crm_partner_assign",
+   "values": {
+    "name": "Partnership Analysis",
+    "res_model": "crm.partner.report.assign",
+    "context": {
+     "group_by": []
+    },
+    "view_mode": "graph",
+    "domain": [
+     [
+      "grade_id",
+      "!=",
+      false
+     ]
+    ],
+    "help": {
+     "$unevaluated": "xml"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_3",
+   "values": {
+    "grade_id": {
+     "$ref": "res_partner_grade_data_silver"
+    },
+    "partner_weight": "10",
+    "partner_latitude": "38.2809274",
+    "partner_longitude": "-121.9505130",
+    "assigned_partner_id": {
+     "$ref": "base.res_partner_3"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_4",
+   "values": {
+    "grade_id": {
+     "$ref": "res_partner_grade_data_bronze"
+    },
+    "partner_weight": "10",
+    "partner_latitude": "37.6952527",
+    "partner_longitude": "-121.3966916",
+    "assigned_partner_id": {
+     "$ref": "base.res_partner_3"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_12",
+   "values": {
+    "grade_id": {
+     "$ref": "res_partner_grade_data_silver"
+    },
+    "partner_weight": "10",
+    "partner_latitude": "37.5304271",
+    "partner_longitude": "-121.9746713",
+    "assigned_partner_id": {
+     "$ref": "base.res_partner_12"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_10",
+   "values": {
+    "grade_id": {
+     "$ref": "res_partner_grade_data_gold"
+    },
+    "partner_weight": "10",
+    "partner_latitude": "37.7019178",
+    "partner_longitude": "-121.4452084",
+    "assigned_partner_id": {
+     "$ref": "base.res_partner_12"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_18",
+   "values": {
+    "grade_id": {
+     "$ref": "res_partner_grade_data_gold"
+    },
+    "partner_weight": "10",
+    "partner_latitude": "37.9663420",
+    "partner_longitude": "-121.2908748",
+    "assigned_partner_id": {
+     "$ref": "base.res_partner_1"
+    }
+   }
+  },
+  {
+   "model": "res.partner",
+   "id": "base.res_partner_1",
+   "values": {
+    "grade_id": {
+     "$ref": "res_partner_grade_data_gold"
+    },
+    "partner_weight": "10",
+    "partner_latitude": "37.5055960",
+    "partner_longitude": "-120.8279940",
+    "assigned_partner_id": {
+     "$ref": "base.res_partner_2"
+    }
+   }
+  },
+  {
+   "model": "crm.lead",
+   "id": "crm_case_partner_assign_1",
+   "values": {
+    "type": "lead",
+    "name": "Specifications and price of your phones",
+    "contact_name": "Steve Martinez",
+    "partner_name": "",
+    "partner_id": "",
+    "function": "Reseller",
+    "country_id": {
+     "$ref": "base.uk"
+    },
+    "city": "Edinburgh",
+    "tag_ids": [
+     [
+      6,
+      0,
+      [
+       {
+        "$ref": "sales_team.categ_oppor1"
+       }
+      ]
+     ]
+    ],
+    "priority": "2",
+    "team_id": {
+     "$ref": "sales_team.crm_team_1"
+    },
+    "user_id": "",
+    "stage_id": {
+     "$ref": "crm.stage_lead1"
+    },
+    "description": "Hi,\n\n            Please, can you give me more details about your phones, including their specifications and their prices.\n\n            Regards,\n            Steve",
+    "active": 1,
+    "partner_assigned_id": {
+     "$ref": "base.partner_demo_portal"
+    },
+    "campaign_id": {
+     "$ref": "utm.utm_campaign_email_campaign_products"
+    },
+    "medium_id": {
+     "$ref": "utm.utm_medium_email"
+    },
+    "source_id": {
+     "$ref": "utm.utm_source_newsletter"
+    }
+   }
+  },
+  {
+   "model": "res.partner.grade",
+   "id": "website_crm_partner_assign.res_partner_grade_data_gold",
+   "values": {
+    "is_published": true
+   }
+  },
+  {
+   "model": "res.partner.grade",
+   "id": "website_crm_partner_assign.res_partner_grade_data_silver",
+   "values": {
+    "is_published": true
+   }
+  },
+  {
+   "model": "res.partner.grade",
+   "id": "website_crm_partner_assign.res_partner_grade_data_bronze",
+   "values": {
+    "is_published": true
+   }
+  }
+ ],
+ "menus": [
+  {
+   "id": "crm_menu_resellers",
+   "name": "Resellers",
+   "parent": "crm.crm_menu_config",
+   "sequence": "16"
+  },
+  {
+   "id": "menu_res_partner_grade_action",
+   "parent": "crm_menu_resellers",
+   "action": "res_partner_grade_action",
+   "sequence": "1"
+  },
+  {
+   "id": "res_partner_activation_config_mi",
+   "parent": "crm_menu_resellers",
+   "action": "res_partner_activation_act",
+   "sequence": "2"
+  },
+  {
+   "id": "menu_report_crm_partner_assign_tree",
+   "name": "Partnerships",
+   "parent": "crm.crm_menu_report",
+   "action": "action_report_crm_partner_assign",
+   "sequence": "5"
+  }
+ ],
+ "access": [
+  {
+   "id": "access_crm_partner_report",
+   "model": "crm.partner.report.assign",
+   "model_xmlid": "model_crm_partner_report_assign",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_grade",
+   "model": "res.partner.grade",
+   "model_xmlid": "model_res_partner_grade",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_grade_employee",
+   "model": "res.partner.grade",
+   "model_xmlid": "model_res_partner_grade",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_grade_portal",
+   "model": "res.partner.grade",
+   "model_xmlid": "model_res_partner_grade",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_grade_public",
+   "model": "res.partner.grade",
+   "model_xmlid": "model_res_partner_grade",
+   "group": "base.group_public",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_grade_manager",
+   "model": "res.partner.grade",
+   "model_xmlid": "model_res_partner_grade",
+   "group": "sales_team.group_sale_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "access_res_partner_activation_user",
+   "model": "res.partner.activation",
+   "model_xmlid": "model_res_partner_activation",
+   "group": "base.group_user",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_partner_activation_manager",
+   "model": "res.partner.activation",
+   "model_xmlid": "model_res_partner_activation",
+   "group": "base.group_partner_manager",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": true
+  },
+  {
+   "id": "partner_access_crm_lead",
+   "model": "crm.crm.lead",
+   "model_xmlid": "crm.model_crm_lead",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "partner_access_crm_stage",
+   "model": "crm.crm.stage",
+   "model_xmlid": "crm.model_crm_stage",
+   "group": "base.group_portal",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_grade_invoicing_payment_readonly",
+   "model": "res.partner.grade",
+   "model_xmlid": "model_res_partner_grade",
+   "group": "account.group_account_readonly",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_res_partner_grade_invoicing_payment",
+   "model": "res.partner.grade",
+   "model_xmlid": "model_res_partner_grade",
+   "group": "account.group_account_invoice",
+   "read": true,
+   "write": false,
+   "create": false,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lead_forward_to_partner",
+   "model": "crm.lead.forward.to.partner",
+   "model_xmlid": "model_crm_lead_forward_to_partner",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  },
+  {
+   "id": "access_crm_lead_assignation",
+   "model": "crm.lead.assignation",
+   "model_xmlid": "model_crm_lead_assignation",
+   "group": "sales_team.group_sale_salesman",
+   "read": true,
+   "write": true,
+   "create": true,
+   "unlink": false
+  }
+ ]
+}
