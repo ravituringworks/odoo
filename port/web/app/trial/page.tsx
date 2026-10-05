@@ -6,10 +6,18 @@ import { type Me, getPortalToken, portal, setPortalToken } from '@/lib/portal'
 import { useT } from '@/lib/i18n'
 import { countryOptions, guessCountry } from '@/lib/countries'
 import { byCategory, preselect, toggle, validate, type Errors, type Form, type TrialApp } from '@/lib/trial'
+import { Icon } from '@/components/Icon'
+import { iconForApp } from '@/lib/icons'
+import { industriesByCategory, trialApps, type Industry } from '@/lib/industries'
 
 type Step = 'apps' | 'form' | 'creating'
 const EMPTY: Form = { name: '', email: '', phone: '', company: '', country: '', password: '', terms: false }
 const STORE = 'odoo-rs-trial-apps'
+// category order and colours follow odoo.com's Apps menu
+const APP_ORDER = ['Finance', 'Sales', 'Website', 'Supply Chain', 'Human Resources', 'Marketing', 'Services', 'Productivity', 'Customizations']
+const CAT_NAME: Record<string, string> = { Website: 'Websites' }
+const PALETTE = ['#2f7f7f', '#d46a7a', '#4f7396', '#6b6a9f', '#5f5a8a', '#e0763d', '#d9722f', '#7a4f7a']
+const tone = (i: number) => PALETTE[i % PALETTE.length]
 
 export default function TrialPage() {
   const { t, lang } = useT()
@@ -18,6 +26,7 @@ export default function TrialPage() {
   const [apps, setApps] = useState<string[]>([]); const [form, setForm] = useState<Form>(EMPTY); const [errs, setErrs] = useState<Errors>({})
   const [me, setMe] = useState<Me | null>(null)   // signed-in portal account (then the form only asks for company/country)
   const [from, setFrom] = useState<string>()   // landing page the visitor came from (industry or app)
+  const [by, setBy] = useState<'app' | 'industry'>('app'); const [iq, setIq] = useState('')
   const [showPw, setShowPw] = useState(false); const [serverErr, setServerErr] = useState<string>(); const [phase, setPhase] = useState(0)
 
   useEffect(() => {
@@ -28,7 +37,9 @@ export default function TrialPage() {
   }, [])
   useEffect(() => { try { sessionStorage.setItem(STORE, JSON.stringify(apps)) } catch { /* ignore */ } }, [apps])
   const countries = useMemo(() => countryOptions(lang), [lang])
-  const groups = useMemo(() => byCategory(cat ?? []), [cat])
+  const groups = useMemo(() => byCategory(cat ?? []).sort(([a], [b]) => (APP_ORDER.indexOf(a) + 99) % 99 - (APP_ORDER.indexOf(b) + 99) % 99), [cat])
+  const indGroups = useMemo(() => industriesByCategory().map(([c, l]) => [c, l.filter((i) => !iq.trim() || `${i.name} ${i.audience}`.toLowerCase().includes(iq.trim().toLowerCase()))] as [string, Industry[]]).filter(([, l]) => l.length), [iq])
+  const pickIndustry = (i: Industry) => { setApps(trialApps(i).filter((n) => cat?.some((c) => c.name === n && c.available))); setFrom(i.name); setBy('app'); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const chosen = apps.filter((a) => cat?.find((c) => c.name === a)?.available)
 
   const set = (k: keyof Form, v: string | boolean) => { setForm((f) => ({ ...f, [k]: v })); if (errs[k]) setErrs((e) => ({ ...e, [k]: undefined })) }
@@ -55,7 +66,7 @@ export default function TrialPage() {
     <div className="tr">
       <header className="tr-head">
         <Link href="/trial/" className="tr-logo">{t('app.name')}</Link><span className="grow" />
-        {me ? <Link href="/my/">👤 {me.name}</Link> : <Link href="/my/">{t('trial.signin')}</Link>}
+        {me ? <Link href="/my/"><Icon name="user" size="var(--icon-md)" /> {me.name}</Link> : <Link href="/my/">{t('trial.signin')}</Link>}
         <Link href="/trial/" className="btn p">{t('trial.try')}</Link>
       </header>
 
@@ -69,16 +80,31 @@ export default function TrialPage() {
           <main className="tr-body">
             {loadErr && <div className="err">{loadErr.includes('not enabled') ? t('trial.disabled') : loadErr}</div>}
             {!cat && !loadErr && <p className="muted">{t('common.loading')}</p>}
-            {groups.map(([g, list]) => (
+            <div className="tr-tabs" role="tablist">
+              <button role="tab" aria-selected={by === 'app'} className={`btn ${by === 'app' ? 'p' : ''}`} onClick={() => setBy('app')}>By app</button>
+              <button role="tab" aria-selected={by === 'industry'} className={`btn ${by === 'industry' ? 'p' : ''}`} onClick={() => setBy('industry')}>By industry</button>
+              {by === 'industry' && <input className="tr-isearch" placeholder="Search industries…" value={iq} onChange={(e) => setIq(e.target.value)} />}
+            </div>
+            {by === 'industry' && cat && <p className="muted">Pick your industry and we preselect the apps it usually needs. You can adjust them before continuing.</p>}
+            {by === 'industry' && indGroups.map(([g, list], gi) => (
               <section key={g}>
-                <h2 className="tr-cat">{g}</h2>
+                <h2 className="tr-cat tr-cat-h" style={{ color: tone(gi), borderColor: tone(gi) }}>{g}</h2>
+                <div className="tr-ilist">
+                  {list.map((i) => <button key={i.slug} type="button" className="tr-ind" title={i.audience} onClick={() => pickIndustry(i)}>{i.name}</button>)}
+                </div>
+              </section>
+            ))}
+            {by === 'industry' && !indGroups.length && <p className="muted">No industry matches “{iq}”.</p>}
+            {by === 'app' && groups.map(([g, list], gi) => (
+              <section key={g}>
+                <h2 className="tr-cat tr-cat-h" style={{ color: tone(gi), borderColor: tone(gi) }}>{CAT_NAME[g] ?? g}</h2>
                 <div className="tr-grid">
                   {list.map((a) => {
                     const on = apps.includes(a.name)
                     return (
                       <button key={a.name} type="button" className={`tr-card ${on ? 'on' : ''}`} disabled={!a.available} aria-pressed={on} title={a.available ? '' : t('trial.enterprise')} onClick={() => setApps((cur) => toggle(cur, a.name))}>
-                        <span className="tr-ic">{a.icon}</span><span className="tr-name">{a.name}</span>
-                        {a.available ? <span className="tr-check">{on ? '✓' : ''}</span> : <span className="tr-ent">{t('trial.enterprise')}</span>}
+                        <span className="tr-ic"><Icon name={iconForApp(a.name)} /></span><span className="tr-name">{a.name}</span>
+                        {a.available ? <span className="tr-check">{on ? <Icon name="check" size="var(--icon-lg)" /> : null}</span> : <span className="tr-ent">{t('trial.enterprise')}</span>}
                       </button>
                     )
                   })}
@@ -88,7 +114,7 @@ export default function TrialPage() {
           </main>
           <div className="tr-bar">
             <span>{chosen.length === 0 ? t('trial.pick_one') : chosen.length === 1 ? t('trial.selected_one') : t('trial.selected', { n: chosen.length })}</span><span className="grow" />
-            <button className="btn p" disabled={!chosen.length} onClick={() => setStep('form')}>{t('trial.continue')} →</button>
+            <button className="btn p" disabled={!chosen.length} onClick={() => setStep('form')}>{t('trial.continue')} <Icon name="arrow-right" size="var(--icon-md)" /></button>
           </div>
         </>
       )}
@@ -118,7 +144,7 @@ export default function TrialPage() {
             </>}
             {step === 'creating'
               ? <div className="tr-progress" role="status"><div className="tr-spin" /><b>{t(phase === 0 ? 'trial.creating' : phase === 1 ? 'trial.installing' : 'trial.finishing')}</b></div>
-              : <div className="tr-actions"><button type="button" className="btn" onClick={() => setStep('apps')}>← {t('trial.back')}</button><button className="btn p" type="submit">{t('trial.start')}</button></div>}
+              : <div className="tr-actions"><button type="button" className="btn" onClick={() => setStep('apps')}><Icon name="arrow-left" size="var(--icon-md)" /> {t('trial.back')}</button><button className="btn p" type="submit">{t('trial.start')}</button></div>}
             {!me && <p className="hint">{t('portal.have_account')} <Link href="/my/">{t('portal.signin')}</Link></p>}
             <p className="hint">{t('trial.expires', { days: 15 })}</p>
           </form>

@@ -2,6 +2,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import { rpc } from '@/lib/rpc'
 import { type Account, type Backup, type DbRow, type Filter, archiveDb, backupDb, createDb, deleteBackup, deleteDb, filterDbs, fmtSize, listAccounts, listBackups, listDbs, openDb, restoreDb, setDisallowed, toggleApp } from '@/lib/admin'
+import { Icon } from '@/components/Icon'
 
 type Pending = { action: 'delete' | 'restore'; db: string; file?: string }
 const FILTERS: Filter[] = ['all', 'main', 'trial', 'standard', 'archived']
@@ -26,7 +27,7 @@ export default function DatabasesPage() {
 
   return (
     <>
-      <div className="bar"><h1>Databases</h1><span className="grow" /><button className="btn" onClick={load}>↻ Refresh</button></div>
+      <div className="bar"><h1>Databases</h1><span className="grow" /><button className="btn" onClick={load}><Icon name="refresh" size="var(--icon-md)" /> Refresh</button></div>
       <div className="set-body" style={{ maxWidth: 1180 }}>
         {msg && <div className={msg.ok ? 'hint' : 'err'} role="status">{msg.text}</div>}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '10px 0', flexWrap: 'wrap' }}>

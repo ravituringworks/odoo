@@ -35,21 +35,66 @@ def load_views():
                 views[vid] = {"id": vid, "module": mod, "model": (f["model"].text or "").strip() if "model" in f else None,
                               "inherit": q(mod, inh) if inh else None, "mode": (f["mode"].text or "extension").strip() if "mode" in f else "extension",
                               "priority": int((f["priority"].text or "16").strip()) if "priority" in f and (f["priority"].text or "").strip().isdigit() else 16,
-                              "arch": arch[0], "seq": len(views)}
+                              "arch": (arch if (inh and len(arch) > 1) else arch[0]), "seq": len(views)}   # several <xpath> siblings = the arch field itself is the wrapper
     return views
 
 def parent_map(root): return {c: p for p in root.iter() for c in p}
 
-XP = re.compile(r"^//?(\w+|\*)(?:\[@(\w+)=['\"]([^'\"]+)['\"]\])?(?:\[(\d+)\])?$")
+STEP = re.compile(r"(//|/)((?:\w+|\*|\.\.))((?:\[[^\]]*\])*)")
+PRED = re.compile(r"\[([^\]]*)\]")
+def _pred_ok(e, pred, pos, total):
+    """One predicate: [@a='v'] [@a] [hasclass('x','y')] [n] [name='v'] joined by `and`."""
+    for part in re.split(r"\s+and\s+", pred.strip()):
+        part = part.strip()
+        m = re.fullmatch(r"@([\w:-]+)\s*=\s*['\"]([^'\"]*)['\"]", part)
+        if m:
+            if e.get(m.group(1)) != m.group(2): return False
+            continue
+        m = re.fullmatch(r"@([\w:-]+)", part)
+        if m:
+            if e.get(m.group(1)) is None: return False
+            continue
+        m = re.fullmatch(r"hasclass\((.*)\)", part)
+        if m:
+            want = re.findall(r"['\"]([^'\"]+)['\"]", m.group(1)); have = (e.get("class") or "").split()
+            if not all(w in have for w in want): return False
+            continue
+        if re.fullmatch(r"\d+", part):
+            if pos != int(part): return False
+            continue
+        m = re.fullmatch(r"(\w+)", part)            # [tag]: has a child with that tag
+        if m:
+            if not any(c.tag == m.group(1) for c in e): return False
+            continue
+        return False                                  # unsupported predicate -> no match (counted as a miss)
+    return True
+def eval_xpath(root, expr):
+    """Supports /, //, tag, *, .., and predicates (@a='v', @a, hasclass(), [n], and). Returns the first match or None."""
+    expr = expr.strip()
+    if not expr.startswith("/"): expr = "//" + expr if not expr.startswith(".") else "/" + expr.lstrip("./")
+    steps = STEP.findall(expr)
+    if not steps or "".join(a + b + c for a, b, c in steps) != expr: return None
+    pm = parent_map(root)
+    cur = [None]                                         # virtual document node above the root
+    for axis, tag, preds in steps:
+        nxt = []
+        for node in cur:
+            if tag == "..":
+                if node is not None and node in pm: nxt.append(pm[node])
+                continue
+            pool = ([root] if node is None else list(node)) if axis == "/" else ([e for e in root.iter()] if node is None else [e for e in node.iter() if e is not node])
+            cands = [e for e in pool if tag == "*" or e.tag == tag]
+            for pr in PRED.findall(preds):
+                total = len(cands); cands = [e for i, e in enumerate(cands, 1) if _pred_ok(e, pr, i, total)]
+            nxt.extend(cands)
+        seen = []; [seen.append(x) for x in nxt if x not in seen]
+        cur = seen
+        if not cur: return None
+    return cur[0] if cur and cur[0] is not None else None
+
 def find_target(root, spec):
     """spec: element <field name=..> shorthand or <xpath expr=..>; returns element or None"""
-    if spec.tag == "xpath":
-        m = XP.match(spec.get("expr", "").strip())
-        if not m: return None
-        tag, attr, val, idx = m.groups()
-        cands = [e for e in root.iter() if (tag == "*" or e.tag == tag) and (attr is None or e.get(attr) == val)]
-        if idx: return cands[int(idx) - 1] if len(cands) >= int(idx) else None
-        return cands[0] if cands else None
+    if spec.tag == "xpath": return eval_xpath(root, spec.get("expr", ""))
     attrs = {k: v for k, v in spec.attrib.items() if k not in ("position", "string") or spec.tag != "field"}
     key = {k: v for k, v in attrs.items() if k in ("name",)}
     for e in root.iter():

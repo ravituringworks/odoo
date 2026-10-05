@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { rpc } from '@/lib/rpc'
 import { useT } from '@/lib/i18n'
+import { Icon } from '@/components/Icon'
 
 type Report = { days: number; orders: number; total: number; average: number; registers: { id: number; name: string; total: number; orders: number }[]; top_products: { name: string; qty: number; total: number }[]; payments: { name: string; amount: number }[]; by_hour: number[]; by_day: { day: string; amount: number }[] }
 
@@ -15,7 +16,7 @@ export default function Reports() {
   const max = (xs: number[]) => Math.max(1, ...xs)
   const Bars = ({ data, label }: { data: number[]; label: (i: number) => string }) => <div className="rp-bars">{data.map((v, i) => <div key={i} className="rp-bar" title={`${label(i)}: ${money(v)}`}><i style={{ height: `${(v / max(data)) * 100}%` }} /><small>{label(i)}</small></div>)}</div>
   return (
-    <div className="pos-reg"><div className="bar"><Link href="/pos/">←</Link><h1>{t('pos.reports')}</h1><span className="grow" />
+    <div className="pos-reg"><div className="bar"><Link href="/pos/"><Icon name="arrow-left" size="var(--icon-md)" /></Link><h1>{t('pos.reports')}</h1><span className="grow" />
       {[1, 7, 30, 90].map((d) => <button key={d} className={`btn ${d === days ? 'p' : ''}`} onClick={() => setDays(d)}>{d}d</button>)}</div>
       {err && <div className="err">{err}</div>}{!r && !err && <p className="muted">{t('common.loading')}</p>}
       {r && <>

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { rpc } from '@/lib/rpc'
 import { useT } from '@/lib/i18n'
+import { Icon } from '@/components/Icon'
 
 export type DisplayState = { status: 'idle' | 'cart' | 'paying' | 'done'; name?: string; lines: { name: string; qty: number; price: number; total: number }[]; tax: number; total: number; change?: number; currency: string; partner?: string; message?: string }
 const EMPTY: DisplayState = { status: 'idle', lines: [], tax: 0, total: 0, currency: '$' }
@@ -45,7 +46,7 @@ function Idle({ s, t }: { s: DisplayState; t: ReturnType<typeof useT>['t'] }) {
   return (
     <div className="cd cd-idle" style={imgs[i] ? { backgroundImage: `linear-gradient(#0008,#0008), url(${imgs[i]})`, backgroundSize: 'cover', backgroundPosition: 'center', color: '#fff' } : undefined}>
       <h1>{s.name ?? t('app.name')}</h1><p>{s.message ?? t('pos.cd_welcome')}</p>
-      <button className="cd-gear" onClick={() => setOpen((o) => !o)}>⚙</button>
+      <button className="cd-gear" onClick={() => setOpen((o) => !o)}><Icon name="gear" size="var(--icon-md)" /></button>
       {open && <div className="card cd-panel"><b>{t('pos.slideshow')} ({imgs.length}/8)</b><label className="btn">{t('pos.add_images')}<input type="file" accept="image/*" multiple hidden onChange={(e) => add(e.target.files)} /></label><button className="btn" onClick={clear}>{t('pos.clear')}</button></div>}
     </div>
   )

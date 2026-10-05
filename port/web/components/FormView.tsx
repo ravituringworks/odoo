@@ -76,7 +76,10 @@ export function FormView({ model, id }: { model: string; id?: number }) {
     <button className="btn" disabled={st.busy || dirty} onClick={duplicate}>{t('form.duplicate')}</button>
     {hasActive && <button className="btn" disabled={st.busy || dirty} onClick={() => act(st.draft.active === false ? 'action_unarchive' : 'action_archive')}>{st.draft.active === false ? t('form.unarchive') : t('form.archive')}</button>}
   </>) : null
-  const ctx = fields && arch ? { fields, rec: st.draft, set: (k: string, v: unknown) => dispatch({ t: 'set', k, v }), lines: st.lines, setLines: (k: string, s: LineState) => dispatch({ t: 'lines', k, s }), act, busy: st.busy, dirty, roAll: false, ported } : null
+  // computed counters/flags the server does not provide read as 0/false, like an empty record would
+  const neutral: Record<string, unknown> = {}
+  if (fields) for (const [n, f] of Object.entries(fields)) if (!(n in st.draft)) { if (['integer', 'float', 'monetary'].includes(f.type)) neutral[n] = 0; else if (f.type === 'boolean') neutral[n] = false }
+  const ctx = fields && arch ? { fields, rec: { ...neutral, ...st.draft }, set: (k: string, v: unknown) => dispatch({ t: 'set', k, v }), lines: st.lines, setLines: (k: string, s: LineState) => dispatch({ t: 'lines', k, s }), act, busy: st.busy, dirty, roAll: false, ported } : null
   if (ctx && arch) {
     return (
       <div>

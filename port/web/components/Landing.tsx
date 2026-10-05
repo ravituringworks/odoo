@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { APPS, appBySlug, type AppInfo } from '@/lib/apps'
 import { categoryProfile, industriesByCategory, industriesUsing, industryApps, industryBySlug, searchIndustries, trialApps } from '@/lib/industries'
+import { Icon } from '@/components/Icon'
+import { SEGMENT_ICON, iconForApp } from '@/lib/icons'
 
 function Head() {
   return (
@@ -17,7 +19,7 @@ const Features = ({ items }: { items: string[] }) => <ul className="ld-list">{it
 function AppCard({ a }: { a: AppInfo }) {
   return (
     <Link href={`/app/${a.slug}/`} className="ld-card">
-      <b>{a.name}</b>{!a.community && <span className="tr-ent">Enterprise</span>}
+      <b className="ld-title"><Icon name={iconForApp(a.name)} /> {a.name}</b>{!a.community && <span className="tr-ent">Enterprise</span>}
       <span className="muted">{a.tagline}</span>
       <Features items={a.features.slice(0, 2)} />
     </Link>
@@ -35,7 +37,7 @@ export function IndustriesIndex() {
       <main className="tr-body">
         {industriesByCategory().map(([cat, list]) => { const shown = list.filter((i) => hits.has(i.slug)); return shown.length ? (
           <section key={cat}><h2 className="tr-cat">{cat}</h2>
-            <div className="tr-grid">{shown.map((i) => <Link key={i.slug} href={`/industries/${i.slug}/`} className="ld-card"><b>{i.name}</b><span className="muted">{i.audience}</span></Link>)}</div></section>) : null })}
+            <div className="tr-grid">{shown.map((i) => <Link key={i.slug} href={`/industries/${i.slug}/`} className="ld-card"><b className="ld-title"><Icon name={SEGMENT_ICON[i.category] ?? 'briefcase'} /> {i.name}</b><span className="muted">{i.audience}</span></Link>)}</div></section>) : null })}
         {hits.size === 0 && <p className="muted">No industry matches “{q}”.</p>}
       </main>
     </div>
@@ -52,7 +54,7 @@ export function IndustryLanding({ slug }: { slug: string }) {
     <div className="tr">
       <Head />
       <section className="tr-hero">
-        <p className="muted">{ind.category}</p>
+        <span className="ld-hero-ic"><Icon name={SEGMENT_ICON[ind.category] ?? 'briefcase'} size={44} /></span><p className="muted">{ind.category}</p>
         <h1>Odoo for <span className="tr-under">{ind.name}</span></h1>
         <p>{ind.audience}. {prof?.summary}</p>
         <p><Link className="btn p" href={`/trial/?industry=${ind.slug}`}>Start free with {installable.length} apps</Link></p>
@@ -91,7 +93,7 @@ export function AppLanding({ slug }: { slug: string }) {
   return (
     <div className="tr"><Head />
       <section className="tr-hero">
-        <p className="muted">{a.category}</p><h1><span className="tr-under">{a.name}</span></h1><p>{a.tagline}</p>
+        <p className="muted">{a.category}</p><span className="ld-hero-ic"><Icon name={iconForApp(a.name)} size={44} /></span><h1><span className="tr-under">{a.name}</span></h1><p>{a.tagline}</p>
         <p>{a.community ? <Link className="btn p" href={`/trial/?app=${a.slug}`}>Try {a.name} free</Link> : <span className="tr-ent">Enterprise edition only</span>}</p>
       </section>
       <main className="tr-body">

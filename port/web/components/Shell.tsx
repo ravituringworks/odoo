@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation'
 import { getDb, getToken, rpc, setDb, setToken } from '@/lib/rpc'
 import { leafHref, visibleApps } from '@/lib/menu'
 import { backToAdmin, hasAdminStash } from '@/lib/admin'
+import { Icon } from '@/components/Icon'
 
 function Tree({ items }: { items: Menu[] }) {
   return (
@@ -49,7 +50,7 @@ function Login({ onDone }: { onDone: () => void }) {
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   // public pages (free-trial signup) render without the app chrome or the login gate
-  if (path?.startsWith('/trial') || path?.startsWith('/my') || path?.startsWith('/order') || path?.startsWith('/industries') || path?.startsWith('/app/') || path === '/app') return <>{children}</>
+  if (path?.startsWith('/trial') || path?.startsWith('/my') || path?.startsWith('/order') || path?.startsWith('/shop') || path?.startsWith('/industries') || path?.startsWith('/app/') || path === '/app') return <>{children}</>
   // auth gate: Tauri/dev-mode servers answer `whoami` without a session; otherwise show the login form
   const [authed, setAuthed] = useState<boolean | null>(null)
   const check = () => rpc<{ uid: number } | null>({ method: 'whoami' }).then((r) => setAuthed(!!r), () => setAuthed(false))
@@ -57,7 +58,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   if (authed === null) return null
   if (!authed) return <Login onDone={() => { setAuthed(true); location.reload() }} />
   // the POS terminal is a full-screen app: authenticated, but without the back-office chrome
-  if (path?.startsWith('/pos') || path?.startsWith('/shop')) return <>{children}</>
+  if (path?.startsWith('/pos') || path?.startsWith('/storefront')) return <>{children}</>
   return <Inner>{children}</Inner>
 }
 
@@ -93,10 +94,10 @@ function Inner({ children }: { children: React.ReactNode }) {
         <div className="brand"><Link href="/">Odoo&nbsp;RS</Link> {getToken() && <a className="muted" style={{ float: 'right', fontSize: 12 }} onClick={() => { rpc({ method: 'logout' }).finally(() => { setToken(null); location.href = '/' }) }}>{t('auth.logout')}</a>}</div>
         <CompanySwitcher />
         <Link className="app" href="/apps/">{t('nav.apps_install')}</Link>
-        <a className="app" onClick={() => window.dispatchEvent(new Event(AI_TOGGLE))}>✦ {t('nav.ai')}</a>
+        <a className="app" onClick={() => window.dispatchEvent(new Event(AI_TOGGLE))}><Icon name="sparkles" size="var(--icon-md)" /> {t('nav.ai')}</a>
         <Link className="app" href="/settings/">{t('nav.settings')}</Link>
         {getDb() && <Link className="app" href="/my/">{t('portal.link_dbs')}</Link>}
-        {hasAdminStash() && <a className="app" onClick={backToAdmin}>← Back to admin</a>}
+        {hasAdminStash() && <a className="app" onClick={backToAdmin}><Icon name="arrow-left" size="var(--icon-md)" /> Back to admin</a>}
         {!getDb() && <Link className="app" href="/admin/databases/">Databases</Link>}
         {error && <div className="err">{error}</div>}
         {visibleApps(menus).map((m) => (

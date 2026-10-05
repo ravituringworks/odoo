@@ -8,6 +8,7 @@ import { display, listColumns, type Domain, type Rec } from '@/lib/model'
 import { combine, dateFilters, DATE_PERIODS, listCols, periodDomain, searchFilters, type Node, type Period } from '@/lib/arch'
 import { rpc } from '@/lib/rpc'
 import { robustSearchRead } from '@/lib/search'
+import { Icon } from '@/components/Icon'
 
 const PAGE = 40
 export const Pill = ({ v }: { v: string }) => <span className={`pill ${v.replace(/[^a-z_]/g, '_')}`}>{v.replace(/_/g, ' ')}</span>
@@ -60,11 +61,11 @@ export function ListView({ model, title, domain }: { model: string; title: strin
       {(fe || rows.error) && <div className="err">{fe ?? rows.error}</div>}
       <div className="card tbl">
         <table>
-          <thead><tr>{cols.map((c) => <th key={c} onClick={() => setOrder(order === `${c} asc` ? `${c} desc` : `${c} asc`)} style={{ cursor: 'pointer' }}>{fields![c].string}{order?.startsWith(c) ? (order.endsWith('asc') ? ' ▲' : ' ▼') : ''}</th>)}</tr></thead>
+          <thead><tr>{cols.map((c) => <th key={c} onClick={() => setOrder(order === `${c} asc` ? `${c} desc` : `${c} asc`)} style={{ cursor: 'pointer' }}>{fields![c].string}{order?.startsWith(c) ? (order.endsWith('asc') ? <Icon name="chevron-up" size="var(--icon-sm)" /> : <Icon name="chevron-down" size="var(--icon-sm)" />) : ''}</th>)}</tr></thead>
           <tbody>
             {rows.data?.recs.map((r) => (
               <tr key={String(r.id)} onClick={() => (location.href = `/form/?model=${model}&id=${r.id}`)}>
-                {cols.map((c) => <td key={c}>{fields![c].type === 'selection' && r[c] ? <Pill v={String(r[c])} /> : fields![c].type === 'boolean' ? (r[c] ? '✓' : '') : display(r[c])}</td>)}
+                {cols.map((c) => <td key={c}>{fields![c].type === 'selection' && r[c] ? <Pill v={String(r[c])} /> : fields![c].type === 'boolean' ? (r[c] ? <Icon name="check" size="var(--icon-md)" /> : '') : display(r[c])}</td>)}
               </tr>
             ))}
             {!rows.loading && rows.data?.recs.length === 0 && <tr><td colSpan={cols.length || 1} className="muted">{t('list.empty')}</td></tr>}

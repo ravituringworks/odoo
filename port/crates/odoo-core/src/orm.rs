@@ -442,7 +442,18 @@ pub fn display_names(env: &Env, model: &str, ids: &[i64]) -> Result<BTreeMap<i64
     let mut out = BTreeMap::new();
     match m.display_field().filter(|f| m.fields[*f].is_stored()) {
         Some(df) => { for r in env.conn.query(&format!("SELECT id, {} AS dn FROM {} WHERE id IN ({})", env.q(df), env.q(&m.table()), ph.join(",")), &params)? { let id = r["id"].as_i64().unwrap_or(0); out.insert(id, match &r["dn"] { Value::Text(s) => s.clone(), Value::Null => format!("{model},{id}"), v => v.to_json().to_string() }); } }
-        None => { for i in ids { out.insert(*i, format!("{model},{i}")); } }
+        None => {
+            // delegation (`_inherits`, e.g. res.users → res.partner): the display name lives on the parent record
+            for (parent, fk) in &m.inherits {
+                let Ok(pm) = env.reg.model(parent) else { continue };
+                let Some(pf) = pm.display_field().filter(|f| pm.fields[*f].is_stored()) else { continue };
+                if !m.fields.get(fk).map_or(false, |f| f.is_stored()) { continue; }
+                let sql = format!("SELECT c.id AS id, p.{} AS dn FROM {} c JOIN {} p ON p.id = c.{} WHERE c.id IN ({})", env.q(pf), env.q(&m.table()), env.q(&pm.table()), env.q(fk), ph.join(","));
+                for r in env.conn.query(&sql, &params)? { let id = r["id"].as_i64().unwrap_or(0); out.insert(id, match &r["dn"] { Value::Text(t) => t.clone(), _ => String::new() }); }
+                break;
+            }
+            for i in ids { out.entry(*i).or_insert_with(|| format!("{model},{i}")); }
+        }
     }
     Ok(out)
 }
@@ -614,6 +625,10 @@ pub fn default_get(env: &Env, model: &str, fields: &[String]) -> Result<Row> {
         else if let Some(d) = f.static_default() { out.insert(n.clone(), json_default(&d)); }
         else if f.ty == "Many2one" && f.is_required() { if let Some(id) = ambient_default(env, f)? { let nm = display_names(&env.sudo(), &f.comodel_name().unwrap_or_default(), &[id])?; out.insert(n.clone(), Value::List(vec![Value::Int(id), Value::Text(nm.get(&id).cloned().unwrap_or_default())])); } }
         else if f.default.is_some() && matches!(f.ty.as_str(), "Date" | "Datetime") { out.insert(n.clone(), Value::Text(if f.ty == "Date" { today() } else { now() })); }
+    }
+    // explicit rule defaults also apply to non-stored fields (e.g. `is_editable` of a record that does not exist yet)
+    for ((mn, fname), d) in env.rules.defaults.iter() {
+        if mn == model && !out.contains_key(fname) && (fields.is_empty() || fields.contains(fname)) && m.fields.contains_key(fname) { out.insert(fname.clone(), d(env)?); }
     }
     Ok(out)
 }

@@ -46,8 +46,8 @@ export const m2oId = (v: unknown): number | null => (Array.isArray(v) ? (v[0] as
 export const toVals = (fields: Fields, draft: Rec, original: Rec): Rec =>
   Object.fromEntries(
     Object.keys(draft)
-      .filter((k) => k in fields && !fields[k].readonly && fields[k].store && JSON.stringify(draft[k]) !== JSON.stringify(original[k]))
-      .map((k) => [k, fields[k].type === 'many2one' ? m2oId(draft[k]) ?? false : draft[k]]),
+      .filter((k) => k in fields && !fields[k].readonly && (fields[k].store || fields[k].type === 'many2many') && JSON.stringify(draft[k]) !== JSON.stringify(original[k]))
+      .map((k) => [k, fields[k].type === 'many2one' ? m2oId(draft[k]) ?? false : fields[k].type === 'many2many' ? [[6, 0, Array.isArray(draft[k]) ? draft[k] : []]] : draft[k]]),
   )
 
 // Workflow buttons per model: [method, label, visible-when(state)]. Mirrors Odoo's statusbar header buttons.

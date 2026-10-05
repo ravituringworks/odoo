@@ -100,6 +100,38 @@ fn assistant_reads_real_data_through_the_users_own_access() {
     assert!(a.ai_chat_with(&req, &llm2).is_err());
 }
 
+struct GuideSpy(std::sync::Mutex<Vec<String>>, std::sync::Mutex<u32>);
+impl Llm for GuideSpy { fn complete(&self, _s: &str, m: &[Msg], t: &serde_json::Value, _st: &Settings) -> odoo_core::Result<Reply> {
+    let mut n = self.1.lock().unwrap(); *n += 1;
+    if *n == 1 { assert!(t.as_array().unwrap().iter().any(|x| x["name"] == "setup_guide"), "the guide tool is offered"); return Ok(Reply { text: String::new(), calls: vec![ToolCall { id: "g".into(), name: "setup_guide".into(), args: json!({"topic": "e-commerce store", "country": "AU"}) }] }); }
+    if let Some(Msg::Tool { content, .. }) = m.last() { self.0.lock().unwrap().push(content.clone()); }
+    Ok(Reply { text: "plan".into(), calls: vec![] }) } }
+
+#[test]
+fn setup_questions_get_a_checked_plan_with_country_notes() {
+    for (modules, store_installed) in [(vec!["contacts"], false), (vec!["website_sale"], true)] {
+        let a = app(&modules);
+        a.dispatch(serde_json::from_value::<Request>(json!({"method": "settings_set", "args": [{"ai.enabled": true, "ai.model": "m"}], "uid": 1})).unwrap()).unwrap();
+        let spy = GuideSpy(Default::default(), Default::default());
+        let req: Request = serde_json::from_value(json!({"method": "ai_chat", "args": [[{"role": "user", "content": "I need a new e-commerce store, for australia"}]], "uid": 1})).unwrap();
+        let out = a.ai_chat_with(&req, &spy).unwrap();
+        assert_eq!(out["reply"], "plan"); assert_eq!(out["trace"][0]["tool"], "setup_guide"); assert_eq!(out["trace"][0]["ok"], true);
+        let g: serde_json::Value = serde_json::from_str(&spy.0.lock().unwrap()[0]).unwrap();
+        assert_eq!(g["topic"], "ecommerce");
+        assert_eq!(g["steps"][0]["done"], store_installed, "step 1 reflects whether website_sale is installed: {}", g["steps"][0]);
+        assert!(g["steps"].as_array().unwrap().len() >= 8 && g["steps"][4]["title"].as_str().unwrap().contains("products"));
+        assert_eq!((g["region"]["currency"].as_str(), g["region"]["localization_module"].as_str()), (Some("AUD"), Some("l10n_au")));
+        assert!(g["region"]["notes"].to_string().contains("GST") && g["region"]["notes"].to_string().contains("Australia Post"));
+        if !store_installed { assert_eq!(g["next_step"], 1); }
+    }
+    // unknown topics list what exists instead of failing the conversation
+    let a = app(&["contacts"]);
+    a.dispatch(serde_json::from_value::<Request>(json!({"method": "settings_set", "args": [{"ai.enabled": true, "ai.model": "m"}], "uid": 1})).unwrap()).unwrap();
+    let llm = Scripted(std::sync::Mutex::new(vec![Reply { text: String::new(), calls: vec![ToolCall { id: "1".into(), name: "setup_guide".into(), args: json!({"topic": "quantum computing"}) }] }, Reply { text: "I have no guide for that.".into(), calls: vec![] }]));
+    let req: Request = serde_json::from_value(json!({"method": "ai_chat", "args": [[{"role": "user", "content": "x"}]], "uid": 1})).unwrap();
+    assert_eq!(a.ai_chat_with(&req, &llm).unwrap()["reply"], "I have no guide for that.");
+}
+
 #[test]
 fn screen_context_is_preloaded_as_tool_results() {
     use std::sync::{Arc, Mutex};
@@ -1051,4 +1083,66 @@ fn pos_sells_in_a_pricelist_currency_and_reports_in_company_currency() {
     let ls = call(&a, "search_read", "account.move.line", vec![json!([["move_id", "=", mv]]), json!(["debit", "credit"])]).unwrap();
     let (d, cr): (f64, f64) = ls.as_array().unwrap().iter().fold((0.0, 0.0), |(d, c), l| (d + l["debit"].as_f64().unwrap(), c + l["credit"].as_f64().unwrap()));
     assert_eq!((d, cr), (100.0, 100.0));
+}
+
+struct MailBox(std::sync::Mutex<Vec<odoo_app::email::Message>>);
+impl odoo_app::email::Mailer for MailBox { fn send(&self, _: &odoo_app::email::EmailSettings, m: &odoo_app::email::Message) -> Result<String, odoo_core::OdooError> { self.0.lock().unwrap().push(m.clone()); Ok("id".into()) } }
+
+#[test]
+fn online_shop_orders_become_sale_orders_with_email_confirmation_and_hostile_input_is_refused() {
+    let a = app(&["point_of_sale", "pos_self_order", "sale", "account"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let public = |method: &str, cfg: &serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "args": [cfg, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let mail = std::sync::Arc::new(MailBox(Default::default())); a.set_mailer(mail.clone());
+    a.dispatch(serde_json::from_value::<Request>(json!({"method": "settings_set", "args": [{"email.enabled": true, "email.provider": "sendgrid", "email.from_address": "shop@example.com", "email.api_key": "SG.key"}]})).unwrap()).unwrap();
+    let mug = mk("product.product", json!({"name": "Mug", "list_price": 8.0, "type": "consu", "available_in_pos": true}));
+    let hidden = mk("product.product", json!({"name": "Hidden", "list_price": 1.0, "type": "consu", "available_in_pos": false}));
+    let cfg = mk("pos.config", json!({"name": "Shop", "self_ordering_mode": "mobile"}));
+    let token = k("pos.config", "kiosk_link", json!([cfg]), json!({})).unwrap()["token"].as_str().unwrap().to_string();
+    let order = |uuid: &str, customer: serde_json::Value, lines: serde_json::Value, extra: serde_json::Value| { let mut kw = json!({"access_token": token, "uuid": uuid, "customer": customer, "lines": lines}); for (x, y) in extra.as_object().unwrap() { kw[x] = y.clone(); } public("kiosk_checkout", &json!(cfg), kw) };
+    let me = json!({"name": "Ann", "email": "Ann@Example.com", "phone": "+1 555", "street": "1 Main St", "city": "Paris", "zip": "75001"});
+    let ok_lines = json!([{"product_id": mug, "qty": 3, "price_unit": 0.01}]);
+    // hostile / incomplete input
+    assert!(public("kiosk_checkout", &json!(cfg), json!({"access_token": "nope", "uuid": "shop-aaaaaaaaaaaa", "customer": me, "lines": ok_lines})).is_err());
+    assert!(order("basket-aaaaaaaa", me.clone(), ok_lines.clone(), json!({})).unwrap_err().contains("Invalid order"));
+    assert!(order("shop-aaaaaaaaaaaa", json!({"name": "", "email": "a@b.co"}), ok_lines.clone(), json!({})).unwrap_err().contains("name"));
+    assert!(order("shop-aaaaaaaaaaaa", json!({"name": "Ann", "email": "not-an-email"}), ok_lines.clone(), json!({})).unwrap_err().contains("email"));
+    assert!(order("shop-aaaaaaaaaaaa", me.clone(), json!([{"product_id": hidden, "qty": 1}]), json!({})).unwrap_err().contains("not available"));
+    assert!(order("shop-aaaaaaaaaaaa", me.clone(), json!([{"product_id": mug, "qty": 5000}]), json!({})).is_err());
+    assert!(order("shop-aaaaaaaaaaaa", json!({"name": "Ann", "email": "a@b.co"}), ok_lines.clone(), json!({"delivery": "delivery"})).unwrap_err().contains("address"));
+    // a real order: server price (8 × 3), confirmed sale order, partner reused by email, retry is harmless
+    let r = order("shop-aaaaaaaaaaaa", me.clone(), ok_lines.clone(), json!({"delivery": "delivery", "note": "ring twice"})).unwrap();
+    assert_eq!((r["path"].as_str(), r["total"].as_f64()), (Some("sale"), Some(24.0))); let number = r["number"].as_str().unwrap().to_string();
+    let so = call(&a, "search_read", "sale.order", vec![json!([["client_order_ref", "=", "shop-aaaaaaaaaaaa"]]), json!(["state", "name"])]).unwrap(); assert_eq!(so.as_array().unwrap().len(), 1); assert_eq!(so[0]["state"], "sale");
+    assert_eq!(order("shop-aaaaaaaaaaaa", me.clone(), ok_lines.clone(), json!({})).unwrap()["number"], json!(number));
+    assert_eq!(call(&a, "search_count", "sale.order", vec![json!([["client_order_ref", "=", "shop-aaaaaaaaaaaa"]])]).unwrap(), 1);
+    assert_eq!(call(&a, "search_count", "res.partner", vec![json!([["email", "=", "ann@example.com"]])]).unwrap(), 1);
+    order("shop-bbbbbbbbbbbb", json!({"name": "Someone Else", "email": "ann@example.com"}), ok_lines.clone(), json!({})).unwrap();
+    assert_eq!(call(&a, "read", "res.partner", vec![json!([call(&a, "search", "res.partner", vec![json!([["email", "=", "ann@example.com"]])]).unwrap()[0]]), json!(["name"])]).unwrap()[0]["name"], "Ann", "public input never renames an existing contact");
+    let mails = mail.0.lock().unwrap(); assert!(!mails.is_empty() && mails[0].to == vec!["ann@example.com".to_string()] && mails[0].subject.contains(&number), "{mails:?}");
+    let st = public("kiosk_shop_status", &json!(cfg), json!({"access_token": token, "uuid": "shop-aaaaaaaaaaaa"})).unwrap(); assert_eq!((st["stage"].as_str(), st["number"].as_str()), (Some("received"), Some(number.as_str())));
+    assert!(public("kiosk_shop_status", &json!(cfg), json!({"access_token": token, "uuid": "SO001"})).is_err());
+    // pictures: tiny PNG shows, SVG/garbage never does
+    call(&a, "write", "product.template", vec![call(&a, "read", "product.product", vec![json!([mug]), json!(["product_tmpl_id"])]).unwrap()[0]["product_tmpl_id"].clone(), json!({"image_128": "iVBORw0KGgo="})]).ok();
+    let imgs = public("kiosk_images", &json!(cfg), json!({"access_token": token, "ids": [mug, hidden]})).unwrap(); assert!(imgs.get(hidden.to_string()).is_none());
+    if let Some(i) = imgs.get(mug.to_string()) { assert!(i.as_str().unwrap().starts_with("data:image/png;base64,")); }
+}
+
+#[test]
+fn online_shop_without_sale_falls_back_to_a_pickup_order_on_the_register() {
+    let a = app(&["point_of_sale", "pos_self_order"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let public = |method: &str, cfg: &serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "args": [cfg, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let mug = mk("product.product", json!({"name": "Mug", "list_price": 8.0, "type": "consu", "available_in_pos": true}));
+    let cfg = mk("pos.config", json!({"name": "Shop", "self_ordering_mode": "mobile"}));
+    let token = k("pos.config", "kiosk_link", json!([cfg]), json!({})).unwrap()["token"].as_str().unwrap().to_string();
+    let kw = json!({"access_token": token, "uuid": "shop-cccccccccccc", "customer": {"name": "Bob", "email": "bob@example.com"}, "lines": [{"product_id": mug, "qty": 2}], "pickup_at": "17:45"});
+    assert!(public("kiosk_checkout", &json!(cfg), kw.clone()).unwrap_err().contains("closed"));      // no open session yet
+    k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap();
+    let r = public("kiosk_checkout", &json!(cfg), kw).unwrap(); assert_eq!((r["path"].as_str(), r["total"].as_f64(), r["number"].as_str()), (Some("pos"), Some(16.0), Some("#CCCC")));
+    let drafts = k("pos.config", "open_orders", json!([cfg]), json!({})).unwrap(); let d = &drafts[0];
+    assert_eq!(d["uuid"], "kiosk-shop-cccccccccccc"); assert!(d["shipping_date"].as_str().unwrap().ends_with("17:45")); assert!(d["partner_id"].is_array());
+    assert_eq!(public("kiosk_status", &json!(cfg), json!({"access_token": token, "uuid": "kiosk-shop-cccccccccccc"})).unwrap()["stage"], "received");
 }

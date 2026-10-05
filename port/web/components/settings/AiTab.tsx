@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { rpc } from '@/lib/rpc'
 import { useT } from '@/lib/i18n'
+import { Icon } from '@/components/Icon'
 
 type Provider = { id: string; label: string; base_url: string; needs_key: boolean }
 type View = { ai: { enabled: boolean; provider: string; model: string; base_url: string; has_key: boolean; temperature: number; system_prompt: string; max_rows: number }; providers: Provider[] }
@@ -29,7 +30,7 @@ export function AiTab({ admin }: { admin: boolean }) {
       <div className="row"><label>{t('settings.enable_ai')}</label><input type="checkbox" disabled={ro} checked={!!form['ai.enabled']} onChange={(e) => set('ai.enabled', e.target.checked)} style={{ justifySelf: 'start' }} /></div>
       <div className="row"><label>{t('settings.provider')}</label><select disabled={ro} value={String(form['ai.provider'])} onChange={(e) => { set('ai.provider', e.target.value); setModels([]) }}>{v.providers.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}</select></div>
       <div className="row"><label>{t('settings.base_url')}</label><input disabled={ro} value={String(form['ai.base_url'])} placeholder={prov?.base_url || 'https://…/v1'} onChange={(e) => set('ai.base_url', e.target.value)} /></div>
-      <div className="row"><label>{t('settings.api_key')}</label><div><input disabled={ro} type="password" autoComplete="off" value={key} placeholder={v.ai.has_key ? '••••••••' : prov?.needs_key ? '' : '—'} onChange={(e) => setKey(e.target.value)} style={{ width: '100%' }} /><div className="hint" style={{ margin: '4px 0 0' }}>{v.ai.has_key ? `✓ ${t('settings.key_set')}` : t('settings.key_unset')} · {t('settings.key_write_only')}</div></div></div>
+      <div className="row"><label>{t('settings.api_key')}</label><div><input disabled={ro} type="password" autoComplete="off" value={key} placeholder={v.ai.has_key ? '••••••••' : prov?.needs_key ? '' : '—'} onChange={(e) => setKey(e.target.value)} style={{ width: '100%' }} /><div className="hint" style={{ margin: '4px 0 0' }}>{v.ai.has_key ? <><Icon name="check" size="var(--icon-md)" /> {t('settings.key_set')}</> : t('settings.key_unset')} · {t('settings.key_write_only')}</div></div></div>
       <div className="row"><label>{t('settings.model')}</label><div style={{ display: 'flex', gap: 6 }}><input disabled={ro} list="ai-models" value={String(form['ai.model'])} onChange={(e) => set('ai.model', e.target.value)} style={{ flex: 1 }} /><datalist id="ai-models">{models.map((m) => <option key={m} value={m} />)}</datalist>{!ro && <button className="btn" onClick={detect}>⟳</button>}</div></div>
       <div className="row"><label>{t('settings.temperature')} ({String(form['ai.temperature'])})</label><input disabled={ro} type="range" min={0} max={1} step={0.1} value={Number(form['ai.temperature'])} onChange={(e) => set('ai.temperature', parseFloat(e.target.value))} /></div>
       <div className="row"><label>{t('settings.max_rows')}</label><input disabled={ro} type="number" min={1} max={200} value={Number(form['ai.max_rows'])} onChange={(e) => set('ai.max_rows', parseInt(e.target.value || '25', 10))} style={{ width: 100 }} /></div>

@@ -107,4 +107,16 @@ Full-screen register modeled on odoo.com/app/point-of-sale-shop. Home → "Point
 
 **Offline** — orders queue in `localStorage` when the server is unreachable and sync later; the server dedupes by order `uuid`.
 
-**Not built / limits**: SIX, Mercado Pago, Razorpay, Paytm, Pine Labs, Viva Wallet drivers (selectable, not driven); refunds to a card are recorded but not sent through the terminal API; Epson ePOS-XML/IoT-box printers (raw ESC/POS only); the Stripe/Adyen drivers are verified against mock HTTP servers, not live accounts; the customer display has no ad slideshow; eCommerce (`website_sale`) integration — click-and-collect is the `/order` page, not the shop; combo products, multi-currency, lots/serials in POS, e-invoicing/fiscal printers; floor-plan editing is through the generic table form (no drag-and-drop editor); PIN attempts are not rate-limited; POS strings are translated machine-style into the 10 other locales and have not been reviewed by native speakers.
+**Added in the limits pass**
+- **Card terminals**: Mercado Pago, Viva Wallet, Razorpay (Ezetap), PayTM (AES-CBC signed) and Pine Labs drivers, written from the request shapes in Odoo's own `pos_*` addons, server-side; refunds to the card (Stripe, Adyen reversal, Mercado Pago via API; others by manual confirmation); Settings → Payment terminals has a read-only *Test connection* per method (Stripe reader list, Mercado Pago device, Viva token).
+- **Printers**: Epson ePOS-Print XML (`epson_printer_ip`) through a configured-printers-only server bridge, alongside raw ESC/POS and Web Serial.
+- **Floor editor**: drag-and-drop tables (snap 10 px), resize, round/square, number/seats, add/delete tables, add/rename floors.
+- **Customer display**: slideshow of ad images kept on the display device.
+- **Cashier PIN**: 5 wrong PINs lock the employee for 5 minutes (counter shared by all terminals); badge scans are exempt.
+- **Lots & serials**: tracked products need serial/lot numbers at the till (known lots suggested, serials unique and not sold twice unless returned); the exact lot quant leaves stock.
+- **Combos**: choose one item per part; server prices parent + items, links child lines to their combo.
+- **Multi-currency**: pricelists in another currency convert list prices at the latest rate; orders keep their `currency_rate`; reports, summaries and the closing entry convert back to company currency.
+- **UBL e-invoice**: Peppol-BIS-shaped UBL 2.1 Invoice/CreditNote for orders with a customer (`pos.order.ubl`, ⬇ UBL on the receipt).
+- **Online shop** `/shop/?config=ID&token=…`: catalogue with pictures, cart, customer details, delivery or pickup; becomes a confirmed `sale.order` (stock delivery follows) or a pickup order on the register; confirmation email when email is configured; token-gated, rate-limited (120/h), never edits existing contacts.
+
+**Still not built / limits**: SIX (client-side SDK over the terminal's websocket) and the Odoo IoT Box printer protocol; live verification of Stripe/Adyen/Mercado Pago/Viva/Razorpay/PayTM/Pine Labs — every driver is tested against mock HTTP only, use *Test connection* and a small real payment before relying on one; Viva/Razorpay/PayTM/Pine Labs refunds are manual; country fiscal printers/fiscal black boxes; loyalty points on foreign-currency orders use the order currency; eCommerce is this catalogue + checkout, not `website_sale`'s themes/payment providers/carriers; translations are machine-made and unreviewed by native speakers.

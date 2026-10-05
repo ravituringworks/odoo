@@ -10,6 +10,8 @@ import { Ticket, kitchenTicket, receipt as escReceipt } from '@/lib/escpos'
 import { type HwSettings, connectSerial, loadHw, readWeight, saveHw, serialConnected, serialSupported, writeSerial } from '@/lib/hardware'
 import { type ComboItem, comboComplete, lotsMissing } from '@/lib/pos'
 import { cartFromDraft, hasUnsent, kitchenDelta, tipAmount, r2, lineTotals, type Cart, type Method, type Pay, type Pricelist, type Product, type Queued, type Tax, canValidate, cartTotals, change, dequeue, due, emptyCart, enqueue, findByCode, paid, parseScale, quickCash, reduce, roundTo, uuid } from '@/lib/pos'
+import { Icon } from '@/components/Icon'
+import { payIcon } from '@/lib/icons'
 
 type Data = { session: { id: number; name: string; start_at: string; cash_register_balance_start: number }; config: Record<string, unknown> & { id: number; name: string }; payment_methods: Method[]; categories: { id: number; name: string; parent_id: unknown }[]; products: Product[]; taxes: Tax[]; pricelists: Pricelist[]; cashier: string; currency: { symbol?: string; name?: string }; invoicing: boolean; loyalty: Program[]; floors: Floor[]; printers: { name: string; target: string; kind?: 'raw' | 'epos'; receipt?: boolean; category_ids: number[] }[]; employees: { id: number; name: string; role: 'basic' | 'advanced'; has_pin: boolean }[]; cashier_lock: boolean }
 type Table = { id: number; name: string; seats: number; shape: string; position_h: number; position_v: number; width: number; height: number; color?: string; orders: number; total: number }
@@ -44,16 +46,16 @@ function Registers() {
   const add = async () => { const id = await call<number>('pos.config', 'create', [{ name: `Shop ${(rows?.length ?? 0) + 1}` }]); location.href = `/pos/?config=${id}` }
   return (
     <div className="pos-reg">
-      <div className="bar"><Link href="/">←</Link><h1>{t('pos.title')}</h1><span className="grow" /><button className="btn" onClick={add}>{t('pos.new_register')}</button></div>
+      <div className="bar"><Link href="/"><Icon name="arrow-left" size="var(--icon-md)" /></Link><h1>{t('pos.title')}</h1><span className="grow" /><button className="btn" onClick={add}>{t('pos.new_register')}</button></div>
       {err && <div className="err">{err}</div>}
-      <div className="home">
+      <div className="pos-regs">
         {rows?.map((r) => (
-          <div key={r.id} className="card tile pos-regcard"><b>{r.name}</b><span className="muted">{sess[r.id] ? `${t('pos.session_open')} · ${sess[r.id]}` : t('pos.closed')}</span>
-            <div className="row"><a className="btn p" href={`/pos/?config=${r.id}`}>{sess[r.id] ? t('pos.continue') : t('pos.open_register')}</a><Link className="btn" href={`/form/?model=pos.config&id=${r.id}`}>{t('pos.configure')}</Link><Link className="btn" href="/pos/reports/">{t('pos.reports')}</Link><a className="btn" href={`/pos/kitchen/?config=${r.id}`} title={t('pos.kitchen')}>🍳</a><a className="btn" href={`/pos/qr/?config=${r.id}`} title={t('kiosk.qr_title')}>📱</a></div></div>
+          <div key={r.id} className="card pos-regcard"><div className="pos-reghead"><b>{r.name}</b><span className={`pill ${sess[r.id] ? 'ok' : ''}`}>{sess[r.id] ? t('pos.session_open') : t('pos.closed')}</span></div>{sess[r.id] && <small className="muted">{sess[r.id]}</small>}
+            <div className="pos-regact"><a className="btn p" href={`/pos/?config=${r.id}`}>{sess[r.id] ? t('pos.continue') : t('pos.open_register')}</a><Link className="btn" href={`/form/?model=pos.config&id=${r.id}`}>{t('pos.configure')}</Link><Link className="btn" href="/pos/reports/">{t('pos.reports')}</Link><a className="btn" href={`/pos/kitchen/?config=${r.id}`} title={t('pos.kitchen')}><Icon name="utensils" size="var(--icon-md)" /></a><a className="btn" href={`/pos/qr/?config=${r.id}`} title={t('kiosk.qr_title')}><Icon name="phone" size="var(--icon-md)" /></a></div></div>
         ))}
         {rows?.length === 0 && <p className="muted">{t('pos.no_registers')}</p>}
       </div>
-      <div className="row" style={{ marginTop: 16, gap: 8, flexWrap: 'wrap' }}>
+      <div className="pos-links">
         {[['pos.session', t('pos.sessions')], ['pos.order', t('pos.orders')], ['pos.payment.method', t('pos.payment_methods')], ['pos.category', t('pos.categories')], ['product.template', t('pos.products')], ['product.pricelist', t('pos.pricelists')]].map(([m, l]) => <Link key={m} className="btn" href={`/list/?model=${m}&title=${encodeURIComponent(l)}`}>{l}</Link>)}
       </div>
     </div>
@@ -238,29 +240,29 @@ function Terminal({ config }: { config: number }) {
     window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
   }, [d?.cashier_lock, emp, verify])
   const basic = emp?.role === 'basic'
-  if (err && !d) return <div className="pos-reg"><div className="err">{err}</div><Link className="btn" href="/pos/">←</Link></div>
+  if (err && !d) return <div className="pos-reg"><div className="err">{err}</div><Link className="btn" href="/pos/"><Icon name="arrow-left" size="var(--icon-md)" /></Link></div>
   if (!d) return <div className="pos-reg muted">{t('common.loading')}</div>
   if (d.cashier_lock && !emp) return <CashierLock d={d} verify={verify} err={err} t={t} />
   const topCats = d.categories.filter((c) => !c.parent_id)
   return (
     <div className="pos">
       <header className="pos-top">
-        <Link href="/pos/" className="btn">←</Link>{restaurant && screen !== 'floor' && <button className="btn" onClick={leaveTable}>▦ {t('pos.tables')}</button>}<b>{d.config.name}</b><span className="muted">{d.session.name} · {emp?.name ?? d.cashier}</span>{d.cashier_lock && <button className="btn" onClick={() => setEmp(null)}>⇄</button>}
+        <Link href="/pos/" className="btn"><Icon name="arrow-left" size="var(--icon-md)" /></Link>{restaurant && screen !== 'floor' && <button className="btn" onClick={leaveTable}><Icon name="grid" size="var(--icon-md)" /> {t('pos.tables')}</button>}<b>{d.config.name}</b><span className="muted">{d.session.name} · {emp?.name ?? d.cashier}</span>{d.cashier_lock && <button className="btn" onClick={() => setEmp(null)}><Icon name="swap" size="var(--icon-md)" /></button>}
         <div className="pos-tabs">{carts.map((c, i) => <button key={c.uuid} className={`btn ${i === cur ? 'p' : ''}`} onClick={() => { setCur(i); setSel(null); setScreen('shop'); setPays([]) }}>{c.lines.length ? `#${i + 1} · ${money(cartTotals(c, taxes).total)}` : `#${i + 1}`}</button>)}<button className="btn" onClick={newOrder}>+</button></div>
         <span className="grow" />
         <span className={`pill ${online ? 'ok' : 'bad'}`}>{online ? t('pos.online') : t('pos.offline')}{queued > 0 && ` · ${queued}`}</span>
-        <button className="btn" onClick={() => window.open(`/pos/display/?config=${config}`, 'pos-display', 'popup,width=900,height=700')} title={t('pos.customer_display')}>🖥</button><button className="btn" onClick={() => setModal('hardware')} title={t('pos.hardware')}>⚙</button><button className="btn" onClick={() => setModal('open')}>📋 {t('pos.open_orders')}</button><button className="btn" onClick={() => setModal('orders')}>{t('pos.orders')}</button>{!basic && <button className="btn" onClick={() => setModal('close')}>{t('pos.close')}</button>}
+        <button className="btn" onClick={() => window.open(`/pos/display/?config=${config}`, 'pos-display', 'popup,width=900,height=700')} title={t('pos.customer_display')}><Icon name="monitor" size="var(--icon-md)" /></button><button className="btn" onClick={() => setModal('hardware')} title={t('pos.hardware')}><Icon name="gear" size="var(--icon-md)" /></button><button className="btn" onClick={() => setModal('open')}><Icon name="clipboard" size="var(--icon-md)" /> {t('pos.open_orders')}</button><button className="btn" onClick={() => setModal('orders')}>{t('pos.orders')}</button>{!basic && <button className="btn" onClick={() => setModal('close')}>{t('pos.close')}</button>}
       </header>
       {err && <div className="err" onClick={() => setErr('')}>{err}</div>}
       {toast && <div className="pos-toast">{toast}</div>}
       {screen === 'floor' && (
         <div className="pos-floor">
-          <div className="pos-cats">{d.floors.map((f, i) => <button key={f.id} className={`btn ${i === floorIdx ? 'p' : ''}`} onClick={() => setFloorIdx(i)}>{f.name}</button>)}<span className="grow" />{!basic && <button className={`btn ${editing ? 'p' : ''}`} onClick={() => setEditing((e) => !e)}>✎ {t('pos.edit_floor')}</button>}<button className="btn" onClick={() => { setCarts((cs) => [...cs, emptyCart()]); setCur(carts.length); setScreen('shop') }}>🥡 {t('pos.takeaway_order')}</button></div>
+          <div className="pos-cats">{d.floors.map((f, i) => <button key={f.id} className={`btn ${i === floorIdx ? 'p' : ''}`} onClick={() => setFloorIdx(i)}>{f.name}</button>)}<span className="grow" />{!basic && <button className={`btn ${editing ? 'p' : ''}`} onClick={() => setEditing((e) => !e)}><Icon name="pen" size="var(--icon-md)" /> {t('pos.edit_floor')}</button>}<button className="btn" onClick={() => { setCarts((cs) => [...cs, emptyCart()]); setCur(carts.length); setScreen('shop') }}><Icon name="bag" size="var(--icon-md)" /> {t('pos.takeaway_order')}</button></div>
           {editing && d.floors[floorIdx] ? <FloorEditor floor={d.floors[floorIdx]} config={config} floorIds={d.floors.map((f) => f.id)} done={() => { setEditing(false); refreshFloors() }} t={t} /> :
           <div className="pos-plan">
             {(d.floors[floorIdx]?.tables ?? []).map((tb, i) => {
               const placed = tb.position_h > 0 || tb.position_v > 0
-              return <button key={tb.id} className={`pos-table ${tb.shape === 'round' ? 'round' : ''} ${tb.orders ? 'busy' : ''}`} style={placed ? { left: tb.position_h, top: tb.position_v, width: tb.width || 90, height: tb.height || 90 } : { position: 'relative', width: 90, height: 90, margin: 8 }} onClick={() => openTable(tb)} data-i={i}><b>{tb.name}</b><small>{tb.orders ? money(tb.total) : `${tb.seats} 👤`}</small></button>
+              return <button key={tb.id} className={`pos-table ${tb.shape === 'round' ? 'round' : ''} ${tb.orders ? 'busy' : ''}`} style={placed ? { left: tb.position_h, top: tb.position_v, width: tb.width || 90, height: tb.height || 90 } : { position: 'relative', width: 90, height: 90, margin: 8 }} onClick={() => openTable(tb)} data-i={i}><b>{tb.name}</b><small>{tb.orders ? money(tb.total) : <>{tb.seats} <Icon name="user" size="var(--icon-sm)" /></>}</small></button>
             })}
           </div>}
         </div>)}
@@ -273,29 +275,29 @@ function Terminal({ config }: { config: number }) {
                 <div key={l.key} className={`pos-line ${l.key === sel ? 'on' : ''} ${l.combo ? 'child' : ''}`} onClick={() => { if (!l.combo) { setSel(l.key); setBuf('') } }}>
                   <b>{l.product.name}</b><span>{money(cartTotals({ ...cart, lines: [l] }, taxes).total)}</span>
                   <small className="muted">{l.qty} × {money(l.price)}{l.discount ? ` · -${l.discount}%` : ''}</small>
-                  {l.note && <small>📝 {l.note}</small>}
-                  {l.product.tracking && l.product.tracking !== 'none' && <small className={lotsMissing(l) ? 'pos-unsent' : 'muted'} onClick={(e) => { e.stopPropagation(); setLotKey(l.key); setModal('lots') }}>🔖 {l.lots?.length ? l.lots.join(', ') : t('pos.enter_lots')}</small>}
-                  {restaurant && cart.table && l.qty > (cart.sent?.[l.key] ?? 0) && <small className="pos-unsent">● {t('pos.not_sent')}</small>}
+                  {l.note && <small><Icon name="file-text" size="var(--icon-sm)" /> {l.note}</small>}
+                  {l.product.tracking && l.product.tracking !== 'none' && <small className={lotsMissing(l) ? 'pos-unsent' : 'muted'} onClick={(e) => { e.stopPropagation(); setLotKey(l.key); setModal('lots') }}><Icon name="bookmark" size="var(--icon-md)" /> {l.lots?.length ? l.lots.join(', ') : t('pos.enter_lots')}</small>}
+                  {restaurant && cart.table && l.qty > (cart.sent?.[l.key] ?? 0) && <small className="pos-unsent"><Icon name="dot" size="var(--icon-sm)" /> {t('pos.not_sent')}</small>}
                 </div>))}
             </div>
-            {rlines.map((l, i) => <div key={i} className="pos-line reward"><b>🎁 {l.label}</b><span>{money(l.price)}</span><button className="btn" onClick={() => dispatch({ t: 'unclaim', index: (cart.claims ?? []).findIndex((c) => c.rewardId === l.rewardId && (c.cardId ?? null) === (l.cardId ?? null)) })}>×</button></div>)}
+            {rlines.map((l, i) => <div key={i} className="pos-line reward"><b><Icon name="gift" size="var(--icon-md)" /> {l.label}</b><span>{money(l.price)}</span><button className="btn" onClick={() => dispatch({ t: 'unclaim', index: (cart.claims ?? []).findIndex((c) => c.rewardId === l.rewardId && (c.cardId ?? null) === (l.cardId ?? null)) })}>×</button></div>)}
             {earned.length > 0 && <div className="pos-earn muted">{earned.map((x) => `+${x.pts} ${x.p.name}`).join(' · ')}</div>}
             <div className="pos-sum"><span>{t('pos.taxes')}</span><span>{money(totals.tax)}</span><b>{t('pos.total')}</b><b className="pos-big">{money(total)}</b></div>
             <div className="pos-actions">
-              <button className="btn" onClick={() => setModal('customer')}>👤 {cart.partner?.name ?? t('pos.customer')}</button>
-              {restaurant && cart.table && <button className="btn p" onClick={sendKitchen} disabled={!hasUnsent(cart)}>🍳 {t('pos.order_kitchen')}{hasUnsent(cart) ? ` (${kitchenDelta(cart).added.reduce((a, x) => a + x.qty, 0) + kitchenDelta(cart).removed.length})` : ''}</button>}
-              {restaurant && cart.lines.length > 0 && <button className="btn" onClick={bill}>🧾 {t('pos.bill')}</button>}
-              {restaurant && cart.lines.length > 1 && <button className="btn" onClick={() => setModal('split')}>✂ {t('pos.split')}</button>}
-              {restaurant && cart.table && <button className="btn" onClick={() => setModal('transfer')}>⇄ {t('pos.transfer')}</button>}
-              {restaurant && !!d.config.tip_product_id && cart.lines.length > 0 && <button className="btn" onClick={() => setModal('tip')}>💬 {t('pos.tip')}</button>}
-              {restaurant && <button className={`btn ${cart.takeaway ? 'p' : ''}`} onClick={() => dispatch({ t: 'meta', meta: { takeaway: !cart.takeaway } })}>🥡</button>}
-              {d.loyalty.length > 0 && <button className="btn" onClick={() => setModal('rewards')}>🎁 {t('pos.rewards')}{(cart.claims?.length ?? 0) > 0 ? ` (${cart.claims!.length})` : ''}</button>}
-              {d.config.use_pricelist ? <button className="btn" onClick={() => setModal('pricelist')}>🏷 {plist?.name ?? t('pos.pricelist')}</button> : null}
-              {selLine && <button className="btn" onClick={() => { const n = prompt(t('pos.note'), selLine.note ?? ''); if (n !== null) dispatch({ t: 'note', key: selLine.key, note: n }) }}>📝</button>}
+              <button className="btn" onClick={() => setModal('customer')}><Icon name="user" size="var(--icon-md)" /> {cart.partner?.name ?? t('pos.customer')}</button>
+              {restaurant && cart.table && <button className="btn p" onClick={sendKitchen} disabled={!hasUnsent(cart)}><Icon name="utensils" size="var(--icon-md)" /> {t('pos.order_kitchen')}{hasUnsent(cart) ? ` (${kitchenDelta(cart).added.reduce((a, x) => a + x.qty, 0) + kitchenDelta(cart).removed.length})` : ''}</button>}
+              {restaurant && cart.lines.length > 0 && <button className="btn" onClick={bill}><Icon name="receipt" size="var(--icon-md)" /> {t('pos.bill')}</button>}
+              {restaurant && cart.lines.length > 1 && <button className="btn" onClick={() => setModal('split')}><Icon name="scissors" size="var(--icon-md)" /> {t('pos.split')}</button>}
+              {restaurant && cart.table && <button className="btn" onClick={() => setModal('transfer')}><Icon name="swap" size="var(--icon-md)" /> {t('pos.transfer')}</button>}
+              {restaurant && !!d.config.tip_product_id && cart.lines.length > 0 && <button className="btn" onClick={() => setModal('tip')}><Icon name="message" size="var(--icon-md)" /> {t('pos.tip')}</button>}
+              {restaurant && <button className={`btn ${cart.takeaway ? 'p' : ''}`} onClick={() => dispatch({ t: 'meta', meta: { takeaway: !cart.takeaway } })}><Icon name="bag" size="var(--icon-md)" /></button>}
+              {d.loyalty.length > 0 && <button className="btn" onClick={() => setModal('rewards')}><Icon name="gift" size="var(--icon-md)" /> {t('pos.rewards')}{(cart.claims?.length ?? 0) > 0 ? ` (${cart.claims!.length})` : ''}</button>}
+              {d.config.use_pricelist ? <button className="btn" onClick={() => setModal('pricelist')}><Icon name="tag" size="var(--icon-md)" /> {plist?.name ?? t('pos.pricelist')}</button> : null}
+              {selLine && <button className="btn" onClick={() => { const n = prompt(t('pos.note'), selLine.note ?? ''); if (n !== null) dispatch({ t: 'note', key: selLine.key, note: n }) }}><Icon name="file-text" size="var(--icon-md)" /></button>}
             </div>
             <div className="pos-pad">
               <div className="pos-modes">{(['qty', 'discount', 'price'] as const).filter((m) => m === 'qty' || (!basic && (m === 'discount' ? !!d.config.manual_discount : !d.config.restrict_price_control))).map((m) => <button key={m} className={`btn ${mode === m ? 'p' : ''}`} onClick={() => { setMode(m); setBuf('') }}>{t(`pos.${m}`)}</button>)}</div>
-              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '±', '0', '.', 'C', '⌫'].map((k) => <button key={k} className="btn" onClick={() => key(k)}>{k}</button>)}
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '±', '0', '.', 'C', '⌫'].map((k) => <button key={k} className="btn" onClick={() => key(k)}>{k === '⌫' ? <Icon name="backspace" size="var(--icon-lg)" /> : k}</button>)}
               <button className="btn p pos-pay" disabled={!cart.lines.length} onClick={() => { const bad = cart.lines.find((l) => lotsMissing(l)); if (bad) { setLotKey(bad.key); setModal('lots'); return } setPays([]); setAmount(''); setScreen('pay') }}>{t('pos.payment')} ›</button>
             </div>
           </section>
@@ -309,7 +311,7 @@ function Terminal({ config }: { config: number }) {
         <div className="pos-pay-screen card">
           <h2>{t('pos.payment')} · {money(total)}</h2>
           <div className="pos-pay-cols">
-            <div>{methods.map((m) => <button key={m.id} className="btn pos-method" onClick={() => { const a = amount ? Number(amount) : Math.max(due(total, pays), 0); if (a > 0) { if (m.use_payment_terminal) { setTermFor({ method: m, amount: a }); setModal('terminal') } else setPays((p) => [...p, { method: m.id, amount: a }]) } setAmount('') }}>{m.kind === 'cash' ? '💵' : m.kind === 'account' ? '🧾' : '💳'} {m.name}</button>)}
+            <div>{methods.map((m) => <button key={m.id} className="btn pos-method" onClick={() => { const a = amount ? Number(amount) : Math.max(due(total, pays), 0); if (a > 0) { if (m.use_payment_terminal) { setTermFor({ method: m, amount: a }); setModal('terminal') } else setPays((p) => [...p, { method: m.id, amount: a }]) } setAmount('') }}><Icon name={payIcon(m.kind)} size="var(--icon-md)" /> {m.name}</button>)}
               <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginTop: 8 }}>{quickCash(Math.max(due(total, pays), 0)).map((n) => <button key={n} className="btn" onClick={() => setAmount(String(n))}>{money(n)}</button>)}</div>
               <input className="pos-amt" inputMode="decimal" placeholder={String(Math.max(due(total, pays), 0).toFixed(2))} value={amount} onChange={(e) => setAmount(e.target.value)} />
               <label className="row" style={{ gap: 6, marginTop: 10 }}><input type="checkbox" checked={invoice} disabled={!d.invoicing} onChange={(e) => setInvoice(e.target.checked)} /> {t('pos.invoice')}{invoice && !cart.partner && <button className="btn" onClick={() => setModal('customer')}>{t('pos.pick_customer')}</button>}</label></div>
@@ -322,7 +324,7 @@ function Terminal({ config }: { config: number }) {
       {modal === 'guests' && pending && <GuestsModal tb={pending.table} go={(n) => loadTable(pending.table, null, n)} close={() => { setModal(null); setPending(null) }} t={t} />}
       {modal === 'tableorders' && pending && <div className="pos-modal" onClick={() => { setModal(null); setPending(null) }}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.table')} {pending.table.name}</h3>{pending.orders.map((o, i) => <button key={o.uuid} className="btn" onClick={() => loadTable(pending.table, o)}>#{i + 1} · {o.lines.length} · {money(Number((o as unknown as { amount_total: number }).amount_total ?? 0))}</button>)}<button className="btn p" onClick={() => setModal('guests')}>+ {t('pos.new_order')}</button></div></div>}
       {modal === 'split' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><SplitPick cart={cart} money={money} taxes={taxes} done={split} t={t} /></div></div>}
-      {modal === 'transfer' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.transfer')}</h3><div className="pos-list">{d.floors.flatMap((f) => f.tables.map((tb) => ({ f, tb }))).filter((x) => x.tb.id !== cart.table?.id).map(({ f, tb }) => <button key={tb.id} className="btn" onClick={() => transfer(tb)}>{f.name} · {tb.name}{tb.orders ? ' ●' : ''}</button>)}</div></div></div>}
+      {modal === 'transfer' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.transfer')}</h3><div className="pos-list">{d.floors.flatMap((f) => f.tables.map((tb) => ({ f, tb }))).filter((x) => x.tb.id !== cart.table?.id).map(({ f, tb }) => <button key={tb.id} className="btn" onClick={() => transfer(tb)}>{f.name} · {tb.name}{tb.orders ? <> <Icon name="dot" size="var(--icon-sm)" /></> : null}</button>)}</div></div></div>}
       {modal === 'tip' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.tip')}</h3><div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>{[10, 15, 20].map((p) => <button key={p} className="btn" onClick={() => addTip(p)}>{p}% · {money(tipAmount(base.total, p))}</button>)}<button className="btn" onClick={() => { const v = Number(prompt(t('pos.tip')) || 0); if (v > 0) addTip(null, v) }}>…</button></div></div></div>}
       {modal === 'terminal' && termFor && <TerminalModal method={termFor.method} amount={termFor.amount} money={money} currency={plist?.currency?.name ?? d.currency.name ?? 'USD'} reference={`${d.session.name}-${cart.uuid.slice(0, 6)}`} cashier={emp?.name ?? d.cashier} close={() => { setModal(null); setTermFor(null) }} paid={(x) => { setPays((p) => [...p, { method: termFor.method.id, amount: termFor.amount, tx: x.tx, card: x.card }]); setModal(null); setTermFor(null) }} t={t} />}
       {modal === 'open' && <OpenOrders config={config} money={money} close={() => setModal(null)} pick={(o) => { const c = cartFromDraft(o, d.products, null); setCarts((cs) => { const i = cs.findIndex((x) => x.uuid === c.uuid); if (i >= 0) { setCur(i); return cs.map((x, j) => (j === i ? c : x)) } setCur(cs.length); return [...cs, c] }); setSel(null); setScreen('shop'); setModal(null) }} t={t} />}
@@ -348,11 +350,11 @@ function ReceiptView({ r, d, money, done, print, t }: { r: Receipt; d: Data; mon
         {r.lines.map((l, i) => <div key={i} className="pos-rl"><span>{l.qty} × {l.full_product_name}{l.discount ? ` (-${l.discount}%)` : ''}</span><span>{money(l.price_subtotal_incl)}</span></div>)}
         <hr /><div className="pos-rl"><span>{t('pos.taxes')}</span><span>{money(r.amount_tax)}</span></div><div className="pos-rl"><b>{t('pos.total')}</b><b>{money(r.amount_total)}</b></div>
         {r.payments.filter((p) => !p.is_change).map((p, i) => <div key={i} className="pos-rl"><span>{p.method}</span><span>{money(p.amount)}</span></div>)}
-        {(r.loyalty_issued ?? []).map((c, i) => <p key={i} style={{ textAlign: 'center' }}>🎁 {c.program}: <b>{c.points}</b>{c.type !== 'loyalty' && <><br /><code>{c.code}</code></>}</p>)}
+        {(r.loyalty_issued ?? []).map((c, i) => <p key={i} style={{ textAlign: 'center' }}><Icon name="gift" size="var(--icon-md)" /> {c.program}: <b>{c.points}</b>{c.type !== 'loyalty' && <><br /><code>{c.code}</code></>}</p>)}
         {r.amount_return > 0 && <div className="pos-rl"><span>{t('pos.change')}</span><span>{money(r.amount_return)}</span></div>}
         {!!d.config.receipt_footer && <p style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>{String(d.config.receipt_footer)}</p>}
       </div>
-      <div className="pos-receipt-actions"><button className="btn" onClick={() => print()}>🖨 {t('pos.print')}</button>{r.state === 'invoiced' && r.id && <button className="btn" onClick={() => act<string>('pos.order', 'ubl', [r.id!], {}).then((x) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([x], { type: 'application/xml' })); a.download = `${r.name.replace(/\W+/g, '_')}.xml`; a.click(); URL.revokeObjectURL(a.href) }).catch(() => {})}>⬇ UBL</button>}<button className="btn p" onClick={done}>{t('pos.new_order')} ›</button></div>
+      <div className="pos-receipt-actions"><button className="btn" onClick={() => print()}><Icon name="printer" size="var(--icon-md)" /> {t('pos.print')}</button>{r.state === 'invoiced' && r.id && <button className="btn" onClick={() => act<string>('pos.order', 'ubl', [r.id!], {}).then((x) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([x], { type: 'application/xml' })); a.download = `${r.name.replace(/\W+/g, '_')}.xml`; a.click(); URL.revokeObjectURL(a.href) }).catch(() => {})}><Icon name="download" size="var(--icon-md)" /> UBL</button>}<button className="btn p" onClick={done}>{t('pos.new_order')} ›</button></div>
     </div>
   )
 }
@@ -382,7 +384,7 @@ function Orders({ d, emp, money, close, onRefund, t }: { d: Data; emp: Emp | nul
     } catch (e) { setErr(String((e as Error).message ?? e)) }
   }
   return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.orders')}</h3>{err && <div className="err">{err}</div>}
-    <div className="pos-list">{rows.map((r) => <div key={r.id} className="pos-payrow"><span>{r.name}<br /><small className="muted">{r.date_order}</small></span><b>{money(r.amount_total)}</b>{r.amount_total > 0 && emp?.role !== 'basic' && <button className="btn" onClick={() => refund(r.id)}>↩ {t('pos.refund')}</button>}</div>)}{rows.length === 0 && <p className="muted">{t('pos.no_orders')}</p>}</div></div></div>
+    <div className="pos-list">{rows.map((r) => <div key={r.id} className="pos-payrow"><span>{r.name}<br /><small className="muted">{r.date_order}</small></span><b>{money(r.amount_total)}</b>{r.amount_total > 0 && emp?.role !== 'basic' && <button className="btn" onClick={() => refund(r.id)}><Icon name="rotate-ccw" size="var(--icon-md)" /> {t('pos.refund')}</button>}</div>)}{rows.length === 0 && <p className="muted">{t('pos.no_orders')}</p>}</div></div></div>
 }
 
 function Close({ d, emp, money, close, t }: { d: Data; emp: Emp | null; money: (n: number) => string; close: () => void; t: TFn }) {
@@ -411,7 +413,7 @@ function Rewards({ d, config, cart, cards, setCards, items, claim, code, close, 
     const sources: { card?: Card; balance: number }[] = mine.length ? mine.map((k) => ({ card: k, balance: k.points })) : (['promotion', 'buy_x_get_y', 'promo_code'].includes(p.program_type) || p.applies_on === 'current' ? [{ balance: programPoints(p, items, cart.codes ?? []) }] : [])
     for (const s of sources) for (const r of p.rewards) rows.push({ key: `${p.id}-${r.id}-${s.card?.id ?? 'o'}`, label: r.description || p.name, sub: s.card ? `${p.name} · ${s.card.points} pts${s.card.code && p.program_type !== 'loyalty' ? ` · ${s.card.code.slice(-6)}` : ''}` : p.name, ok: claimable(r, s.balance) && !(cart.claims ?? []).some((x) => x.rewardId === r.id && (x.cardId ?? null) === (s.card?.id ?? null)), claim: { rewardId: r.id, cardId: s.card?.id } })
   }
-  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>🎁 {t('pos.rewards')}</h3>
+  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3><Icon name="gift" size="var(--icon-md)" /> {t('pos.rewards')}</h3>
     <div className="row" style={{ gap: 6 }}><input placeholder={t('pos.enter_code')} value={c} onChange={(e) => setC(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && lookup()} /><button className="btn" onClick={lookup}>{t('pos.apply')}</button></div>
     {msg && <div className="err">{msg}</div>}
     {!cart.partner && d.loyalty.some((p) => p.is_nominative || p.program_type === 'loyalty') && <p className="muted">{t('pos.pick_customer_points')}</p>}
@@ -426,7 +428,7 @@ function CashierLock({ d, verify, err, t }: { d: Data; verify: (kw: Record<strin
     <div className="pos-lock card"><h2>{t('pos.who')}</h2><p className="muted">{t('pos.scan_badge')}</p>{msg && <div className="err">{msg}</div>}
       {!pick ? <div className="pos-grid">{d.employees.map((e) => <button key={e.id} className="card pos-prod" onClick={() => (e.has_pin ? (setPick(e), setMsg('')) : go(e))}><b>{e.name}</b><span className="muted">{e.role === 'advanced' ? t('pos.manager') : t('pos.cashier')}</span></button>)}</div>
         : <div className="pos-pinpad"><h3>{pick.name}</h3><div className="pos-pin">{'•'.repeat(pin.length) || '—'}</div>
-          <div className="pos-pad">{['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✓'].map((k) => <button key={k} className="btn" onClick={() => (k === '✓' ? go(pick, pin) : press(k))}>{k}</button>)}</div>
+          <div className="pos-pad">{['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✓'].map((k) => <button key={k} className="btn" onClick={() => (k === '✓' ? go(pick, pin) : press(k))}>{k === '⌫' ? <Icon name="backspace" size="var(--icon-lg)" /> : k === '✓' ? <Icon name="check" size="var(--icon-lg)" /> : k}</button>)}</div>
           <button className="btn" onClick={() => { setPick(null); setPin('') }}>‹ {t('pos.back')}</button></div>}
     </div>
   )
@@ -449,16 +451,16 @@ function SplitPick({ cart, money, taxes, done, t }: { cart: Cart; money: (n: num
 function HardwareModal({ hw, update, printers, close, test, t }: { hw: HwSettings; update: (p: Partial<HwSettings>) => void; printers: Data['printers']; close: () => void; test: () => Promise<void>; t: TFn }) {
   const [msg, setMsg] = useState(''); const [, bump] = useState(0)
   const connect = async (kind: 'receipt' | 'scale', baud: number) => { try { await connectSerial(kind, baud); setMsg(t('pos.connected')); bump((x) => x + 1) } catch (e) { setMsg(String((e as Error).message ?? e)) } }
-  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>⚙ {t('pos.hardware')}</h3>{msg && <div className="muted">{msg}</div>}
+  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3><Icon name="gear" size="var(--icon-md)" /> {t('pos.hardware')}</h3>{msg && <div className="muted">{msg}</div>}
     <label>{t('pos.receipt_printer')}<select value={hw.receipt} onChange={(e) => update({ receipt: e.target.value as HwSettings['receipt'] })}>
       <option value="browser">{t('pos.hw_browser')}</option><option value="network" disabled={!printers.some((p) => (p.kind ?? 'raw') === 'raw')}>{t('pos.hw_network')}{printers.find((p) => (p.kind ?? 'raw') === 'raw') ? ` (${printers.find((p) => (p.kind ?? 'raw') === 'raw')!.target})` : ` — ${t('pos.hw_not_configured')}`}</option><option value="epos" disabled={!printers.some((p) => p.kind === 'epos')}>{t('pos.hw_epos')}</option><option value="serial" disabled={!serialSupported()}>{t('pos.hw_serial')}</option></select></label>
-    {hw.receipt === 'serial' && <button className="btn" onClick={() => connect('receipt', 9600)}>{serialConnected('receipt') ? '✓ ' : ''}{t('pos.connect_printer')}</button>}
+    {hw.receipt === 'serial' && <button className="btn" onClick={() => connect('receipt', 9600)}>{serialConnected('receipt') && <><Icon name="check" size="var(--icon-md)" /> </>}{t('pos.connect_printer')}</button>}
     <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={hw.autoPrint} onChange={(e) => update({ autoPrint: e.target.checked })} /> {t('pos.auto_print')}</label>
     <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={hw.drawer} onChange={(e) => update({ drawer: e.target.checked })} /> {t('pos.open_drawer')}</label>
     <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={hw.kitchen} onChange={(e) => update({ kitchen: e.target.checked })} /> {t('pos.print_kitchen')} ({Math.max(0, printers.length - 1)})</label>
     <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={hw.scale} onChange={(e) => update({ scale: e.target.checked })} /> {t('pos.use_scale')}</label>
-    {hw.scale && <button className="btn" onClick={() => connect('scale', 9600)} disabled={!serialSupported()}>{serialConnected('scale') ? '✓ ' : ''}{t('pos.connect_scale')}</button>}
-    <div className="row" style={{ gap: 8 }}><button className="btn" onClick={() => test().then(() => setMsg('✓')).catch((e) => setMsg(String(e.message ?? e)))}>{t('pos.test_print')}</button><button className="btn p" onClick={close}>{t('pos.done')}</button></div></div></div>
+    {hw.scale && <button className="btn" onClick={() => connect('scale', 9600)} disabled={!serialSupported()}>{serialConnected('scale') && <><Icon name="check" size="var(--icon-md)" /> </>}{t('pos.connect_scale')}</button>}
+    <div className="row" style={{ gap: 8 }}><button className="btn" onClick={() => test().then(() => setMsg(t('pos.test_ok'))).catch((e) => setMsg(String(e.message ?? e)))}>{t('pos.test_print')}</button><button className="btn p" onClick={close}>{t('pos.done')}</button></div></div></div>
 }
 
 function ScaleModal({ p, money, close, add, t }: { p: Product; money: (n: number) => string; close: () => void; add: (kg: number) => void; t: TFn }) {
@@ -466,10 +468,10 @@ function ScaleModal({ p, money, close, add, t }: { p: Product; money: (n: number
   const read = async () => { setBusy(true); setMsg(''); try { setKg(String(await readWeight())) } catch (e) { setMsg(String((e as Error).message ?? e)) } finally { setBusy(false) } }
   useEffect(() => { if (serialConnected('scale')) read() }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const n = Number(kg)
-  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>⚖ {p.name} · {money(p.price)}/kg</h3>{msg && <div className="err">{msg}</div>}
+  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3><Icon name="scale" size="var(--icon-md)" /> {p.name} · {money(p.price)}/kg</h3>{msg && <div className="err">{msg}</div>}
     <input autoFocus inputMode="decimal" placeholder="kg" value={kg} onChange={(e) => setKg(e.target.value)} />
     <div className="pos-sum"><b>{t('pos.total')}</b><b className="pos-big">{money((Number.isFinite(n) ? n : 0) * p.price)}</b></div>
-    <div className="row" style={{ gap: 8 }}>{serialConnected('scale') && <button className="btn" disabled={busy} onClick={read}>⚖ {t('pos.weigh')}</button>}<button className="btn p" disabled={!(n > 0)} onClick={() => add(n)}>{t('pos.add')}</button></div></div></div>
+    <div className="row" style={{ gap: 8 }}>{serialConnected('scale') && <button className="btn" disabled={busy} onClick={read}><Icon name="scale" size="var(--icon-md)" /> {t('pos.weigh')}</button>}<button className="btn p" disabled={!(n > 0)} onClick={() => add(n)}>{t('pos.add')}</button></div></div></div>
 }
 
 function TerminalModal({ method, amount, money, currency, reference, cashier, close, paid, t }: { method: Method; amount: number; money: (n: number) => string; currency: string; reference: string; cashier: string; close: () => void; paid: (x: { tx: string; card: string }) => void; t: TFn }) {
@@ -489,7 +491,7 @@ function TerminalModal({ method, amount, money, currency, reference, cashier, cl
     return () => clearInterval(i)
   }, [tx, status, paid])
   const cancel = async () => { if (tx && status === 'pending') await rpc({ method: 'terminal_cancel', args: [{ tx }] }).catch(() => {}); close() }
-  return <div className="pos-modal"><div className="card" style={{ textAlign: 'center' }}><h3>💳 {method.name} · {money(amount)}</h3>
+  return <div className="pos-modal"><div className="card" style={{ textAlign: 'center' }}><h3><Icon name="credit-card" size="var(--icon-md)" /> {method.name} · {money(amount)}</h3>
     {(status === 'starting' || status === 'pending') && <p className="muted">{status === 'starting' ? t('pos.term_starting') : t('pos.term_waiting')}</p>}
     {status === 'failed' && <div className="err">{msg || t('pos.term_failed')}</div>}
     <div className="row" style={{ gap: 8, justifyContent: 'center' }}>{status === 'failed' && <button className="btn p" onClick={start}>{t('pos.term_retry')}</button>}<button className="btn" onClick={cancel}>{t('pos.cancel')}</button></div></div></div>
@@ -499,7 +501,7 @@ function OpenOrders({ config, money, close, pick, t }: { config: number; money: 
   type O = Parameters<typeof cartFromDraft>[0] & { amount_total?: number; general_note?: string; shipping_date?: string; name?: string }
   const [rows, setRows] = useState<O[] | null>(null)
   useEffect(() => { act<O[]>('pos.config', 'open_orders', [config], {}).then(setRows).catch(() => setRows([])) }, [config])
-  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>📋 {t('pos.open_orders')}</h3>
+  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3><Icon name="clipboard" size="var(--icon-md)" /> {t('pos.open_orders')}</h3>
     <div className="pos-list">{(rows ?? []).map((o) => <button key={o.uuid} className="btn pos-reward" onClick={() => pick(o)}><b>{o.general_note || o.name || o.uuid.slice(0, 8)}</b><small className="muted">{o.lines.length} · {money(Number(o.amount_total ?? 0))}{o.shipping_date ? ` · ${t('pos.pickup')} ${o.shipping_date.slice(11, 16)}` : ''}</small></button>)}{rows && rows.length === 0 && <p className="muted">{t('pos.no_open')}</p>}</div></div></div>
 }
 
@@ -535,13 +537,13 @@ function FloorEditor({ floor, config, floorIds, done, t }: { floor: Floor; confi
   const cur = tables.find((x) => x.id === sel)
   return (
     <div className="pos-edit">
-      <div ref={plan} className="pos-plan edit" onPointerMove={move} onPointerUp={up}>{tables.map((x) => <div key={x.id} className={`pos-table ${x.shape === 'round' ? 'round' : ''} ${x.id === sel ? 'sel' : ''}`} style={{ left: x.position_h, top: x.position_v, width: x.width, height: x.height, touchAction: 'none', cursor: 'grab' }} onPointerDown={(e) => down(e, x)}><b>{x.table_number}</b><small>{x.seats} 👤</small></div>)}</div>
+      <div ref={plan} className="pos-plan edit" onPointerMove={move} onPointerUp={up}>{tables.map((x) => <div key={x.id} className={`pos-table ${x.shape === 'round' ? 'round' : ''} ${x.id === sel ? 'sel' : ''}`} style={{ left: x.position_h, top: x.position_v, width: x.width, height: x.height, touchAction: 'none', cursor: 'grab' }} onPointerDown={(e) => down(e, x)}><b>{x.table_number}</b><small>{x.seats} <Icon name="user" size="var(--icon-sm)" /></small></div>)}</div>
       <aside className="card pos-edit-side">{err && <div className="err">{err}</div>}
         <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}><button className="btn" onClick={() => add('square')}>+ {t('pos.square')}</button><button className="btn" onClick={() => add('round')}>+ {t('pos.round')}</button><button className="btn" onClick={renameFloor}>{t('pos.rename')}</button><button className="btn" onClick={addFloor}>+ {t('pos.add_floor')}</button></div>
         {cur ? <><label>{t('pos.table_number')}<input type="number" value={cur.table_number} onChange={(e) => patch({ table_number: Number(e.target.value) })} /></label>
           <label>{t('pos.table_seats')}<input type="number" min={1} value={cur.seats} onChange={(e) => patch({ seats: Math.max(1, Number(e.target.value)) })} /></label>
-          <div className="row" style={{ gap: 6 }}><button className="btn" onClick={() => patch({ width: Math.max(50, cur.width - 10) })}>W−</button><button className="btn" onClick={() => patch({ width: cur.width + 10 })}>W+</button><button className="btn" onClick={() => patch({ height: Math.max(50, cur.height - 10) })}>H−</button><button className="btn" onClick={() => patch({ height: cur.height + 10 })}>H+</button><button className="btn" onClick={() => patch({ shape: cur.shape === 'round' ? 'square' : 'round' })}>◯/▢</button></div>
-          <button className="btn" onClick={remove}>🗑 {t('pos.delete_table')}</button></> : <p className="muted">{t('pos.edit_hint')}</p>}
+          <div className="row" style={{ gap: 6 }}><button className="btn" onClick={() => patch({ width: Math.max(50, cur.width - 10) })}>W−</button><button className="btn" onClick={() => patch({ width: cur.width + 10 })}>W+</button><button className="btn" onClick={() => patch({ height: Math.max(50, cur.height - 10) })}>H−</button><button className="btn" onClick={() => patch({ height: cur.height + 10 })}>H+</button><button className="btn" onClick={() => patch({ shape: cur.shape === 'round' ? 'square' : 'round' })}><Icon name="circle" size="var(--icon-md)" />/<Icon name="square" size="var(--icon-md)" /></button></div>
+          <button className="btn" onClick={remove}><Icon name="trash" size="var(--icon-md)" /> {t('pos.delete_table')}</button></> : <p className="muted">{t('pos.edit_hint')}</p>}
         <button className="btn p" onClick={save}>{t('pos.save_floor')}</button></aside>
     </div>
   )
@@ -561,7 +563,7 @@ function LotsModal({ config, line, close, save, t }: { config: number; line?: Li
   useEffect(() => { if (line) act<{ name: string; qty: number }[]>('pos.config', 'lots', [config], { product_id: line.product.id }).then(setKnown).catch(() => {}) }, [config, line?.product.id]) // eslint-disable-line react-hooks/exhaustive-deps
   if (!line) return null
   const filled = vals.map((v) => v.trim()).filter(Boolean); const ok = serial ? filled.length === n && new Set(filled).size === n : filled.length >= 1
-  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>🔖 {line.product.name} · {serial ? t('pos.serial_numbers') : t('pos.lot_number')}</h3>
+  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3><Icon name="bookmark" size="var(--icon-md)" /> {line.product.name} · {serial ? t('pos.serial_numbers') : t('pos.lot_number')}</h3>
     <datalist id="pos-lots">{known.map((k) => <option key={k.name} value={k.name}>{k.qty ? `${k.qty}` : ''}</option>)}</datalist>
     {vals.map((v, i) => <input key={i} list="pos-lots" autoFocus={i === 0} placeholder={`${serial ? t('pos.serial') : t('pos.lot')} ${n > 1 ? i + 1 : ''}`} value={v} onChange={(e) => setVals((x) => x.map((y, j) => (j === i ? e.target.value : y)))} />)}
     <button className="btn p" disabled={!ok} onClick={() => save(filled)}>{t('pos.done')}</button></div></div>

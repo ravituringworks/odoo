@@ -1,6 +1,7 @@
 //! odoo-app: backend-independent application service. One `dispatch` entry point is shared by the
 //! HTTP server (Next.js) and the Tauri shell, so both transports expose identical semantics.
 pub mod ai;
+pub mod ai_guides;
 pub mod i18n;
 pub mod admin;
 pub mod portal;
@@ -247,7 +248,15 @@ impl App {
         let call = |method: &str, args: Vec<J>, kwargs: serde_json::Map<String, J>| self.dispatch(Request { method: method.into(), model: model.into(), args, kwargs, uid: base.uid, token: base.token.clone(), lang: base.lang.clone(), db: None });
         let domain = a.get("domain").cloned().filter(|d| d.is_array()).unwrap_or(json!([]));
         match c.name.as_str() {
-            "list_models" => { let q = a["query"].as_str().unwrap_or("").to_lowercase(); Ok(J::Array(rt.reg.models.values().filter(|m| m.has_table() && (m.name.contains(&q) || m.description.as_deref().unwrap_or("").to_lowercase().contains(&q))).take(20).map(|m| json!({"model": m.name, "name": m.description})).collect())) }
+            "list_models" => {
+                // any keyword may match; common business words map to the technical names used here
+                let q = a["query"].as_str().unwrap_or("").to_lowercase();
+                let mut words: Vec<String> = q.split(|c: char| !c.is_alphanumeric() && c != '.' && c != '_').filter(|w| w.len() > 1).map(String::from).collect();
+                for w in words.clone() { match w.as_str() { "ecommerce" | "store" | "shop" | "webshop" | "storefront" => words.extend(["website", "sale", "product", "payment", "delivery"].map(String::from)), "invoice" | "invoices" => words.push("account.move".into()), "customer" | "customers" => words.push("partner".into()), _ => {} } }
+                let hits: Vec<J> = rt.reg.models.values().filter(|m| m.has_table() && words.iter().any(|w| m.name.contains(w.as_str()) || m.description.as_deref().unwrap_or("").to_lowercase().contains(w.as_str()))).take(20).map(|m| json!({"model": m.name, "name": m.description})).collect();
+                if hits.is_empty() { Ok(json!({"matches": [], "hint": "No installed model matches. For how-to or setup questions call setup_guide instead of searching models."})) } else { Ok(J::Array(hits)) }
+            }
+            "setup_guide" => self.setup_guide(rt, base, a["topic"].as_str().unwrap_or(""), a["country"].as_str().unwrap_or("")),
             "describe_model" => {
                 let f = call("fields_get", vec![], Default::default())?;
                 Ok(J::Array(f.as_object().into_iter().flatten().filter(|(_, v)| v["store"] == true || v["relation"].is_string()).take(120).map(|(k, v)| json!({"name": k, "type": v["type"], "label": v["string"], "relation": v["relation"], "selection": v["selection"].as_array().filter(|s| !s.is_empty()).map(|s| s.iter().take(12).map(|p| p[0].clone()).collect::<Vec<_>>())})).collect()))
@@ -257,6 +266,35 @@ impl App {
             "read_group" => call("read_group", vec![domain, a.get("fields").cloned().unwrap_or(json!([])), a["groupby"].clone()], Default::default()),
             other => Err(OdooError::User(format!("unknown tool `{other}`"))),
         }
+    }
+
+    /// The assistant's `setup_guide` tool: a plan for an app/feature with each step checked against the caller's own data.
+    fn setup_guide(&self, rt: &Runtime, base: &Request, topic: &str, country: &str) -> Result<J> {
+        use ai_guides::Check;
+        let Some(g) = ai_guides::find(topic) else { return Ok(json!({"error": format!("no guide for `{topic}`"), "topics": ai_guides::topics()})) };
+        let rpc = |model: &str, method: &str, args: Vec<J>, kw: serde_json::Map<String, J>| self.dispatch(Request { method: method.into(), model: model.into(), args, kwargs: kw, uid: base.uid, token: base.token.clone(), lang: base.lang.clone(), db: None });
+        let installed = |m: &str| rt.reg.modules.iter().any(|x| x == m);
+        let company = if rt.reg.models.contains_key("res.company") {
+            let mut kw = serde_json::Map::new(); kw.insert("fields".into(), json!(["name", "country_id", "currency_id"])); kw.insert("limit".into(), json!(1));
+            rpc("res.company", "search_read", vec![], kw).ok().and_then(|v| v.as_array().and_then(|a| a.first().cloned())).unwrap_or(J::Null)
+        } else { J::Null };
+        let name_of = |v: &J| v.get(1).and_then(|n| n.as_str()).map(String::from);
+        let steps: Vec<J> = g.steps.iter().enumerate().map(|(i, st)| {
+            let (done, detail): (J, String) = match st.check {
+                Check::None => (J::Null, String::new()),
+                Check::Module(m) => (json!(installed(m)), if installed(m) { format!("`{m}` is installed") } else { format!("`{m}` is not installed") }),
+                Check::CompanyCountry => match name_of(&company["country_id"]) { Some(c) => (json!(true), format!("company country is {c}")), None => (json!(false), "the company has no country".into()) },
+                Check::CompanyCurrency => match name_of(&company["currency_id"]) { Some(c) => (json!(true), format!("company currency is {c}")), None => (json!(false), "the company has no currency".into()) },
+                Check::Count(model, domain) => if !rt.reg.models.contains_key(model) { (json!(false), format!("the app providing `{model}` is not installed")) } else {
+                    match rpc(model, "search_count", vec![serde_json::from_str(domain).unwrap_or(json!([]))], Default::default()) { Ok(n) => { let n = n.as_i64().unwrap_or(0); (json!(n > 0), format!("{n} found")) } Err(e) => (J::Null, format!("could not check: {e}")) } },
+            };
+            json!({"step": i + 1, "title": st.title, "how": st.how, "done": done, "detail": detail})
+        }).collect();
+        let next = steps.iter().find(|s| s["done"] != json!(true) && s["done"] != J::Null).map(|s| s["step"].clone());
+        let country_code = if country.is_empty() { J::Null } else { json!(country) };
+        let region = ai_guides::region(country).map(|r| json!({"country": r.name, "currency": r.currency, "tax": r.tax, "localization_module": r.localization, "localization_installed": installed(r.localization), "localization_available": self.module_available(r.localization), "notes": r.notes}));
+        Ok(json!({"topic": g.topic, "title": g.title, "required_modules": g.modules, "installed": g.modules.iter().all(|m| installed(m)), "steps": steps, "next_step": next, "country": country_code, "region": region.unwrap_or(J::Null),
+            "instructions": "Answer with this plan as a numbered list: mark finished steps, start from next_step, and include the region notes. For a missing module offer propose_action kind \"install\" with values {\"module\": <name>}."}))
     }
 
     fn ai_chat(&self, rt: &Runtime, req: &Request, llm: &dyn ai::Llm) -> Result<J> {
@@ -541,6 +579,8 @@ impl App {
                 let added = self.install(&names)?;
                 return Ok(json!({"installed": added}));
             }
+            // a window action by xmlid (stat buttons of form views open one): model, view modes, raw domain/context strings
+            "action_get" => { let id = req.args.first().and_then(|v| v.as_str()).unwrap_or(""); return rt.catalog.actions.get(id).map(|a| json!({"xmlid": id, "name": a["name"], "model": a["res_model"], "view_mode": a["view_mode"], "domain": a["domain"], "context": a["context"]})).ok_or_else(|| OdooError::User(format!("Unknown action {id}"))); }
             "menus" => { let mut tree = rt.catalog.menu_tree(&rt.reg); if let Some(c) = req.lang.as_deref().and_then(|l| self.i18n.get(l)) { c.menus(&mut tree); } return Ok(tree); }
             "models" => return Ok(J::Array(rt.reg.models.values().filter(|m| m.has_table()).map(|m| json!({"model": m.name, "name": m.description, "module": m.module})).collect())),
             "fields_get" => {

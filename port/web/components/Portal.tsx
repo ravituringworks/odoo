@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useT } from '@/lib/i18n'
 import { type Me, portal, setPortalToken, getPortalToken } from '@/lib/portal'
+import { Icon } from './Icon'
 
 /** Portal chrome + sign-in gate. Children render only for a signed-in account. */
 export function Portal({ title, active, children }: { title?: string; active?: 'home' | 'databases' | 'security'; children: (me: Me, reload: () => void) => React.ReactNode }) {
@@ -18,7 +19,7 @@ export function Portal({ title, active, children }: { title?: string; active?: '
         <Link href="/my/" className="tr-logo">{t('app.name')}</Link>
         {me && <nav className="pt-nav">{nav('/my/', 'home', t('portal.title'))}{nav('/my/databases/', 'databases', t('portal.databases'))}{nav('/my/security/', 'security', t('portal.tile_security'))}</nav>}
         <span className="grow" />
-        {me ? <details className="pt-menu"><summary>👤 {me.name}</summary><div className="card"><div className="muted" style={{ padding: '6px 12px' }}>{me.email}</div><a onClick={out}>{t('portal.signout')}</a></div></details>
+        {me ? <details className="pt-menu"><summary><Icon name="user" size="var(--icon-md)" /> {me.name}</summary><div className="card"><div className="muted" style={{ padding: '6px 12px' }}>{me.email}</div><a onClick={out}>{t('portal.signout')}</a></div></details>
           : <Link href="/trial/" className="btn p">{t('trial.try')}</Link>}
       </header>
       {me === undefined && <main className="tr-formwrap"><p className="muted">{t('common.loading')}</p></main>}

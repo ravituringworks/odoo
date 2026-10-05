@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useT } from '@/lib/i18n'
 import type { ThemeDef } from '@/lib/vibe/themes'
+import { Icon } from '@/components/Icon'
 
 type Mod = typeof import('@/lib/vibe/themes')
 const PAGE = 96
@@ -19,7 +20,7 @@ export function Appearance() {
     <div className="set-sec">
       <h2>{t('settings.theme')}</h2><p className="hint">{t('settings.theme_hint')}</p>
       <div className="bar">
-        <button className="btn" onClick={flip}>{(active?.mode ?? 'dark') === 'dark' ? `☀ ${t('settings.light')}` : `☾ ${t('settings.dark')}`}</button>
+        <button className="btn" onClick={flip}>{(active?.mode ?? 'dark') === 'dark' ? <><Icon name="sun" size="var(--icon-md)" /> {t('settings.light')}</> : <><Icon name="moon" size="var(--icon-md)" /> {t('settings.dark')}</>}</button>
         <input placeholder={t('settings.search_themes')} value={q} onChange={(e) => { setQ(e.target.value); setMore(PAGE) }} style={{ minWidth: 220 }} />
         <span className="muted">{list.length} {t('settings.themes_count')}</span>
       </div>

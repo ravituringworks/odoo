@@ -45,6 +45,9 @@ fn open_orders(env: &Env, config: i64, table: Option<i64>) -> Result<Vec<Row>> {
 fn draft_view(env: &Env, o: &Row) -> Result<Value> {
     let lines = children(env, "pos.order.line", "order_id", o["id"].as_i64().unwrap())?.into_iter().map(|l| pick(&l, &["uuid", "product_id", "qty", "price_unit", "discount", "customer_note"])).collect();
     let mut v = pick(o, &["id", "uuid", "table_id", "customer_count", "takeaway", "partner_id", "amount_total", "general_note", "shipping_date", "name", "last_order_preparation_change"]);
+    // many2one as [id, label] like `read` does, so the terminal can show the customer and table name
+    if let Some(p) = id_of(o, "partner_id") { if let Ok(r) = rec(env, "res.partner", p) { v.insert("partner_id".into(), Value::List(vec![p.into(), text(&r, "name").unwrap_or_default().into()])); } }
+    if let Some(t) = id_of(o, "table_id") { if let Ok(r) = rec(env, "restaurant.table", t) { v.insert("table_id".into(), Value::List(vec![t.into(), format!("Table {}", num(&r, "table_number") as i64).into()])); } }
     v.insert("lines".into(), list(lines)); Ok(Value::Map(v))
 }
 

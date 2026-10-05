@@ -4,6 +4,7 @@ import { call } from '@/lib/rpc'
 import { useFields } from '@/lib/hooks'
 import { listColumns, type Rec } from '@/lib/model'
 import { Field } from './Field'
+import { Icon } from '@/components/Icon'
 
 export type LineState = { rows: Rec[]; removed: number[] }
 // Inline one2many editor; new rows carry no id and become (0,0,vals), edits become (1,id,vals), removals (2,id).
@@ -30,7 +31,7 @@ export function Lines({ comodel, inverse, state, onChange, readonly, columns }: 
           {state.rows.map((r, i) => (
             <tr key={String(r.id ?? `n${i}`)} style={{ cursor: 'default' }}>
               {cols.map((c) => <td key={c}><Field name={c} meta={fields[c]} value={r[c]} onChange={(v) => upd(i, c, v)} readonly={readonly || (fields[c].readonly && !fields[c].store)} /></td>)}
-              <td>{!readonly && <button className="btn" onClick={() => onChange({ rows: state.rows.filter((_, j) => j !== i), removed: r.id ? [...state.removed, r.id as number] : state.removed })}>✕</button>}</td>
+              <td>{!readonly && <button className="btn" onClick={() => onChange({ rows: state.rows.filter((_, j) => j !== i), removed: r.id ? [...state.removed, r.id as number] : state.removed })}><Icon name="x" size="var(--icon-md)" /></button>}</td>
             </tr>
           ))}
         </tbody>

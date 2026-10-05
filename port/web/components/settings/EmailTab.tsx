@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { rpc } from '@/lib/rpc'
 import { useT } from '@/lib/i18n'
 import type { Key } from '@/lib/i18n/en'
+import { Icon } from '@/components/Icon'
 
 type Field = { id: string; label: string; secret: boolean; options: string[]; placeholder: string }
 type Provider = { id: string; label: string; kind: 'http' | 'smtp'; docs: string; fields: Field[] }
@@ -46,7 +47,7 @@ export function EmailTab({ admin }: { admin: boolean }) {
     return (
       <div className="row" key={f.id}><label>{label}</label>
         {f.options.length ? <select disabled={ro} value={String(form[f.id] ?? '')} onChange={(e) => set(f.id, e.target.value)}>{f.options.map((o) => <option key={o} value={o}>{o}</option>)}</select>
-          : f.secret ? <div><input disabled={ro} type="password" autoComplete="off" value={secrets[f.id] ?? ''} placeholder={has ? '••••••••' : f.placeholder} onChange={(e) => setSecrets({ ...secrets, [f.id]: e.target.value })} style={{ width: '100%' }} /><div className="hint" style={{ margin: '4px 0 0' }}>{has ? `✓ ${t('settings.key_set')}` : t('settings.key_unset')} · {t('settings.key_write_only')}</div></div>
+          : f.secret ? <div><input disabled={ro} type="password" autoComplete="off" value={secrets[f.id] ?? ''} placeholder={has ? '••••••••' : f.placeholder} onChange={(e) => setSecrets({ ...secrets, [f.id]: e.target.value })} style={{ width: '100%' }} /><div className="hint" style={{ margin: '4px 0 0' }}>{has ? <><Icon name="check" size="var(--icon-md)" /> {t('settings.key_set')}</> : t('settings.key_unset')} · {t('settings.key_write_only')}</div></div>
           : <input disabled={ro} value={String(form[f.id] ?? '')} placeholder={f.placeholder} onChange={(e) => set(f.id, e.target.value)} />}
       </div>
     )

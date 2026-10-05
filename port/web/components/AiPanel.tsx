@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { call, rpc } from '@/lib/rpc'
 import { useT } from '@/lib/i18n'
 import { Markdown } from '@/lib/md'
+import { Icon } from '@/components/Icon'
 
-type Proposal = { id: string; kind: 'create' | 'write' | 'call'; model: string; ids?: number[]; values?: Record<string, unknown>; method?: string; summary: string; state?: 'applied' | 'rejected' | 'error'; error?: string }
+type Proposal = { id: string; kind: 'create' | 'write' | 'call' | 'install'; model: string; ids?: number[]; values?: Record<string, unknown>; method?: string; summary: string; state?: 'applied' | 'rejected' | 'error'; error?: string }
 type Trace = { tool: string; ok: boolean; error?: string | null }
 type Msg = { role: 'user' | 'assistant'; content: string; trace?: Trace[]; proposals?: Proposal[]; error?: boolean }
 const KEY = 'odoo-rs-ai-chat'
@@ -42,23 +43,24 @@ export function AiPanel() {
     const p = msgs[mi].proposals![pi]
     if (!approve) return upd({ state: 'rejected' })
     try {   // runs with the user's own session: access rules still apply
+      if (p.kind === 'install') { await rpc({ method: 'install_module', args: [String(p.values?.module ?? '')] }); upd({ state: 'applied' }); setTimeout(() => location.reload(), 800); return }   // new menus appear after a reload
       if (p.kind === 'create') await call(p.model, 'create', [p.values ?? {}]); else if (p.kind === 'write') await call(p.model, 'write', [p.ids ?? [], p.values ?? {}]); else await call(p.model, p.method ?? '', [p.ids ?? []])
       upd({ state: 'applied' })
     } catch (e) { upd({ state: 'error', error: (e as Error).message }) }
   }
 
-  if (!open) return <button className="btn p fab" onClick={() => setOpen(true)} title="Ctrl/⌘ + /">✦ {t('nav.ai')}</button>
+  if (!open) return <button className="btn p fab" onClick={() => setOpen(true)} title="Ctrl/⌘ + /"><Icon name="sparkles" size="var(--icon-md)" /> {t('nav.ai')}</button>
   const sugg = [t('ai.suggest1'), t('ai.suggest2'), t('ai.suggest3')]
   return (
     <aside className="drawer" role="dialog" aria-label={t('ai.title')}>
-      <div className="drawer-head"><b>✦ {t('ai.title')}</b><span className="grow" /><button className="btn" onClick={() => { setMsgs([]); setReady(null) }}>{t('ai.clear')}</button><button className="btn" onClick={() => setOpen(false)} aria-label={t('common.close')}>✕</button></div>
+      <div className="drawer-head"><b><Icon name="sparkles" size="var(--icon-md)" /> {t('ai.title')}</b><span className="grow" /><button className="btn" onClick={() => { setMsgs([]); setReady(null) }}>{t('ai.clear')}</button><button className="btn" onClick={() => setOpen(false)} aria-label={t('common.close')}><Icon name="x" size="var(--icon-md)" /></button></div>
       <div className="drawer-msgs">
         {ready === false && <div className="err">{t('ai.not_configured')} <Link href="/settings/#ai" onClick={() => setOpen(false)}>{t('ai.open_settings')}</Link></div>}
         {msgs.length === 0 && ready !== false && <div style={{ display: 'grid', gap: 6 }}>{sugg.map((s) => <button key={s} className="btn" style={{ textAlign: 'start' }} onClick={() => send(s)}>{s}</button>)}<p className="hint">{t('ai.untrusted')}</p></div>}
         {msgs.map((m, i) => (
           <div key={i} className={`msg ${m.role === 'user' ? 'user' : 'bot'}`} style={m.error ? { borderColor: 'var(--err)', color: 'var(--err)' } : undefined}>
             {m.role === 'user' ? m.content : <Markdown text={m.content} />}
-            {m.trace && m.trace.length > 0 && <div className="muted" style={{ fontSize: 11, marginTop: 6 }}>{t('ai.tools_used')}: {m.trace.map((x, j) => <span key={j} className="pill" style={{ marginInlineEnd: 4 }} title={x.error ?? ''}>{x.tool}{x.ok ? '' : ' ✕'}</span>)}</div>}
+            {m.trace && m.trace.length > 0 && <div className="muted" style={{ fontSize: 11, marginTop: 6 }}>{t('ai.tools_used')}: {m.trace.map((x, j) => <span key={j} className="pill" style={{ marginInlineEnd: 4 }} title={x.error ?? ''}>{x.tool}{x.ok ? null : <> <Icon name="x" size="var(--icon-sm)" /></>}</span>)}</div>}
             {m.proposals?.map((p, j) => (
               <div key={p.id} className="prop">
                 <b>{t('ai.proposed')}</b>: {p.summary}
