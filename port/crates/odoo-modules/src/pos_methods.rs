@@ -12,7 +12,7 @@ use odoo_core::{Domain, OdooError, Result, Row, Rules, Value};
 
 pub fn rules() -> Rules {
     config_rules().merge(payment_method_rules()).merge(payment_rules())
-        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules())
+        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules())
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

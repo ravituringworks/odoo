@@ -11,6 +11,7 @@ pub mod pos_hw;
 pub mod pos_kiosk;
 pub mod pos_loyalty;
 pub mod pos_methods;
+pub mod pos_misc_methods;
 pub mod pos_order_methods;
 pub mod pos_session_methods;
 pub mod pos_post;
