@@ -33,7 +33,7 @@ export function AiPanel() {
     const q = text.trim(); if (!q || busy) return
     const next: Msg[] = [...msgs, { role: 'user', content: q }]; setMsgs(next); setInput(''); setBusy(true)
     try {
-      const r = await rpc<{ reply: string; trace: Trace[]; proposals: Proposal[] }>({ method: 'ai_chat', args: [next.slice(-20).map(({ role, content }) => ({ role, content }))], kwargs: { context: screenContext() } })
+      const r = await rpc<{ reply: string; trace: Trace[]; proposals: Proposal[] }>({ method: 'ai_chat', args: [next.slice(-20).map(({ role, content, proposals }) => ({ role, content: proposals?.length ? `${content}\n\n[Approval cards shown to the user under this reply: ${proposals.map((p) => `${p.summary} — ${p.state ?? 'waiting for approval'}`).join('; ')}]` : content }))], kwargs: { context: screenContext() } })
       setMsgs([...next, { role: 'assistant', content: r.reply, trace: r.trace, proposals: r.proposals }])
     } catch (e) { setMsgs([...next, { role: 'assistant', content: (e as Error).message, error: true }]) } finally { setBusy(false) }
   }, [msgs, busy])
