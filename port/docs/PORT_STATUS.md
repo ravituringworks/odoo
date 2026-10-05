@@ -40,7 +40,7 @@ only the sale/purchase/account/stock/crm/hr/project ones listed above and `res.p
 ## NOT ported (known gaps)
 - ~20712 Python methods: only the flows above are ported. Everything else returns `method ... is not ported yet`.
 - Computed stored fields without a registered compute use neutral fallbacks (0 / first selection) instead of Odoo's real logic.
-- Field-level `groups`, record-rule expressions beyond the textual subset (those fail closed).
+- Field-level `groups`, record-rule expressions beyond the textual subset (those fail closed). Multi-company switching exists (see FEATURES) but unauthenticated dev-mode requests are not company-scoped and `parent_of` is a plain match.
 - Password reset, 2FA, API keys, OAuth, session expiry.
 - XML view architectures (`ir.ui.view`): the UI generates generic views from field metadata instead; no QWeb, reports (PDF), website/portal, mail/chatter, discuss, calendar, onchange, wizards, scheduled actions, i18n, localizations (`l10n_*`), POS, MRP, payment providers, EDI.
 - PostgreSQL/MySQL/orbit-rs drivers are unverified against real servers (none available here).
@@ -79,3 +79,4 @@ only the sale/purchase/account/stock/crm/hr/project ones listed above and `res.p
 DuckDB: invalid many2one list values; one2many with delegated inverse. PostgreSQL: `DEFAULT FALSE` on integer columns, date types,
 models sharing a physical table, custom `_table` names, lock-table limits on one huge DDL transaction. Browser: wrong ambient defaults,
 `_id` labels, computed fields editable, unresolved selection constants / `selection_add`, related fields not searchable.
+`_inherits` create: a model delegating to a parent (e.g. `website.controller.page` -> `ir.ui.view`) now creates the parent even when only the child's own fields were given, copying the parent's required fields (such as a redefined `name`) from the child; previously it failed with "missing required field `view_id`". Form UI: restricted nodes (`groups="base.group_no_one"`, multi-website) are hidden, and a many2one's typed text reverts unless it resolves to exactly one record. Assistant: it looped on `list_models`/`describe_model` until the tool budget ended; fixed with `setup_guide`, repeat-call suppression and a tool-less wrap-up call.

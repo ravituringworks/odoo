@@ -13,6 +13,11 @@ tools/*.py ──► schema/*.json, data/*.json   (Odoo source -> declarative me
       └── src-tauri    (invoke("rpc"))        ◄── same web/out bundled in the desktop app
 ```
 
+## `odoo-app` modules
+`lib.rs` (dispatch, tenants, install), `security.rs` (sessions with active/allowed companies, ACL, record rules), `trial.rs` + `portal.rs` (signup, customer portal), `admin.rs` (database console: backup/restore/archive/delete, per-account app rules),
+`ai.rs` + `ai_guides.rs` (assistant loop, providers, setup guides), `email.rs`, `terminal.rs`/`epos.rs` (POS hardware), `i18n.rs`. Tenants are separate `App`s (one SQLite file each) opened lazily; the main `App` owns the registry in `odoo_trials`.
+The `Store` port has an optional `snapshot(dest)` used for backups (SQLite implements it).
+
 ## Functional-style decisions
 - No inheritance or global registry mutation: `Registry` is built by folding module data; `Rules` is an immutable map of
   function pointers composed with `merge`; ORM operations are free functions of an immutable `Env`.

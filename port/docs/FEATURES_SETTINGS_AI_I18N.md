@@ -19,6 +19,20 @@ Translations, Technical menus). Odoo's own "Settings"/"Apps" roots are merged in
 ## Design system
 `web/app/vibe-tokens.css` and `web/lib/vibe/themes.ts` are imported from VibeCody (MIT, same author). Odoo-RS styles alias the tokens, so a theme change restyles everything.
 
+**Iconography.** No emoji or pictographic glyphs anywhere in the UI: every icon is a thin line SVG (`web/components/Icon.tsx`, paths in `web/lib/icons.ts`;
+24px grid, round caps, stroke from `--icon-stroke` = 1.5, sizes from `--icon-xs … --icon-xl`, colour from `currentColor`). `lib/icons.ts` also maps every trial-catalog
+app, industry segment and portal site to an icon. The icon paths are hand-drawn in Lucide's style (no icon package is installed). `web/lib/icons.test.ts` fails the build
+if an emoji/pictograph/arrow glyph reappears in `app/`, `components/` or `lib/` (the ⌘ in a shortcut label and the two POS keypad key values are the only exceptions).
+New icons: add the paths to `ICONS` and run the contact-sheet check in the test.
+
+## Multi-company
+A session works in one **active company** and a set of **allowed companies** (sessions are in memory: `Session { uid, company_id, allowed }`). A login starts in the user's own company only.
+- RPC: `companies` (the user's companies plus the session's current/allowed) and `switch_company [ids]` (first id = active; every id must be one of the user's `company_ids`; an empty or foreign list is refused and changes nothing).
+- Record rules: `company_ids`, `user.company_id` and `company_id` in `ir.rule` domains are evaluated against the session (`security::eval_domain_in`); the environment carries `company_id` and `allowed_company_ids` in its context (`RecordRules::domain_ctx`). New records default their `res.company` many2one to the active company.
+- The superuser skips ordinary rules but is still scoped by global company rules, which is what makes switching visible for a trial administrator.
+- UI: a sidebar switcher (`Shell.tsx`) appears for users with 2+ companies; ticking toggles visibility, clicking a name makes it active.
+- Limits: requests with no session token (no-auth/Tauri dev mode) are not company-scoped; `parent_of` is evaluated as a plain match.
+
 ## Languages
 UI strings: 11 locales (en, es, fr, de, pt, it, ru, hi, ar [RTL], zh, ja) in `web/lib/i18n`. Data: `tools/extract_i18n.py` builds
 `i18n/<lang>.json` from Odoo's `.po` files (~18k field labels, 3k selection values, 790 menus, 4.5k view strings per language); the server
@@ -27,8 +41,11 @@ applies them to `fields_get`, `menus` and `get_view` per request language. Gaps:
 ## AI assistant
 Drawer (Ctrl/⌘+/). **Default provider: Poolside AI** (`https://inference.poolside.ai/v1`, model `poolside/laguna-s-2.1` — ids must be fully qualified).
 Providers: Poolside, Ollama, LM Studio, vLLM, Anthropic, OpenAI, Gemini, Groq, xAI, Mistral, DeepSeek, Cerebras, Together,
-Fireworks, OpenRouter, custom OpenAI-compatible. Tools (read-only): list_models, describe_model, search_read, count, read_group; they run
+Fireworks, OpenRouter, custom OpenAI-compatible. Tools (read-only): setup_guide, list_models, describe_model, search_read, count, read_group; they run
 through `dispatch` with the caller's session, so ACL and record rules apply. Writes are only *proposed* and need an explicit Approve click.
+**How-to questions** ("set up an online store for Australia") use `setup_guide` (`crates/odoo-app/src/ai_guides.rs`): guides for ecommerce, pos, sales, inventory, accounting, crm, manufacturing and project return an ordered plan whose steps are
+checked against the caller's real data (module installed, company country/currency, products/payment providers/delivery methods exist …), plus per-country notes (AU, NZ, GB, US, CA, DE, FR, IN: currency, tax, `l10n_*` module, shipping/payment hints).
+`propose_action` also accepts `kind: "install"` (`values: {module}`); approving it runs `install_module` (admin only) and reloads. Loop guards: identical repeated tool calls are not re-run, `list_models` matches any keyword (with business-word synonyms), and when the 6-round tool budget is used up the model gets one tool-less call to answer from what it gathered (the old "tool-call limit" failure only remains as a last-resort fallback).
 Tool output is treated as untrusted; client-supplied system/tool messages are dropped. API keys are stored in `odoo_settings`
 (plaintext in the database; env `ODOO_AI_API_KEY` overrides) and are never returned by the API. Small local models can misread data:
 review answers before acting.
@@ -49,6 +66,13 @@ settings once, by a throwaway program that opens that store through VibeCody's o
 equivalent import, or paste the key in Settings → AI. The key lives in `odoo_settings` inside the app database (plaintext at rest, as documented
 above), so the dev database is gitignored; set `ODOO_AI_API_KEY` to keep the key out of the database entirely.
 
+## Industry and app landing pages (`/industries`, `/app`)
+Public pages (no login) modelled on odoo.com/all-industries. `/industries/` lists 105 industries in 11 segments (searchable); `/industries/<slug>/` shows the audience, key attributes, the segment's
+workflow and strengths, the apps it bundles (each with its top features) and related industries; `/app/` and `/app/<slug>/` do the same for the 45 catalog apps (features, attributes, "popular in"
+industries; Enterprise-only apps are marked and have no trial button). Content lives in `web/lib/apps.ts` and `web/lib/industries.ts` (the industry→apps bundles are this port's own choices, not Odoo's);
+landing copy is English only. Buttons go to `/trial/?industry=<slug>` or `/trial/?app=<slug>`, which preselects the available apps (`preselect` in `lib/trial.ts`) and says "Configured for …".
+`lib/industries.test.ts` checks the app list against the server's trial catalog in `trial.rs`.
+
 ## Free-trial signup (`/trial`)
 Public page modelled on odoo.com/trial: *Choose your Apps* (45 cards in Odoo's categories; the 28 that exist in this edition are selectable,
 Enterprise-only ones are shown greyed), then a signup form (name, work email, phone, company, country, password, terms), then provisioning and
@@ -57,10 +81,23 @@ is that database's administrator; the main database is never touched and a trial
 Server flags: `--trials true|false` (default true), `--trials-dir trials`, `--trials-max 25`, `--trials-days 15`.
 Public RPCs: `trial_catalog`, `trial_create`; every other request routes to a trial via `db`.
 Controls: server-side validation of every field and app, one trial per email, capacity cap, 10 signups/minute, trials expire after `--trials-days`,
-database names are validated (`trial-<16 hex>`, no path escape), trial databases never use the operator's `ODOO_AI_API_KEY`.
+database names are validated (`trial-<16 hex>` for trials, a restricted `a-z0-9_` name for administrator-created databases; no path escape), trial databases never use the operator's `ODOO_AI_API_KEY`.
 A localized welcome email is sent through the operator's configured email provider (best effort; signup never fails because of it).
 **Not included (needed before exposing this publicly):** email *verification* (a confirmation link before activation), CAPTCHA or per-IP rate limiting
-(the limit is global), real terms/privacy pages (the checkbox has no link), tenant resource quotas beyond the count cap, and backups of trial data.
+(the limit is global), real terms/privacy pages (the checkbox has no link), and tenant resource quotas beyond the count cap. (Backups, archiving and per-account app rules are in the admin console below.)
+
+## Admin console: databases and account app rules (`/admin/databases`)
+Admin only (uid 1 or `base.group_system` on the **main** database; trial tenants and anonymous callers are refused). Shows the main database, every trial and every
+administrator-created ("standard") database with owner, apps, size, days until expiry and backup count; filter by type/status and search.
+- **Backup**: a consistent SQLite snapshot (`Store::snapshot`, `VACUUM INTO`) in `<trials dir>/backups/<db>__<yyyymmdd>-<hhmmss>-<hex>.sqlite`; works for the main database and archived ones. List and delete backups per database.
+- **Restore** (trials and standard databases): needs the database name typed; takes a safety backup first, swaps the file, ends all sessions on that database, and puts the old file back if the restored one does not open. Backup file names are matched against the database's own list (no path input).
+- **Archive / unarchive**: closes the database and refuses all access (portal Open too) while keeping the data; archived trials never expire.
+- **Delete**: name typed to confirm; removes the database's backups unless "keep its backups" is ticked.
+- **Open**: signs the admin into any database as its administrator (the console session is stashed; "← Back to admin" returns).
+- **New (non-trial) database**: `admin_db_create {name?, email?, company, apps}`: permanent, not counted against the trial cap; the owner (optional) must be an existing portal account.
+- **Per-account app rules**: each portal account has a list of disallowed catalog apps (`odoo_portal_users.disallowed`). Disallowed apps cannot be provisioned for that account and cannot be installed later into any of its databases (also blocked as a dependency); applied immediately to open databases. A module still needed by an allowed app stays available (e.g. blocking Invoicing but not Accounting). Already-installed apps are not removed.
+- Registry: `odoo_trials` gained `kind` (trial|standard) and `status` (active|archived); RPCs are `admin_db_list|backup|backups|backup_delete|restore|archive|delete|open|create` and `admin_account_list|set_apps`.
+- Limits: the **main** database can be backed up but not restored/archived/deleted while the server runs; backups are SQLite-only (other engines answer with an error); no scheduled or off-site backups; the portal list does not yet mark archived databases.
 
 ## Email (Settings → Email)
 Providers: **SendGrid, Mailgun, Postmark, Resend, Brevo** (HTTP APIs) and **SMTP** (Gmail, Office 365, Amazon SES, any server; starttls/ssl/none).
@@ -80,7 +117,7 @@ Not included: attachments, bounce/webhook handling, DKIM/SPF guidance, per-user 
 Modeled on odoo.com/my. A trial signup now creates a **portal account** (`odoo_portal_users`) and lands on `/my/?new=<db>`.
 
 - Pages: `/my` (app tiles, contact card, "Your database is ready!" banner), `/my/databases` (list, Open, two-step Delete, create another), `/my/security` (change password), `/my/details` (edit name/company/phone/country).
-- RPC: `portal_login|me|logout|update|change_password|open|delete|new_trial`. Portal sessions are separate from tenant sessions (12h TTL).
+- RPC: `portal_login|me|logout|update|change_password|open|delete|new_trial` (Open is refused for archived databases; app rules set in the admin console apply to "new database"). Portal sessions are separate from tenant sessions (12h TTL).
 - Ownership: Open/Delete only work on databases the account owns. Open mints a tenant admin session for the owner.
 - Limits: max 3 databases per account; 5 failed logins / 5 min throttle; no account enumeration (unknown email takes the same path and error as a wrong password).
 - Account outlives expired trials (purge removes only the database).
