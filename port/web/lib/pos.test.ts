@@ -69,4 +69,7 @@ let tl = reduce(emptyCart(), { t: 'add', product: ph }); assert.ok(lotsMissing(t
 tl = reduce(tl, { t: 'lots', key: tl.lines[0].key, lots: ['S1'] }); assert.ok(!lotsMissing(tl.lines[0]))
 tl = reduce(tl, { t: 'qty', key: tl.lines[0].key, qty: 2 }); assert.ok(lotsMissing(tl.lines[0]))
 assert.ok(lotsMissing({ key: 'k', product: { ...ph, tracking: 'lot' }, qty: 3, price: 1, discount: 0 })); assert.ok(!lotsMissing({ key: 'k', product: ph, qty: -1, price: 1, discount: 0 }))   // returns need no serials
+// foreign-currency pricelist: list prices convert, fixed rules are already in that currency
+const eur = { id: 9, name: 'EUR', rate: 0.5, currency: { name: 'EUR', symbol: '€' }, items: [{ applied_on: '0_product_variant', compute_price: 'fixed', fixed_price: 33, percent_price: 0, fixed: 0, min_quantity: 0, product_tmpl_id: false, product_id: [2, 'Lamp'], categ_id: false }] } as unknown as Parameters<typeof priceFor>[2]
+assert.equal(priceFor(desk, 1, eur), 50); assert.equal(priceFor(lamp, 1, eur), 33)
 console.log('pos ok')

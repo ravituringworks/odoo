@@ -12,6 +12,8 @@ pub mod pos_kiosk;
 pub mod pos_loyalty;
 pub mod pos_post;
 pub mod pos_restaurant;
+pub mod pos_shop;
+pub mod pos_ubl;
 pub mod purchase;
 pub mod sale;
 pub mod stock;

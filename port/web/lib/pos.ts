@@ -1,7 +1,7 @@
 // Point of Sale: pure cart / pricing / payment logic (no I/O). The server recomputes everything on `create_from_ui`.
 export type Tax = { id: number; name?: string; amount: number; amount_type: string; price_include: boolean }
 export type PricelistItem = { applied_on: string; compute_price: string; fixed_price: number; percent_price: number; min_quantity: number; product_tmpl_id: unknown; product_id: unknown; categ_id: unknown }
-export type Pricelist = { id: number; name: string; items: PricelistItem[] }
+export type Pricelist = { id: number; name: string; items: PricelistItem[]; rate?: number; currency?: { name: string; symbol: string; rounding?: number } | null }
 export type Product = { id: number; name: string; price: number; code?: string | null; barcode?: string | null; tax_ids: number[]; category_ids: number[]; categ_chain?: number[]; to_weight?: boolean; type?: string; tracking?: 'none' | 'lot' | 'serial'; combo?: ComboGroup[] }
 export type ComboItem = { id: number; product_id: number; name: string; extra: number; tax_ids: number[] }
 export type ComboGroup = { id: number; name: string; items: ComboItem[] }
@@ -31,6 +31,7 @@ const rank: Record<string, number> = { '0_product_variant': 0, '1_product': 1, '
 /** Best pricelist price for `qty` units: most specific matching rule wins; falls back to the list price. */
 export function priceFor(p: Product, qty: number, pl?: Pricelist | null): number {
   if (!pl) return p.price
+  const base = pl.rate && pl.rate !== 1 ? r2(p.price * pl.rate) : p.price           // list prices are in company currency; foreign pricelists convert
   const hit = pl.items
     .filter((i) => qty >= (i.min_quantity || 0) && (
       i.applied_on === '3_global' ||
@@ -38,10 +39,10 @@ export function priceFor(p: Product, qty: number, pl?: Pricelist | null): number
       (i.applied_on === '1_product' && refId(i.product_tmpl_id) !== null && refId(i.product_tmpl_id) === (p as { tmpl?: number }).tmpl) ||
       (i.applied_on === '2_product_category' && p.category_ids.includes(refId(i.categ_id) ?? -1))))
     .sort((a, b) => (rank[a.applied_on] ?? 9) - (rank[b.applied_on] ?? 9) || (b.min_quantity || 0) - (a.min_quantity || 0))[0]
-  if (!hit) return p.price
+  if (!hit) return base
   if (hit.compute_price === 'fixed') return hit.fixed_price
-  if (hit.compute_price === 'percentage') return r2(p.price * (1 - hit.percent_price / 100))
-  return p.price
+  if (hit.compute_price === 'percentage') return r2(base * (1 - hit.percent_price / 100))
+  return base
 }
 
 export const lineTotals = (l: Line, taxes: Map<number, Tax>) => computeTax(l.qty, l.price, l.discount, l.product.tax_ids.map((i) => taxes.get(i)).filter((t): t is Tax => !!t))
@@ -93,7 +94,7 @@ export function reduce(c: Cart, a: Act): Cart {
     case 'discount': return upd(a.key, (l) => ({ ...l, discount: Math.min(100, Math.max(0, a.pct)) }))
     case 'order_discount': return { ...c, lines: c.lines.map((l) => ({ ...l, discount: Math.min(100, Math.max(0, a.pct)) })) }
     case 'note': return upd(a.key, (l) => ({ ...l, note: a.note }))
-    case 'remove': return { ...c, lines: c.lines.filter((l) => l.key !== a.key && l.combo?.parent !== a.key && !(l.key === a.key)) .filter((l) => !(c.lines.find((x) => x.key === a.key)?.combo)) }
+    case 'remove': { const l = c.lines.find((x) => x.key === a.key); if (!l || l.combo) return c; return { ...c, lines: c.lines.filter((x) => x.key !== a.key && x.combo?.parent !== a.key) } }   // a combo item goes with its combo
     case 'partner': return { ...c, partner: a.partner, claims: (c.claims ?? []).filter((x) => x.cardId == null) }   // a card belongs to the customer: drop card claims on change
     case 'meta': return { ...c, ...a.meta }
     case 'move': return { ...c, lines: c.lines.filter((l) => !a.keys.includes(l.key)) }

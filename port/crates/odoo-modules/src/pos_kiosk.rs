@@ -15,14 +15,14 @@ fn fresh_token() -> String {
 fn ct_eq(a: &str, b: &str) -> bool { a.len() == b.len() && a.bytes().zip(b.bytes()).fold(0u8, |d, (x, y)| d | (x ^ y)) == 0 }
 
 /// The register, if the token is right and self-ordering is switched on.
-fn gate(env: &Env, config: i64, kw: &Row) -> Result<Row> {
+pub(crate) fn gate(env: &Env, config: i64, kw: &Row) -> Result<Row> {
     let cfg = rec(env, "pos.config", config).map_err(|_| OdooError::User("Unknown register".into()))?;
     let mode = text(&cfg, "self_ordering_mode").unwrap_or_default();
     let tok = text(&cfg, "access_token").unwrap_or_default();
     if tok.is_empty() || !ct_eq(&tok, &text(kw, "access_token").unwrap_or_default()) || !matches!(mode.as_str(), "mobile" | "kiosk" | "consultation") { return Err(OdooError::User("Self-ordering is not available".into())); }
     Ok(cfg)
 }
-fn open_session(env: &Env, config: i64) -> Result<i64> {
+pub(crate) fn open_session(env: &Env, config: i64) -> Result<i64> {
     find_one(env, "pos.session", Domain::And(vec![term("config_id", "=", config), term("state", "=", "opened")]))?.ok_or_else(|| OdooError::User("We are closed right now — please see the staff.".into()))
 }
 

@@ -15,3 +15,16 @@ export function formatDate(iso: string, lang: string): string {
   const d = new Date(iso.replace(' ', 'T') + 'Z'); if (isNaN(d.getTime())) return iso.slice(0, 10)
   try { return d.toLocaleDateString(lang, { year: 'numeric', month: 'short', day: 'numeric' }) } catch { return iso.slice(0, 10) }
 }
+
+/** Navigable sites a database offers, derived from its apps. `app: null` = always available. */
+export type Site = { key: string; icon: string; name: string; desc: string; to: string; app: string | null }
+export const SITES: Site[] = [
+  { key: 'backoffice', icon: '🏢', name: 'Back office', desc: 'All your apps and menus', to: '/', app: null },
+  { key: 'shop', icon: '🛍️', name: 'Online shop', desc: 'Storefront with cart, checkout and order tracking', to: '/shop/', app: 'eCommerce' },
+  { key: 'pos', icon: '🧾', name: 'Point of Sale', desc: 'Cash register terminal', to: '/pos/', app: 'Point of Sale' },
+  { key: 'orders', icon: '💰', name: 'Sales orders', desc: 'Quotations, online orders and fulfilment', to: '/list/?model=sale.order&title=Sales%20orders', app: 'Sales' },
+  { key: 'campaigns', icon: '📣', name: 'Campaigns', desc: 'Social and email campaigns with tracked links', to: '/list/?model=utm.campaign&title=Campaigns', app: 'Email Marketing' },
+  { key: 'mailings', icon: '✉️', name: 'Mailings', desc: 'Mass mailings and mailing lists', to: '/list/?model=mailing.mailing&title=Mailings', app: 'Email Marketing' },
+  { key: 'stock', icon: '📦', name: 'Deliveries', desc: 'Pickings and stock moves', to: '/list/?model=stock.picking&title=Deliveries', app: 'Inventory' },
+]
+export const sitesFor = (apps: string[]): Site[] => SITES.filter((s) => s.app === null || apps.includes(s.app))

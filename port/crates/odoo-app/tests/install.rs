@@ -980,3 +980,75 @@ fn pos_requires_serials_and_lots_and_prices_combos_server_side() {
     assert_eq!(ls.as_array().unwrap().iter().filter(|l| !l["combo_parent_id"].is_boolean() && !l["combo_parent_id"].is_null()).count(), 2, "{ls}");
     assert!(combo(json!([{"uuid": "q", "combo_parent": "ghost", "combo_item_id": salad_i}])).unwrap_err().contains("without its combo"));
 }
+
+/// Minimal XML well-formedness: every tag opened is closed in order.
+fn xml_balanced(x: &str) -> bool {
+    let mut stack: Vec<String> = vec![]; let mut rest = x;
+    while let Some(i) = rest.find('<') {
+        let j = match rest[i..].find('>') { Some(j) => i + j, None => return false };
+        let tag = &rest[i + 1..j]; rest = &rest[j + 1..];
+        if tag.starts_with('?') || tag.starts_with('!') { continue; }
+        if let Some(name) = tag.strip_prefix('/') { if stack.pop().as_deref() != Some(name.trim()) { return false; } }
+        else if !tag.ends_with('/') { stack.push(tag.split_whitespace().next().unwrap().to_string()); }
+    }
+    stack.is_empty()
+}
+
+#[test]
+fn pos_exports_invoiced_orders_as_ubl_e_invoices_and_refunds_as_credit_notes() {
+    let a = app(&["point_of_sale", "account"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let tax = mk("account.tax", json!({"name": "VAT 20%", "amount": 20.0, "amount_type": "percent", "type_tax_use": "sale"}));
+    let prod = mk("product.product", json!({"name": "Desk & Chair <set>", "list_price": 50.0, "type": "consu", "available_in_pos": true}));
+    let t = call(&a, "read", "product.product", vec![json!([prod]), json!(["product_tmpl_id"])]).unwrap()[0]["product_tmpl_id"].clone();
+    call(&a, "write", "product.template", vec![json!([if t.is_array() { t[0].clone() } else { t }]), json!({"taxes_id": [[6, 0, [tax]]]})]).unwrap();
+    let partner = mk("res.partner", json!({"name": "Azure & Co", "vat": "BE0123456789", "street": "1 Main St", "city": "Brussels", "zip": "1000"}));
+    let cfg = mk("pos.config", json!({"name": "Shop"})); let o = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap(); let sid = o["session"]["id"].as_i64().unwrap();
+    let bank = o["payment_methods"].as_array().unwrap().iter().find(|m| m["kind"] == "bank").unwrap()["id"].clone();
+    let order = k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "uuid": "u1", "partner_id": partner, "to_invoice": true, "lines": [{"product_id": prod, "qty": 2}], "payments": [{"payment_method_id": bank, "amount": 120.0}]})).unwrap();
+    let x = k("pos.order", "ubl", json!([order["id"]]), json!({})).unwrap(); let x = x.as_str().unwrap();
+    assert!(xml_balanced(x), "{x}");
+    for needle in ["<Invoice ", "<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>", "Desk &amp; Chair &lt;set&gt;", "Azure &amp; Co", "BE0123456789", "<cbc:Percent>20.00</cbc:Percent>",
+        "<cbc:LineExtensionAmount currencyID=\"USD\">100.00</cbc:LineExtensionAmount>", "<cbc:TaxInclusiveAmount currencyID=\"USD\">120.00</cbc:TaxInclusiveAmount>", "<cbc:TaxAmount currencyID=\"USD\">20.00</cbc:TaxAmount>", "<cbc:InvoicedQuantity unitCode=\"C62\">2</cbc:InvoicedQuantity>", "<cbc:PriceAmount currencyID=\"USD\">50.00</cbc:PriceAmount>"] { assert!(x.contains(needle), "missing {needle}\n{x}"); }
+    // refund → credit note with positive amounts
+    let r = k("pos.order", "refund", json!([order["id"]]), json!({"session_id": sid})).unwrap();
+    let c = k("pos.order", "ubl", json!([r["id"]]), json!({})).unwrap(); let c = c.as_str().unwrap(); assert!(xml_balanced(c));
+    assert!(c.contains("<CreditNote ") && c.contains("<cbc:CreditNoteTypeCode>381") && c.contains("<cbc:PayableAmount currencyID=\"USD\">120.00") && c.contains("<cbc:CreditedQuantity unitCode=\"C62\">2"), "{c}");
+    // no customer → no e-invoice
+    let anon = k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "uuid": "u2", "lines": [{"product_id": prod, "qty": 1}], "payments": [{"payment_method_id": bank, "amount": 60.0}]})).unwrap();
+    assert!(k("pos.order", "ubl", json!([anon["id"]]), json!({})).unwrap_err().contains("customer"));
+}
+
+#[test]
+fn pos_sells_in_a_pricelist_currency_and_reports_in_company_currency() {
+    let a = app(&["point_of_sale", "account"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let today = a.dispatch(serde_json::from_value::<Request>(json!({"method": "search_read", "model": "res.currency", "args": [[["name", "=", "USD"]], ["id"]]})).unwrap()).unwrap();
+    assert!(today.as_array().map_or(false, |l| !l.is_empty()), "company currency USD exists");
+    let eur = mk("res.currency", json!({"name": "EUR", "symbol": "€", "rounding": 0.01})); let gbp = mk("res.currency", json!({"name": "GBP", "symbol": "£", "rounding": 0.01}));
+    mk("res.currency.rate", json!({"currency_id": eur, "name": "2000-01-01", "rate": 0.5}));
+    let pl_eur = mk("product.pricelist", json!({"name": "Euro", "currency_id": eur})); let pl_gbp = mk("product.pricelist", json!({"name": "Pound", "currency_id": gbp}));
+    let prod = mk("product.product", json!({"name": "Desk", "list_price": 100.0, "type": "consu", "available_in_pos": true}));
+    let cfg = mk("pos.config", json!({"name": "Shop", "use_pricelist": true, "restrict_price_control": true, "available_pricelist_ids": [[6, 0, [pl_eur, pl_gbp]]]}));
+    let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap(); let sid = t["session"]["id"].as_i64().unwrap();
+    let pls = t["pricelists"].as_array().unwrap(); let e = pls.iter().find(|p| p["name"] == "Euro").unwrap();
+    assert_eq!((e["rate"].as_f64(), e["currency"]["name"].as_str()), (Some(0.5), Some("EUR")));
+    let bank = t["payment_methods"].as_array().unwrap().iter().find(|m| m["kind"] == "bank").unwrap()["id"].clone();
+    let sell = |uuid: &str, pl: &serde_json::Value, pay: f64| k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "uuid": uuid, "pricelist_id": pl, "lines": [{"product_id": prod, "qty": 1, "price_unit": 100.0}], "payments": [{"payment_method_id": bank, "amount": pay}]}));
+    // price control on: the server converts the list price itself (100 USD → 50 EUR), whatever the client sends
+    assert!(sell("e1", &json!(pl_eur), 100.0).unwrap_err().contains("Only cash"), "100 USD is not what is due: the order is 50 EUR");
+    let o = sell("e2", &json!(pl_eur), 50.0).unwrap(); assert_eq!(o["amount_total"].as_f64(), Some(50.0));
+    assert_eq!(call(&a, "read", "pos.order", vec![json!([o["id"]]), json!(["currency_rate"])]).unwrap()[0]["currency_rate"].as_f64(), Some(0.5));
+    // no rate on file → refuse rather than guess
+    assert!(sell("g1", &json!(pl_gbp), 100.0).unwrap_err().contains("No exchange rate"));
+    // reports and the closing entry are in company currency: 50 EUR at 0.5 = 100 USD
+    let rep = k("pos.config", "sales_report", json!([]), json!({"days": 36500})).unwrap(); assert_eq!(rep["total"].as_f64(), Some(100.0));
+    let sm = k("pos.session", "summary", json!([sid]), json!({})).unwrap(); assert_eq!(sm["total"].as_f64(), Some(100.0));
+    let c = k("pos.session", "close_session", json!([sid]), json!({})).unwrap(); assert_eq!(c["state"], "closed");
+    let mv = call(&a, "read", "pos.session", vec![json!([sid]), json!(["move_id"])]).unwrap()[0]["move_id"].clone(); let mv = if mv.is_array() { mv[0].clone() } else { mv };
+    let ls = call(&a, "search_read", "account.move.line", vec![json!([["move_id", "=", mv]]), json!(["debit", "credit"])]).unwrap();
+    let (d, cr): (f64, f64) = ls.as_array().unwrap().iter().fold((0.0, 0.0), |(d, c), l| (d + l["debit"].as_f64().unwrap(), c + l["credit"].as_f64().unwrap()));
+    assert_eq!((d, cr), (100.0, 100.0));
+}

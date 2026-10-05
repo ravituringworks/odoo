@@ -53,12 +53,13 @@ pub fn close_entry(env: &Env, session: i64, cash_difference: f64) -> Result<Opti
     let mut by_method: BTreeMap<(String, &'static str), f64> = BTreeMap::new();
     for o in children(&e, "pos.order", "session_id", session)? {
         let oid = o["id"].as_i64().unwrap();
-        let (total, t) = (num(&o, "amount_total"), num(&o, "amount_tax"));
+        let rate = crate::pos::rate_of(&o);   // foreign-currency orders are booked in company currency at the rate they were made at
+        let (total, t) = (num(&o, "amount_total") / rate, num(&o, "amount_tax") / rate);
         if flag(&o, "to_invoice") { settled += total; } else { sales += total - t; tax += t; }
         for p in children(&e, "pos.payment", "pos_order_id", oid)? {
             let m = id_of(&p, "payment_method_id").map(|m| rec(&e, "pos.payment.method", m)).transpose()?.unwrap_or_default();
             let kind = if flag(&m, "is_cash_count") { "cash" } else if flag(&m, "split_transactions") { "account" } else { "bank" };
-            *by_method.entry((text(&m, "name").unwrap_or_default(), kind)).or_default() += num(&p, "amount");
+            *by_method.entry((text(&m, "name").unwrap_or_default(), kind)).or_default() += num(&p, "amount") / rate;
         }
     }
     if by_method.is_empty() { return Ok(None); }

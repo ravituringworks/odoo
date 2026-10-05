@@ -6,6 +6,7 @@ import { Portal } from '@/components/Portal'
 import { OpenButton } from '@/components/OpenButton'
 import { useT } from '@/lib/i18n'
 import { countryOptions } from '@/lib/countries'
+import { sitesFor } from '@/lib/portal'
 
 function Home() {
   const { t, lang } = useT(); const q = useSearchParams(); const fresh = q.get('new')
@@ -19,6 +20,18 @@ function Home() {
             {created && (
               <div className="card pt-ready"><div><b>🎉 {t('portal.db_new_banner')}</b><div className="muted">{created.apps.join(', ')} · {t('portal.db_days', { n: created.days_left })}</div></div><span className="grow" /><OpenButton db={created.db} primary /></div>
             )}
+            <h2 style={{ margin: '4px 0 10px' }}>{t('portal.sites')}</h2>
+            {me.databases.length === 0 && <p className="muted">{t('portal.db_none')}</p>}
+            {me.databases.map((d) => (
+              <section key={d.db} className="card" style={{ marginBottom: 14, padding: 16 }}>
+                <b>{d.company || d.db}</b> <code className="muted">{d.db}</code>
+                <div className="pt-tiles" style={{ marginTop: 10 }}>
+                  {sitesFor(d.apps).map((s) => (
+                    <div key={s.key} className="card pt-tile"><span className="pt-ico">{s.icon}</span><div style={{ flex: 1 }}><b>{s.name}</b><div className="muted">{s.desc}</div></div><OpenButton db={d.db} to={s.to} label={t('portal.db_open')} /></div>
+                  ))}
+                </div>
+              </section>
+            ))}
             <div className="pt-cols">
               <section className="pt-tiles">
                 <Link href="/my/databases/" className="card pt-tile"><span className="pt-ico">🗄️</span><div><b>{t('portal.tile_db')} <span className="pill">{me.databases.length}</span></b><div className="muted">{t('portal.tile_db_desc')}</div></div></Link>

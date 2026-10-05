@@ -7,7 +7,7 @@ fn hide_terminal(env: &odoo_core::Env, _r: &odoo_core::Row) -> odoo_core::Result
     Ok(Value::Bool(env.reg.field("pos.payment.method", "use_payment_terminal").map_or(true, |f| f.selection_values().is_empty())))
 }
 
-pub fn rules() -> Rules { Rules::default().compute("pos.payment.method", "hide_use_payment_terminal", hide_terminal).merge(runtime_rules()).merge(crate::pos_restaurant::rules()).merge(crate::pos_kiosk::rules()).merge(crate::pos_hw::rules()) }
+pub fn rules() -> Rules { Rules::default().compute("pos.payment.method", "hide_use_payment_terminal", hide_terminal).merge(runtime_rules()).merge(crate::pos_restaurant::rules()).merge(crate::pos_kiosk::rules()).merge(crate::pos_hw::rules()).merge(crate::pos_ubl::rules()).merge(crate::pos_shop::rules()) }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Point of Sale runtime: terminal bootstrap, order capture (idempotent by uuid → offline sync), refunds, session close.
@@ -72,7 +72,9 @@ fn terminal_data(env: &Env, config: i64, session: &Row) -> Result<Value> {
     let pricelists = pl_ids.iter().map(|i| {
         let p = rec(&e, "product.pricelist", *i)?;
         let items = if e.reg.model("product.pricelist.item").is_ok() { children(&e, "product.pricelist.item", "pricelist_id", *i)?.into_iter().map(|it| pick(&it, &["applied_on", "compute_price", "fixed_price", "percent_price", "min_quantity", "product_tmpl_id", "product_id", "categ_id"])).collect() } else { vec![] };
-        Ok(map_row(vec![("id", (*i).into()), ("name", p.get("name").cloned().unwrap_or(Value::Null)), ("items", list(items))]))
+        let rate = pricelist_rate(&e, &cfg, Some(*i)).unwrap_or(1.0);
+        let cur = id_of(&p, "currency_id").and_then(|c| rec(&e, "res.currency", c).ok()).filter(|_| (rate - 1.0).abs() > 1e-12).map(|c| Value::Map(pick(&c, &["name", "symbol", "rounding"]))).unwrap_or(Value::Null);
+        Ok(map_row(vec![("id", (*i).into()), ("name", p.get("name").cloned().unwrap_or(Value::Null)), ("items", list(items)), ("currency", cur), ("rate", rate.into())]))
     }).collect::<Result<Vec<_>>>()?;
     let user = rec(&e, "res.users", env.uid.max(1)).ok();
     let cashier = user.as_ref().and_then(|u| id_of(u, "partner_id")).and_then(|p| rec(&e, "res.partner", p).ok()).and_then(|p| text(&p, "name")).unwrap_or_else(|| "Administrator".into());
@@ -103,11 +105,12 @@ fn session_summary(env: &Env, sid: i64) -> Result<Row> {
     for o in &orders { for p in children(env, "pos.payment", "pos_order_id", o["id"].as_i64().unwrap())? {
         let m = id_of(&p, "payment_method_id").map(|m| rec(env, "pos.payment.method", m)).transpose()?;
         let name = m.as_ref().and_then(|m| text(m, "name")).unwrap_or_default();
-        if m.as_ref().map_or(false, |m| flag(m, "is_cash_count")) { cash += num(&p, "amount"); }
-        let e = by.entry(name).or_insert((0.0, 0)); e.0 = r2(e.0 + num(&p, "amount")); e.1 += 1;
+        let amt = num(&p, "amount") / rate_of(o);   // company currency
+        if m.as_ref().map_or(false, |m| flag(m, "is_cash_count")) { cash += amt; }
+        let e = by.entry(name).or_insert((0.0, 0)); e.0 = r2(e.0 + amt); e.1 += 1;
     } }
-    let sales: f64 = orders.iter().map(|o| num(o, "amount_total")).sum();
-    let refunds: f64 = orders.iter().filter(|o| num(o, "amount_total") < 0.0).map(|o| num(o, "amount_total")).sum();
+    let sales: f64 = orders.iter().map(|o| num(o, "amount_total") / rate_of(o)).sum();
+    let refunds: f64 = orders.iter().filter(|o| num(o, "amount_total") < 0.0).map(|o| num(o, "amount_total") / rate_of(o)).sum();
     Ok(map_row(vec![("session_id", sid.into()), ("name", s.get("name").cloned().unwrap_or(Value::Null)), ("state", s.get("state").cloned().unwrap_or(Value::Null)),
         ("orders", (orders.len() as i64).into()), ("total", r2(sales).into()), ("refunds", r2(refunds).into()), ("opening_cash", num(&s, "cash_register_balance_start").into()),
         ("expected_cash", r2(num(&s, "cash_register_balance_start") + cash).into()),
@@ -141,10 +144,11 @@ pub fn runtime_rules() -> Rules {
             if !uuid.is_empty() { if let Some(o) = find_one(&e, "pos.order", term("uuid", "=", uuid.as_str()))? { if text(&rec(&e, "pos.order", o)?, "state").as_deref() == Some("draft") { draft = Some(o); } else { return order_view(&e, o); } } }
             let cfg = rec(&e, "pos.config", id_of(&sess, "config_id").unwrap_or(0))?;
             let (emp, role) = employee_for(&e, &cfg, kw)?;
+            let order_rate = pricelist_rate(&e, &cfg, kw.get("pricelist_id").and_then(|v| v.as_i64()))?;
             let lines = kw_list(kw, "lines"); if lines.is_empty() { return Err(OdooError::User("Add at least one product before paying".into())); }
             let refund_of = kw.get("refund_of").and_then(|v| v.as_i64());
             let is_refund = lines.iter().any(|l| as_map(l).get("refunded_orderline_id").map_or(false, |v| v.truthy()));
-            let Built { mut prepared, items, mut untaxed, tax: mut tax_sum, mut total } = build_lines(&e, &cfg, role, lines, true)?;
+            let Built { mut prepared, items, mut untaxed, tax: mut tax_sum, mut total } = build_lines(&e, &cfg, role, lines, true, order_rate)?;
             if prepared.is_empty() { return Err(OdooError::User("Add at least one product before paying".into())); }
             let partner = kw.get("partner_id").and_then(|v| v.as_i64());
             let loyalty = pos_loyalty::process(&e, id_of(&sess, "config_id").unwrap_or(0), partner, kw, &items, is_refund)?;
@@ -183,6 +187,7 @@ pub fn runtime_rules() -> Rules {
             if let Some(c) = id_of(&sess, "company_id").or_else(|| id_of(&cfg, "company_id")) { ov.insert("company_id".into(), c.into()); }
             if let Some(p) = partner { ov.insert("partner_id".into(), p.into()); }
             if let Some(p) = kw.get("pricelist_id").and_then(|v| v.as_i64()) { ov.insert("pricelist_id".into(), p.into()); }
+            ov.insert("currency_rate".into(), order_rate.into());
             if let Some((eid, ename)) = &emp { ov.insert("employee_id".into(), (*eid).into()); ov.insert("cashier".into(), ename.clone().into()); }
             ov.retain(|k, _| e.reg.field("pos.order", k).is_ok());
             for k in ["table_id", "customer_count", "takeaway"] { if let Some(v) = kw.get(k) { if e.reg.field("pos.order", k).is_ok() { ov.insert(k.into(), v.clone()); } } }
@@ -350,7 +355,7 @@ fn employees_data(env: &Env, cfg: &Row) -> Result<Value> {
 
 struct Built { prepared: Vec<Row>, items: Vec<pos_loyalty::Item>, untaxed: f64, tax: f64, total: f64 }
 /// Price the terminal's lines from product data (never trusting client totals), enforcing discount/price permissions.
-fn build_lines(e: &Env, cfg: &Row, role: Role, lines: &[Value], strict: bool) -> Result<Built> {
+fn build_lines(e: &Env, cfg: &Row, role: Role, lines: &[Value], strict: bool, rate: f64) -> Result<Built> {
     let (mut untaxed, mut tax_sum, mut total) = (0.0, 0.0, 0.0);
     let mut prepared: Vec<Row> = vec![]; let mut items: Vec<pos_loyalty::Item> = vec![];
             // combos: parent uuid → (qty, combo groups it needs, groups already chosen)
@@ -378,9 +383,10 @@ fn build_lines(e: &Env, cfg: &Row, role: Role, lines: &[Value], strict: bool) ->
                     combos.insert(text(&l, "uuid").unwrap_or_default(), (qty, need, vec![], text(&t, "name").unwrap_or_default()));
                 }
                 let is_tip = id_of(cfg, "tip_product_id") == Some(pid);   // tips are free-amount lines
-                let price = if let Some(fp) = forced_price { fp } else if text(&t, "type").as_deref() == Some("combo") { num(&t, "list_price") } else if l.contains_key("price_unit") && (is_tip || !flag(cfg, "restrict_price_control")) { num(&l, "price_unit") } else { num(&t, "list_price") };
+                let list = r2(num(&t, "list_price") * rate);   // list prices are in the company currency; the order may be in the pricelist's
+                let price = if let Some(fp) = forced_price { fp } else if text(&t, "type").as_deref() == Some("combo") { list } else if l.contains_key("price_unit") && (is_tip || !flag(cfg, "restrict_price_control")) { num(&l, "price_unit") } else { list };
                 let disc = num(&l, "discount").clamp(0.0, 100.0);
-                if role == Role::Basic && !is_tip && forced_price.is_none() && text(&t, "type").as_deref() != Some("combo") && (disc > 0.0 || (l.contains_key("price_unit") && (num(&l, "price_unit") - num(&t, "list_price")).abs() > 0.004)) { return Err(OdooError::User("Only managers can change prices or give discounts".into())); }
+                if role == Role::Basic && !is_tip && forced_price.is_none() && text(&t, "type").as_deref() != Some("combo") && (disc > 0.0 || (l.contains_key("price_unit") && (num(&l, "price_unit") - list).abs() > 0.004)) { return Err(OdooError::User("Only managers can change prices or give discounts".into())); }
                 if disc > 0.0 && !flag(cfg, "manual_discount") { return Err(OdooError::User("Manual discounts are disabled for this point of sale".into())); }
                 let tx = ids(&t, "taxes_id");
                 let (u, tt, tot) = tax::compute(qty, price, disc, &tax::load(e, &tx)?);
@@ -400,7 +406,7 @@ fn build_lines(e: &Env, cfg: &Row, role: Role, lines: &[Value], strict: bool) ->
 
 /// (priced lines, tax, total) for an unpaid table order. Rewards are not applied until payment.
 pub fn draft_lines(e: &Env, cfg: &Row, kw: &Row) -> Result<(Vec<Row>, f64, f64)> {
-    let b = build_lines(e, cfg, Role::Advanced, kw_list(kw, "lines"), false)?;
+    let b = build_lines(e, cfg, Role::Advanced, kw_list(kw, "lines"), false, pricelist_rate(e, cfg, kw.get("pricelist_id").and_then(|v| v.as_i64()))?)?;
     Ok((b.prepared, r2(b.tax), r2(b.total)))
 }
 
@@ -411,15 +417,16 @@ fn printers_data(e: &Env, cfg: &Row) -> Value {
 
 fn sales_report(e: &Env, days: i64) -> Result<Value> {
     let since = orm::shift_date(&orm::today(), -(days - 1));
-    let orders = orm::search_read(e, "pos.order", &Domain::And(vec![term("date_order", ">=", since.as_str()), term("state", "in", Value::List(vec!["paid".into(), "done".into(), "invoiced".into()]))]), &["id".into(), "config_id".into(), "amount_total".into(), "date_order".into(), "session_id".into()], Some("id"), None, 0)?;
+    let orders = orm::search_read(e, "pos.order", &Domain::And(vec![term("date_order", ">=", since.as_str()), term("state", "in", Value::List(vec!["paid".into(), "done".into(), "invoiced".into()]))]), &["id".into(), "config_id".into(), "amount_total".into(), "date_order".into(), "session_id".into(), "currency_rate".into()], Some("id"), None, 0)?;
     let mut by_cfg: BTreeMap<i64, (String, f64, i64)> = BTreeMap::new(); let mut by_hour = [0.0f64; 24]; let mut by_day: BTreeMap<String, f64> = BTreeMap::new();
     for o in &orders {
         let cid = id_of(o, "config_id").unwrap_or(0);
         let name = by_cfg.get(&cid).map(|x| x.0.clone()).unwrap_or_else(|| rec(e, "pos.config", cid).ok().and_then(|c| text(&c, "name")).unwrap_or_default());
-        let en = by_cfg.entry(cid).or_insert((name, 0.0, 0)); en.1 += num(o, "amount_total"); en.2 += 1;
+        let amt = num(o, "amount_total") / rate_of(o);
+        let en = by_cfg.entry(cid).or_insert((name, 0.0, 0)); en.1 += amt; en.2 += 1;
         let d = text(o, "date_order").unwrap_or_default();
-        if d.len() >= 13 { if let Ok(h) = d[11..13].parse::<usize>() { if h < 24 { by_hour[h] += num(o, "amount_total"); } } }
-        if d.len() >= 10 { *by_day.entry(d[..10].to_string()).or_default() += num(o, "amount_total"); }
+        if d.len() >= 13 { if let Ok(h) = d[11..13].parse::<usize>() { if h < 24 { by_hour[h] += amt; } } }
+        if d.len() >= 10 { *by_day.entry(d[..10].to_string()).or_default() += amt; }
     }
     let oids: Vec<Value> = orders.iter().map(|o| o["id"].clone()).collect();
     let mut prods: BTreeMap<String, (f64, f64)> = BTreeMap::new(); let mut pays: BTreeMap<String, f64> = BTreeMap::new();
@@ -428,7 +435,7 @@ fn sales_report(e: &Env, days: i64) -> Result<Value> {
         for p in orm::search_read(e, "pos.payment", &term("pos_order_id", "in", Value::List(oids)), &["payment_method_id".into(), "amount".into()], None, None, 0)? {
             let n = id_of(&p, "payment_method_id").and_then(|m| rec(e, "pos.payment.method", m).ok()).and_then(|m| text(&m, "name")).unwrap_or_default(); *pays.entry(n).or_default() += num(&p, "amount"); }
     }
-    let total: f64 = orders.iter().map(|o| num(o, "amount_total")).sum();
+    let total: f64 = orders.iter().map(|o| num(o, "amount_total") / rate_of(o)).sum();
     let mut top: Vec<(String, (f64, f64))> = prods.into_iter().collect(); top.sort_by(|a, b| b.1 .1.partial_cmp(&a.1 .1).unwrap()); top.truncate(10);
     Ok(map(vec![("days", days.into()), ("since", since.into()), ("orders", (orders.len() as i64).into()), ("total", r2(total).into()), ("average", r2(if orders.is_empty() { 0.0 } else { total / orders.len() as f64 }).into()),
         ("registers", Value::List(by_cfg.into_iter().map(|(id, (n, t, c))| map(vec![("id", id.into()), ("name", n.into()), ("total", r2(t).into()), ("orders", c.into())])).collect())),
@@ -489,3 +496,15 @@ fn combo_groups(e: &Env, combo_ids: &[i64]) -> Value {
         Some(map(vec![("id", (*c).into()), ("name", text(&g, "name").unwrap_or_default().into()), ("items", Value::List(items))]))
     }).collect())
 }
+
+/// Units of the pricelist's currency per unit of the company currency (1.0 when they are the same). Errors if no rate is on file.
+fn pricelist_rate(e: &Env, cfg: &Row, pricelist: Option<i64>) -> Result<f64> {
+    let Some(pl) = pricelist.or_else(|| id_of(cfg, "pricelist_id")) else { return Ok(1.0) };
+    let Some(cur) = rec(e, "product.pricelist", pl).ok().and_then(|p| id_of(&p, "currency_id")) else { return Ok(1.0) };
+    let company_cur = id_of(cfg, "company_id").and_then(|c| rec(e, "res.company", c).ok()).and_then(|c| id_of(&c, "currency_id"));
+    if Some(cur) == company_cur || company_cur.is_none() || e.reg.model("res.currency.rate").is_err() { return Ok(1.0); }
+    let rid = orm::search(e, "res.currency.rate", &Domain::And(vec![term("currency_id", "=", cur), term("name", "<=", orm::today().as_str())]), Some("name desc"), Some(1), 0)?.first().copied();
+    match rid.map(|r| rec(e, "res.currency.rate", r)).transpose()? { Some(r) if num(&r, "rate") > 0.0 => Ok(num(&r, "rate")), _ => Err(OdooError::User(format!("No exchange rate on file for {}", rec(e, "res.currency", cur).ok().and_then(|c| text(&c, "name")).unwrap_or_default()))) }
+}
+/// Rate an existing order was made at (orders from before multi-currency, or in company currency, are 1).
+pub fn rate_of(o: &Row) -> f64 { let r = num(o, "currency_rate"); if r > 0.0 { r } else { 1.0 } }

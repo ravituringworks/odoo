@@ -464,11 +464,18 @@ impl App {
         match req.method.as_str() { "trial_catalog" => return self.trial_catalog(), "trial_create" => return self.trial_create(&req.args.first().cloned().unwrap_or(J::Null), req.lang.as_deref().unwrap_or("en")), _ => {} }
         let rt = self.runtime();
         // self-ordering (QR menu / mobile / kiosk) is public: each action validates the register's access token itself
-        if matches!(req.method.as_str(), "kiosk_menu" | "kiosk_order" | "kiosk_status" | "kiosk_display") {
+        if matches!(req.method.as_str(), "kiosk_menu" | "kiosk_order" | "kiosk_status" | "kiosk_display" | "kiosk_checkout" | "kiosk_images" | "kiosk_shop_status") {
             let cfg = req.args.first().and_then(|v| v.as_i64()).unwrap_or(0);
             let kw = match odoo_core::Value::from_json(req.args.get(1).unwrap_or(&J::Null)) { odoo_core::Value::Map(m) => m, _ => Default::default() };
             let mut out = J::Null;
             store::run(self.store.as_ref(), |c| { let env = Env::new(&rt.reg, c, &rt.rules, self.sec.as_ref(), 1); out = orm::call(&env, "pos.config", &req.method, &[cfg], &kw)?.to_json(); Ok(()) })?;
+            // a shop order confirmation by email, when outgoing email is configured (best effort: a failure never blocks the order)
+            if req.method == "kiosk_checkout" {
+                if let Some(to) = kw.get("customer").and_then(|c| if let odoo_core::Value::Map(m) = c { m.get("email").and_then(|e| e.as_str()).map(String::from) } else { None }) {
+                    let (num, total) = (out["number"].as_str().unwrap_or(""), out["total"].as_f64().unwrap_or(0.0));
+                    if let Ok(list) = email::parse_addresses(&to) { let _ = self.send_email(&email::Message { to: list, cc: vec![], bcc: vec![], subject: format!("Your order {num}"), text: format!("Thank you for your order {num} (total {total:.2}).\nWe will contact you if anything changes."), html: String::new() }); }
+                }
+            }
             return Ok(out);
         }
         match req.method.as_str() {

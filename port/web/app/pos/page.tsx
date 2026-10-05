@@ -8,13 +8,15 @@ import type { DisplayState } from './display/page'
 import { eposKitchen, eposReceipt, EposDoc } from '@/lib/epos'
 import { Ticket, kitchenTicket, receipt as escReceipt } from '@/lib/escpos'
 import { type HwSettings, connectSerial, loadHw, readWeight, saveHw, serialConnected, serialSupported, writeSerial } from '@/lib/hardware'
+import { type ComboItem, comboComplete, lotsMissing } from '@/lib/pos'
 import { cartFromDraft, hasUnsent, kitchenDelta, tipAmount, r2, lineTotals, type Cart, type Method, type Pay, type Pricelist, type Product, type Queued, type Tax, canValidate, cartTotals, change, dequeue, due, emptyCart, enqueue, findByCode, paid, parseScale, quickCash, reduce, roundTo, uuid } from '@/lib/pos'
 
 type Data = { session: { id: number; name: string; start_at: string; cash_register_balance_start: number }; config: Record<string, unknown> & { id: number; name: string }; payment_methods: Method[]; categories: { id: number; name: string; parent_id: unknown }[]; products: Product[]; taxes: Tax[]; pricelists: Pricelist[]; cashier: string; currency: { symbol?: string; name?: string }; invoicing: boolean; loyalty: Program[]; floors: Floor[]; printers: { name: string; target: string; kind?: 'raw' | 'epos'; receipt?: boolean; category_ids: number[] }[]; employees: { id: number; name: string; role: 'basic' | 'advanced'; has_pin: boolean }[]; cashier_lock: boolean }
 type Table = { id: number; name: string; seats: number; shape: string; position_h: number; position_v: number; width: number; height: number; color?: string; orders: number; total: number }
 type Floor = { id: number; name: string; background_color?: string; tables: Table[] }
 type Emp = { id: number; name: string; role: 'basic' | 'advanced' }
-type Receipt = { name: string; date_order: string; amount_total: number; amount_tax: number; amount_return: number; lines: { full_product_name: string; qty: number; price_unit: number; discount: number; price_subtotal_incl: number }[]; payments: { method?: string; amount: number; is_change?: boolean }[]; id?: number; offline?: boolean; loyalty_issued?: { program: string; type: string; code: string; points: number; earned: number }[] }
+type Line = import('@/lib/pos').Line
+type Receipt = { name: string; date_order: string; amount_total: number; amount_tax: number; amount_return: number; lines: { full_product_name: string; qty: number; price_unit: number; discount: number; price_subtotal_incl: number }[]; payments: { method?: string; amount: number; is_change?: boolean }[]; id?: number; state?: string; offline?: boolean; loyalty_issued?: { program: string; type: string; code: string; points: number; earned: number }[] }
 type Summary = { name: string; orders: number; total: number; refunds: number; opening_cash: number; expected_cash: number; payments: { name: string; amount: number; count: number }[]; state: string; difference?: number }
 
 type TFn = ReturnType<typeof useT>['t']
@@ -64,14 +66,14 @@ function Terminal({ config }: { config: number }) {
   const [carts, setCarts] = useState<Cart[]>([emptyCart()]); const [cur, setCur] = useState(0)
   const [cat, setCat] = useState<number | null>(null); const [q, setQ] = useState('')
   const [sel, setSel] = useState<string | null>(null); const [mode, setMode] = useState<'qty' | 'discount' | 'price'>('qty'); const [buf, setBuf] = useState('')
-  const [screen, setScreen] = useState<'floor' | 'shop' | 'pay' | 'receipt'>('shop'); const [modal, setModal] = useState<null | 'customer' | 'orders' | 'close' | 'pricelist' | 'rewards' | 'split' | 'transfer' | 'tip' | 'guests' | 'tableorders' | 'hardware' | 'scale' | 'terminal' | 'open'>(null)
+  const [screen, setScreen] = useState<'floor' | 'shop' | 'pay' | 'receipt'>('shop'); const [modal, setModal] = useState<null | 'customer' | 'orders' | 'close' | 'pricelist' | 'rewards' | 'split' | 'transfer' | 'tip' | 'guests' | 'tableorders' | 'hardware' | 'scale' | 'terminal' | 'open' | 'combo' | 'lots'>(null)
   const [pays, setPays] = useState<Pay[]>([]); const [amount, setAmount] = useState(''); const [invoice, setInvoice] = useState(false)
   const [emp, setEmp] = useState<Emp | null>(null)
   const [hw, setHw] = useState<HwSettings>(() => (typeof localStorage === 'undefined' ? loadHw() : loadHw())); const [weighing, setWeighing] = useState<Product | null>(null)
   const updateHw = (p: Partial<HwSettings>) => setHw((o) => { const n = { ...o, ...p }; saveHw(n); return n })
   const [receipt, setReceipt] = useState<Receipt | null>(null); const [online, setOnline] = useState(true); const [queued, setQueued] = useState(0); const [busy, setBusy] = useState(false)
   const [termFor, setTermFor] = useState<{ method: Method; amount: number } | null>(null)
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState(false); const [picking, setPicking] = useState<Product | null>(null); const [lotKey, setLotKey] = useState<string | null>(null)
   const [floorIdx, setFloorIdx] = useState(0); const [pending, setPending] = useState<{ table: Table; orders: Parameters<typeof cartFromDraft>[0][] } | null>(null); const [toast, setToast] = useState('')
   const cart = carts[cur] ?? carts[0]
   const dispatch = useCallback((a: Parameters<typeof reduce>[1]) => setCarts((cs) => cs.map((c, i) => (i === cur ? reduce(c, a) : c))), [cur])
@@ -90,7 +92,7 @@ function Terminal({ config }: { config: number }) {
   const earned = useMemo(() => (d?.loyalty ?? []).filter((p) => ['future', 'both'].includes(p.applies_on)).map((p) => ({ p, pts: programPoints(p, litems, cart.codes ?? []) })).filter((x) => x.pts > 0 && (!x.p.is_nominative && x.p.program_type !== 'loyalty' ? true : !!cart.partner)), [d, litems, cart.codes, cart.partner])
   const step = d && d.config.cash_rounding ? 0.05 : 0
   const total = roundTo(totals.total, step)
-  const sym = d?.currency.symbol ?? '$'; const money = (n: number) => `${n < 0 ? '-' : ''}${sym}${Math.abs(n).toFixed(2)}`
+  const sym = plist?.currency?.symbol ?? d?.currency.symbol ?? '$'; const money = (n: number) => `${n < 0 ? '-' : ''}${sym}${Math.abs(n).toFixed(2)}`
 
   // flush offline orders whenever we are (or come back) online
   const flush = useCallback(async () => {
@@ -129,7 +131,7 @@ function Terminal({ config }: { config: number }) {
   const finish = () => { setCarts((cs) => { const rest = cs.filter((_, i) => i !== cur); return rest.length ? rest : [emptyCart()] }); setCur(0); setSel(null); setBuf(''); setPays([]); setInvoice(false); setReceipt(null); setScreen(restaurant ? 'floor' : 'shop'); if (restaurant) refreshFloors() }
 
   const orderKw = (c: Cart) => ({ session_id: d!.session.id, uuid: c.uuid, employee_id: emp?.id, table_id: c.table?.id, customer_count: c.guests, takeaway: !!c.takeaway, partner_id: c.partner?.id, note: c.note,
-    lines: c.lines.map((l) => ({ uuid: l.key, product_id: l.product.id, qty: l.qty, price_unit: l.price, discount: l.discount, note: l.note })) })
+    lines: c.lines.map((l) => ({ uuid: l.key, product_id: l.product.id, qty: l.qty, price_unit: l.price, discount: l.discount, note: l.note, lots: l.lots, combo_parent: l.combo?.parent, combo_item_id: l.combo?.item })) })
   const restaurant = !!d?.floors.length
   // table orders are persisted as drafts so every terminal (and a refresh) sees them
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -213,7 +215,7 @@ function Terminal({ config }: { config: number }) {
   const validate = async () => {
     if (!d) return; setBusy(true); setErr('')
     const kwargs = { session_id: d.session.id, uuid: cart.uuid, employee_id: emp?.id, table_id: cart.table?.id, customer_count: cart.guests, takeaway: !!cart.takeaway, partner_id: cart.partner?.id, pricelist_id: cart.pricelist ?? undefined, to_invoice: invoice, note: cart.note, rewards: (cart.claims ?? []).map((c) => ({ reward_id: c.rewardId, card_id: c.cardId ?? undefined })), codes: cart.codes,
-      lines: cart.lines.map((l) => ({ uuid: l.key, product_id: l.product.id, qty: l.qty, price_unit: l.price, discount: l.discount, note: l.note })), payments: pays.map((p) => ({ payment_method_id: p.method, amount: p.amount, transaction_id: p.tx })) }
+      lines: cart.lines.map((l) => ({ uuid: l.key, product_id: l.product.id, qty: l.qty, price_unit: l.price, discount: l.discount, note: l.note, lots: l.lots, combo_parent: l.combo?.parent, combo_item_id: l.combo?.item })), payments: pays.map((p) => ({ payment_method_id: p.method, amount: p.amount, transaction_id: p.tx })) }
     try { const rc = await act<Receipt>('pos.order', 'create_from_ui', [], kwargs); setReceipt(rc); setScreen('receipt'); const cash = rc.payments.some((p) => !p.is_change && methods.find((m) => m.name === p.method)?.kind === 'cash'); if (hw.receipt !== 'browser') { const fail = (e: unknown) => setErr(String((e as Error).message ?? e)); if (hw.autoPrint) printReceipt(rc, hw.drawer && cash).catch(fail); else if (hw.drawer && cash) kickDrawer().catch(fail) } }
     catch (e) {
       const m = String((e as Error).message ?? e)
@@ -268,10 +270,11 @@ function Terminal({ config }: { config: number }) {
             <div className="pos-lines">
               {cart.lines.length === 0 && <p className="muted pos-empty">{t('pos.empty')}</p>}
               {cart.lines.map((l) => (
-                <div key={l.key} className={`pos-line ${l.key === sel ? 'on' : ''}`} onClick={() => { setSel(l.key); setBuf('') }}>
+                <div key={l.key} className={`pos-line ${l.key === sel ? 'on' : ''} ${l.combo ? 'child' : ''}`} onClick={() => { if (!l.combo) { setSel(l.key); setBuf('') } }}>
                   <b>{l.product.name}</b><span>{money(cartTotals({ ...cart, lines: [l] }, taxes).total)}</span>
                   <small className="muted">{l.qty} × {money(l.price)}{l.discount ? ` · -${l.discount}%` : ''}</small>
                   {l.note && <small>📝 {l.note}</small>}
+                  {l.product.tracking && l.product.tracking !== 'none' && <small className={lotsMissing(l) ? 'pos-unsent' : 'muted'} onClick={(e) => { e.stopPropagation(); setLotKey(l.key); setModal('lots') }}>🔖 {l.lots?.length ? l.lots.join(', ') : t('pos.enter_lots')}</small>}
                   {restaurant && cart.table && l.qty > (cart.sent?.[l.key] ?? 0) && <small className="pos-unsent">● {t('pos.not_sent')}</small>}
                 </div>))}
             </div>
@@ -293,13 +296,13 @@ function Terminal({ config }: { config: number }) {
             <div className="pos-pad">
               <div className="pos-modes">{(['qty', 'discount', 'price'] as const).filter((m) => m === 'qty' || (!basic && (m === 'discount' ? !!d.config.manual_discount : !d.config.restrict_price_control))).map((m) => <button key={m} className={`btn ${mode === m ? 'p' : ''}`} onClick={() => { setMode(m); setBuf('') }}>{t(`pos.${m}`)}</button>)}</div>
               {['1', '2', '3', '4', '5', '6', '7', '8', '9', '±', '0', '.', 'C', '⌫'].map((k) => <button key={k} className="btn" onClick={() => key(k)}>{k}</button>)}
-              <button className="btn p pos-pay" disabled={!cart.lines.length} onClick={() => { setPays([]); setAmount(''); setScreen('pay') }}>{t('pos.payment')} ›</button>
+              <button className="btn p pos-pay" disabled={!cart.lines.length} onClick={() => { const bad = cart.lines.find((l) => lotsMissing(l)); if (bad) { setLotKey(bad.key); setModal('lots'); return } setPays([]); setAmount(''); setScreen('pay') }}>{t('pos.payment')} ›</button>
             </div>
           </section>
           <section className="pos-catalog">
             <div className="pos-search"><input placeholder={t('pos.search')} value={q} onChange={(e) => setQ(e.target.value)} />
               <div className="pos-cats"><button className={`btn ${cat === null ? 'p' : ''}`} onClick={() => setCat(null)}>{t('pos.all')}</button>{topCats.map((c) => <button key={c.id} className={`btn ${cat === c.id ? 'p' : ''}`} onClick={() => setCat(c.id)}>{c.name}</button>)}</div></div>
-            <div className="pos-grid">{shown.map((p) => <button key={p.id} className="card pos-prod" onClick={() => { if (p.to_weight) { setWeighing(p); setModal('scale') } else { dispatch({ t: 'add', product: p, pl: plist }); setSel(null) } }}><b>{p.name}</b><span className="muted">{money(p.price)}</span></button>)}{shown.length === 0 && <p className="muted">{t('pos.no_products')}</p>}</div>
+            <div className="pos-grid">{shown.map((p) => <button key={p.id} className="card pos-prod" onClick={() => { if (p.type === 'combo' && p.combo?.length) { setPicking(p); setModal('combo') } else if (p.to_weight) { setWeighing(p); setModal('scale') } else { dispatch({ t: 'add', product: p, pl: plist }); setSel(null); if (p.tracking && p.tracking !== 'none') { const ln = cart.lines.find((l) => l.product.id === p.id); setLotKey(ln?.key ?? '__new__'); setModal('lots') } } }}><b>{p.name}</b><span className="muted">{money(p.price)}</span></button>)}{shown.length === 0 && <p className="muted">{t('pos.no_products')}</p>}</div>
           </section>
         </div>)}
       {screen === 'pay' && (
@@ -321,8 +324,10 @@ function Terminal({ config }: { config: number }) {
       {modal === 'split' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><SplitPick cart={cart} money={money} taxes={taxes} done={split} t={t} /></div></div>}
       {modal === 'transfer' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.transfer')}</h3><div className="pos-list">{d.floors.flatMap((f) => f.tables.map((tb) => ({ f, tb }))).filter((x) => x.tb.id !== cart.table?.id).map(({ f, tb }) => <button key={tb.id} className="btn" onClick={() => transfer(tb)}>{f.name} · {tb.name}{tb.orders ? ' ●' : ''}</button>)}</div></div></div>}
       {modal === 'tip' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.tip')}</h3><div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>{[10, 15, 20].map((p) => <button key={p} className="btn" onClick={() => addTip(p)}>{p}% · {money(tipAmount(base.total, p))}</button>)}<button className="btn" onClick={() => { const v = Number(prompt(t('pos.tip')) || 0); if (v > 0) addTip(null, v) }}>…</button></div></div></div>}
-      {modal === 'terminal' && termFor && <TerminalModal method={termFor.method} amount={termFor.amount} money={money} currency={d.currency.name ?? 'USD'} reference={`${d.session.name}-${cart.uuid.slice(0, 6)}`} cashier={emp?.name ?? d.cashier} close={() => { setModal(null); setTermFor(null) }} paid={(x) => { setPays((p) => [...p, { method: termFor.method.id, amount: termFor.amount, tx: x.tx, card: x.card }]); setModal(null); setTermFor(null) }} t={t} />}
+      {modal === 'terminal' && termFor && <TerminalModal method={termFor.method} amount={termFor.amount} money={money} currency={plist?.currency?.name ?? d.currency.name ?? 'USD'} reference={`${d.session.name}-${cart.uuid.slice(0, 6)}`} cashier={emp?.name ?? d.cashier} close={() => { setModal(null); setTermFor(null) }} paid={(x) => { setPays((p) => [...p, { method: termFor.method.id, amount: termFor.amount, tx: x.tx, card: x.card }]); setModal(null); setTermFor(null) }} t={t} />}
       {modal === 'open' && <OpenOrders config={config} money={money} close={() => setModal(null)} pick={(o) => { const c = cartFromDraft(o, d.products, null); setCarts((cs) => { const i = cs.findIndex((x) => x.uuid === c.uuid); if (i >= 0) { setCur(i); return cs.map((x, j) => (j === i ? c : x)) } setCur(cs.length); return [...cs, c] }); setSel(null); setScreen('shop'); setModal(null) }} t={t} />}
+      {modal === 'combo' && picking && <ComboModal p={picking} money={money} close={() => { setModal(null); setPicking(null) }} done={(picks) => { dispatch({ t: 'addCombo', product: picking, picks, pl: plist }); setModal(null); setPicking(null) }} t={t} />}
+      {modal === 'lots' && lotKey && <LotsModal config={config} line={cart.lines.find((l) => l.key === lotKey) ?? cart.lines[cart.lines.length - 1]} close={() => { setModal(null); setLotKey(null) }} save={(lots) => { const ln = cart.lines.find((l) => l.key === lotKey) ?? cart.lines[cart.lines.length - 1]; if (ln) dispatch({ t: 'lots', key: ln.key, lots }); setModal(null); setLotKey(null) }} t={t} />}
       {modal === 'hardware' && <HardwareModal hw={hw} update={updateHw} printers={d.printers ?? []} close={() => setModal(null)} test={() => { if (hw.receipt === 'epos') return sendEpos(receiptPrinter, new EposDoc().align('center').line('Odoo RS').line(t('pos.test_print')).cut()).then(() => undefined); const tk = new Ticket().align('center').bold(true).line('Odoo RS').bold(false).line(t('pos.test_print')).cut(); return sendBytes(receiptPrinter, tk.bytes(), tk.hex(), hw.receipt) }} t={t} />}
       {modal === 'scale' && weighing && <ScaleModal p={weighing} money={money} close={() => { setModal(null); setWeighing(null) }} add={(kg) => { setCarts((cs) => cs.map((c, i) => { if (i !== cur) return c; const a = reduce(c, { t: 'add', product: weighing, pl: plist }); return { ...a, lines: a.lines.map((l, j) => (j === a.lines.length - 1 ? { ...l, qty: kg } : l)) } })); setModal(null); setWeighing(null) }} t={t} />}
       {modal === 'rewards' && <Rewards d={d} config={config} cart={cart} cards={cards} setCards={setCards} items={litems} claim={(c) => { dispatch({ t: 'claim', claim: c }); setModal(null) }} code={(c) => dispatch({ t: 'code', code: c })} t={t} close={() => setModal(null)} />}
@@ -347,7 +352,7 @@ function ReceiptView({ r, d, money, done, print, t }: { r: Receipt; d: Data; mon
         {r.amount_return > 0 && <div className="pos-rl"><span>{t('pos.change')}</span><span>{money(r.amount_return)}</span></div>}
         {!!d.config.receipt_footer && <p style={{ whiteSpace: 'pre-line', textAlign: 'center' }}>{String(d.config.receipt_footer)}</p>}
       </div>
-      <div className="pos-receipt-actions"><button className="btn" onClick={() => print()}>🖨 {t('pos.print')}</button><button className="btn p" onClick={done}>{t('pos.new_order')} ›</button></div>
+      <div className="pos-receipt-actions"><button className="btn" onClick={() => print()}>🖨 {t('pos.print')}</button>{r.state === 'invoiced' && r.id && <button className="btn" onClick={() => act<string>('pos.order', 'ubl', [r.id!], {}).then((x) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([x], { type: 'application/xml' })); a.download = `${r.name.replace(/\W+/g, '_')}.xml`; a.click(); URL.revokeObjectURL(a.href) }).catch(() => {})}>⬇ UBL</button>}<button className="btn p" onClick={done}>{t('pos.new_order')} ›</button></div>
     </div>
   )
 }
@@ -540,4 +545,24 @@ function FloorEditor({ floor, config, floorIds, done, t }: { floor: Floor; confi
         <button className="btn p" onClick={save}>{t('pos.save_floor')}</button></aside>
     </div>
   )
+}
+
+function ComboModal({ p, money, close, done, t }: { p: Product; money: (n: number) => string; close: () => void; done: (picks: ComboItem[]) => void; t: TFn }) {
+  const groups = p.combo ?? []; const [pick, setPick] = useState<Record<number, ComboItem>>({})
+  const ready = groups.every((g) => pick[g.id])
+  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{p.name} · {money(p.price)}</h3>
+    {groups.map((g) => <div key={g.id}><b>{g.name}</b><div className="pos-grid" style={{ padding: '6px 0' }}>{g.items.map((i) => <button key={i.id} className={`btn ${pick[g.id]?.id === i.id ? 'p' : ''}`} onClick={() => setPick((x) => ({ ...x, [g.id]: i }))}>{i.name}{i.extra ? ` +${money(i.extra)}` : ''}</button>)}</div></div>)}
+    <button className="btn p" disabled={!ready} onClick={() => done(groups.map((g) => pick[g.id]))}>{t('pos.add')}</button></div></div>
+}
+
+function LotsModal({ config, line, close, save, t }: { config: number; line?: Line; close: () => void; save: (lots: string[]) => void; t: TFn }) {
+  const serial = line?.product.tracking === 'serial'; const n = serial ? Math.max(1, Math.round(line?.qty ?? 1)) : 1
+  const [vals, setVals] = useState<string[]>(() => Array.from({ length: n }, (_, i) => line?.lots?.[i] ?? '')); const [known, setKnown] = useState<{ name: string; qty: number }[]>([])
+  useEffect(() => { if (line) act<{ name: string; qty: number }[]>('pos.config', 'lots', [config], { product_id: line.product.id }).then(setKnown).catch(() => {}) }, [config, line?.product.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!line) return null
+  const filled = vals.map((v) => v.trim()).filter(Boolean); const ok = serial ? filled.length === n && new Set(filled).size === n : filled.length >= 1
+  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>🔖 {line.product.name} · {serial ? t('pos.serial_numbers') : t('pos.lot_number')}</h3>
+    <datalist id="pos-lots">{known.map((k) => <option key={k.name} value={k.name}>{k.qty ? `${k.qty}` : ''}</option>)}</datalist>
+    {vals.map((v, i) => <input key={i} list="pos-lots" autoFocus={i === 0} placeholder={`${serial ? t('pos.serial') : t('pos.lot')} ${n > 1 ? i + 1 : ''}`} value={v} onChange={(e) => setVals((x) => x.map((y, j) => (j === i ? e.target.value : y)))} />)}
+    <button className="btn p" disabled={!ok} onClick={() => save(filled)}>{t('pos.done')}</button></div></div>
 }
