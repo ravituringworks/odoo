@@ -428,6 +428,7 @@ fn prepare_combo_uuids(order: &mut Row) -> BTreeMap<String, Vec<String>> {
             }
         }
         vals.insert("combo_line_ids".into(), Value::Bool(false)); vals.insert("combo_parent_id".into(), Value::Bool(false));
+        vals.remove("id");   // the terminal's temporary id is not a column
     }
     order.insert("lines".into(), Value::List(lines));
     acc
