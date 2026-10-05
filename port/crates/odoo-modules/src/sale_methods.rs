@@ -23,7 +23,7 @@ fn rid(r: &Row) -> i64 { r["id"].as_i64().unwrap_or(0) }
 
 // ===================================================================== line calculations
 
-fn line_taxes(env: &Env, l: &Row) -> Result<Vec<tax::Tax>> { tax::load(env, &ids(l, "tax_id")) }
+fn line_taxes(env: &Env, l: &Row) -> Result<Vec<tax::Tax>> { load_taxes(env, &ids(l, "tax_id")) }
 fn line_amounts(env: &Env, l: &Row) -> Result<(f64, f64, f64)> { Ok(tax::compute(num(l, "product_uom_qty"), num(l, "price_unit"), num(l, "discount"), &line_taxes(env, l)?)) }
 fn line_order(env: &Env, l: &Row) -> Result<Row> { rec(env, "sale.order", opt_id(l, "order_id").ok_or_else(|| OdooError::Required("sale.order.line".into(), "order_id".into()))?) }
 fn line_in_sale(env: &Env, l: &Row) -> Result<bool> { Ok(text(&line_order(env, l)?, "state").as_deref() == Some("sale")) }
@@ -102,7 +102,7 @@ pub fn calc_untaxed_amount_to_invoice(env: &Env, l: &Row) -> Result<f64> {
         // re-invoicing with a different discount: recompute what has already been billed from the invoice lines
         let mut amount = 0.0;
         for (a, m) in &invs {
-            let ataxes = tax::load(env, &ids(a, "tax_ids"))?;
+            let ataxes = load_taxes(env, &ids(a, "tax_ids"))?;
             let unit = convert(env, num(a, "price_unit"), opt_id(a, "currency_id"), cur, &text(a, "date").unwrap_or_else(|| mv_date(m)), false) * num(a, "quantity");
             amount += if ataxes.iter().any(|t| t.price_include) { tax::compute(num(a, "quantity"), convert(env, num(a, "price_unit"), opt_id(a, "currency_id"), cur, &mv_date(m), false), 0.0, &ataxes).0 } else { unit };
         }
@@ -165,10 +165,24 @@ fn dp_description(env: &Env, l: &Row) -> Result<String> {
 
 // ===================================================================== order calculations
 
+fn order_sum(env: &Env, order: i64) -> Result<(f64, f64)> {
+    let (mut u, mut t) = (0.0, 0.0);
+    for l in children(env, "sale.order.line", "order_id", order)?.iter().filter(|l| is_real(l)) { let (a, b, _) = line_amounts(env, l)?; u += a; t += b; }
+    Ok((r2(u), r2(t)))
+}
+
 fn order_invoice_ids(env: &Env, order: i64) -> Result<Vec<i64>> {
     let mut out = BTreeSet::new();
     for l in children(env, "sale.order.line", "order_id", order)? { for (_, m) in invoice_lines_of(env, &l)? { if matches!(text(&m, "move_type").as_deref(), Some("out_invoice" | "out_refund")) { out.insert(rid(&m)); } } }
     Ok(out.into_iter().collect())
+}
+/// `_compute_amount_paid`: sum of authorized/done payment transactions.
+fn order_amount_paid(env: &Env, order: i64) -> Result<f64> {
+    if !has_model(env, "payment.transaction") || !has_field(env, "sale.order", "transaction_ids") { return Ok(0.0); }
+    let o = rec(env, "sale.order", order)?;
+    let mut t = 0.0;
+    for id in ids(&o, "transaction_ids") { let tx = rec(env, "payment.transaction", id)?; if matches!(text(&tx, "state").as_deref(), Some("authorized" | "done")) { t += num(&tx, "amount"); } }
+    Ok(t)
 }
 fn calc_order_invoice_status(env: &Env, o: &Row) -> Result<String> {
     if text(o, "state").as_deref() != Some("sale") { return Ok("no".into()); }
@@ -185,8 +199,9 @@ fn calc_order_invoice_status(env: &Env, o: &Row) -> Result<String> {
 
 // ===================================================================== pricing
 
-struct OrderPricing { pricelist: Option<i64>, currency: Option<i64>, company: Option<i64>, fpos: Option<i64>, date: String }
-fn order_pricing(env: &Env, o: &Row) -> OrderPricing {
+pub struct OrderPricing { pub pricelist: Option<i64>, pub currency: Option<i64>, pub company: Option<i64>, pub fpos: Option<i64>, pub date: String }
+pub fn default_pricing(env: &Env) -> OrderPricing { OrderPricing { pricelist: None, currency: pl::env_company_currency(env), company: pl::env_company(env), fpos: None, date: orm::now() } }
+pub fn order_pricing(env: &Env, o: &Row) -> OrderPricing {
     OrderPricing { pricelist: opt_id(o, "pricelist_id"), currency: opt_id(o, "currency_id"), company: opt_id(o, "company_id"), fpos: opt_id(o, "fiscal_position_id"), date: text(o, "date_order").filter(|d| !d.is_empty()).unwrap_or_else(|| { let _ = env; orm::now() }) }
 }
 
@@ -200,14 +215,14 @@ fn incl_of(excl: f64, taxes: &[tax::Tax]) -> f64 {
     excl + taxes.iter().map(|t| match t.kind.as_str() { "fixed" => t.amount, "division" => excl / (1.0 - t.amount / 100.0) - excl, _ => excl * t.amount / 100.0 }).sum::<f64>()
 }
 /// `product.product._get_tax_included_unit_price_from_price`: re-express a tax-included price after a fiscal-position tax change.
-fn tax_included_unit_price(env: &Env, price: f64, product_taxes: &[i64], fpos: Option<i64>) -> Result<f64> {
+pub fn tax_included_unit_price(env: &Env, price: f64, product_taxes: &[i64], fpos: Option<i64>) -> Result<f64> {
     if product_taxes.is_empty() || fpos.is_none() { return Ok(price); }
     let after = map_tax(env, fpos, product_taxes);
-    let before_t = tax::load(env, product_taxes)?;
+    let before_t = load_taxes(env, product_taxes)?;
     let mut a: Vec<i64> = after.clone(); a.sort(); let mut b: Vec<i64> = product_taxes.to_vec(); b.sort();
     if a != b && !before_t.is_empty() && before_t.iter().all(|t| t.price_include) {
         let excl = excl_of(price, &before_t);
-        let after_t = tax::load(env, &after)?;
+        let after_t = load_taxes(env, &after)?;
         return Ok(if after_t.iter().any(|t| t.price_include) { incl_of(excl, &after_t) } else { excl });
     }
     Ok(price)
@@ -215,7 +230,7 @@ fn tax_included_unit_price(env: &Env, price: f64, product_taxes: &[i64], fpos: O
 
 pub struct LinePrice { pub price_unit: f64, pub discount: f64, pub item: Option<i64> }
 /// `_compute_pricelist_item_id` + `_get_display_price` + `_reset_price_unit` + `_compute_discount` for one product line.
-fn price_line(env: &Env, op: &OrderPricing, product: i64, qty: f64, uom: Option<i64>) -> Result<LinePrice> {
+pub fn price_line(env: &Env, op: &OrderPricing, product: i64, qty: f64, uom: Option<i64>) -> Result<LinePrice> {
     let q = if qty == 0.0 { 1.0 } else { qty };
     let item_id = match op.pricelist { Some(p) => pl::get_product_rule(env, p, product, q, uom, &op.date)?, None => None };
     let item = item_id.map(|i| rec(env, "product.pricelist.item", i)).transpose()?;
@@ -233,7 +248,7 @@ fn price_line(env: &Env, op: &OrderPricing, product: i64, qty: f64, uom: Option<
     Ok(LinePrice { price_unit, discount, item: item_id })
 }
 
-fn product_line_name(env: &Env, product: i64) -> Result<String> {
+pub fn product_line_name(env: &Env, product: i64) -> Result<String> {
     let t = tmpl_of(env, product)?;
     let mut name = product_display_name(env, product)?;
     if let Some(d) = text(&t, "description_sale").filter(|d| !d.is_empty()) { name = format!("{name}\n{d}"); }
@@ -254,7 +269,10 @@ fn apply_line_defaults(env: &Env, v: &mut Row, order: Option<&Row>, explicit: bo
         let t = tmpl_of(env, pid)?;
         if explicit || v.get("product_uom").map_or(true, |u| u.is_null()) { if let Some(u) = opt_id(&t, "uom_id") { v.insert("product_uom".into(), u.into()); } }
         if has_field(env, "sale.order.line", "product_template_id") { if let Some(tid) = opt_id(&rec(env, "product.product", pid)?, "product_tmpl_id") { v.insert("product_template_id".into(), tid.into()); } }
-        if explicit || v.get("name").and_then(|n| n.as_str()).map_or(true, |n| n.is_empty()) { v.insert("name".into(), product_line_name(env, pid)?.into()); }
+        if explicit || v.get("name").and_then(|n| n.as_str()).map_or(true, |n| n.is_empty()) {
+            let tname = order.and_then(|o| crate::sale_mgmt_methods::template_line_name_if_installed(env, o, pid));
+            v.insert("name".into(), match tname { Some(n) => n, None => product_line_name(env, pid)? }.into());
+        }
         let (company, fpos) = order.map(|o| (opt_id(o, "company_id"), opt_id(o, "fiscal_position_id"))).unwrap_or((None, None));
         if explicit || !v.contains_key("tax_id") { v.insert("tax_id".into(), set6(&line_tax_ids(env, pid, company, fpos)?)); }
         let qty = v.get("product_uom_qty").and_then(|q| q.as_f64());
@@ -648,6 +666,7 @@ pub fn rules() -> Rules {
                 if !v.contains_key("prepayment_percent") { v.insert("prepayment_percent".into(), c.get("prepayment_percent").cloned().unwrap_or(1.0.into())); }
             }
             v.entry("locked".into()).or_insert(false.into());
+            crate::sale_mgmt_methods::template_defaults(env, &mut v)?;
             Ok(v)
         })
         // ---- line creation / form-time defaults (`_compute_product_uom`, `_compute_name`, `_compute_tax_id`, `_compute_price_unit`, `_compute_discount`)
@@ -670,6 +689,13 @@ pub fn rules() -> Rules {
             v.insert("price_subtotal".into(), u.into()); v.insert("price_tax".into(), tx.into()); v.insert("price_total".into(), tot.into());
             Ok(v)
         })
+        // ---- amounts (price_include aware: supersedes the simplified computes of sale.rs)
+        .compute("sale.order.line", "price_subtotal", |env, r| Ok(line_amounts(env, r)?.0.into()))
+        .compute("sale.order.line", "price_tax", |env, r| Ok(line_amounts(env, r)?.1.into()))
+        .compute("sale.order.line", "price_total", |env, r| Ok(line_amounts(env, r)?.2.into()))
+        .compute("sale.order", "amount_untaxed", |env, r| Ok(order_sum(env, rid(r))?.0.into()))
+        .compute("sale.order", "amount_tax", |env, r| Ok(order_sum(env, rid(r))?.1.into()))
+        .compute("sale.order", "amount_total", |env, r| { let (u, t) = order_sum(env, rid(r))?; Ok(r2(u + t).into()) })
         // ---- line computes
         .compute("sale.order.line", "product_template_id", |env, r| Ok(match opt_id(r, "product_id") { Some(p) => idv(opt_id(&rec(env, "product.product", p)?, "product_tmpl_id")), None => r.get("product_template_id").cloned().unwrap_or(Value::Null) }))
         .compute("sale.order.line", "qty_invoiced", |env, r| Ok(calc_qty_invoiced(env, r)?.into()))
@@ -686,13 +712,14 @@ pub fn rules() -> Rules {
         // ---- order computes
         .compute("sale.order", "invoice_status", |env, r| Ok(calc_order_invoice_status(env, r)?.into()))
         .compute("sale.order", "invoice_count", |env, r| Ok((order_invoice_ids(env, rid(r))?.len() as i64).into()))
-        .compute("sale.order", "amount_to_invoice", |env, r| { let mut s = 0.0; for l in children(env, "sale.order.line", "order_id", rid(r))? { s += num(&l, "amount_to_invoice"); } Ok(s.into()) })
-        .compute("sale.order", "amount_invoiced", |env, r| { let mut s = 0.0; for l in children(env, "sale.order.line", "order_id", rid(r))? { s += num(&l, "amount_invoiced"); } Ok(s.into()) })
+        .compute("sale.order", "amount_to_invoice", |env, r| { let mut s = 0.0; for l in children(env, "sale.order.line", "order_id", rid(r))? { s += calc_amount_to_invoice(env, &l)?; } Ok(s.into()) })
+        .compute("sale.order", "amount_invoiced", |env, r| { let mut s = 0.0; for l in children(env, "sale.order.line", "order_id", rid(r))? { s += calc_amount_invoiced(env, &l)?; } Ok(s.into()) })
         .compute("sale.order", "amount_undiscounted", |env, r| {
             let mut t = 0.0;
             for l in children(env, "sale.order.line", "order_id", rid(r))? { let (sub, _, _) = line_amounts(env, &l)?; t += if num(&l, "discount") != 100.0 { sub * 100.0 / (100.0 - num(&l, "discount")) } else { num(&l, "price_unit") * num(&l, "product_uom_qty") }; }
             Ok(t.into())
         })
+        .compute("sale.order", "amount_paid", |env, r| Ok(order_amount_paid(env, rid(r))?.into()))
         .compute("sale.order", "type_name", |_, r| Ok(if matches!(text(r, "state").as_deref(), Some("draft" | "sent" | "cancel")) { "Quotation" } else { "Sales Order" }.into()))
         .compute("sale.order", "is_expired", |_, r| Ok((matches!(text(r, "state").as_deref(), Some("draft" | "sent")) && text(r, "validity_date").filter(|d| !d.is_empty()).map_or(false, |d| date_part(&d) < orm::today())).into()))
         .compute("sale.order", "currency_id", |env, r| {
@@ -869,7 +896,7 @@ pub fn rules() -> Rules {
         .action("sale.order", "_is_confirmation_amount_reached", |env, ids_, _| {
             let o = rec(env, "sale.order", *ids_.first().ok_or_else(|| OdooError::User("Expected singleton: sale.order".into()))?)?;
             let req = if num(&o, "prepayment_percent") == 1.0 || !flag(&o, "require_payment") { num(&o, "amount_total") } else { cur_round(env, opt_id(&o, "currency_id"), num(&o, "amount_total") * num(&o, "prepayment_percent")) };
-            Ok((cur_round(env, opt_id(&o, "currency_id"), req) <= cur_round(env, opt_id(&o, "currency_id"), num(&o, "amount_paid")) + cur_rounding(env, opt_id(&o, "currency_id")) / 2.0).into())
+            Ok((cur_round(env, opt_id(&o, "currency_id"), req) <= cur_round(env, opt_id(&o, "currency_id"), order_amount_paid(env, rid(&o))?) + cur_rounding(env, opt_id(&o, "currency_id")) / 2.0).into())
         })
         .action("sale.order", "_generate_downpayment_invoices", |env, ids_, a| {
             let mut out = vec![];
@@ -914,6 +941,7 @@ pub fn rules() -> Rules {
                     }
                     orm::write(&e, "sale.order.line", &[rid(l)], w)?;
                 }
+                crate::sale_mgmt_methods::recompute_option_prices(&e, *id)?;
                 if has_field(&e, "sale.order", "show_update_pricelist") { let _ = orm::write(&e, "sale.order", &[*id], row(&[("show_update_pricelist", false.into())])); }
             }
             Ok(Value::Bool(true))

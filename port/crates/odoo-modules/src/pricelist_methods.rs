@@ -172,7 +172,9 @@ fn normalize_item(mut v: Row, env: &Env) -> Result<Row> {
         let p = rec(env, "product.product", v["product_id"].as_i64().unwrap_or(0))?;
         if let Some(t) = opt_id(&p, "product_tmpl_id") { v.insert("product_tmpl_id".into(), t.into()); }
     }
-    if !set(&v, "applied_on") {
+    // `applied_on` carries the field default "3_global" by the time we run: a scope field given with it means "infer"
+    let scoped = set(&v, "product_id") || set(&v, "product_tmpl_id") || set(&v, "categ_id");
+    if !set(&v, "applied_on") || (scoped && text(&v, "applied_on").as_deref() == Some("3_global")) {
         let a = if set(&v, "product_id") { "0_product_variant" } else if set(&v, "product_tmpl_id") { "1_product" } else if set(&v, "categ_id") { "2_product_category" } else { "3_global" };
         v.insert("applied_on".into(), a.into());
     }
@@ -185,6 +187,12 @@ fn normalize_item(mut v: Row, env: &Env) -> Result<Row> {
         _ => {}
     }
     Ok(v)
+}
+
+/// `_inverse_price_markup`: writing the markup sets `price_discount = -markup`.
+fn markup_inverse(v: &mut Row) {
+    // price_discount arrives with its field default (0) on create, so only an explicit non-zero discount wins
+    if let Some(m) = v.get("price_markup").and_then(|m| m.as_f64()) { if v.get("price_discount").and_then(|d| d.as_f64()).unwrap_or(0.0) == 0.0 { v.insert("price_discount".into(), (-m).into()); } }
 }
 
 fn item_name(env: &Env, r: &Row) -> Result<String> {
@@ -220,8 +228,9 @@ fn arg_date(a: &Row) -> String { text(a, "date").unwrap_or_default() }
 
 pub fn rules() -> Rules {
     Rules::default()
-        .before_create("product.pricelist.item", |env, v| normalize_item(v, env))
+        .before_create("product.pricelist.item", |env, v| { let mut v = normalize_item(v, env)?; markup_inverse(&mut v); Ok(v) })
         .before_write("product.pricelist.item", |env, mut v| {
+            markup_inverse(&mut v);
             if let Some(a) = v.get("applied_on").and_then(|a| a.as_str()).filter(|a| !a.is_empty()).map(String::from) {
                 match a.as_str() {
                     "3_global" => { for k in ["product_id", "product_tmpl_id", "categ_id"] { v.insert(k.into(), Value::Null); } }

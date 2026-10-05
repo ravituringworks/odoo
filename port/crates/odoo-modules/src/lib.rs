@@ -6,6 +6,7 @@ pub mod hr;
 pub mod project;
 pub mod base;
 pub mod data;
+pub mod delivery_methods;
 pub mod pos;
 pub mod pos_hw;
 pub mod pos_kiosk;
@@ -18,6 +19,7 @@ pub mod purchase;
 pub mod pricelist_methods;
 pub mod sale;
 pub mod sale_methods;
+pub mod sale_mgmt_methods;
 pub mod sale_util;
 pub mod stock;
 pub mod tax;
@@ -31,6 +33,8 @@ pub fn rules_for(reg: &Registry) -> Rules {
     let mut r = Rules::default();
     if has("account.move") { r = r.merge(account::rules()); }
     if has("sale.order") { r = r.merge(sale_methods::patch(sale::rules())); }
+    if has("sale.order.template") { r = r.merge(sale_mgmt_methods::rules()); }
+    if has("delivery.carrier") { r = r.merge(delivery_methods::rules()); }
     if has("product.pricelist.item") { r = r.merge(pricelist_methods::rules()); }
     if has("stock.picking") { r = r.merge(stock::rules()); }
     if has("purchase.order") { r = r.merge(purchase::rules()); }

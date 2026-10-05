@@ -135,3 +135,17 @@ pub fn map_tax(env: &Env, fpos: Option<i64>, taxes: &[i64]) -> Vec<i64> {
     out
 }
 pub fn user_error<T>(msg: impl Into<String>) -> Result<T> { Err(OdooError::User(msg.into())) }
+
+/// `account.tax` records as `tax::Tax`, resolving `price_include` the way Odoo 18 does
+/// (override `tax_included`/`tax_excluded`, else the company setting `account_price_include`).
+pub fn load_taxes(env: &Env, ids_: &[i64]) -> Result<Vec<crate::tax::Tax>> {
+    ids_.iter().map(|i| {
+        let r = rec(env, "account.tax", *i)?;
+        let inc = match text(&r, "price_include_override").as_deref() {
+            Some("tax_included") => true,
+            Some("tax_excluded") => false,
+            _ => r.get("price_include").map_or_else(|| opt_id(&r, "company_id").and_then(|c| rec(env, "res.company", c).ok()).map_or(false, |c| text(&c, "account_price_include").as_deref() == Some("tax_included")), |v| v.truthy()),
+        };
+        Ok(crate::tax::Tax { amount: num(&r, "amount"), kind: text(&r, "amount_type").unwrap_or_else(|| "percent".into()), price_include: inc })
+    }).collect()
+}
