@@ -12,7 +12,7 @@ use odoo_core::{Domain, OdooError, Result, Row, Rules, Value};
 
 pub fn rules() -> Rules {
     config_rules().merge(payment_method_rules()).merge(payment_rules())
-        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules()).merge(crate::pos_loyalty_methods::rules()).merge(crate::pos_report_methods::rules())
+        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules()).merge(crate::pos_loyalty_methods::rules()).merge(crate::pos_report_methods::rules()).merge(crate::pos_config_methods::rules())
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -379,8 +379,8 @@ fn set_fiscal_position(env: &Env, ids_: &[i64]) -> Result<()> {
     for i in ids_ {
         let c = rec(&e, "pos.config", *i)?; let fp = ids(&c, "fiscal_position_ids");
         if flag(&c, "tax_regime_selection") {
-            if let Some(d) = id_of(&c, "default_fiscal_position_id") { if !fp.contains(&d) { orm::write(&e, "pos.config", &[*i], row(&[("fiscal_position_ids", Value::List(vec![Value::List(vec![4.into(), d.into()])]))]))?; } }
-        } else if !fp.is_empty() { orm::write(&e, "pos.config", &[*i], row(&[("fiscal_position_ids", Value::List(vec![Value::List(vec![5.into()])]))]))?; }
+            if let Some(d) = id_of(&c, "default_fiscal_position_id") { if !fp.contains(&d) { crate::pos_config_methods::check_manager_access(env)?; orm::write(&e, "pos.config", &[*i], row(&[("fiscal_position_ids", Value::List(vec![Value::List(vec![4.into(), d.into()])]))]))?; } }
+        } else if !fp.is_empty() { crate::pos_config_methods::check_manager_access(env)?; orm::write(&e, "pos.config", &[*i], row(&[("fiscal_position_ids", Value::List(vec![Value::List(vec![5.into()])]))]))?; }
     }
     Ok(())
 }

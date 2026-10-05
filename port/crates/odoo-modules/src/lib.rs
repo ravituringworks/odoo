@@ -7,6 +7,7 @@ pub mod project;
 pub mod base;
 pub mod data;
 pub mod pos;
+pub mod pos_config_methods;
 pub mod pos_hw;
 pub mod pos_kiosk;
 pub mod pos_loyalty;
