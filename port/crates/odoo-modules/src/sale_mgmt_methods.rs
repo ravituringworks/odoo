@@ -10,7 +10,7 @@ fn rid(r: &Row) -> i64 { r["id"].as_i64().unwrap_or(0) }
 fn one(ids_: &[i64]) -> Result<i64> { ids_.first().copied().ok_or_else(|| OdooError::User("Expected singleton".into())) }
 
 /// Template-driven defaults for a new order (`_compute_note/require_signature/require_payment/prepayment_percent/validity_date/journal_id`).
-pub fn template_defaults(env: &Env, v: &mut Row) -> Result<()> {
+pub fn template_defaults(env: &Env, v: &mut Row, explicit: &std::collections::BTreeSet<String>) -> Result<()> {
     if !has_model(env, "sale.order.template") { return Ok(()); }
     let company = v.get("company_id").and_then(|c| c.as_i64()).or_else(|| crate::pricelist_methods::env_company(env));
     if v.get("sale_order_template_id").map_or(true, |t| t.is_null()) {
@@ -19,7 +19,8 @@ pub fn template_defaults(env: &Env, v: &mut Row) -> Result<()> {
     }
     let Some(tid) = v.get("sale_order_template_id").and_then(|t| t.as_i64()) else { return Ok(()) };
     let t = rec(env, "sale.order.template", tid)?;
-    let set = |v: &mut Row, k: &str, val: Value| { if !v.contains_key(&format!("__explicit_{k}")) { v.insert(k.into(), val); } };
+    // a value passed explicitly to create() wins over the template-driven compute
+    let set = |v: &mut Row, k: &str, val: Value| { if !explicit.contains(k) { v.insert(k.into(), val); } };
     if text(&t, "note").map_or(false, |n| !n.trim().is_empty() && n != "<p><br></p>") && !v.contains_key("note") { v.insert("note".into(), t["note"].clone()); }
     set(v, "require_signature", flag(&t, "require_signature").into());
     set(v, "require_payment", flag(&t, "require_payment").into());
@@ -27,7 +28,6 @@ pub fn template_defaults(env: &Env, v: &mut Row) -> Result<()> {
     let days = t.get("number_of_days").and_then(|d| d.as_i64()).unwrap_or(0);
     if days > 0 { set(v, "validity_date", orm::shift_date(&orm::today(), days).into()); }
     if let Some(j) = opt_id(&t, "journal_id") { v.entry("journal_id".into()).or_insert(j.into()); }
-    v.retain(|k, _| !k.starts_with("__explicit_"));
     Ok(())
 }
 

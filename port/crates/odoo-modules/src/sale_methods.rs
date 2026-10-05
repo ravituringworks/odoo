@@ -322,7 +322,10 @@ fn prepare_invoice(env: &Env, o: &Row) -> Row {
     for k in ["campaign_id", "medium_id", "source_id", "team_id"] { put(env, m, &mut v, k, idv(opt_id(o, k))); }
     put(env, m, &mut v, "partner_id", idv(opt_id(o, "partner_invoice_id").or_else(|| opt_id(o, "partner_id"))));
     put(env, m, &mut v, "partner_shipping_id", idv(opt_id(o, "partner_shipping_id")));
-    put(env, m, &mut v, "fiscal_position_id", idv(opt_id(o, "fiscal_position_id")));
+    // `self.fiscal_position_id or self.fiscal_position_id._get_fiscal_position(self.partner_invoice_id)`
+    let inv_partner = opt_id(o, "partner_invoice_id").or_else(|| opt_id(o, "partner_id"));
+    let fpos = opt_id(o, "fiscal_position_id").or_else(|| inv_partner.and_then(|p| fiscal_position_for(env, p, None).ok().flatten()));
+    put(env, m, &mut v, "fiscal_position_id", idv(fpos));
     put(env, m, &mut v, "invoice_origin", text(o, "name").map(Value::Text).unwrap_or(Value::Null));
     put(env, m, &mut v, "invoice_payment_term_id", idv(opt_id(o, "payment_term_id")));
     put(env, m, &mut v, "invoice_user_id", idv(opt_id(o, "user_id")));
@@ -632,6 +635,7 @@ pub fn rules() -> Rules {
     Rules::default()
         // ---- order creation defaults (`_compute_*` with readonly=False, precomputed on create)
         .before_create("sale.order", |env, mut v| {
+            let explicit: BTreeSet<String> = v.keys().cloned().collect();
             let company = v.get("company_id").and_then(|c| c.as_i64()).or_else(|| pl::env_company(env));
             if let Some(c) = company { v.entry("company_id".into()).or_insert(c.into()); }
             let crow = company.and_then(|c| rec(env, "res.company", c).ok());
@@ -666,7 +670,7 @@ pub fn rules() -> Rules {
                 if !v.contains_key("prepayment_percent") { v.insert("prepayment_percent".into(), c.get("prepayment_percent").cloned().unwrap_or(1.0.into())); }
             }
             v.entry("locked".into()).or_insert(false.into());
-            crate::sale_mgmt_methods::template_defaults(env, &mut v)?;
+            crate::sale_mgmt_methods::template_defaults(env, &mut v, &explicit)?;
             Ok(v)
         })
         // ---- line creation / form-time defaults (`_compute_product_uom`, `_compute_name`, `_compute_tax_id`, `_compute_price_unit`, `_compute_discount`)

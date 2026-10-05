@@ -140,7 +140,9 @@ fn carrier_rating_matching_and_shipping_lines() {
         assert_eq!(match inv { Value::List(l) => l.len(), _ => 0 }, 1);
         let e = call(&env, "sale.order", "set_delivery_line", &[so], &[("carrier_id", fixed.into()), ("amount", 5.0.into())]).unwrap_err().to_string();
         assert!(e.starts_with("You can not update the shipping costs on an order where it was already invoiced!"), "{e}");
-        assert!(e.contains("- Shipping: 1 x 12"), "{e}");
+        // quantities/prices are printed like Python's str(float)
+        assert!(e.contains(": 1.0 x 12.0"), "{e}");
+        assert!(e.contains("- Shipping: 1.0 x 12.0"), "{e}");
         // a lone delivery line left to invoice does not make the order invoiceable (can't be invoiced alone)
         assert_eq!(text(&rd(&env, "sale.order", so)?, "invoice_status").unwrap(), "invoiced");
 
@@ -180,6 +182,10 @@ fn quotation_templates_and_optional_products() {
         // order with the template: validity from the template, lines/options loaded by the onchange
         let so = orm::create(&env, "sale.order", row(&[("partner_id", cust.into()), ("sale_order_template_id", tpl.into())]))?;
         assert_eq!(text(&rec(&env, "sale.order", so)?, "validity_date").unwrap(), odoo_core::orm::shift_date(&orm::today(), 15));
+        // values passed explicitly to create() win over the template-driven computes
+        let so2 = orm::create(&env, "sale.order", row(&[("partner_id", cust.into()), ("sale_order_template_id", tpl.into()), ("require_signature", false.into())]))?;
+        assert!(!flag(&rec(&env, "sale.order", so2)?, "require_signature"));
+        assert!(flag(&rec(&env, "sale.order", so)?, "require_signature"));
         call(&env, "sale.order", "_onchange_sale_order_template_id", &[so], &[])?;
         let ls = sol(&env, so);
         assert_eq!(ls.len(), 3);

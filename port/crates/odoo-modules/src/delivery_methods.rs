@@ -142,7 +142,8 @@ fn provider_rate(env: &Env, c: &Row, order: i64, kind: &str) -> Result<Rate> {
     if !match_address(env, c, opt_id(&o, "partner_shipping_id"))? { return Ok(fail("Error: this delivery method is not available for this address.")); }
     let price = if kind == "fixed" {
         let product = opt_id(c, "product_id").ok_or_else(|| OdooError::Required("delivery.carrier".into(), "product_id".into()))?;
-        pl::get_product_price(env, opt_id(&o, "pricelist_id"), product, 1.0, None, &text(&o, "date_order").unwrap_or_default())?
+        // Odoo calls `_get_product_price(product, 1.0)` without a date: rules are evaluated "now"
+        pl::get_product_price(env, opt_id(&o, "pricelist_id"), product, 1.0, None, "")?
     } else {
         match price_available(env, c, order) { Ok(p) => compute_currency(env, c, &o, p, "company_to_pricelist"), Err(OdooError::User(m)) => return Ok(fail(&m)), Err(e) => return Err(e) }
     };
@@ -201,7 +202,7 @@ fn remove_delivery_lines(env: &Env, order: i64) -> Result<()> {
     let to_delete: Vec<i64> = lines.iter().filter(|l| num(l, "qty_invoiced") == 0.0).map(rid).collect();
     if to_delete.is_empty() {
         let mut m = String::from("You can not update the shipping costs on an order where it was already invoiced!\n\nThe following delivery lines (product, invoiced quantity and price) have already been processed:\n\n");
-        let items: Vec<String> = lines.iter().map(|l| format!("- {}: {} x {}", opt_id(l, "product_id").and_then(|p| product_display_name(env, p).ok()).unwrap_or_default(), num(l, "qty_invoiced"), num(l, "price_unit"))).collect();
+        let items: Vec<String> = lines.iter().map(|l| format!("- {}: {:?} x {:?}", opt_id(l, "product_id").and_then(|p| product_display_name(env, p).ok()).unwrap_or_default(), num(l, "qty_invoiced"), num(l, "price_unit"))).collect();
         m.push_str(&items.join("\n"));
         return Err(OdooError::User(m));
     }
