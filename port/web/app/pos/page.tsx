@@ -4,11 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { call, rpc } from '@/lib/rpc'
 import { useT } from '@/lib/i18n'
 import { type Card, type Program, type RewardLine, claimable, programPoints, rewardLines, rewardTotal, type Item as LItem } from '@/lib/loyalty'
+import type { DisplayState } from './display/page'
+import { eposKitchen, eposReceipt, EposDoc } from '@/lib/epos'
 import { Ticket, kitchenTicket, receipt as escReceipt } from '@/lib/escpos'
 import { type HwSettings, connectSerial, loadHw, readWeight, saveHw, serialConnected, serialSupported, writeSerial } from '@/lib/hardware'
 import { cartFromDraft, hasUnsent, kitchenDelta, tipAmount, r2, lineTotals, type Cart, type Method, type Pay, type Pricelist, type Product, type Queued, type Tax, canValidate, cartTotals, change, dequeue, due, emptyCart, enqueue, findByCode, paid, parseScale, quickCash, reduce, roundTo, uuid } from '@/lib/pos'
 
-type Data = { session: { id: number; name: string; start_at: string; cash_register_balance_start: number }; config: Record<string, unknown> & { id: number; name: string }; payment_methods: Method[]; categories: { id: number; name: string; parent_id: unknown }[]; products: Product[]; taxes: Tax[]; pricelists: Pricelist[]; cashier: string; currency: { symbol?: string }; invoicing: boolean; loyalty: Program[]; floors: Floor[]; printers: { name: string; target: string; category_ids: number[] }[]; employees: { id: number; name: string; role: 'basic' | 'advanced'; has_pin: boolean }[]; cashier_lock: boolean }
+type Data = { session: { id: number; name: string; start_at: string; cash_register_balance_start: number }; config: Record<string, unknown> & { id: number; name: string }; payment_methods: Method[]; categories: { id: number; name: string; parent_id: unknown }[]; products: Product[]; taxes: Tax[]; pricelists: Pricelist[]; cashier: string; currency: { symbol?: string; name?: string }; invoicing: boolean; loyalty: Program[]; floors: Floor[]; printers: { name: string; target: string; kind?: 'raw' | 'epos'; receipt?: boolean; category_ids: number[] }[]; employees: { id: number; name: string; role: 'basic' | 'advanced'; has_pin: boolean }[]; cashier_lock: boolean }
 type Table = { id: number; name: string; seats: number; shape: string; position_h: number; position_v: number; width: number; height: number; color?: string; orders: number; total: number }
 type Floor = { id: number; name: string; background_color?: string; tables: Table[] }
 type Emp = { id: number; name: string; role: 'basic' | 'advanced' }
@@ -45,7 +47,7 @@ function Registers() {
       <div className="home">
         {rows?.map((r) => (
           <div key={r.id} className="card tile pos-regcard"><b>{r.name}</b><span className="muted">{sess[r.id] ? `${t('pos.session_open')} · ${sess[r.id]}` : t('pos.closed')}</span>
-            <div className="row"><a className="btn p" href={`/pos/?config=${r.id}`}>{sess[r.id] ? t('pos.continue') : t('pos.open_register')}</a><Link className="btn" href={`/form/?model=pos.config&id=${r.id}`}>{t('pos.configure')}</Link><a className="btn" href={`/pos/kitchen/?config=${r.id}`} title={t('pos.kitchen')}>🍳</a><a className="btn" href={`/pos/qr/?config=${r.id}`} title={t('kiosk.qr_title')}>📱</a></div></div>
+            <div className="row"><a className="btn p" href={`/pos/?config=${r.id}`}>{sess[r.id] ? t('pos.continue') : t('pos.open_register')}</a><Link className="btn" href={`/form/?model=pos.config&id=${r.id}`}>{t('pos.configure')}</Link><Link className="btn" href="/pos/reports/">{t('pos.reports')}</Link><a className="btn" href={`/pos/kitchen/?config=${r.id}`} title={t('pos.kitchen')}>🍳</a><a className="btn" href={`/pos/qr/?config=${r.id}`} title={t('kiosk.qr_title')}>📱</a></div></div>
         ))}
         {rows?.length === 0 && <p className="muted">{t('pos.no_registers')}</p>}
       </div>
@@ -62,12 +64,14 @@ function Terminal({ config }: { config: number }) {
   const [carts, setCarts] = useState<Cart[]>([emptyCart()]); const [cur, setCur] = useState(0)
   const [cat, setCat] = useState<number | null>(null); const [q, setQ] = useState('')
   const [sel, setSel] = useState<string | null>(null); const [mode, setMode] = useState<'qty' | 'discount' | 'price'>('qty'); const [buf, setBuf] = useState('')
-  const [screen, setScreen] = useState<'floor' | 'shop' | 'pay' | 'receipt'>('shop'); const [modal, setModal] = useState<null | 'customer' | 'orders' | 'close' | 'pricelist' | 'rewards' | 'split' | 'transfer' | 'tip' | 'guests' | 'tableorders' | 'hardware' | 'scale'>(null)
+  const [screen, setScreen] = useState<'floor' | 'shop' | 'pay' | 'receipt'>('shop'); const [modal, setModal] = useState<null | 'customer' | 'orders' | 'close' | 'pricelist' | 'rewards' | 'split' | 'transfer' | 'tip' | 'guests' | 'tableorders' | 'hardware' | 'scale' | 'terminal' | 'open'>(null)
   const [pays, setPays] = useState<Pay[]>([]); const [amount, setAmount] = useState(''); const [invoice, setInvoice] = useState(false)
   const [emp, setEmp] = useState<Emp | null>(null)
   const [hw, setHw] = useState<HwSettings>(() => (typeof localStorage === 'undefined' ? loadHw() : loadHw())); const [weighing, setWeighing] = useState<Product | null>(null)
   const updateHw = (p: Partial<HwSettings>) => setHw((o) => { const n = { ...o, ...p }; saveHw(n); return n })
   const [receipt, setReceipt] = useState<Receipt | null>(null); const [online, setOnline] = useState(true); const [queued, setQueued] = useState(0); const [busy, setBusy] = useState(false)
+  const [termFor, setTermFor] = useState<{ method: Method; amount: number } | null>(null)
+  const [editing, setEditing] = useState(false)
   const [floorIdx, setFloorIdx] = useState(0); const [pending, setPending] = useState<{ table: Table; orders: Parameters<typeof cartFromDraft>[0][] } | null>(null); const [toast, setToast] = useState('')
   const cart = carts[cur] ?? carts[0]
   const dispatch = useCallback((a: Parameters<typeof reduce>[1]) => setCarts((cs) => cs.map((c, i) => (i === cur ? reduce(c, a) : c))), [cur])
@@ -103,6 +107,7 @@ function Terminal({ config }: { config: number }) {
       const now = Date.now(); if (now - scan.current.at > 80) scan.current.s = ''; scan.current.at = now
       if (e.key === 'Enter') { const code = scan.current.s; scan.current.s = ''; if (code.length < 3) return
         const w = parseScale(code); const p = w ? d.products.find((x) => x.code === w.code || x.barcode === w.code) : findByCode(d.products, code)
+        if (!p && d.loyalty.length) { act<Card[]>('pos.config', 'loyalty_cards', [config], { code }).then((found) => { if (found.length) { setCards((o) => [...found, ...o.filter((x) => !found.some((f) => f.id === x.id))]); setModal('rewards') } }).catch(() => {}) }
         if (p) { dispatch({ t: 'add', product: p, pl: plist }); if (w) setCarts((cs) => cs.map((c, i) => i === cur ? { ...c, lines: c.lines.map((l, j) => j === c.lines.length - 1 ? { ...l, qty: w.kg } : l) } : c)) } }
       else if (e.key.length === 1) scan.current.s += e.key
     }
@@ -134,6 +139,17 @@ function Terminal({ config }: { config: number }) {
     draftTimer.current = setTimeout(() => { act('pos.order', 'save_draft', [], orderKw(cart)).catch(() => {}) }, 600)
     return () => { if (draftTimer.current) clearTimeout(draftTimer.current) }
   }, [cart.lines, cart.guests, cart.takeaway, cart.partner?.id, cart.table?.id, screen]) // eslint-disable-line react-hooks/exhaustive-deps
+  // mirror the basket to a customer-facing display: second window (BroadcastChannel) and, for other devices, the server relay
+  const dispCh = useRef<BroadcastChannel | null>(null)
+  useEffect(() => { try { dispCh.current = new BroadcastChannel(`pos-display-${config}`) } catch { dispCh.current = null } return () => dispCh.current?.close() }, [config])
+  useEffect(() => {
+    if (!d) return
+    const st: DisplayState = screen === 'receipt' ? { status: 'done', name: d.config.name, lines: [], tax: 0, total: 0, currency: sym, change: receipt?.amount_return }
+      : cart.lines.length === 0 ? { status: 'idle', name: d.config.name, lines: [], tax: 0, total: 0, currency: sym }
+      : { status: screen === 'pay' ? 'paying' : 'cart', name: d.config.name, partner: cart.partner?.name, currency: sym, tax: totals.tax, total, lines: cart.lines.map((l) => ({ name: l.product.name, qty: l.qty, price: l.price, total: lineTotals(l, taxes).total })).concat(rlines.map((l) => ({ name: l.label, qty: 1, price: l.price, total: l.price }))) }
+    dispCh.current?.postMessage(st)
+    if (d.config.customer_display_type === 'remote') { const h = setTimeout(() => { act('pos.config', 'display_push', [config], { state: st }).catch(() => {}) }, 400); return () => clearTimeout(h) }
+  }, [d, cart.lines, cart.partner, rlines, totals.tax, total, screen, receipt]) // eslint-disable-line react-hooks/exhaustive-deps
   const refreshFloors = useCallback(() => act<Data>('pos.config', 'open_ui', [config], {}).then((x) => setD((o) => (o ? { ...o, floors: x.floors } : x))).catch(() => {}), [config])
   const openTable = async (tb: Table) => {
     const orders = await act<Parameters<typeof cartFromDraft>[0][]>('pos.config', 'open_orders', [config], { table_id: tb.id }).catch(() => [])
@@ -170,27 +186,34 @@ function Terminal({ config }: { config: number }) {
     if (!target) throw new Error(t('pos.no_printer'))
     await act('pos.config', 'print_raw', [config], { target, data: hex })
   }
-  const receiptPrinter = d?.printers?.[0]?.target ?? null
+  const rawPrinters = (d?.printers ?? []).filter((p) => (p.kind ?? 'raw') === 'raw' && p.receipt !== false); const eposPrinters = (d?.printers ?? []).filter((p) => p.kind === 'epos' && p.receipt !== false)
+  const receiptPrinter = (hw.receipt === 'epos' ? eposPrinters[0] : rawPrinters[0])?.target ?? null
+  const sendEpos = (target: string | null, doc: EposDoc) => { if (!target) throw new Error(t('pos.no_printer')); return rpc({ method: 'pos_print_epos', args: [{ config_id: config, target, xml: doc.xml() }] }) }
   const printReceipt = async (r: Receipt, open = false) => {
     if (!d || hw.receipt === 'browser') { if (!open) window.print(); return }
+    const data = { name: r.name, date_order: r.date_order, cashier: emp?.name ?? d.cashier, header: String(d.config.receipt_header ?? ''), footer: String(d.config.receipt_footer ?? ''), tax: r.amount_tax, total: r.amount_total, change: r.amount_return, money,
+      lines: r.lines.map((l) => ({ name: l.full_product_name, qty: l.qty, price: l.price_unit, discount: l.discount, total: l.price_subtotal_incl })), payments: r.payments.filter((p) => !p.is_change).map((p) => ({ name: p.method, amount: p.amount })) }
+    if (hw.receipt === 'epos') { const doc = eposReceipt(data); if (open) doc.drawer(); await sendEpos(receiptPrinter, doc); return }
     const tk = escReceipt({ name: r.name, date_order: r.date_order, cashier: emp?.name ?? d.cashier, header: String(d.config.receipt_header ?? ''), footer: String(d.config.receipt_footer ?? ''), tax: r.amount_tax, total: r.amount_total, change: r.amount_return, money,
       lines: r.lines.map((l) => ({ name: l.full_product_name, qty: l.qty, price: l.price_unit, discount: l.discount, total: l.price_subtotal_incl })), payments: r.payments.filter((p) => !p.is_change).map((p) => ({ name: p.method, amount: p.amount })) })
     if (open) tk.drawer()
     await sendBytes(receiptPrinter, tk.bytes(), tk.hex(), hw.receipt)
   }
-  const kickDrawer = async () => { if (!d || hw.receipt === 'browser') return; const tk = new Ticket().drawer(); await sendBytes(receiptPrinter, tk.bytes(), tk.hex(), hw.receipt) }
+  const kickDrawer = async () => { if (!d || hw.receipt === 'browser') return; if (hw.receipt === 'epos') { await sendEpos(receiptPrinter, new EposDoc().drawer()); return } const tk = new Ticket().drawer(); await sendBytes(receiptPrinter, tk.bytes(), tk.hex(), hw.receipt) }
   const printKitchen = async (lines: { name: string; qty: number; note?: string; cats: number[] }[]) => {
     if (!d || !hw.kitchen) return
     const label = cart.table ? `${t('pos.table')} ${cart.table.name}` : cart.takeaway ? t('pos.takeaway_order') : `#${carts.indexOf(cart) + 1}`
-    for (const p of (d.printers ?? []).slice(1)) {
+    const kitchen = (d.printers ?? []).filter((p) => !p.receipt)
+    for (const p of kitchen) {
       const mine = lines.filter((l) => !p.category_ids.length || l.cats.some((c) => p.category_ids.includes(c))); if (!mine.length) continue
-      const tk = kitchenTicket(label, mine, new Date().toTimeString().slice(0, 5)); await sendBytes(p.target, tk.bytes(), tk.hex(), 'network')
+      const when = new Date().toTimeString().slice(0, 5)
+      if (p.kind === 'epos') await sendEpos(p.target, eposKitchen(label, mine, when)); else { const tk = kitchenTicket(label, mine, when); await sendBytes(p.target, tk.bytes(), tk.hex(), 'network') }
     }
   }
   const validate = async () => {
     if (!d) return; setBusy(true); setErr('')
     const kwargs = { session_id: d.session.id, uuid: cart.uuid, employee_id: emp?.id, table_id: cart.table?.id, customer_count: cart.guests, takeaway: !!cart.takeaway, partner_id: cart.partner?.id, pricelist_id: cart.pricelist ?? undefined, to_invoice: invoice, note: cart.note, rewards: (cart.claims ?? []).map((c) => ({ reward_id: c.rewardId, card_id: c.cardId ?? undefined })), codes: cart.codes,
-      lines: cart.lines.map((l) => ({ uuid: l.key, product_id: l.product.id, qty: l.qty, price_unit: l.price, discount: l.discount, note: l.note })), payments: pays.map((p) => ({ payment_method_id: p.method, amount: p.amount })) }
+      lines: cart.lines.map((l) => ({ uuid: l.key, product_id: l.product.id, qty: l.qty, price_unit: l.price, discount: l.discount, note: l.note })), payments: pays.map((p) => ({ payment_method_id: p.method, amount: p.amount, transaction_id: p.tx })) }
     try { const rc = await act<Receipt>('pos.order', 'create_from_ui', [], kwargs); setReceipt(rc); setScreen('receipt'); const cash = rc.payments.some((p) => !p.is_change && methods.find((m) => m.name === p.method)?.kind === 'cash'); if (hw.receipt !== 'browser') { const fail = (e: unknown) => setErr(String((e as Error).message ?? e)); if (hw.autoPrint) printReceipt(rc, hw.drawer && cash).catch(fail); else if (hw.drawer && cash) kickDrawer().catch(fail) } }
     catch (e) {
       const m = String((e as Error).message ?? e)
@@ -203,7 +226,7 @@ function Terminal({ config }: { config: number }) {
     } finally { setBusy(false) }
   }
 
-  const verify = useCallback(async (kw: Record<string, unknown>) => { const e = await act<Emp>('pos.config', 'verify_employee', [config], kw); setEmp(e); return e }, [config])
+  const verify = useCallback(async (kw: Record<string, unknown>) => { const e = await act<Emp & { ok?: boolean; message?: string }>('pos.config', 'verify_employee', [config], kw); if (e.ok === false) throw new Error(e.message || 'Wrong PIN'); setEmp(e); return e }, [config])
   // badge / RFID readers act as keyboards: while locked, typed characters + Enter are a badge scan
   const badge = useRef({ s: '', at: 0 })
   useEffect(() => {
@@ -224,19 +247,20 @@ function Terminal({ config }: { config: number }) {
         <div className="pos-tabs">{carts.map((c, i) => <button key={c.uuid} className={`btn ${i === cur ? 'p' : ''}`} onClick={() => { setCur(i); setSel(null); setScreen('shop'); setPays([]) }}>{c.lines.length ? `#${i + 1} · ${money(cartTotals(c, taxes).total)}` : `#${i + 1}`}</button>)}<button className="btn" onClick={newOrder}>+</button></div>
         <span className="grow" />
         <span className={`pill ${online ? 'ok' : 'bad'}`}>{online ? t('pos.online') : t('pos.offline')}{queued > 0 && ` · ${queued}`}</span>
-        <button className="btn" onClick={() => setModal('hardware')} title={t('pos.hardware')}>⚙</button><button className="btn" onClick={() => setModal('orders')}>{t('pos.orders')}</button>{!basic && <button className="btn" onClick={() => setModal('close')}>{t('pos.close')}</button>}
+        <button className="btn" onClick={() => window.open(`/pos/display/?config=${config}`, 'pos-display', 'popup,width=900,height=700')} title={t('pos.customer_display')}>🖥</button><button className="btn" onClick={() => setModal('hardware')} title={t('pos.hardware')}>⚙</button><button className="btn" onClick={() => setModal('open')}>📋 {t('pos.open_orders')}</button><button className="btn" onClick={() => setModal('orders')}>{t('pos.orders')}</button>{!basic && <button className="btn" onClick={() => setModal('close')}>{t('pos.close')}</button>}
       </header>
       {err && <div className="err" onClick={() => setErr('')}>{err}</div>}
       {toast && <div className="pos-toast">{toast}</div>}
       {screen === 'floor' && (
         <div className="pos-floor">
-          <div className="pos-cats">{d.floors.map((f, i) => <button key={f.id} className={`btn ${i === floorIdx ? 'p' : ''}`} onClick={() => setFloorIdx(i)}>{f.name}</button>)}<span className="grow" /><button className="btn" onClick={() => { setCarts((cs) => [...cs, emptyCart()]); setCur(carts.length); setScreen('shop') }}>🥡 {t('pos.takeaway_order')}</button></div>
+          <div className="pos-cats">{d.floors.map((f, i) => <button key={f.id} className={`btn ${i === floorIdx ? 'p' : ''}`} onClick={() => setFloorIdx(i)}>{f.name}</button>)}<span className="grow" />{!basic && <button className={`btn ${editing ? 'p' : ''}`} onClick={() => setEditing((e) => !e)}>✎ {t('pos.edit_floor')}</button>}<button className="btn" onClick={() => { setCarts((cs) => [...cs, emptyCart()]); setCur(carts.length); setScreen('shop') }}>🥡 {t('pos.takeaway_order')}</button></div>
+          {editing && d.floors[floorIdx] ? <FloorEditor floor={d.floors[floorIdx]} config={config} floorIds={d.floors.map((f) => f.id)} done={() => { setEditing(false); refreshFloors() }} t={t} /> :
           <div className="pos-plan">
             {(d.floors[floorIdx]?.tables ?? []).map((tb, i) => {
               const placed = tb.position_h > 0 || tb.position_v > 0
               return <button key={tb.id} className={`pos-table ${tb.shape === 'round' ? 'round' : ''} ${tb.orders ? 'busy' : ''}`} style={placed ? { left: tb.position_h, top: tb.position_v, width: tb.width || 90, height: tb.height || 90 } : { position: 'relative', width: 90, height: 90, margin: 8 }} onClick={() => openTable(tb)} data-i={i}><b>{tb.name}</b><small>{tb.orders ? money(tb.total) : `${tb.seats} 👤`}</small></button>
             })}
-          </div>
+          </div>}
         </div>)}
       {screen === 'shop' && (
         <div className="pos-body">
@@ -282,11 +306,11 @@ function Terminal({ config }: { config: number }) {
         <div className="pos-pay-screen card">
           <h2>{t('pos.payment')} · {money(total)}</h2>
           <div className="pos-pay-cols">
-            <div>{methods.map((m) => <button key={m.id} className="btn pos-method" onClick={() => { const a = amount ? Number(amount) : Math.max(due(total, pays), 0); if (a > 0) setPays((p) => [...p, { method: m.id, amount: a }]); setAmount('') }}>{m.kind === 'cash' ? '💵' : m.kind === 'account' ? '🧾' : '💳'} {m.name}</button>)}
+            <div>{methods.map((m) => <button key={m.id} className="btn pos-method" onClick={() => { const a = amount ? Number(amount) : Math.max(due(total, pays), 0); if (a > 0) { if (m.use_payment_terminal) { setTermFor({ method: m, amount: a }); setModal('terminal') } else setPays((p) => [...p, { method: m.id, amount: a }]) } setAmount('') }}>{m.kind === 'cash' ? '💵' : m.kind === 'account' ? '🧾' : '💳'} {m.name}</button>)}
               <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginTop: 8 }}>{quickCash(Math.max(due(total, pays), 0)).map((n) => <button key={n} className="btn" onClick={() => setAmount(String(n))}>{money(n)}</button>)}</div>
               <input className="pos-amt" inputMode="decimal" placeholder={String(Math.max(due(total, pays), 0).toFixed(2))} value={amount} onChange={(e) => setAmount(e.target.value)} />
               <label className="row" style={{ gap: 6, marginTop: 10 }}><input type="checkbox" checked={invoice} disabled={!d.invoicing} onChange={(e) => setInvoice(e.target.checked)} /> {t('pos.invoice')}{invoice && !cart.partner && <button className="btn" onClick={() => setModal('customer')}>{t('pos.pick_customer')}</button>}</label></div>
-            <div>{pays.map((p, i) => <div key={i} className="pos-payrow"><span>{methods.find((m) => m.id === p.method)?.name}</span><b>{money(p.amount)}</b><button className="btn" onClick={() => setPays((x) => x.filter((_, j) => j !== i))}>×</button></div>)}
+            <div>{pays.map((p, i) => <div key={i} className="pos-payrow"><span>{methods.find((m) => m.id === p.method)?.name}{p.card ? ` · ${p.card}` : ''}</span><b>{money(p.amount)}</b><button className="btn" onClick={() => setPays((x) => x.filter((_, j) => j !== i))}>×</button></div>)}
               <div className="pos-sum"><b>{due(total, pays) > 0 ? t('pos.remaining') : t('pos.change')}</b><b className="pos-big">{money(due(total, pays) > 0 ? due(total, pays) : change(total, pays, methods))}</b></div>
               <div className="row" style={{ gap: 8 }}><button className="btn" onClick={() => setScreen('shop')}>‹ {t('pos.back')}</button><button className="btn p grow" disabled={busy || !canValidate(cart, total, pays, methods, invoice)} onClick={validate}>{t('pos.validate')}</button></div></div>
           </div>
@@ -297,7 +321,9 @@ function Terminal({ config }: { config: number }) {
       {modal === 'split' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><SplitPick cart={cart} money={money} taxes={taxes} done={split} t={t} /></div></div>}
       {modal === 'transfer' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.transfer')}</h3><div className="pos-list">{d.floors.flatMap((f) => f.tables.map((tb) => ({ f, tb }))).filter((x) => x.tb.id !== cart.table?.id).map(({ f, tb }) => <button key={tb.id} className="btn" onClick={() => transfer(tb)}>{f.name} · {tb.name}{tb.orders ? ' ●' : ''}</button>)}</div></div></div>}
       {modal === 'tip' && <div className="pos-modal" onClick={() => setModal(null)}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.tip')}</h3><div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>{[10, 15, 20].map((p) => <button key={p} className="btn" onClick={() => addTip(p)}>{p}% · {money(tipAmount(base.total, p))}</button>)}<button className="btn" onClick={() => { const v = Number(prompt(t('pos.tip')) || 0); if (v > 0) addTip(null, v) }}>…</button></div></div></div>}
-      {modal === 'hardware' && <HardwareModal hw={hw} update={updateHw} printers={d.printers ?? []} close={() => setModal(null)} test={() => { const tk = new Ticket().align('center').bold(true).line('Odoo RS').bold(false).line(t('pos.test_print')).cut(); return sendBytes(receiptPrinter, tk.bytes(), tk.hex(), hw.receipt) }} t={t} />}
+      {modal === 'terminal' && termFor && <TerminalModal method={termFor.method} amount={termFor.amount} money={money} currency={d.currency.name ?? 'USD'} reference={`${d.session.name}-${cart.uuid.slice(0, 6)}`} cashier={emp?.name ?? d.cashier} close={() => { setModal(null); setTermFor(null) }} paid={(x) => { setPays((p) => [...p, { method: termFor.method.id, amount: termFor.amount, tx: x.tx, card: x.card }]); setModal(null); setTermFor(null) }} t={t} />}
+      {modal === 'open' && <OpenOrders config={config} money={money} close={() => setModal(null)} pick={(o) => { const c = cartFromDraft(o, d.products, null); setCarts((cs) => { const i = cs.findIndex((x) => x.uuid === c.uuid); if (i >= 0) { setCur(i); return cs.map((x, j) => (j === i ? c : x)) } setCur(cs.length); return [...cs, c] }); setSel(null); setScreen('shop'); setModal(null) }} t={t} />}
+      {modal === 'hardware' && <HardwareModal hw={hw} update={updateHw} printers={d.printers ?? []} close={() => setModal(null)} test={() => { if (hw.receipt === 'epos') return sendEpos(receiptPrinter, new EposDoc().align('center').line('Odoo RS').line(t('pos.test_print')).cut()).then(() => undefined); const tk = new Ticket().align('center').bold(true).line('Odoo RS').bold(false).line(t('pos.test_print')).cut(); return sendBytes(receiptPrinter, tk.bytes(), tk.hex(), hw.receipt) }} t={t} />}
       {modal === 'scale' && weighing && <ScaleModal p={weighing} money={money} close={() => { setModal(null); setWeighing(null) }} add={(kg) => { setCarts((cs) => cs.map((c, i) => { if (i !== cur) return c; const a = reduce(c, { t: 'add', product: weighing, pl: plist }); return { ...a, lines: a.lines.map((l, j) => (j === a.lines.length - 1 ? { ...l, qty: kg } : l)) } })); setModal(null); setWeighing(null) }} t={t} />}
       {modal === 'rewards' && <Rewards d={d} config={config} cart={cart} cards={cards} setCards={setCards} items={litems} claim={(c) => { dispatch({ t: 'claim', claim: c }); setModal(null) }} code={(c) => dispatch({ t: 'code', code: c })} t={t} close={() => setModal(null)} />}
       {modal === 'customer' && <Customers close={() => setModal(null)} pick={(p) => { dispatch({ t: 'partner', partner: p }); setModal(null) }} t={t} />}
@@ -336,7 +362,20 @@ function Customers({ pick, close, t }: { pick: (p: { id: number; name: string } 
 function Orders({ d, emp, money, close, onRefund, t }: { d: Data; emp: Emp | null; money: (n: number) => string; close: () => void; onRefund: (r: Receipt) => void; t: TFn }) {
   const [rows, setRows] = useState<{ id: number; name: string; amount_total: number; state: string; date_order: string }[]>([]); const [err, setErr] = useState('')
   useEffect(() => { call<typeof rows>('pos.order', 'search_read', [[['session_id', '=', d.session.id]]], { fields: ['name', 'amount_total', 'state', 'date_order'], order: 'id desc', limit: 50 }).then(setRows).catch((e) => setErr(String(e.message ?? e))) }, [d.session.id])
-  const refund = async (id: number) => { try { onRefund(await act<Receipt>('pos.order', 'refund', [id], { session_id: d.session.id, employee_id: emp?.id })) } catch (e) { setErr(String((e as Error).message ?? e)) } }
+  // refunds to a card go through the terminal first (API refund, or confirmed manually when the provider has none)
+  const refund = async (id: number) => {
+    try {
+      const base = { session_id: d.session.id, employee_id: emp?.id }
+      const q = await act<{ amount: number; payment_id: number; terminal: boolean }>('pos.order', 'refund', [id], { ...base, quote: true })
+      let transaction_id: string | undefined
+      if (q.terminal) {
+        const body = { payment_id: q.payment_id, amount: q.amount, currency: d.currency.name ?? 'USD' }
+        try { transaction_id = (await rpc<{ tx: string }>({ method: 'terminal_refund', args: [body] })).tx }
+        catch (e) { const m = String((e as Error).message ?? e); if (/confirm manually|refund on the device/i.test(m) && confirm(`${m}\n\n${t('pos.refund_done_manually')}`)) transaction_id = (await rpc<{ tx: string }>({ method: 'terminal_refund', args: [{ ...body, manual: true }] })).tx; else throw e }
+      }
+      onRefund(await act<Receipt>('pos.order', 'refund', [id], { ...base, transaction_id }))
+    } catch (e) { setErr(String((e as Error).message ?? e)) }
+  }
   return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>{t('pos.orders')}</h3>{err && <div className="err">{err}</div>}
     <div className="pos-list">{rows.map((r) => <div key={r.id} className="pos-payrow"><span>{r.name}<br /><small className="muted">{r.date_order}</small></span><b>{money(r.amount_total)}</b>{r.amount_total > 0 && emp?.role !== 'basic' && <button className="btn" onClick={() => refund(r.id)}>↩ {t('pos.refund')}</button>}</div>)}{rows.length === 0 && <p className="muted">{t('pos.no_orders')}</p>}</div></div></div>
 }
@@ -407,7 +446,7 @@ function HardwareModal({ hw, update, printers, close, test, t }: { hw: HwSetting
   const connect = async (kind: 'receipt' | 'scale', baud: number) => { try { await connectSerial(kind, baud); setMsg(t('pos.connected')); bump((x) => x + 1) } catch (e) { setMsg(String((e as Error).message ?? e)) } }
   return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>⚙ {t('pos.hardware')}</h3>{msg && <div className="muted">{msg}</div>}
     <label>{t('pos.receipt_printer')}<select value={hw.receipt} onChange={(e) => update({ receipt: e.target.value as HwSettings['receipt'] })}>
-      <option value="browser">{t('pos.hw_browser')}</option><option value="network" disabled={!printers.length}>{t('pos.hw_network')}{printers[0] ? ` (${printers[0].target})` : ` — ${t('pos.hw_not_configured')}`}</option><option value="serial" disabled={!serialSupported()}>{t('pos.hw_serial')}</option></select></label>
+      <option value="browser">{t('pos.hw_browser')}</option><option value="network" disabled={!printers.some((p) => (p.kind ?? 'raw') === 'raw')}>{t('pos.hw_network')}{printers.find((p) => (p.kind ?? 'raw') === 'raw') ? ` (${printers.find((p) => (p.kind ?? 'raw') === 'raw')!.target})` : ` — ${t('pos.hw_not_configured')}`}</option><option value="epos" disabled={!printers.some((p) => p.kind === 'epos')}>{t('pos.hw_epos')}</option><option value="serial" disabled={!serialSupported()}>{t('pos.hw_serial')}</option></select></label>
     {hw.receipt === 'serial' && <button className="btn" onClick={() => connect('receipt', 9600)}>{serialConnected('receipt') ? '✓ ' : ''}{t('pos.connect_printer')}</button>}
     <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={hw.autoPrint} onChange={(e) => update({ autoPrint: e.target.checked })} /> {t('pos.auto_print')}</label>
     <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={hw.drawer} onChange={(e) => update({ drawer: e.target.checked })} /> {t('pos.open_drawer')}</label>
@@ -426,4 +465,79 @@ function ScaleModal({ p, money, close, add, t }: { p: Product; money: (n: number
     <input autoFocus inputMode="decimal" placeholder="kg" value={kg} onChange={(e) => setKg(e.target.value)} />
     <div className="pos-sum"><b>{t('pos.total')}</b><b className="pos-big">{money((Number.isFinite(n) ? n : 0) * p.price)}</b></div>
     <div className="row" style={{ gap: 8 }}>{serialConnected('scale') && <button className="btn" disabled={busy} onClick={read}>⚖ {t('pos.weigh')}</button>}<button className="btn p" disabled={!(n > 0)} onClick={() => add(n)}>{t('pos.add')}</button></div></div></div>
+}
+
+function TerminalModal({ method, amount, money, currency, reference, cashier, close, paid, t }: { method: Method; amount: number; money: (n: number) => string; currency: string; reference: string; cashier: string; close: () => void; paid: (x: { tx: string; card: string }) => void; t: TFn }) {
+  const [tx, setTx] = useState<string | null>(null); const [status, setStatus] = useState<'starting' | 'pending' | 'succeeded' | 'failed' | 'cancelled'>('starting'); const [msg, setMsg] = useState('')
+  const start = useCallback(async () => {
+    setStatus('starting'); setMsg('')
+    try { const r = await rpc<{ tx: string }>({ method: 'terminal_start', args: [{ method_id: method.id, amount, currency, reference, cashier }] }); setTx(r.tx); setStatus('pending') } catch (e) { setStatus('failed'); setMsg(String((e as Error).message ?? e)) }
+  }, [method.id, amount, currency, reference, cashier])
+  useEffect(() => { start() }, [start])
+  useEffect(() => {
+    if (!tx || status !== 'pending') return
+    const i = setInterval(async () => {
+      try { const r = await rpc<{ status: typeof status; message: string; card_brand: string; card_no: string }>({ method: 'terminal_status', args: [{ tx }] })
+        if ((r.status as string) === 'succeeded') { clearInterval(i); setStatus('succeeded'); paid({ tx, card: [r.card_brand, r.card_no && `••${r.card_no}`].filter(Boolean).join(' ') }) }
+        else if (r.status !== 'pending') { setStatus(r.status); setMsg(r.message) } } catch (e) { setMsg(String((e as Error).message ?? e)) }
+    }, 1500)
+    return () => clearInterval(i)
+  }, [tx, status, paid])
+  const cancel = async () => { if (tx && status === 'pending') await rpc({ method: 'terminal_cancel', args: [{ tx }] }).catch(() => {}); close() }
+  return <div className="pos-modal"><div className="card" style={{ textAlign: 'center' }}><h3>💳 {method.name} · {money(amount)}</h3>
+    {(status === 'starting' || status === 'pending') && <p className="muted">{status === 'starting' ? t('pos.term_starting') : t('pos.term_waiting')}</p>}
+    {status === 'failed' && <div className="err">{msg || t('pos.term_failed')}</div>}
+    <div className="row" style={{ gap: 8, justifyContent: 'center' }}>{status === 'failed' && <button className="btn p" onClick={start}>{t('pos.term_retry')}</button>}<button className="btn" onClick={cancel}>{t('pos.cancel')}</button></div></div></div>
+}
+
+function OpenOrders({ config, money, close, pick, t }: { config: number; money: (n: number) => string; close: () => void; pick: (o: Parameters<typeof cartFromDraft>[0]) => void; t: TFn }) {
+  type O = Parameters<typeof cartFromDraft>[0] & { amount_total?: number; general_note?: string; shipping_date?: string; name?: string }
+  const [rows, setRows] = useState<O[] | null>(null)
+  useEffect(() => { act<O[]>('pos.config', 'open_orders', [config], {}).then(setRows).catch(() => setRows([])) }, [config])
+  return <div className="pos-modal" onClick={close}><div className="card" onClick={(e) => e.stopPropagation()}><h3>📋 {t('pos.open_orders')}</h3>
+    <div className="pos-list">{(rows ?? []).map((o) => <button key={o.uuid} className="btn pos-reward" onClick={() => pick(o)}><b>{o.general_note || o.name || o.uuid.slice(0, 8)}</b><small className="muted">{o.lines.length} · {money(Number(o.amount_total ?? 0))}{o.shipping_date ? ` · ${t('pos.pickup')} ${o.shipping_date.slice(11, 16)}` : ''}</small></button>)}{rows && rows.length === 0 && <p className="muted">{t('pos.no_open')}</p>}</div></div></div>
+}
+
+type ETable = { id: number; table_number: number; seats: number; shape: string; position_h: number; position_v: number; width: number; height: number }
+/** Drag-and-drop floor-plan editor: move tables (snap to 10 px), resize, change number/seats/shape, add and delete; Save writes to `restaurant.table`. */
+function FloorEditor({ floor, config, floorIds, done, t }: { floor: Floor; config: number; floorIds: number[]; done: () => void; t: TFn }) {
+  const toE = (x: Table): ETable => ({ id: x.id, table_number: Number(x.name) || 0, seats: x.seats || 2, shape: x.shape || 'square', position_h: x.position_h || 0, position_v: x.position_v || 0, width: x.width || 90, height: x.height || 90 })
+  const [tables, setTables] = useState<ETable[]>(() => floor.tables.map(toE)); const [orig] = useState<ETable[]>(() => floor.tables.map(toE))
+  const [sel, setSel] = useState<number | null>(null); const [err, setErr] = useState(''); const plan = useRef<HTMLDivElement>(null)
+  const drag = useRef<{ id: number; dx: number; dy: number } | null>(null)
+  const snap = (n: number) => Math.max(0, Math.round(n / 10) * 10)
+  // tables that were never placed (flow layout) get a grid position the first time they are edited
+  useEffect(() => { setTables((ts) => ts.map((x, i) => (x.position_h || x.position_v ? x : { ...x, position_h: 20 + (i % 6) * 110, position_v: 20 + Math.floor(i / 6) * 110 }))) }, [])
+  const down = (e: React.PointerEvent, x: ETable) => { const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); drag.current = { id: x.id, dx: e.clientX - r.left, dy: e.clientY - r.top }; setSel(x.id); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) }
+  const move = (e: React.PointerEvent) => { const g = drag.current; const box = plan.current?.getBoundingClientRect(); if (!g || !box) return; setTables((ts) => ts.map((x) => (x.id === g.id ? { ...x, position_h: snap(e.clientX - box.left - g.dx + (plan.current?.scrollLeft ?? 0)), position_v: snap(e.clientY - box.top - g.dy + (plan.current?.scrollTop ?? 0)) } : x))) }
+  const up = () => { drag.current = null }
+  const patch = (p: Partial<ETable>) => setTables((ts) => ts.map((x) => (x.id === sel ? { ...x, ...p } : x)))
+  const add = (shape: string) => { const id = -(Date.now() % 1e9); const n = Math.max(0, ...tables.map((x) => x.table_number)) + 1; setTables((ts) => [...ts, { id, table_number: n, seats: 4, shape, position_h: 20, position_v: 20, width: 90, height: 90 }]); setSel(id) }
+  const remove = () => { setTables((ts) => ts.filter((x) => x.id !== sel)); setSel(null) }
+  const save = async () => {
+    try {
+      for (const x of tables) {
+        const vals = { table_number: x.table_number, seats: x.seats, shape: x.shape, position_h: x.position_h, position_v: x.position_v, width: x.width, height: x.height }
+        if (x.id < 0) await call('restaurant.table', 'create', [{ ...vals, floor_id: floor.id }])
+        else if (JSON.stringify(orig.find((o) => o.id === x.id)) !== JSON.stringify(x)) await call('restaurant.table', 'write', [[x.id], vals])
+      }
+      const gone = orig.filter((o) => !tables.some((x) => x.id === o.id)).map((o) => o.id); if (gone.length) await call('restaurant.table', 'write', [gone, { active: false }])
+      done()
+    } catch (e) { setErr(String((e as Error).message ?? e)) }
+  }
+  const addFloor = async () => { const n = prompt(t('pos.add_floor')); if (!n) return; try { const id = await call<number>('restaurant.floor', 'create', [{ name: n }]); await call('pos.config', 'write', [[config], { floor_ids: [[6, 0, [...floorIds, id]]] }]); done() } catch (e) { setErr(String((e as Error).message ?? e)) } }
+  const renameFloor = async () => { const n = prompt(t('pos.rename'), floor.name); if (!n) return; try { await call('restaurant.floor', 'write', [[floor.id], { name: n }]); done() } catch (e) { setErr(String((e as Error).message ?? e)) } }
+  const cur = tables.find((x) => x.id === sel)
+  return (
+    <div className="pos-edit">
+      <div ref={plan} className="pos-plan edit" onPointerMove={move} onPointerUp={up}>{tables.map((x) => <div key={x.id} className={`pos-table ${x.shape === 'round' ? 'round' : ''} ${x.id === sel ? 'sel' : ''}`} style={{ left: x.position_h, top: x.position_v, width: x.width, height: x.height, touchAction: 'none', cursor: 'grab' }} onPointerDown={(e) => down(e, x)}><b>{x.table_number}</b><small>{x.seats} 👤</small></div>)}</div>
+      <aside className="card pos-edit-side">{err && <div className="err">{err}</div>}
+        <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}><button className="btn" onClick={() => add('square')}>+ {t('pos.square')}</button><button className="btn" onClick={() => add('round')}>+ {t('pos.round')}</button><button className="btn" onClick={renameFloor}>{t('pos.rename')}</button><button className="btn" onClick={addFloor}>+ {t('pos.add_floor')}</button></div>
+        {cur ? <><label>{t('pos.table_number')}<input type="number" value={cur.table_number} onChange={(e) => patch({ table_number: Number(e.target.value) })} /></label>
+          <label>{t('pos.table_seats')}<input type="number" min={1} value={cur.seats} onChange={(e) => patch({ seats: Math.max(1, Number(e.target.value)) })} /></label>
+          <div className="row" style={{ gap: 6 }}><button className="btn" onClick={() => patch({ width: Math.max(50, cur.width - 10) })}>W−</button><button className="btn" onClick={() => patch({ width: cur.width + 10 })}>W+</button><button className="btn" onClick={() => patch({ height: Math.max(50, cur.height - 10) })}>H−</button><button className="btn" onClick={() => patch({ height: cur.height + 10 })}>H+</button><button className="btn" onClick={() => patch({ shape: cur.shape === 'round' ? 'square' : 'round' })}>◯/▢</button></div>
+          <button className="btn" onClick={remove}>🗑 {t('pos.delete_table')}</button></> : <p className="muted">{t('pos.edit_hint')}</p>}
+        <button className="btn p" onClick={save}>{t('pos.save_floor')}</button></aside>
+    </div>
+  )
 }

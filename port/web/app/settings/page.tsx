@@ -6,9 +6,10 @@ import { Appearance } from '@/components/settings/Appearance'
 import { LanguageTab } from '@/components/settings/LanguageTab'
 import { AiTab } from '@/components/settings/AiTab'
 import { EmailTab } from '@/components/settings/EmailTab'
+import { TerminalsTab } from '@/components/settings/TerminalsTab'
 import { AccountTab, AdminTab } from '@/components/settings/AccountSystem'
 
-const TABS = ['appearance', 'language', 'ai', 'email', 'account', 'administration'] as const
+const TABS = ['appearance', 'language', 'ai', 'email', 'terminals', 'account', 'administration'] as const
 type Tab = (typeof TABS)[number]
 
 export default function SettingsPage() {
@@ -26,6 +27,7 @@ export default function SettingsPage() {
           {tab === 'language' && <LanguageTab />}
           {tab === 'ai' && <AiTab admin={uid === 1} />}
           {tab === 'email' && <EmailTab admin={uid === 1} />}
+          {tab === 'terminals' && <TerminalsTab admin={uid === 1} />}
           {tab === 'account' && <AccountTab uid={uid} />}
           {tab === 'administration' && <AdminTab />}
         </div>

@@ -56,7 +56,7 @@ pub fn rules() -> Rules {
             let sym = id_of(&cfg, "company_id").and_then(|c| rec(&e, "res.company", c).ok()).and_then(|c| id_of(&c, "currency_id")).and_then(|c| rec(&e, "res.currency", c).ok()).and_then(|c| text(&c, "symbol")).unwrap_or_else(|| "$".into());
             let table = kw.get("table").and_then(|v| v.as_i64()).and_then(|n| find_one(&e, "restaurant.table", term("table_number", "=", n)).ok().flatten());
             Ok(map(vec![("name", text(&cfg, "name").unwrap_or_default().into()), ("mode", text(&cfg, "self_ordering_mode").unwrap_or_default().into()), ("service_mode", text(&cfg, "self_ordering_service_mode").unwrap_or_default().into()),
-                ("takeaway", Value::Bool(flag(&cfg, "self_ordering_takeaway"))), ("pay_after", text(&cfg, "self_ordering_pay_after").unwrap_or_default().into()), ("open", Value::Bool(sess.is_some())), ("currency", sym.into()),
+                ("takeaway", Value::Bool(flag(&cfg, "self_ordering_takeaway"))), ("pickup", Value::Bool(flag(&cfg, "ship_later"))), ("pay_after", text(&cfg, "self_ordering_pay_after").unwrap_or_default().into()), ("open", Value::Bool(sess.is_some())), ("currency", sym.into()),
                 ("table", table.map_or(Value::Null, Value::Int)), ("categories", Value::List(cats)), ("products", Value::List(products))]))
         })
         .action("pos.config", "kiosk_order", |env, ids, kw| {
@@ -81,6 +81,15 @@ pub fn rules() -> Rules {
             if let Some(o) = find_one(&e, "pos.order", term("uuid", "=", uuid.as_str()))? { if text(&rec(&e, "pos.order", o)?, "state").as_deref() != Some("draft") { return status_of(&e, &uuid); } }
             let mut k = row(&[("session_id", sid.into()), ("uuid", uuid.clone().into()), ("lines", Value::List(clean)), ("takeaway", Value::Bool(flag(kw, "takeaway"))), ("customer_count", 1.into()),
                 ("note", { let mut n = String::from("Self-order"); if let Some(s) = text(kw, "stand").filter(|s| !s.is_empty()) { n.push_str(&format!(" · stand {}", s.chars().take(12).collect::<String>())); } n.into() })]);
+            // click & collect: a pickup time (HH:MM today, or YYYY-MM-DD HH:MM) is kept on the order for the staff
+            if let Some(at) = text(kw, "pickup_at").filter(|s| !s.is_empty()) {
+                if !flag(&cfg, "ship_later") { return Err(OdooError::User("Pickup times are not offered here".into())); }
+                let ok = at.len() <= 16 && at.chars().all(|c| c.is_ascii_digit() || c == ':' || c == '-' || c == ' ');
+                if !ok { return Err(OdooError::User("Invalid pickup time".into())); }
+                let at = if at.len() <= 5 { format!("{} {}", orm::today(), at) } else { at };
+                k.insert("shipping_date".into(), at.clone().into());
+                let n = text(&k, "note").unwrap_or_default(); k.insert("note".into(), format!("{n} · pickup {at}").into());
+            }
             if let Some(n) = kw.get("table").and_then(|v| v.as_i64()) { if let Some(t) = find_one(&e, "restaurant.table", term("table_number", "=", n))? { k.insert("table_id".into(), t.into()); } }
             let user = id_of(&cfg, "self_ordering_default_user_id").unwrap_or(1);
             let acting = env.sudo(); let _ = user;
@@ -89,6 +98,22 @@ pub fn rules() -> Rules {
             let number = short(&uuid);
             let mut out = match v { Value::Map(m) => m, _ => Row::new() }; out.insert("number".into(), number.into());
             Ok(Value::Map(pick_keys(&out, &["uuid", "amount_total", "number"])))
+        })
+        // customer-facing display on another device: the terminal pushes its basket here, the display polls with the self-order token
+        .action("pos.config", "display_push", |env, ids, kw| {
+            let e = env.sudo(); let id = *ids.first().ok_or_else(|| OdooError::User("Select a register".into()))?;
+            let json = serde_json::to_string(&kw.get("state").cloned().unwrap_or(Value::Null).to_json()).unwrap_or_default();
+            if json.len() > 60_000 { return Err(OdooError::User("Display state too large".into())); }
+            let key = format!("pos.display.{id}");
+            match find_one(&e, "ir.config_parameter", term("key", "=", key.as_str()))? { Some(p) => orm::write(&e, "ir.config_parameter", &[p], row(&[("value", json.into())]))?, None => { orm::create(&e, "ir.config_parameter", row(&[("key", key.into()), ("value", json.into())]))?; } }
+            Ok(Value::Bool(true))
+        })
+        .action("pos.config", "kiosk_display", |env, ids, kw| {
+            let e = env.sudo(); let id = *ids.first().unwrap_or(&0);
+            let tok = rec(&e, "pos.config", id).ok().and_then(|c| text(&c, "access_token")).unwrap_or_default();
+            if tok.is_empty() || !ct_eq(&tok, &text(kw, "access_token").unwrap_or_default()) { return Err(OdooError::User("Display not available".into())); }   // token only: works even when self-ordering is off
+            let v = find_one(&e, "ir.config_parameter", term("key", "=", format!("pos.display.{id}").as_str()))?.and_then(|p| rec(&e, "ir.config_parameter", p).ok()).and_then(|p| text(&p, "value")).unwrap_or_default();
+            Ok(serde_json::from_str::<serde_json::Value>(&v).map(|j| Value::from_json(&j)).unwrap_or(Value::Null))
         })
         .action("pos.config", "kiosk_status", |env, ids, kw| { let e = env.sudo(); gate(&e, *ids.first().unwrap_or(&0), kw)?; status_of(&e, &text(kw, "uuid").unwrap_or_default()) })
 }

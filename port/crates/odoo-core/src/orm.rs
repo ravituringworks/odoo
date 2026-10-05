@@ -282,11 +282,19 @@ fn delegated<'m>(m: &'m ModelDef, vals: &Row) -> Vec<(String, String, Vec<(Strin
 }
 
 /// `_inherits` create: create the parent record from delegated vals first, then link via the FK.
+/// A parent is also created when no delegated field was given, and parent fields the parent requires (e.g. `name` when the child
+/// redefines it as its own computed field) are taken from the child's vals.
 fn delegate_create(env: &Env, m: &ModelDef, mut vals: Row) -> Result<Row> {
-    for (fk, parent, keys) in delegated(m, &vals) {
+    let mut groups = delegated(m, &vals);
+    for (parent, fk) in &m.inherits { if !groups.iter().any(|g| &g.0 == fk) { groups.push((fk.clone(), parent.clone(), vec![])); } }
+    for (fk, parent, keys) in groups {
+        if vals.get(&fk).map_or(false, |v| !v.is_null()) && keys.is_empty() { continue; }
         let mut pv = Row::new();
         for (k, pf) in &keys { let stored = m.fields[k].is_stored(); let v = if stored { vals.get(k).cloned() } else { vals.remove(k) }; if let Some(v) = v { pv.insert(pf.clone(), v); } }
-        if vals.get(&fk).map_or(true, |v| v.is_null()) { let pid = create(env, &parent, pv)?; vals.insert(fk, Value::Int(pid)); }
+        if vals.get(&fk).map_or(true, |v| v.is_null()) {
+            if let Ok(pm) = env.reg.model(&parent) { for (rf, f) in &pm.fields { if f.is_required() && f.is_stored() && !pv.contains_key(rf) { if let Some(v) = vals.get(rf) { pv.insert(rf.clone(), v.clone()); } } } }
+            let pid = create(env, &parent, pv)?; vals.insert(fk, Value::Int(pid));
+        }
         else if !pv.is_empty() { if let Some(pid) = vals.get(&fk).and_then(|v| v.as_i64()) { write(env, &parent, &[pid], pv)?; } }
     }
     Ok(vals)

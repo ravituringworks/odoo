@@ -54,4 +54,19 @@ const gone = reduce(sentAll, { t: 'remove', key: sentAll.lines[1].key }); assert
 const back = cartFromDraft({ uuid: 'u', table_id: [4, 'T4'], customer_count: 2, takeaway: false, partner_id: [9, 'Ann'], last_order_preparation_change: JSON.stringify({ a: { qty: 1 } }), lines: [{ uuid: 'a', product_id: [1, 'Desk'], qty: 1, price_unit: 100, discount: 0 }, { uuid: 'x', product_id: 99, qty: 1, price_unit: 1, discount: 0 }] }, [desk, lamp], { id: 4, name: '4' })
 assert.equal(back.lines.length, 1); assert.equal(back.partner?.name, 'Ann'); assert.ok(!hasUnsent(back)); assert.equal(back.guests, 2)
 assert.equal(tipAmount(33.33, 15), 5)
+// combos & tracking
+import { comboComplete, lotsMissing } from './pos'
+const menu: Product = { id: 50, name: 'Menu', price: 10, tax_ids: [], category_ids: [], type: 'combo', combo: [{ id: 1, name: 'Side', items: [] }, { id: 2, name: 'Drink', items: [] }] }
+const picks = [{ id: 11, product_id: 5, name: 'Salad', extra: 1.5, tax_ids: [] }, { id: 21, product_id: 6, name: 'Cola', extra: 0, tax_ids: [] }]
+let mc = reduce(emptyCart(), { t: 'addCombo', product: menu, picks })
+assert.equal(mc.lines.length, 3); assert.equal(cartTotals(mc, new Map()).total, 11.5); assert.ok(comboComplete(mc.lines[0], mc))
+mc = reduce(mc, { t: 'qty', key: mc.lines[0].key, qty: 2 }); assert.deepEqual(mc.lines.map((l) => l.qty), [2, 2, 2]); assert.equal(cartTotals(mc, new Map()).total, 23)
+assert.equal(reduce(mc, { t: 'qty', key: mc.lines[1].key, qty: 9 }).lines[1].qty, 2)                       // children cannot be edited alone
+assert.equal(reduce(mc, { t: 'remove', key: mc.lines[1].key }).lines.length, 3)
+assert.equal(reduce(mc, { t: 'remove', key: mc.lines[0].key }).lines.length, 0)                           // removing the combo removes its items
+const ph: Product = { id: 7, name: 'Phone', price: 100, tax_ids: [], category_ids: [], tracking: 'serial' }
+let tl = reduce(emptyCart(), { t: 'add', product: ph }); assert.ok(lotsMissing(tl.lines[0]))
+tl = reduce(tl, { t: 'lots', key: tl.lines[0].key, lots: ['S1'] }); assert.ok(!lotsMissing(tl.lines[0]))
+tl = reduce(tl, { t: 'qty', key: tl.lines[0].key, qty: 2 }); assert.ok(lotsMissing(tl.lines[0]))
+assert.ok(lotsMissing({ key: 'k', product: { ...ph, tracking: 'lot' }, qty: 3, price: 1, discount: 0 })); assert.ok(!lotsMissing({ key: 'k', product: ph, qty: -1, price: 1, discount: 0 }))   // returns need no serials
 console.log('pos ok')

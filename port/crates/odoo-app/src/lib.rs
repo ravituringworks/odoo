@@ -4,6 +4,8 @@ pub mod ai;
 pub mod i18n;
 pub mod admin;
 pub mod portal;
+pub mod terminal;
+pub mod epos;
 pub mod security;
 pub mod email;
 pub mod trial;
@@ -41,6 +43,7 @@ pub struct App {
     pub sec: Arc<Security>, pub require_auth: bool,
     pub store: Box<dyn Store>, pub schema_dir: PathBuf, pub data_dir: PathBuf, pub views_dir: PathBuf, i18n: i18n::I18n, seed: bool,
     portal_sessions: Mutex<std::collections::HashMap<String, (String, std::time::Instant)>>, login_failures: Mutex<std::collections::HashMap<String, std::collections::VecDeque<std::time::Instant>>>,
+    terminals: Mutex<std::collections::HashMap<String, terminal::Slot>>, terminal_http: Mutex<Arc<dyn terminal::Http>>,
     mailer: Mutex<Arc<dyn email::Mailer>>, send_log: Mutex<std::collections::VecDeque<std::time::Instant>>,
     trial_cfg: Option<trial::TrialConfig>, tenants: RwLock<std::collections::HashMap<String, Arc<App>>>, create_lock: Mutex<std::collections::VecDeque<std::time::Instant>>, is_trial: bool,
     /// Modules this (tenant) database may not install, set by the operator per account (see `admin.rs`).
@@ -122,7 +125,7 @@ impl App {
         store::run(st.as_ref(), |c| { let env = Env::new(&reg, c, &rules, sec.as_ref(), 1); sec.refresh_groups(&env) })?;
         let app = App { rt: RwLock::new(Arc::new(Runtime { reg, rules, catalog, roots })), install_lock: Mutex::new(()), sec, require_auth: cfg.require_auth, store: st, schema_dir: cfg.schema_dir.clone(), data_dir: cfg.data_dir.clone(), views_dir: cfg.views_dir.clone(), i18n: i18n::I18n::new(cfg.i18n_dir.clone()), seed: cfg.seed,
             portal_sessions: Mutex::new(Default::default()), login_failures: Mutex::new(Default::default()),
-            mailer: Mutex::new(Arc::new(email::LiveMailer)), send_log: Mutex::new(Default::default()),
+            terminals: Mutex::new(Default::default()), terminal_http: Mutex::new(Arc::new(terminal::UreqHttp)), mailer: Mutex::new(Arc::new(email::LiveMailer)), send_log: Mutex::new(Default::default()),
             trial_cfg: cfg.trial.as_ref().map(|c| trial::TrialConfig { dir: c.dir.clone(), max_active: c.max_active, days: c.days }), tenants: RwLock::new(Default::default()), create_lock: Mutex::new(Default::default()), is_trial: cfg.is_trial, denied_modules: RwLock::new(vec![]) };
         app.purge_expired_trials();
         Ok(app)
@@ -142,15 +145,15 @@ impl App {
             temperature: g("ai.temperature", "0.2").parse().unwrap_or(0.2), system_prompt: g("ai.system_prompt", ""), max_rows: g("ai.max_rows", "25").parse().unwrap_or(25).clamp(1, 200) })
     }
     fn save_settings(&self, vals: &serde_json::Map<String, J>) -> Result<()> {
-        const ALLOWED: &[&str] = &["ai.enabled", "ai.provider", "ai.model", "ai.base_url", "ai.api_key", "ai.temperature", "ai.system_prompt", "ai.max_rows",
+        const ALLOWED: &[&str] = &["ai.enabled", "ai.provider", "ai.model", "ai.base_url", "ai.api_key", "ai.temperature", "ai.system_prompt", "ai.max_rows", "pos.stripe_secret_key", "pos.stripe_base_url", "pos.adyen_base_url", "pos.mp_base_url", "pos.viva_accounts_url", "pos.viva_api_url", "pos.razorpay_base_url", "pos.paytm_base_url", "pos.pine_labs_base_url",
             "email.enabled", "email.provider", "email.from_address", "email.from_name", "email.reply_to", "email.api_key", "email.domain", "email.region", "email.smtp_host", "email.smtp_port", "email.smtp_security", "email.smtp_user", "email.smtp_password", "email.base_url", "email.app_url"];
         store::run(self.store.as_ref(), |c| {
             for (k, v) in vals {
                 if !ALLOWED.contains(&k.as_str()) { return Err(OdooError::Validation(format!("unknown setting `{k}`"))); }
                 let s = match v { J::String(s) => s.clone(), J::Bool(b) => b.to_string(), J::Number(n) => n.to_string(), _ => continue };
-                if (k == "ai.api_key" || k == "email.api_key" || k == "email.smtp_password") && s.is_empty() { continue; }   // empty = keep the saved key; use "__clear__" to remove it
+                if (k == "ai.api_key" || k == "email.api_key" || k == "email.smtp_password" || k == "pos.stripe_secret_key") && s.is_empty() { continue; }   // empty = keep the saved key; use "__clear__" to remove it
                 let s = if s == "__clear__" { String::new() } else { s };
-                if (k == "ai.base_url" || k == "email.base_url" || k == "email.app_url") && !s.is_empty() && !(s.starts_with("http://") || s.starts_with("https://")) { return Err(OdooError::Validation("base URL must start with http:// or https://".into())); }
+                if (k == "ai.base_url" || k == "email.base_url" || k == "email.app_url" || k == "pos.stripe_base_url" || k == "pos.adyen_base_url" || k.starts_with("pos.") && k.ends_with("_url")) && !s.is_empty() && !(s.starts_with("http://") || s.starts_with("https://")) { return Err(OdooError::Validation("base URL must start with http:// or https://".into())); }
                 let (p1, p2) = (c.dialect().placeholder(1), c.dialect().placeholder(2));
                 c.execute(&format!("DELETE FROM odoo_settings WHERE skey = {p1}"), &[Value::Text(k.clone())])?;
                 c.execute(&format!("INSERT INTO odoo_settings (skey, svalue) VALUES ({p1}, {p2})"), &[Value::Text(k.clone()), Value::Text(s)])?;
@@ -167,6 +170,7 @@ impl App {
             smtp_security: g("email.smtp_security", "starttls"), smtp_user: g("email.smtp_user", ""), smtp_password: env("ODOO_SMTP_PASSWORD", g("email.smtp_password", "")), base_url: g("email.base_url", ""), app_url: g("email.app_url", "") })
     }
 
+    pub fn set_terminal_http(&self, h: Arc<dyn terminal::Http>) { *self.terminal_http.lock().unwrap() = h; }
     pub fn set_mailer(&self, m: Arc<dyn email::Mailer>) { *self.mailer.lock().unwrap() = m; }
 
     /// Send one message with the configured provider: enabled check, settings validation, send-rate limit (30/min), then the transport.
@@ -226,6 +230,7 @@ impl App {
             "ai": {"enabled": s.enabled, "provider": s.provider, "model": s.model, "base_url": s.base_url, "has_key": !s.api_key.is_empty(), "temperature": s.temperature, "system_prompt": s.system_prompt, "max_rows": s.max_rows},
             "providers": ai::PROVIDERS.iter().map(|p| json!({"id": p.id, "label": p.label, "base_url": p.base_url, "needs_key": p.needs_key})).collect::<Vec<_>>(),
             "email": self.email_view(),
+            "pos_terminals": self.terminal_view(),
             "email_providers": email::PROVIDERS.iter().map(|p| json!({"id": p.id, "label": p.label, "kind": if p.kind == email::Kind::Smtp { "smtp" } else { "http" }, "docs": p.docs, "fields": p.fields.iter().map(|f| json!({"id": f.id, "label": f.label, "secret": f.secret, "options": f.options, "placeholder": f.placeholder})).collect::<Vec<_>>()})).collect::<Vec<_>>(),
             "system": {"backend": self.store.dialect().name(), "modules": rt.reg.modules.len(), "models": rt.reg.models.len(), "version": env!("CARGO_PKG_VERSION"), "auth": self.require_auth},
         }))
@@ -459,7 +464,7 @@ impl App {
         match req.method.as_str() { "trial_catalog" => return self.trial_catalog(), "trial_create" => return self.trial_create(&req.args.first().cloned().unwrap_or(J::Null), req.lang.as_deref().unwrap_or("en")), _ => {} }
         let rt = self.runtime();
         // self-ordering (QR menu / mobile / kiosk) is public: each action validates the register's access token itself
-        if matches!(req.method.as_str(), "kiosk_menu" | "kiosk_order" | "kiosk_status") {
+        if matches!(req.method.as_str(), "kiosk_menu" | "kiosk_order" | "kiosk_status" | "kiosk_display") {
             let cfg = req.args.first().and_then(|v| v.as_i64()).unwrap_or(0);
             let kw = match odoo_core::Value::from_json(req.args.get(1).unwrap_or(&J::Null)) { odoo_core::Value::Map(m) => m, _ => Default::default() };
             let mut out = J::Null;
@@ -490,6 +495,8 @@ impl App {
                 store::run(self.store.as_ref(), |c| { let env = Env::new(&rt.reg, c, &rt.rules, self.sec.as_ref(), 1); self.sec.switch_company(&env, &tok, &ids).map(|_| ()) })?;
                 return self.company_state(&rt, &req);
             }
+            "pos_print_epos" => return self.epos_print(&rt, &req),
+            "terminal_start" | "terminal_status" | "terminal_cancel" | "terminal_refund" | "terminal_test" => return self.terminal_dispatch(&rt, &req),
             "email_test" | "send_mail" => {
                 if req.uid != 1 { return Err(OdooError::AccessDenied { op: "send".into(), model: "email".into(), uid: req.uid }); }
                 let o = req.args.first().cloned().unwrap_or(J::Null);

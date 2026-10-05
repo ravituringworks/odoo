@@ -9,12 +9,14 @@ export function Kanban({ model, title, domain }: { model: string; title: string;
   const gb = fields && ('stage_id' in fields ? 'stage_id' : 'state' in fields ? 'state' : null)
   const money = fields && ['expected_revenue', 'amount_total', 'list_price'].find((f) => f in fields)
   const d = useAsync(async () => {
-    if (!fields || !gb) return undefined
-    const recs = await call<Rec[]>(model, 'search_read', [], { domain, fields: ['name', gb, ...(money ? [money] : [])], limit: 500 })
+    if (!fields) return undefined
+    const nameF = 'name' in fields ? 'name' : 'display_name'
+    const recs = await call<Rec[]>(model, 'search_read', [], { domain, fields: [nameF, ...(gb ? [gb] : []), ...(money ? [money] : [])], limit: 500 })
+    if (!gb) return { recs: recs.map((r): Rec => ({ ...r, name: r[nameF] })), stages: [[0, title]] as [number, string][] }   // nothing to group by: one flat column
     const stages = fields[gb].type === 'many2one' ? await call<[number, string][]>(fields[gb].relation!, 'name_search', [''], { limit: 50 }) : fields[gb].selection.map(([k, l], i) => [i, l] as [number, string])
     return { recs, stages: stages.sort((a, b) => a[0] - b[0]) }
   }, [model, JSON.stringify(domain), !!fields])
-  const key = (r: Rec, st: [number, string]) => (fields![gb!].type === 'many2one' ? m2oId(r[gb!]) === st[0] : fields![gb!].selection[st[0]]?.[0] === r[gb!])
+  const key = (r: Rec, st: [number, string]) => !gb || (fields![gb].type === 'many2one' ? m2oId(r[gb]) === st[0] : fields![gb].selection[st[0]]?.[0] === r[gb])
   return (
     <>
       <div className="bar"><h1>{title}</h1><a className="btn p" href={`/form/?model=${model}`}>New</a></div>

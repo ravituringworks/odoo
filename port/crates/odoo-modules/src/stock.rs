@@ -32,6 +32,9 @@ pub fn on_hand(env: &Env, product: i64, loc: i64) -> Result<f64> {
 
 pub fn rules() -> Rules {
     Rules::default()
+        // `tracking` is a stored compute in Odoo that settles on "none" unless someone chose lots/serials; never fall back to the first selection
+        .before_create("product.template", |_, mut v| { v.entry("tracking".into()).or_insert("none".into()); Ok(v) })
+        .compute("product.template", "tracking", |_, r| Ok(match text(r, "tracking").as_deref() { Some(t @ ("lot" | "serial")) => t.into(), _ => "none".into() }))
         .before_create("stock.picking", |env, mut v| {
             let pt = match v.get("picking_type_id").and_then(|p| p.as_i64()) { Some(p) => p, None => { let p = ensure_picking_type(env, "internal")?; v.insert("picking_type_id".into(), p.into()); p } };
             let t = rec(env, "stock.picking.type", pt)?;

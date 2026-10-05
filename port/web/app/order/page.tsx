@@ -5,20 +5,22 @@ import { useT } from '@/lib/i18n'
 import { uuid } from '@/lib/pos'
 
 type Product = { id: number; name: string; price: number; description?: string; category_ids: number[] }
-type Menu = { name: string; mode: 'consultation' | 'mobile' | 'kiosk'; service_mode: 'counter' | 'table'; takeaway: boolean; open: boolean; currency: string; table: number | null; categories: { id: number; name: string; parent_id: unknown }[]; products: Product[] }
+type Menu = { name: string; mode: 'consultation' | 'mobile' | 'kiosk'; service_mode: 'counter' | 'table'; takeaway: boolean; pickup: boolean; open: boolean; currency: string; table: number | null; categories: { id: number; name: string; parent_id: unknown }[]; products: Product[] }
 type Status = { uuid: string; number: string; total: number; stage: 'received' | 'preparing' | 'ready'; paid: boolean }
 type Q = { config: number; token: string; table?: number; db?: string }
 
 const call = <T,>(q: Q, method: string, kw: Record<string, unknown>) => rpc<T>({ method, args: [q.config, { access_token: q.token, table: q.table, ...kw }], token: null, db: q.db ?? null })
 const KEY = (c: number) => `kiosk_last_${c}`
 const stages = ['received', 'preparing', 'ready'] as const
+/** Pickup slots every 15 minutes, starting 15–30 minutes from now. */
+const slots = (now = new Date()): string[] => { const base = Math.ceil((now.getTime() + 15 * 60000) / 900000) * 900000; return Array.from({ length: 16 }, (_, i) => new Date(base + i * 900000)).map((d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`) }
 
 /** Public self-ordering: QR menu / mobile ordering / kiosk. No login; the register's access token is the credential. */
 export default function Order() {
   const { t } = useT()
   const [q, setQ] = useState<Q | null>(null); const [menu, setMenu] = useState<Menu | null>(null); const [err, setErr] = useState('')
   const [cat, setCat] = useState<number | null>(null); const [cart, setCart] = useState<Record<number, { qty: number; note?: string }>>({})
-  const [open, setOpen] = useState(false); const [takeaway, setTakeaway] = useState(false); const [stand, setStand] = useState('')
+  const [open, setOpen] = useState(false); const [takeaway, setTakeaway] = useState(false); const [stand, setStand] = useState(''); const [pickupAt, setPickupAt] = useState('')
   const [status, setStatus] = useState<Status | null>(null); const [busy, setBusy] = useState(false); const [orderId, setOrderId] = useState(() => `kiosk-${uuid().replace(/-/g, '')}`)
   useEffect(() => {
     const p = new URLSearchParams(location.search); const config = Number(p.get('config')); const token = p.get('token') ?? ''
@@ -45,7 +47,7 @@ export default function Order() {
   const place = async () => {
     if (!q || !lines.length) return; setBusy(true); setErr('')
     try {
-      await call(q, 'kiosk_order', { uuid: orderId, takeaway, stand, lines: lines.map((l) => ({ product_id: l.p.id, qty: l.qty, note: l.note })) })
+      await call(q, 'kiosk_order', { uuid: orderId, takeaway, stand, pickup_at: pickupAt || undefined, lines: lines.map((l) => ({ product_id: l.p.id, qty: l.qty, note: l.note })) })
       const s = await call<Status>(q, 'kiosk_status', { uuid: orderId }); setStatus(s); setCart({}); setOpen(false); setOrderId(`kiosk-${uuid().replace(/-/g, '')}`)
       try { localStorage.setItem(KEY(q.config), JSON.stringify({ uuid: s.uuid, at: Date.now() })) } catch { /* private mode */ }
     } catch (e) { setErr(String((e as Error).message ?? e)) } finally { setBusy(false) }
@@ -72,6 +74,7 @@ export default function Order() {
       {open && <div className="pos-modal" onClick={() => setOpen(false)}><div className="card ko-sheet" onClick={(e) => e.stopPropagation()}><h3>{t('kiosk.your_order')}</h3>
         {lines.map((l) => <div key={l.p.id} className="pos-payrow"><span>{l.qty} × {l.p.name}</span><b>{money(l.p.price * l.qty)}</b><span className="ko-step-btns"><button className="btn" onClick={() => set(l.p.id, -1)}>−</button><button className="btn" onClick={() => set(l.p.id, 1)}>+</button></span></div>)}
         {menu.takeaway && <label className="row" style={{ gap: 8 }}><input type="checkbox" checked={takeaway} onChange={(e) => setTakeaway(e.target.checked)} /> {t('kiosk.takeaway')}</label>}
+        {menu.pickup && <label>{t('kiosk.pickup_time')}<select value={pickupAt} onChange={(e) => setPickupAt(e.target.value)}><option value="">{t('kiosk.asap')}</option>{slots().map((x) => <option key={x} value={x}>{x}</option>)}</select></label>}
         {menu.service_mode === 'counter' && !menu.table && <input placeholder={t('kiosk.stand')} value={stand} onChange={(e) => setStand(e.target.value)} inputMode="numeric" />}
         {err && <div className="err">{err}</div>}
         <div className="pos-sum"><b>{t('pos.total')}</b><b className="pos-big">{money(total)}</b></div>

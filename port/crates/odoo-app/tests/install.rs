@@ -463,6 +463,10 @@ fn pos_sells_refunds_and_closes_a_session() {
     let r = k("pos.order", "refund", json!([o["id"]]), json!({"session_id": sid})).unwrap();
     assert_eq!(r["amount_total"].as_f64().unwrap(), -total);
     assert!(k("pos.order", "refund", json!([o["id"]]), json!({"session_id": sid})).unwrap_err().contains("Nothing left"));
+    // sales dashboard: net of the refund, per register, with the payment mix
+    let rep = k("pos.config", "sales_report", json!([]), json!({"days": 7})).unwrap();
+    assert_eq!(rep["orders"], 3); assert_eq!(rep["total"].as_f64().unwrap(), (price * 100.0).round() / 100.0); assert_eq!(rep["registers"][0]["orders"], 3);
+    assert!(rep["payments"].as_array().unwrap().iter().any(|x| x["name"] == "Bank") || rep["payments"].as_array().unwrap().iter().any(|x| x["name"] == "Cash")); assert_eq!(rep["by_hour"].as_array().unwrap().len(), 24);
     // cash drawer: opening 100 + (tendered − change) − cash refunded
     let s = k("pos.session", "summary", json!([sid]), json!({})).unwrap();
     assert_eq!(s["orders"], 3); assert_eq!(s["expected_cash"].as_f64().unwrap(), 100.0);
@@ -548,7 +552,11 @@ fn pos_cashiers_need_pin_or_badge_and_basic_ones_cannot_refund_or_discount() {
     assert_eq!(t["cashier_lock"], true); assert_eq!(t["employees"].as_array().unwrap().len(), 2);
     let sid = t["session"]["id"].as_i64().unwrap(); let cash = t["payment_methods"].as_array().unwrap().iter().find(|m| m["kind"] == "cash").unwrap()["id"].clone();
     // PIN / badge / outsiders
-    assert!(k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": boss, "pin": "0000"})).unwrap_err().contains("Wrong PIN"));
+    let bad = k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": boss, "pin": "0000"})).unwrap(); assert_eq!((bad["ok"].as_bool(), bad["message"].as_str()), (Some(false), Some("Wrong PIN")));
+    for _ in 0..4 { k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": boss, "pin": "0000"})).unwrap(); }          // 5 failures in total
+    let locked = k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": boss, "pin": "1234"})).unwrap(); assert_eq!(locked["ok"], false); assert!(locked["message"].as_str().unwrap().contains("Too many"), "even the right PIN waits");
+    assert_eq!(k("pos.config", "verify_employee", json!([cfg]), json!({"badge": "BADGE-1"})).unwrap()["ok"], true);                  // badge scans are not PIN guesses
+    call(&a, "write", "ir.config_parameter", vec![call(&a, "search", "ir.config_parameter", vec![json!([["key", "like", "pos.pin.fail"]])]).unwrap(), json!({"value": "0|0"})]).unwrap();   // pretend 5 minutes passed
     assert_eq!(k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": boss, "pin": "1234"})).unwrap()["role"], "advanced");
     assert_eq!(k("pos.config", "verify_employee", json!([cfg]), json!({"badge": "BADGE-1"})).unwrap()["name"], "Boss");
     assert_eq!(k("pos.config", "verify_employee", json!([cfg]), json!({"employee_id": clerk})).unwrap()["role"], "basic");       // no PIN set
@@ -729,7 +737,7 @@ fn pos_self_order_is_public_but_token_gated_and_cannot_set_prices() {
     call(&a, "write", "product.template", vec![json!([if soup_t.is_array() { soup_t[0].clone() } else { soup_t }]), json!({"taxes_id": [[6, 0, [tax]]]})]).unwrap();
     let secret = mk("product.product", json!({"name": "Staff meal", "list_price": 1.0, "type": "consu", "available_in_pos": false}));
     let floor = mk("restaurant.floor", json!({"name": "Main"})); mk("restaurant.table", json!({"floor_id": floor, "table_number": 7, "seats": 2}));
-    let cfg = mk("pos.config", json!({"name": "Bistro", "floor_ids": [[6, 0, [floor]]], "self_ordering_mode": "mobile", "self_ordering_service_mode": "table"}));
+    let cfg = mk("pos.config", json!({"name": "Bistro", "floor_ids": [[6, 0, [floor]]], "self_ordering_mode": "mobile", "self_ordering_service_mode": "table", "ship_later": true}));
     let link = k("pos.config", "kiosk_link", json!([cfg]), json!({})).unwrap(); let token = link["token"].as_str().unwrap().to_string(); assert!(token.len() >= 32);
     assert_eq!(k("pos.config", "kiosk_link", json!([cfg]), json!({})).unwrap()["token"], json!(token));        // stable
     // wrong / missing token → nothing is revealed
@@ -762,6 +770,13 @@ fn pos_self_order_is_public_but_token_gated_and_cannot_set_prices() {
     assert_eq!(st("kiosk-dddddddddddd"), "ready");   // kitchen stage wins once food is out; `paid` is reported separately
     assert_eq!(public("kiosk_status", &json!(cfg), json!({"access_token": token, "uuid": "kiosk-dddddddddddd"})).unwrap()["paid"], true);
     assert!(public("kiosk_status", &json!(cfg), json!({"access_token": token, "uuid": "some-staff-uuid"})).is_err());
+    // click & collect: a pickup time is kept for the staff; junk is refused
+    assert_eq!(public("kiosk_menu", &json!(cfg), json!({"access_token": token})).unwrap()["pickup"], true);
+    let pk = public("kiosk_order", &json!(cfg), json!({"access_token": token, "uuid": "kiosk-ffffffffffff", "pickup_at": "12:30", "lines": [{"product_id": soup, "qty": 1}]})).unwrap();
+    assert_eq!(pk["number"], "#FFFF");
+    let drafts = k("pos.config", "open_orders", json!([cfg]), json!({})).unwrap(); let d = drafts.as_array().unwrap().iter().find(|x| x["uuid"] == "kiosk-ffffffffffff").unwrap();
+    assert!(d["shipping_date"].as_str().unwrap().ends_with("12:30"), "{d}");
+    assert!(public("kiosk_order", &json!(cfg), json!({"access_token": token, "uuid": "kiosk-gggggggggggg", "pickup_at": "x; drop table", "lines": [{"product_id": soup, "qty": 1}]})).unwrap_err().contains("Invalid pickup"));
     // QR-menu (consultation) mode shows the menu but takes no orders; disabled mode shows nothing
     k("pos.config", "write", json!([cfg]), json!({})).ok(); call(&a, "write", "pos.config", vec![json!([cfg]), json!({"self_ordering_mode": "consultation"})]).unwrap();
     assert!(public("kiosk_menu", &json!(cfg), json!({"access_token": token})).is_ok());
@@ -797,4 +812,171 @@ fn pos_prints_raw_escpos_only_to_printers_configured_on_the_register() {
     drop(std::net::TcpListener::bind("127.0.0.1:0")); let dead = { let l = std::net::TcpListener::bind("127.0.0.1:0").unwrap(); l.local_addr().unwrap().to_string() };
     call(&a, "write", "pos.config", vec![json!([cfg]), json!({"proxy_ip": dead})]).unwrap();
     assert!(k("pos.config", "print_raw", json!([cfg]), json!({"target": dead, "data": "41"})).unwrap_err().contains("unreachable"));
+}
+
+struct StripeMock(std::sync::Mutex<Vec<String>>);
+impl odoo_app::terminal::Http for StripeMock {
+    fn send(&self, r: &odoo_app::terminal::HttpReq) -> Result<(u16, String), odoo_core::OdooError> {
+        self.0.lock().unwrap().push(format!("{} {}", r.method, r.url));
+        let body = if r.url.contains("/v1/payment_intents/pi_1") { r#"{"status":"succeeded","latest_charge":{"payment_method_details":{"card_present":{"brand":"amex","last4":"0005"}}}}"# }
+            else if r.url.contains("/v1/terminal/readers?") { r#"{"data":[{"id":"tmr_1","serial_number":"tmr_1","label":"Counter","status":"online"}]}"# } else if r.url.ends_with("/v1/refunds") { r#"{"id":"re_1"}"# }
+            else if r.url.ends_with("/v1/payment_intents") { r#"{"id":"pi_1"}"# } else if r.url.contains("/v1/terminal/readers/tmr_1") && r.method == "GET" { r#"{"action":{"status":"succeeded"}}"# } else { "{}" };
+        Ok((200, body.into()))
+    }
+}
+
+#[test]
+fn pos_card_terminal_payments_need_a_real_one_time_approval() {
+    let a = app(&["point_of_sale", "pos_terminal_simulator", "pos_stripe", "pos_viva_wallet"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let rpc = |method: &str, arg: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "args": [arg]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let pen = mk("product.product", json!({"name": "Pen", "list_price": 10.0, "type": "consu", "available_in_pos": true}));
+    let sim = mk("pos.payment.method", json!({"name": "Card (sim)", "use_payment_terminal": "simulator"}));
+    let stripe = mk("pos.payment.method", json!({"name": "Card (Stripe)", "use_payment_terminal": "stripe", "stripe_serial_number": "tmr_1"}));
+    let plain = mk("pos.payment.method", json!({"name": "Bank"}));
+    let cfg = mk("pos.config", json!({"name": "Shop", "payment_method_ids": [[6, 0, [sim, stripe, plain]]]}));
+    let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap(); let sid = t["session"]["id"].as_i64().unwrap();
+    let sell = |uuid: &str, method: &serde_json::Value, amt: f64, tx: serde_json::Value| k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "uuid": uuid, "lines": [{"product_id": pen, "qty": 1.0}], "payments": [{"payment_method_id": method, "amount": amt, "transaction_id": tx}]}));
+    // no approval / invented approval → refused; methods without a terminal are unaffected
+    assert!(sell("o1", &json!(sim), 10.0, json!(null)).unwrap_err().contains("not approved")); assert!(sell("o2", &json!(sim), 10.0, json!("made-up")).unwrap_err().contains("not approved"));
+    assert!(sell("o3", &json!(plain), 10.0, json!(null)).is_ok());
+    // simulator: pending first, then approved with card details
+    let s = rpc("terminal_start", json!({"method_id": sim, "amount": 10.0, "reference": "o4"})).unwrap(); let tx = s["tx"].as_str().unwrap().to_string();
+    assert_eq!(rpc("terminal_status", json!({"tx": tx})).unwrap()["status"], "pending");
+    assert!(sell("o4", &json!(sim), 10.0, json!(tx)).unwrap_err().contains("not approved"));                 // not approved yet
+    std::thread::sleep(std::time::Duration::from_millis(1700));
+    let st = rpc("terminal_status", json!({"tx": tx})).unwrap(); assert_eq!((st["status"].as_str(), st["card_no"].as_str()), (Some("succeeded"), Some("4242")));
+    assert!(sell("o4", &json!(sim), 5.0, json!(tx)).unwrap_err().contains("does not match"));              // wrong amount
+    let o = sell("o4", &json!(sim), 10.0, json!(tx)).unwrap(); assert_eq!(o["state"], "paid");
+    let pay = call(&a, "search_read", "pos.payment", vec![json!([["pos_order_id", "=", o["id"]]]), json!(["transaction_id", "card_no", "payment_status"])]).unwrap();
+    assert_eq!((pay[0]["card_no"].as_str(), pay[0]["payment_status"].as_str()), (Some("4242"), Some("done")));
+    assert!(sell("o5", &json!(sim), 10.0, json!(tx)).unwrap_err().contains("not approved"), "an approval must pay for one order only");
+    // declines and cancellations never produce an approval
+    let d = rpc("terminal_start", json!({"method_id": sim, "amount": 10.13})).unwrap(); std::thread::sleep(std::time::Duration::from_millis(1700));
+    assert_eq!(rpc("terminal_status", json!({"tx": d["tx"]})).unwrap()["status"], "failed");
+    let c = rpc("terminal_start", json!({"method_id": sim, "amount": 4.0})).unwrap(); assert_eq!(rpc("terminal_cancel", json!({"tx": c["tx"]})).unwrap()["status"], "cancelled");
+    assert!(rpc("terminal_start", json!({"method_id": plain, "amount": 4.0})).unwrap_err().contains("no terminal"));
+    // Stripe Terminal over (mocked) HTTP: key required, then intent → reader → success
+    let mock = std::sync::Arc::new(StripeMock(Default::default())); a.set_terminal_http(mock.clone());
+    assert!(rpc("terminal_start", json!({"method_id": stripe, "amount": 10.0})).unwrap_err().contains("secret key"));
+    rpc("settings_set", json!({"pos.stripe_secret_key": "sk_test_x", "pos.stripe_base_url": "https://stripe.test"})).unwrap();
+    let s = rpc("terminal_start", json!({"method_id": stripe, "amount": 10.0, "currency": "usd"})).unwrap(); let stx = s["tx"].as_str().unwrap().to_string();
+    let st = rpc("terminal_status", json!({"tx": stx})).unwrap(); assert_eq!((st["status"].as_str(), st["card_brand"].as_str(), st["card_no"].as_str()), (Some("succeeded"), Some("amex"), Some("0005")));
+    assert!(mock.0.lock().unwrap().iter().any(|l| l == "POST https://stripe.test/v1/terminal/readers/tmr_1/process_payment_intent"));
+    assert_eq!(sell("o6", &json!(stripe), 10.0, json!(stx)).unwrap()["state"], "paid");
+    assert!(!rpc("settings_get", json!(null)).unwrap().to_string().contains("sk_test_x"), "the key must never be echoed");
+    // connection test (read-only) and refunds back to the card through the terminal
+    let t = rpc("terminal_test", json!({"method_id": stripe})).unwrap(); assert_eq!(t["ok"], true); assert!(t["message"].as_str().unwrap().contains("online"));
+    let o6 = call(&a, "search", "pos.order", vec![json!([["uuid", "=", "o6"]])]).unwrap()[0].clone();
+    let q = k("pos.order", "refund", json!([o6]), json!({"session_id": sid, "quote": true})).unwrap(); assert_eq!((q["amount"].as_f64(), q["terminal"].as_bool()), (Some(10.0), Some(true)));
+    // a refund without the terminal handing the money back is refused...
+    assert!(k("pos.order", "refund", json!([o6]), json!({"session_id": sid})).unwrap_err().contains("not approved"));
+    let rf = rpc("terminal_refund", json!({"payment_id": q["payment_id"], "amount": 10.0, "currency": "usd"})).unwrap();
+    assert!(mock.0.lock().unwrap().iter().any(|l| l == "POST https://stripe.test/v1/refunds"));
+    assert!(rpc("terminal_refund", json!({"payment_id": q["payment_id"], "amount": 99.0})).unwrap_err().contains("more than"));
+    // ...and succeeds with the approval, once
+    let r = k("pos.order", "refund", json!([o6]), json!({"session_id": sid, "transaction_id": rf["tx"]})).unwrap(); assert_eq!(r["amount_total"].as_f64(), Some(-10.0));
+    let pay = call(&a, "search_read", "pos.payment", vec![json!([["pos_order_id", "=", r["id"]]]), json!(["amount", "transaction_id"])]).unwrap(); assert_eq!(pay[0]["amount"].as_f64(), Some(-10.0));
+    // providers without a refund API need an explicit manual confirmation
+    let simpl = mk("pos.payment.method", json!({"name": "Viva", "use_payment_terminal": "viva_wallet", "viva_wallet_client_id": "c", "viva_wallet_client_secret": "s", "viva_wallet_terminal_id": "1"}));
+    let vp = mk("pos.payment", json!({"payment_method_id": simpl, "amount": 10.0, "pos_order_id": o6, "name": "Viva payment", "payment_ref_no": "tr-1"}));
+    assert!(rpc("terminal_refund", json!({"payment_id": vp, "amount": 4.0})).unwrap_err().contains("manually"));
+    let manual = rpc("terminal_refund", json!({"payment_id": vp, "amount": 4.0, "manual": true})).unwrap(); assert_eq!(manual["manual"], true);
+    assert!(rpc("terminal_refund", json!({"payment_id": rf_payment_of_stripe(&a, o6.clone(), stripe.clone()), "amount": 1.0, "manual": true})).unwrap_err().contains("through its API"), "providers with an API cannot be bypassed");
+}
+
+#[test]
+fn inherits_create_makes_the_delegated_parent_even_when_the_child_owns_the_name() {
+    // website.controller.page `_inherits` ir.ui.view but redefines `name` itself: the view must still be created, with that name
+    let a = app(&["website"]);
+    let id = call(&a, "create", "website.controller.page", vec![json!({"name": "muah", "model": "muah", "record_domain": "muah", "default_layout": "grid"})]).unwrap();
+    let r = call(&a, "read", "website.controller.page", vec![json!([id]), json!(["view_id", "name", "model"])]).unwrap();
+    let view = r[0]["view_id"][0].as_i64().expect("parent view linked");
+    assert_eq!(call(&a, "read", "ir.ui.view", vec![json!([view]), json!(["name", "model"])]).unwrap()[0]["name"], "muah");
+    assert_eq!(r[0]["model"], "muah");
+    // only the child's own fields given: the parent is still created
+    let id2 = call(&a, "create", "website.controller.page", vec![json!({"name": "second"})]).unwrap();
+    assert!(call(&a, "read", "website.controller.page", vec![json!([id2]), json!(["view_id"])]).unwrap()[0]["view_id"][0].as_i64().is_some());
+    // an explicit parent is reused, not duplicated
+    let before = call(&a, "search_count", "ir.ui.view", vec![json!([])]).unwrap();
+    call(&a, "create", "website.controller.page", vec![json!({"name": "third", "view_id": view})]).unwrap();
+    assert_eq!(call(&a, "search_count", "ir.ui.view", vec![json!([])]).unwrap(), before);
+}
+
+fn rf_payment_of_stripe(a: &App, order: serde_json::Value, method: serde_json::Value) -> serde_json::Value {
+    call(a, "search", "pos.payment", vec![json!([["pos_order_id", "=", order], ["payment_method_id", "=", method], ["amount", ">", 0]])]).unwrap()[0].clone()
+}
+
+struct EposMock(std::sync::Mutex<Vec<(String, String)>>, &'static str);
+impl odoo_app::terminal::Http for EposMock {
+    fn send(&self, r: &odoo_app::terminal::HttpReq) -> Result<(u16, String), odoo_core::OdooError> { self.0.lock().unwrap().push((r.url.clone(), r.raw.clone().unwrap_or_default())); Ok((200, self.1.into())) }
+}
+
+#[test]
+fn pos_prints_epson_epos_xml_only_to_configured_printers() {
+    let a = app(&["point_of_sale", "pos_epson_printer"]);
+    let rpc = |arg: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": "pos_print_epos", "args": [arg]})).unwrap()).map_err(|e| e.to_string());
+    let cfg = call(&a, "create", "pos.config", vec![json!({"name": "Shop", "epson_printer_ip": "192.0.2.50"})]).unwrap();
+    let t = a.dispatch(serde_json::from_value::<Request>(json!({"method": "open_ui", "model": "pos.config", "args": [[cfg], {}]})).unwrap()).unwrap();
+    assert_eq!((t["printers"][0]["kind"].as_str(), t["printers"][0]["target"].as_str()), (Some("epos"), Some("192.0.2.50")));
+    let xml = r#"<epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print"><text>Hola&#10;</text><cut type="feed"/></epos-print>"#;
+    let ok = std::sync::Arc::new(EposMock(Default::default(), r#"<response success="true" code="" status="251658262" battery="0"/>"#)); a.set_terminal_http(ok.clone());
+    rpc(json!({"config_id": cfg, "target": "192.0.2.50", "xml": xml})).unwrap();
+    { let log = ok.0.lock().unwrap(); assert_eq!(log[0].0, "http://192.0.2.50/cgi-bin/epos/service.cgi?devid=local_printer&timeout=10000"); assert!(log[0].1.starts_with("<s:Envelope") && log[0].1.contains(xml)); }
+    assert!(rpc(json!({"config_id": cfg, "target": "192.0.2.99", "xml": xml})).unwrap_err().contains("not configured"));
+    assert!(rpc(json!({"config_id": cfg, "target": "192.0.2.50", "xml": "<script>"})).unwrap_err().contains("Invalid"));
+    let bad = std::sync::Arc::new(EposMock(Default::default(), r#"<response success="false" code="EPTR_COVER_OPEN" status="0"/>"#)); a.set_terminal_http(bad);
+    assert!(rpc(json!({"config_id": cfg, "target": "192.0.2.50", "xml": xml})).unwrap_err().contains("EPTR_COVER_OPEN"));
+}
+
+#[test]
+fn pos_requires_serials_and_lots_and_prices_combos_server_side() {
+    let a = app(&["point_of_sale", "account", "stock"]);
+    let k = |model: &str, method: &str, ids: serde_json::Value, kw: serde_json::Value| a.dispatch(serde_json::from_value::<Request>(json!({"method": method, "model": model, "args": [ids, kw]})).unwrap()).map_err(|e| e.to_string());
+    let mk = |model: &str, v: serde_json::Value| call(&a, "create", model, vec![v]).unwrap();
+    let tmpl_of = |p: &serde_json::Value| { let t = call(&a, "read", "product.product", vec![json!([p]), json!(["product_tmpl_id"])]).unwrap()[0]["product_tmpl_id"].clone(); if t.is_array() { t[0].clone() } else { t } };
+    let internal = match call(&a, "search", "stock.location", vec![json!([["usage", "=", "internal"]])]).unwrap().as_array().and_then(|l| l.first().cloned()) { Some(l) => l, None => mk("stock.location", json!({"name": "Stock", "usage": "internal"})) };
+    let phone = mk("product.product", json!({"name": "Phone", "list_price": 100.0, "type": "consu", "available_in_pos": true}));
+    call(&a, "write", "product.template", vec![json!([tmpl_of(&phone)]), json!({"tracking": "serial"})]).unwrap();
+    let paint = mk("product.product", json!({"name": "Paint", "list_price": 20.0, "type": "consu", "available_in_pos": true}));
+    call(&a, "write", "product.template", vec![json!([tmpl_of(&paint)]), json!({"tracking": "lot"})]).unwrap();
+    let lot = |p: &serde_json::Value, n: &str, q: f64| { let l = mk("stock.lot", json!({"name": n, "product_id": p})); mk("stock.quant", json!({"product_id": p, "location_id": internal, "lot_id": l, "quantity": q})); l };
+    let (s1, _s2) = (lot(&phone, "S1", 1.0), lot(&phone, "S2", 1.0)); let _l9 = lot(&paint, "L9", 10.0);
+    let qty_of = |l: &serde_json::Value| call(&a, "search_read", "stock.quant", vec![json!([["lot_id", "=", l]]), json!(["quantity"])]).unwrap()[0]["quantity"].as_f64().unwrap();
+    let cfg = mk("pos.config", json!({"name": "Shop"})); let t = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap(); let sid = t["session"]["id"].as_i64().unwrap();
+    let cash = t["payment_methods"].as_array().unwrap().iter().find(|m| m["kind"] == "cash").unwrap()["id"].clone();
+    let p = t["products"].as_array().unwrap().iter().find(|x| x["name"] == "Phone").unwrap(); assert_eq!(p["tracking"], "serial");
+    assert_eq!(k("pos.config", "lots", json!([cfg]), json!({"product_id": phone})).unwrap().as_array().unwrap().len(), 2);
+    let sell = |uuid: &str, lines: serde_json::Value, pay: f64| k("pos.order", "create_from_ui", json!([]), json!({"session_id": sid, "uuid": uuid, "lines": lines, "payments": [{"payment_method_id": cash, "amount": pay}]}));
+    // serials: one per unit, known, unique, not sold twice
+    assert!(sell("a", json!([{"product_id": phone, "qty": 1}]), 100.0).unwrap_err().contains("serial number"));
+    assert!(sell("a", json!([{"product_id": phone, "qty": 2, "lots": ["S1"]}]), 200.0).unwrap_err().contains("2 serial"));
+    assert!(sell("a", json!([{"product_id": phone, "qty": 2, "lots": ["S1", "S1"]}]), 200.0).unwrap_err().contains("twice"));
+    assert!(sell("a", json!([{"product_id": phone, "qty": 1, "lots": ["NOPE"]}]), 100.0).unwrap_err().contains("Unknown"));
+    let o = sell("a", json!([{"product_id": phone, "qty": 1, "lots": ["S1"]}]), 100.0).unwrap(); assert_eq!(qty_of(&s1), 0.0);           // the quant of that exact serial left stock
+    assert!(sell("b", json!([{"product_id": phone, "qty": 1, "lots": ["S1"]}]), 100.0).unwrap_err().contains("already sold"));
+    let packs = call(&a, "search_read", "pos.pack.operation.lot", vec![json!([]), json!(["lot_name"])]).unwrap(); assert_eq!(packs[0]["lot_name"], "S1");
+    k("pos.order", "refund", json!([o["id"]]), json!({"session_id": sid})).unwrap();
+    assert!(sell("c", json!([{"product_id": phone, "qty": 1, "lots": ["S1"]}]), 100.0).is_ok(), "a returned serial can be sold again");
+    // lots: at least one lot number
+    assert!(sell("d", json!([{"product_id": paint, "qty": 3}]), 60.0).unwrap_err().contains("lot number"));
+    assert!(sell("d", json!([{"product_id": paint, "qty": 3, "lots": ["L9"]}]), 60.0).is_ok());
+    // combos: server prices the items, one per part
+    let (fries, salad, cola, tea) = (mk("product.product", json!({"name": "Fries", "list_price": 3.0, "type": "consu"})), mk("product.product", json!({"name": "Salad", "list_price": 4.0, "type": "consu"})), mk("product.product", json!({"name": "Cola", "list_price": 2.0, "type": "consu"})), mk("product.product", json!({"name": "Tea", "list_price": 2.0, "type": "consu"})));
+    let side = mk("product.combo", json!({"name": "Side", "combo_item_ids": [[0, 0, {"product_id": fries, "extra_price": 0.0}], [0, 0, {"product_id": salad, "extra_price": 1.5}]]}));
+    let drink = mk("product.combo", json!({"name": "Drink", "combo_item_ids": [[0, 0, {"product_id": cola, "extra_price": 0.0}], [0, 0, {"product_id": tea, "extra_price": 0.0}]]}));
+    let menu = mk("product.product", json!({"name": "Menu", "list_price": 10.0, "type": "combo", "available_in_pos": true}));
+    call(&a, "write", "product.template", vec![json!([tmpl_of(&menu)]), json!({"combo_ids": [[6, 0, [side, drink]]]})]).unwrap();
+    let t2 = k("pos.config", "open_ui", json!([cfg]), json!({})).unwrap(); let m = t2["products"].as_array().unwrap().iter().find(|x| x["name"] == "Menu").unwrap();
+    assert_eq!(m["combo"].as_array().unwrap().len(), 2); let items_of = |c: &serde_json::Value| m["combo"].as_array().unwrap().iter().find(|g| g["id"] == *c).unwrap()["items"].clone();
+    let (fries_i, salad_i, cola_i) = (items_of(&side)[0]["id"].clone(), items_of(&side)[1]["id"].clone(), items_of(&drink)[0]["id"].clone());
+    let combo = |extra: serde_json::Value| { let mut ls = vec![json!({"uuid": "m1", "product_id": menu, "qty": 1})]; ls.extend(extra.as_array().unwrap().iter().cloned()); sell(&format!("m{}", ls.len()), json!(ls), 11.5) };
+    { let e = combo(json!([{"uuid": "m1a", "combo_parent": "m1", "combo_item_id": salad_i, "product_id": 1}])).unwrap_err(); assert!(e.contains("every part"), "{e}"); }      // drink missing
+    { let e = combo(json!([{"uuid": "x", "combo_parent": "m1", "combo_item_id": fries_i}, {"uuid": "y", "combo_parent": "m1", "combo_item_id": salad_i}, {"uuid": "z", "combo_parent": "m1", "combo_item_id": cola_i}])).unwrap_err(); assert!(e.contains("only one"), "{e}"); }
+    let ok = combo(json!([{"uuid": "x", "combo_parent": "m1", "combo_item_id": salad_i, "price_unit": 0.0}, {"uuid": "z", "combo_parent": "m1", "combo_item_id": cola_i}])).unwrap();
+    assert_eq!(ok["amount_total"].as_f64(), Some(11.5), "10 + 1.5 salad supplement, client price ignored");
+    let ls = call(&a, "search_read", "pos.order.line", vec![json!([["order_id", "=", ok["id"]]]), json!(["full_product_name", "combo_parent_id", "price_unit"])]).unwrap(); assert_eq!(ls.as_array().unwrap().len(), 3);
+    assert_eq!(ls.as_array().unwrap().iter().filter(|l| !l["combo_parent_id"].is_boolean() && !l["combo_parent_id"].is_null()).count(), 2, "{ls}");
+    assert!(combo(json!([{"uuid": "q", "combo_parent": "ghost", "combo_item_id": salad_i}])).unwrap_err().contains("without its combo"));
 }

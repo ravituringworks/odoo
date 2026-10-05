@@ -54,7 +54,9 @@ fn terminal_data(env: &Env, config: i64, session: &Row) -> Result<Value> {
     let cats = if env.reg.model("pos.category").is_ok() { orm::search_read(&e, "pos.category", &Domain::True, &["id".into(), "name".into(), "parent_id".into(), "sequence".into()], Some("sequence, id"), None, 0)? } else { vec![] };
     let mut tdom = term("available_in_pos", "=", true);
     if flag(&cfg, "limit_categories") && !limit.is_empty() { tdom = Domain::And(vec![tdom, term("pos_categ_ids", "in", Value::List(limit.iter().map(|i| Value::Int(*i)).collect()))]); }
-    let tmpl = orm::search_read(&e, "product.template", &tdom, &["id".into(), "name".into(), "list_price".into(), "default_code".into(), "taxes_id".into(), "pos_categ_ids".into(), "to_weight".into(), "type".into(), "categ_id".into()], Some("name"), Some(500), 0)?;
+    let mut tfields: Vec<String> = ["id", "name", "list_price", "default_code", "taxes_id", "pos_categ_ids", "to_weight", "type", "categ_id", "tracking", "combo_ids"].iter().filter(|f| e.reg.field("product.template", f).is_ok()).map(|f| f.to_string()).collect();
+    if !tfields.contains(&"id".to_string()) { tfields.push("id".into()); }
+    let tmpl = orm::search_read(&e, "product.template", &tdom, &tfields, Some("name"), Some(500), 0)?;
     let tids: Vec<i64> = tmpl.iter().filter_map(|t| t["id"].as_i64()).collect();
     let prods = if tids.is_empty() { vec![] } else { orm::search_read(&e, "product.product", &term("product_tmpl_id", "in", Value::List(tids.iter().map(|i| Value::Int(*i)).collect())), &["id".into(), "product_tmpl_id".into(), "barcode".into()], None, None, 0)? };
     let by_tmpl: BTreeMap<i64, &Row> = prods.iter().filter_map(|p| id_of(p, "product_tmpl_id").map(|t| (t, p))).collect();
@@ -62,7 +64,8 @@ fn terminal_data(env: &Env, config: i64, session: &Row) -> Result<Value> {
     let products: Vec<Row> = tmpl.iter().filter_map(|t| {
         let p = by_tmpl.get(&t["id"].as_i64()?)?;
         let tx = ids(t, "taxes_id"); taxes_used.extend(tx.iter().copied());
-        Some(map_row(vec![("id", p["id"].clone()), ("name", t["name"].clone()), ("price", t["list_price"].clone()), ("code", t.get("default_code").cloned().unwrap_or(Value::Null)), ("barcode", p.get("barcode").cloned().unwrap_or(Value::Null)), ("tax_ids", Value::List(tx.into_iter().map(Value::Int).collect())), ("category_ids", t.get("pos_categ_ids").cloned().unwrap_or(Value::List(vec![]))), ("to_weight", t.get("to_weight").cloned().unwrap_or(false.into())), ("categ_chain", Value::List(categ_chain(&e, id_of(t, "categ_id")).into_iter().map(Value::Int).collect()))]))
+        Some(map_row(vec![("id", p["id"].clone()), ("name", t["name"].clone()), ("price", t["list_price"].clone()), ("code", t.get("default_code").cloned().unwrap_or(Value::Null)), ("barcode", p.get("barcode").cloned().unwrap_or(Value::Null)), ("tax_ids", Value::List(tx.into_iter().map(Value::Int).collect())), ("category_ids", t.get("pos_categ_ids").cloned().unwrap_or(Value::List(vec![]))), ("to_weight", t.get("to_weight").cloned().unwrap_or(false.into())), ("categ_chain", Value::List(categ_chain(&e, id_of(t, "categ_id")).into_iter().map(Value::Int).collect())),
+            ("type", t.get("type").cloned().unwrap_or(Value::Null)), ("tracking", t.get("tracking").cloned().unwrap_or(Value::Text("none".into()))), ("combo", combo_groups(&e, &ids(t, "combo_ids")))]))
     }).collect();
     let taxes = taxes_used.into_iter().map(|i| { let t = rec(&e, "account.tax", i)?; Ok(pick(&t, &["id", "name", "amount", "amount_type", "price_include"])) }).collect::<Result<Vec<_>>>()?;
     let pl_ids = { let mut v = ids(&cfg, "available_pricelist_ids"); if let Some(p) = id_of(&cfg, "pricelist_id") { if !v.contains(&p) { v.push(p); } } v };
@@ -141,21 +144,32 @@ pub fn runtime_rules() -> Rules {
             let lines = kw_list(kw, "lines"); if lines.is_empty() { return Err(OdooError::User("Add at least one product before paying".into())); }
             let refund_of = kw.get("refund_of").and_then(|v| v.as_i64());
             let is_refund = lines.iter().any(|l| as_map(l).get("refunded_orderline_id").map_or(false, |v| v.truthy()));
-            let Built { mut prepared, items, mut untaxed, tax: mut tax_sum, mut total } = build_lines(&e, &cfg, role, lines)?;
+            let Built { mut prepared, items, mut untaxed, tax: mut tax_sum, mut total } = build_lines(&e, &cfg, role, lines, true)?;
             if prepared.is_empty() { return Err(OdooError::User("Add at least one product before paying".into())); }
             let partner = kw.get("partner_id").and_then(|v| v.as_i64());
             let loyalty = pos_loyalty::process(&e, id_of(&sess, "config_id").unwrap_or(0), partner, kw, &items, is_refund)?;
             for l in &loyalty.lines { untaxed += num(l, "price_subtotal"); total += num(l, "price_subtotal_incl"); tax_sum += num(l, "price_subtotal_incl") - num(l, "price_subtotal"); prepared.push(l.clone()); }
             let (untaxed, tax_sum, total) = (r2(untaxed), r2(tax_sum), r2(total));
             if total < 0.0 && !is_refund { return Err(OdooError::User("Rewards cannot make the order total negative".into())); }
-            let (mut paid, mut cash_paid) = (0.0, 0.0); let mut pays: Vec<Row> = vec![];
+            let (mut paid, mut cash_paid) = (0.0, 0.0); let mut pays: Vec<Row> = vec![]; let mut consume: Vec<i64> = vec![];
             for p in kw_list(kw, "payments") {
                 let p = as_map(p); let mid = p.get("payment_method_id").and_then(|v| v.as_i64()).ok_or_else(|| OdooError::User("Payment without method".into()))?;
                 if !ids(&cfg, "payment_method_ids").contains(&mid) { return Err(OdooError::User("That payment method is not enabled for this point of sale".into())); }
                 let m = rec(&e, "pos.payment.method", mid)?; let amt = r2(num(&p, "amount"));
                 if flag(&m, "split_transactions") && partner.is_none() { return Err(OdooError::User("Select a customer to pay on account".into())); }
                 if flag(&m, "is_cash_count") { cash_paid += amt; }
-                paid += amt; pays.push(row(&[("payment_method_id", mid.into()), ("amount", amt.into())]));
+                let mut pv = row(&[("payment_method_id", mid.into()), ("amount", amt.into())]);
+                // card terminals: the money must really have been taken — the app's ledger holds an unused approval for this exact method and amount
+                if m.get("use_payment_terminal").and_then(|v| v.as_str()).map_or(false, |x| !x.is_empty()) && amt != 0.0 {
+                    let tx = text(&p, "transaction_id").unwrap_or_default();
+                    let entry = if tx.is_empty() { None } else { find_one(&e, "ir.config_parameter", term("key", "=", format!("pos.terminal.{tx}").as_str()))? };
+                    let entry = entry.ok_or_else(|| OdooError::User("The card payment was not approved by the terminal".into()))?;
+                    let v = text(&rec(&e, "ir.config_parameter", entry)?, "value").unwrap_or_default(); let f: Vec<&str> = v.split('|').collect();
+                    if f.len() < 5 || f[0].parse::<i64>().ok() != Some(mid) || f[1].parse::<i64>().ok() != Some((amt * 100.0).round() as i64) { return Err(OdooError::User("The terminal approval does not match this payment".into())); }
+                    consume.push(entry);
+                    for (k, val) in [("transaction_id", tx.as_str()), ("card_brand", f[2]), ("card_no", f[3]), ("payment_status", "done"), ("payment_ref_no", f[4])] { pv.insert(k.into(), val.into()); }
+                }
+                paid += amt; pays.push(pv);
             }
             let paid = r2(paid); let cash_method = pays.iter().find(|p| p.get("payment_method_id").and_then(|v| v.as_i64()).map_or(false, |m| rec(&e, "pos.payment.method", m).map_or(false, |m| flag(&m, "is_cash_count")))).and_then(|p| p.get("payment_method_id").cloned());
             let change = if total >= 0.0 { r2((paid - total).max(0.0)) } else { 0.0 };
@@ -176,7 +190,7 @@ pub fn runtime_rules() -> Rules {
                 Some(d) => { for l in children(&e, "pos.order.line", "order_id", d)? { orm::unlink(&e, "pos.order.line", &[l["id"].as_i64().unwrap()])?; } orm::write(&e, "pos.order", &[d], ov)?; d }
                 None => orm::create(&e, "pos.order", ov)?,
             };
-            for mut l in prepared { l.insert("order_id".into(), oid.into()); l.retain(|k, _| e.reg.field("pos.order.line", k).is_ok()); orm::create(&e, "pos.order.line", l)?; }
+            insert_lines(&e, oid, prepared)?;
             if change > 0.0 { if let Some(m) = cash_method { pays.push(row(&[("payment_method_id", m), ("amount", (-change).into()), ("is_change", true.into())])); } }
             for mut p in pays { p.insert("pos_order_id".into(), oid.into()); p.insert("session_id".into(), sid.into()); p.insert("name".into(), name.clone().into()); p.insert("payment_date".into(), orm::now().into()); p.retain(|k, _| e.reg.field("pos.payment", k).is_ok()); orm::create(&e, "pos.payment", p)?; }
             if to_invoice && e.reg.model("account.move").is_ok() {
@@ -190,6 +204,7 @@ pub fn runtime_rules() -> Rules {
                 orm::recompute_ids(&e, "account.move", &[mid])?;
                 if e.reg.field("pos.order", "account_move").is_ok() { orm::write(&e, "pos.order", &[oid], row(&[("account_move", mid.into())]))?; }
             }
+            for c in consume { orm::unlink(&e, "ir.config_parameter", &[c])?; }   // an approval pays for exactly one order
             let issued = pos_loyalty::commit(&e, oid, &name, partner, &loyalty)?;
             let src = id_of(&cfg, "picking_type_id").and_then(|t| rec(&e, "stock.picking.type", t).ok()).and_then(|t| id_of(&t, "default_location_src_id"));
             pos_post::move_stock(&e, oid, &name, partner, src)?;
@@ -212,8 +227,13 @@ pub fn runtime_rules() -> Rules {
             }
             if lines.is_empty() { return Err(OdooError::User("Nothing left to refund on this order".into())); }
             let tot: f64 = lines.iter().map(|l| { let l = as_map(l); let p = rec(&e, "product.product", id_of(&l, "product_id").unwrap_or(0)).unwrap_or_default(); let t = id_of(&p, "product_tmpl_id").and_then(|t| rec(&e, "product.template", t).ok()).unwrap_or_default(); tax::compute(num(&l, "qty"), num(&l, "price_unit"), num(&l, "discount"), &tax::load(&e, &ids(&t, "taxes_id")).unwrap_or_default()).2 }).sum();
-            let first = children(&e, "pos.payment", "pos_order_id", oid)?.into_iter().find_map(|p| id_of(&p, "payment_method_id")).ok_or_else(|| OdooError::User("The order has no payment to return".into()))?;
-            let mut k = row(&[("session_id", sid.into()), ("lines", Value::List(lines)), ("payments", Value::List(vec![Value::Map(row(&[("payment_method_id", first.into()), ("amount", r2(tot).into())]))])), ("note", format!("Refund of {}", text(&o, "name").unwrap_or_default()).into())]);
+            let first_pay = children(&e, "pos.payment", "pos_order_id", oid)?.into_iter().find(|p| id_of(p, "payment_method_id").is_some() && !flag(p, "is_change") && num(p, "amount") > 0.0).ok_or_else(|| OdooError::User("The order has no payment to return".into()))?;
+            let first = id_of(&first_pay, "payment_method_id").unwrap();
+            if flag(kw, "quote") {   // what a refund would return and through which payment (the terminal must hand back card money first)
+                let m = rec(&e, "pos.payment.method", first)?;
+                return Ok(map(vec![("amount", r2(-tot).into()), ("method_id", first.into()), ("payment_id", first_pay["id"].clone()), ("terminal", Value::Bool(m.get("use_payment_terminal").and_then(|v| v.as_str()).map_or(false, |x| !x.is_empty())))]));
+            }
+            let mut k = row(&[("session_id", sid.into()), ("lines", Value::List(lines)), ("payments", Value::List(vec![Value::Map({ let mut p = row(&[("payment_method_id", first.into()), ("amount", r2(tot).into())]); if let Some(t) = kw.get("transaction_id") { p.insert("transaction_id".into(), t.clone()); } p })])), ("note", format!("Refund of {}", text(&o, "name").unwrap_or_default()).into())]);
             if let Some(p) = id_of(&o, "partner_id") { k.insert("partner_id".into(), p.into()); }
             if let Some(emp) = kw.get("employee_id") { k.insert("employee_id".into(), emp.clone()); }
             let f = env.rules.actions.get(&("pos.order".to_string(), "create_from_ui".to_string())).ok_or_else(|| OdooError::User("create_from_ui missing".into()))?;
@@ -233,8 +253,32 @@ pub fn runtime_rules() -> Rules {
             if role == Role::None { return Err(OdooError::User("This employee cannot use this point of sale".into())); }
             // a badge scan proves presence; otherwise the PIN must match when the employee has one
             let pin = text(&emp, "pin").unwrap_or_default();
-            if text(kw, "badge").is_none() && !pin.is_empty() && text(kw, "pin").unwrap_or_default() != pin { return Err(OdooError::User("Wrong PIN".into())); }
-            Ok(map(vec![("id", id.into()), ("name", text(&emp, "name").unwrap_or_default().into()), ("role", (if role == Role::Advanced { "advanced" } else { "basic" }).into())]))
+            if text(kw, "badge").is_none() && !pin.is_empty() {
+                // lock an employee for 5 minutes after 5 wrong PINs (counter kept in ir.config_parameter, shared by every terminal)
+                let key = format!("pos.pin.fail.{id}"); let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0);
+                let slot = find_one(&e, "ir.config_parameter", term("key", "=", key.as_str()))?;
+                let (mut n, mut since) = slot.and_then(|p| rec(&e, "ir.config_parameter", p).ok()).and_then(|p| text(&p, "value")).and_then(|v| { let (a, b) = v.split_once('|')?; Some((a.parse::<i64>().ok()?, b.parse::<i64>().ok()?)) }).unwrap_or((0, now));
+                if now - since > 300 { n = 0; since = now; }
+                if n >= 5 { return Ok(map(vec![("ok", false.into()), ("message", format!("Too many wrong PINs — try again in {} s", (300 - (now - since)).max(1)).into())])); }
+                let save = |n: i64, since: i64| -> Result<()> { let v = format!("{n}|{since}"); match slot { Some(p) => orm::write(&e, "ir.config_parameter", &[p], row(&[("value", v.into())])), None => orm::create(&e, "ir.config_parameter", row(&[("key", key.clone().into()), ("value", v.into())])).map(|_| ()) } };
+                if text(kw, "pin").unwrap_or_default() != pin { save(n + 1, if n == 0 { now } else { since })?; return Ok(map(vec![("ok", false.into()), ("message", "Wrong PIN".into())])); }   // Ok, not Err: an error would roll the counter back
+                if n > 0 { save(0, now)?; }
+            }
+            Ok(map(vec![("ok", true.into()), ("id", id.into()), ("name", text(&emp, "name").unwrap_or_default().into()), ("role", (if role == Role::Advanced { "advanced" } else { "basic" }).into())]))
+        })
+        // sales dashboard across registers (multi-store view): totals, top products, payment mix, busiest hours
+        .action("pos.config", "sales_report", |env, _, kw| sales_report(&env.sudo(), kw.get("days").and_then(|v| v.as_i64()).unwrap_or(7).clamp(1, 365)))
+        // known lots / serial numbers of a tracked product with what is on hand, to suggest at the till
+        .action("pos.config", "lots", |env, _, kw| {
+            let e = env.sudo(); let pid = kw.get("product_id").and_then(|v| v.as_i64()).unwrap_or(0);
+            if e.reg.model("stock.lot").is_err() { return Ok(Value::List(vec![])); }
+            let mut out = vec![];
+            for l in orm::search(&e, "stock.lot", &term("product_id", "=", pid), Some("name"), Some(200), 0)? {
+                let lot = rec(&e, "stock.lot", l)?;
+                let qty: f64 = if e.reg.field("stock.quant", "lot_id").is_ok() { children_by(&e, "stock.quant", &term("lot_id", "=", l))?.iter().map(|q| num(q, "quantity")).sum() } else { 0.0 };
+                out.push(map(vec![("name", text(&lot, "name").unwrap_or_default().into()), ("qty", qty.into())]));
+            }
+            Ok(Value::List(out))
         })
         .action("pos.session", "summary", |env, ids, _| { let e = env.sudo(); Ok(Value::Map(session_summary(&e, *ids.first().ok_or_else(|| OdooError::User("Select a session".into()))?)?)) })
         .action("pos.session", "close_session", |env, ids, kw| {
@@ -306,35 +350,142 @@ fn employees_data(env: &Env, cfg: &Row) -> Result<Value> {
 
 struct Built { prepared: Vec<Row>, items: Vec<pos_loyalty::Item>, untaxed: f64, tax: f64, total: f64 }
 /// Price the terminal's lines from product data (never trusting client totals), enforcing discount/price permissions.
-fn build_lines(e: &Env, cfg: &Row, role: Role, lines: &[Value]) -> Result<Built> {
+fn build_lines(e: &Env, cfg: &Row, role: Role, lines: &[Value], strict: bool) -> Result<Built> {
     let (mut untaxed, mut tax_sum, mut total) = (0.0, 0.0, 0.0);
     let mut prepared: Vec<Row> = vec![]; let mut items: Vec<pos_loyalty::Item> = vec![];
+            // combos: parent uuid → (qty, combo groups it needs, groups already chosen)
+            let mut combos: BTreeMap<String, (f64, Vec<i64>, Vec<i64>, String)> = BTreeMap::new();
             for l in lines {
-                let l = as_map(l); let pid = l.get("product_id").and_then(|v| v.as_i64()).ok_or_else(|| OdooError::User("Line without product".into()))?;
+                let l = as_map(l); let mut pid = l.get("product_id").and_then(|v| v.as_i64()).unwrap_or(0);   // combo children name an item instead
+                let (mut qty, mut forced_price, mut combo_item, mut combo_parent) = (num(&l, "qty"), None::<f64>, None::<i64>, None::<String>);
+                if let Some(par) = text(&l, "combo_parent").filter(|x| !x.is_empty()) {
+                    // a child of a combo: product, price and quantity come from the combo item, never from the client
+                    let item_id = l.get("combo_item_id").and_then(|v| v.as_i64()).ok_or_else(|| OdooError::User("Combo line without an item".into()))?;
+                    let item = rec(e, "product.combo.item", item_id).map_err(|_| OdooError::User("Unknown combo item".into()))?;
+                    let g = combos.get_mut(&par).ok_or_else(|| OdooError::User("Combo line without its combo".into()))?;
+                    let cid = id_of(&item, "combo_id").unwrap_or(0);
+                    if !g.1.contains(&cid) { return Err(OdooError::User("That item is not part of this combo".into())); }
+                    if g.2.contains(&cid) { return Err(OdooError::User("Choose only one item per combo part".into())); }
+                    g.2.push(cid); qty = g.0;
+                    pid = id_of(&item, "product_id").ok_or_else(|| OdooError::User("Combo item without product".into()))?;
+                    forced_price = Some(num(&item, "extra_price")); combo_item = Some(item_id); combo_parent = Some(par);
+                }
+                if pid == 0 { return Err(OdooError::User("Line without product".into())); }
                 let p = rec(e, "product.product", pid)?; let t = id_of(&p, "product_tmpl_id").map(|t| rec(e, "product.template", t)).transpose()?.unwrap_or_default();
-                let qty = num(&l, "qty"); if qty == 0.0 { continue; }
+                if qty == 0.0 { continue; }
+                if text(&t, "type").as_deref() == Some("combo") && combo_parent.is_none() {
+                    let need = ids(&t, "combo_ids"); if need.is_empty() { return Err(OdooError::User("This combo has no content".into())); }
+                    combos.insert(text(&l, "uuid").unwrap_or_default(), (qty, need, vec![], text(&t, "name").unwrap_or_default()));
+                }
                 let is_tip = id_of(cfg, "tip_product_id") == Some(pid);   // tips are free-amount lines
-                let price = if l.contains_key("price_unit") && (is_tip || !flag(cfg, "restrict_price_control")) { num(&l, "price_unit") } else { num(&t, "list_price") };
+                let price = if let Some(fp) = forced_price { fp } else if text(&t, "type").as_deref() == Some("combo") { num(&t, "list_price") } else if l.contains_key("price_unit") && (is_tip || !flag(cfg, "restrict_price_control")) { num(&l, "price_unit") } else { num(&t, "list_price") };
                 let disc = num(&l, "discount").clamp(0.0, 100.0);
-                if role == Role::Basic && !is_tip && (disc > 0.0 || (l.contains_key("price_unit") && (num(&l, "price_unit") - num(&t, "list_price")).abs() > 0.004)) { return Err(OdooError::User("Only managers can change prices or give discounts".into())); }
+                if role == Role::Basic && !is_tip && forced_price.is_none() && text(&t, "type").as_deref() != Some("combo") && (disc > 0.0 || (l.contains_key("price_unit") && (num(&l, "price_unit") - num(&t, "list_price")).abs() > 0.004)) { return Err(OdooError::User("Only managers can change prices or give discounts".into())); }
                 if disc > 0.0 && !flag(cfg, "manual_discount") { return Err(OdooError::User("Manual discounts are disabled for this point of sale".into())); }
                 let tx = ids(&t, "taxes_id");
                 let (u, tt, tot) = tax::compute(qty, price, disc, &tax::load(e, &tx)?);
                 untaxed += u; tax_sum += tt; total += tot;
+                // lots / serial numbers: required for tracked goods being sold
+                let tracking = text(&t, "tracking").unwrap_or_default();
+                let lots: Vec<String> = match l.get("lots") { Some(Value::List(v)) => v.iter().filter_map(|x| x.as_str().map(|s| s.trim().to_string())).filter(|s| !s.is_empty()).collect(), _ => vec![] };
+                if strict && matches!(tracking.as_str(), "lot" | "serial") && qty > 0.0 { check_lots(e, pid, &tracking, qty, &lots, &text(&t, "name").unwrap_or_default())?; }
                 items.push(pos_loyalty::Item { product: pid, categ: id_of(&t, "categ_id"), qty, price, tax_ids: tx.clone(), untaxed: u, total: tot });
                 prepared.push(row(&[("product_id", pid.into()), ("full_product_name", text(&t, "name").unwrap_or_default().into()), ("name", text(&t, "name").unwrap_or_default().into()), ("qty", qty.into()), ("price_unit", price.into()), ("discount", disc.into()), ("price_subtotal", u.into()), ("price_subtotal_incl", tot.into()), ("customer_note", text(&l, "note").unwrap_or_default().into()), ("tax_ids", set6(&tx)),
-                    ("refunded_orderline_id", l.get("refunded_orderline_id").cloned().unwrap_or(Value::Null)), ("uuid", text(&l, "uuid").unwrap_or_default().into())]));
+                    ("refunded_orderline_id", l.get("refunded_orderline_id").cloned().unwrap_or(Value::Null)), ("uuid", text(&l, "uuid").unwrap_or_default().into()),
+                    ("_lots", Value::List(lots.into_iter().map(Value::Text).collect())), ("_combo_parent", combo_parent.map_or(Value::Null, Value::Text)), ("_combo_item", combo_item.map_or(Value::Null, Value::Int))]));
             }
+            for (_, (_, need, got, name)) in &combos { if strict && need.len() != got.len() { return Err(OdooError::User(format!("Choose one item for every part of the combo “{name}”"))); } }
     Ok(Built { prepared, items, untaxed, tax: tax_sum, total })
 }
 
 /// (priced lines, tax, total) for an unpaid table order. Rewards are not applied until payment.
 pub fn draft_lines(e: &Env, cfg: &Row, kw: &Row) -> Result<(Vec<Row>, f64, f64)> {
-    let b = build_lines(e, cfg, Role::Advanced, kw_list(kw, "lines"))?;
+    let b = build_lines(e, cfg, Role::Advanced, kw_list(kw, "lines"), false)?;
     Ok((b.prepared, r2(b.tax), r2(b.total)))
 }
 
 /// Receipt printer first (no categories), then kitchen/bar printers with the categories they serve.
 fn printers_data(e: &Env, cfg: &Row) -> Value {
-    Value::List(crate::pos_hw::targets(e, cfg).into_iter().map(|(name, target, cats)| map(vec![("name", name.into()), ("target", target.into()), ("category_ids", Value::List(cats.into_iter().map(Value::Int).collect()))])).collect())
+    Value::List(crate::pos_hw::targets(e, cfg).into_iter().map(|(name, target, cats, kind)| map(vec![("name", name.clone().into()), ("target", target.into()), ("kind", kind.into()), ("receipt", Value::Bool(name == "Receipt printer" && cats.is_empty())), ("category_ids", Value::List(cats.into_iter().map(Value::Int).collect()))])).collect())
+}
+
+fn sales_report(e: &Env, days: i64) -> Result<Value> {
+    let since = orm::shift_date(&orm::today(), -(days - 1));
+    let orders = orm::search_read(e, "pos.order", &Domain::And(vec![term("date_order", ">=", since.as_str()), term("state", "in", Value::List(vec!["paid".into(), "done".into(), "invoiced".into()]))]), &["id".into(), "config_id".into(), "amount_total".into(), "date_order".into(), "session_id".into()], Some("id"), None, 0)?;
+    let mut by_cfg: BTreeMap<i64, (String, f64, i64)> = BTreeMap::new(); let mut by_hour = [0.0f64; 24]; let mut by_day: BTreeMap<String, f64> = BTreeMap::new();
+    for o in &orders {
+        let cid = id_of(o, "config_id").unwrap_or(0);
+        let name = by_cfg.get(&cid).map(|x| x.0.clone()).unwrap_or_else(|| rec(e, "pos.config", cid).ok().and_then(|c| text(&c, "name")).unwrap_or_default());
+        let en = by_cfg.entry(cid).or_insert((name, 0.0, 0)); en.1 += num(o, "amount_total"); en.2 += 1;
+        let d = text(o, "date_order").unwrap_or_default();
+        if d.len() >= 13 { if let Ok(h) = d[11..13].parse::<usize>() { if h < 24 { by_hour[h] += num(o, "amount_total"); } } }
+        if d.len() >= 10 { *by_day.entry(d[..10].to_string()).or_default() += num(o, "amount_total"); }
+    }
+    let oids: Vec<Value> = orders.iter().map(|o| o["id"].clone()).collect();
+    let mut prods: BTreeMap<String, (f64, f64)> = BTreeMap::new(); let mut pays: BTreeMap<String, f64> = BTreeMap::new();
+    if !oids.is_empty() {
+        for l in orm::search_read(e, "pos.order.line", &term("order_id", "in", Value::List(oids.clone())), &["full_product_name".into(), "qty".into(), "price_subtotal_incl".into()], None, None, 0)? { let en = prods.entry(text(&l, "full_product_name").unwrap_or_default()).or_default(); en.0 += num(&l, "qty"); en.1 += num(&l, "price_subtotal_incl"); }
+        for p in orm::search_read(e, "pos.payment", &term("pos_order_id", "in", Value::List(oids)), &["payment_method_id".into(), "amount".into()], None, None, 0)? {
+            let n = id_of(&p, "payment_method_id").and_then(|m| rec(e, "pos.payment.method", m).ok()).and_then(|m| text(&m, "name")).unwrap_or_default(); *pays.entry(n).or_default() += num(&p, "amount"); }
+    }
+    let total: f64 = orders.iter().map(|o| num(o, "amount_total")).sum();
+    let mut top: Vec<(String, (f64, f64))> = prods.into_iter().collect(); top.sort_by(|a, b| b.1 .1.partial_cmp(&a.1 .1).unwrap()); top.truncate(10);
+    Ok(map(vec![("days", days.into()), ("since", since.into()), ("orders", (orders.len() as i64).into()), ("total", r2(total).into()), ("average", r2(if orders.is_empty() { 0.0 } else { total / orders.len() as f64 }).into()),
+        ("registers", Value::List(by_cfg.into_iter().map(|(id, (n, t, c))| map(vec![("id", id.into()), ("name", n.into()), ("total", r2(t).into()), ("orders", c.into())])).collect())),
+        ("top_products", Value::List(top.into_iter().map(|(n, (q, t))| map(vec![("name", n.into()), ("qty", q.into()), ("total", r2(t).into())])).collect())),
+        ("payments", Value::List(pays.into_iter().map(|(n, a)| map(vec![("name", n.into()), ("amount", r2(a).into())])).collect())),
+        ("by_hour", Value::List(by_hour.iter().map(|x| Value::Float(r2(*x))).collect())),
+        ("by_day", Value::List(by_day.into_iter().map(|(d, a)| map(vec![("day", d.into()), ("amount", r2(a).into())])).collect()))]))
+}
+
+/// Create the order lines, the lot/serial rows and the combo links (children point at their parent line).
+pub fn insert_lines(e: &Env, oid: i64, prepared: Vec<Row>) -> Result<()> {
+    let mut by_uuid: BTreeMap<String, i64> = BTreeMap::new(); let mut links: Vec<(i64, String, i64)> = vec![];
+    for mut l in prepared {
+        let lots = match l.remove("_lots") { Some(Value::List(v)) => v, _ => vec![] };
+        let parent = match l.remove("_combo_parent") { Some(Value::Text(t)) => Some(t), _ => None }; let item = l.remove("_combo_item").and_then(|v| v.as_i64());
+        let uuid = text(&l, "uuid").unwrap_or_default(); let pid = l.get("product_id").and_then(|v| v.as_i64()).unwrap_or(0);
+        l.insert("order_id".into(), oid.into()); l.retain(|k, _| e.reg.field("pos.order.line", k).is_ok());
+        let lid = orm::create(e, "pos.order.line", l)?;
+        if !uuid.is_empty() { by_uuid.insert(uuid, lid); }
+        if let (Some(par), Some(it)) = (parent, item) { links.push((lid, par, it)); }
+        if e.reg.model("pos.pack.operation.lot").is_ok() { for n in lots { if let Some(name) = n.as_str() { let mut v = row(&[("pos_order_line_id", lid.into()), ("lot_name", name.into()), ("order_id", oid.into()), ("product_id", pid.into())]); v.retain(|k, _| e.reg.field("pos.pack.operation.lot", k).is_ok()); orm::create(e, "pos.pack.operation.lot", v)?; } } }
+    }
+    for (child, par, item) in links { if let Some(pl) = by_uuid.get(&par) { orm::write(e, "pos.order.line", &[child], row(&[("combo_parent_id", (*pl).into()), ("combo_item_id", item.into())]))?; } }
+    Ok(())
+}
+
+/// Serial: exactly one unique number per unit, never sold twice (unless returned). Lot: at least one lot number. Known lots only when the product has lots on file.
+fn check_lots(e: &Env, pid: i64, tracking: &str, qty: f64, names: &[String], product: &str) -> Result<()> {
+    if tracking == "serial" {
+        if qty.fract() != 0.0 || names.len() != qty as usize { return Err(OdooError::User(format!("“{product}” needs {} serial number(s)", qty.ceil() as i64))); }
+        let mut seen = std::collections::BTreeSet::new(); for n in names { if !seen.insert(n) { return Err(OdooError::User(format!("Serial number {n} is entered twice"))); } }
+    } else if names.is_empty() { return Err(OdooError::User(format!("“{product}” needs a lot number"))); }
+    if e.reg.model("stock.lot").is_ok() {
+        let known = !orm::search(e, "stock.lot", &term("product_id", "=", pid), None, Some(1), 0)?.is_empty();
+        for n in names {
+            if known && find_one(e, "stock.lot", Domain::And(vec![term("product_id", "=", pid), term("name", "=", n.as_str())]))?.is_none() { return Err(OdooError::User(format!("Unknown {} {n} for “{product}”", if tracking == "serial" { "serial number" } else { "lot" }))); }
+            if tracking == "serial" && e.reg.model("pos.pack.operation.lot").is_ok() {
+                for r in children_by(e, "pos.pack.operation.lot", &Domain::And(vec![term("lot_name", "=", n.as_str()), term("product_id", "=", pid)]))? {
+                    if let Some(l) = id_of(&r, "pos_order_line_id") { if num(&rec(e, "pos.order.line", l)?, "qty") > 0.0 && orm::search(e, "pos.order.line", &term("refunded_orderline_id", "=", l), None, Some(1), 0)?.is_empty() { return Err(OdooError::User(format!("Serial number {n} was already sold"))); } }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+fn children_by(e: &Env, model: &str, dom: &Domain) -> Result<Vec<Row>> { orm::search(e, model, dom, None, None, 0)?.into_iter().map(|i| rec(e, model, i)).collect() }
+
+/// Parts of a combo: each part offers items (product + extra price); the customer picks one per part.
+fn combo_groups(e: &Env, combo_ids: &[i64]) -> Value {
+    if e.reg.model("product.combo").is_err() { return Value::List(vec![]); }
+    Value::List(combo_ids.iter().filter_map(|c| {
+        let g = rec(e, "product.combo", *c).ok()?;
+        let items = children(e, "product.combo.item", "combo_id", *c).ok()?.into_iter().filter_map(|i| {
+            let p = rec(e, "product.product", id_of(&i, "product_id")?).ok()?; let name = id_of(&p, "product_tmpl_id").and_then(|t| rec(e, "product.template", t).ok()).and_then(|t| text(&t, "name")).unwrap_or_default();
+            let tx = id_of(&p, "product_tmpl_id").and_then(|t| rec(e, "product.template", t).ok()).map(|t| ids(&t, "taxes_id")).unwrap_or_default();
+            Some(map(vec![("id", i["id"].clone()), ("product_id", p["id"].clone()), ("name", name.into()), ("extra", num(&i, "extra_price").into()), ("tax_ids", Value::List(tx.into_iter().map(Value::Int).collect()))]))
+        }).collect();
+        Some(map(vec![("id", (*c).into()), ("name", text(&g, "name").unwrap_or_default().into()), ("items", Value::List(items))]))
+    }).collect())
 }

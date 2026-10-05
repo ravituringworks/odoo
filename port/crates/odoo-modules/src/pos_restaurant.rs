@@ -44,7 +44,7 @@ fn open_orders(env: &Env, config: i64, table: Option<i64>) -> Result<Vec<Row>> {
 }
 fn draft_view(env: &Env, o: &Row) -> Result<Value> {
     let lines = children(env, "pos.order.line", "order_id", o["id"].as_i64().unwrap())?.into_iter().map(|l| pick(&l, &["uuid", "product_id", "qty", "price_unit", "discount", "customer_note"])).collect();
-    let mut v = pick(o, &["id", "uuid", "table_id", "customer_count", "takeaway", "partner_id", "amount_total", "general_note", "last_order_preparation_change"]);
+    let mut v = pick(o, &["id", "uuid", "table_id", "customer_count", "takeaway", "partner_id", "amount_total", "general_note", "shipping_date", "name", "last_order_preparation_change"]);
     v.insert("lines".into(), list(lines)); Ok(Value::Map(v))
 }
 
@@ -147,6 +147,7 @@ fn save_draft(env: &Env, kw: &Row) -> Result<(i64, Value)> {
     let mut ov = row(&[("session_id", sid.into()), ("config_id", id_of(&sess, "config_id").unwrap_or(0).into()), ("state", "draft".into()), ("uuid", uuid.clone().into()), ("amount_total", built.2.into()), ("amount_tax", built.1.into()), ("amount_paid", 0.0.into()), ("amount_return", 0.0.into()), ("date_order", orm::now().into()), ("user_id", env.uid.into()),
         ("customer_count", kw.get("customer_count").cloned().unwrap_or(Value::Int(1))), ("takeaway", Value::Bool(flag(kw, "takeaway"))), ("general_note", text(kw, "note").unwrap_or_default().into())]);
     if let Some(t) = kw.get("table_id").and_then(|v| v.as_i64()) { ov.insert("table_id".into(), t.into()); }
+    if let Some(d) = text(kw, "shipping_date").filter(|d| !d.is_empty()) { ov.insert("shipping_date".into(), d.into()); }
     if let Some(p) = kw.get("partner_id").and_then(|v| v.as_i64()) { ov.insert("partner_id".into(), p.into()); }
     if let Some(c) = id_of(&sess, "company_id").or_else(|| id_of(&cfg, "company_id")) { ov.insert("company_id".into(), c.into()); }
     let existing = find_one(&e, "pos.order", term("uuid", "=", uuid.as_str()))?;
@@ -156,6 +157,6 @@ fn save_draft(env: &Env, kw: &Row) -> Result<(i64, Value)> {
         Some(o) => { for l in children(&e, "pos.order.line", "order_id", o)? { orm::unlink(&e, "pos.order.line", &[l["id"].as_i64().unwrap()])?; } orm::write(&e, "pos.order", &[o], ov)?; o }
         None => { ov.insert("name".into(), format!("Draft {}", &uuid[..uuid.len().min(8)]).into()); orm::create(&e, "pos.order", ov)? }
     };
-    for mut l in built.0 { l.insert("order_id".into(), oid.into()); l.retain(|k, _| e.reg.field("pos.order.line", k).is_ok()); orm::create(&e, "pos.order.line", l)?; }
+    crate::pos::insert_lines(&e, oid, built.0)?;
     let o = rec(&e, "pos.order", oid)?; Ok((oid, draft_view(&e, &o)?))
 }

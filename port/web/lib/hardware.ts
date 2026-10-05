@@ -1,7 +1,7 @@
 // Browser-side device access for the POS: Web Serial (USB/serial receipt printers, cash drawers, scales). Settings live per browser.
 import { parseScale } from './escpos'
 
-export type HwSettings = { receipt: 'browser' | 'network' | 'serial'; autoPrint: boolean; drawer: boolean; kitchen: boolean; scale: boolean }
+export type HwSettings = { receipt: 'browser' | 'network' | 'epos' | 'serial'; autoPrint: boolean; drawer: boolean; kitchen: boolean; scale: boolean }
 export const DEFAULT_HW: HwSettings = { receipt: 'browser', autoPrint: false, drawer: false, kitchen: true, scale: false }
 const KEY = 'pos_hw'
 export const loadHw = (): HwSettings => { try { return { ...DEFAULT_HW, ...(JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<HwSettings>) } } catch { return DEFAULT_HW } }

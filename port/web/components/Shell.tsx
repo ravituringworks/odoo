@@ -57,7 +57,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   if (authed === null) return null
   if (!authed) return <Login onDone={() => { setAuthed(true); location.reload() }} />
   // the POS terminal is a full-screen app: authenticated, but without the back-office chrome
-  if (path?.startsWith('/pos')) return <>{children}</>
+  if (path?.startsWith('/pos') || path?.startsWith('/shop')) return <>{children}</>
   return <Inner>{children}</Inner>
 }
 

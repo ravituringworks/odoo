@@ -15,6 +15,16 @@ pub fn move_stock(env: &Env, order: i64, name: &str, partner: Option<i64>, sourc
         let t = rec(&e, "product.product", pid).ok().and_then(|p| id_of(&p, "product_tmpl_id")).map(|t| rec(&e, "product.template", t)).transpose()?;
         if matches!(t.as_ref().and_then(|t| text(t, "type")).as_deref(), Some("service" | "combo")) { continue; }
         let q = num(&l, "qty"); if q == 0.0 { continue; }
+        // lot / serial tracked lines move the quant of the exact lot instead of going through the generic picking
+        if e.reg.model("pos.pack.operation.lot").is_ok() && e.reg.model("stock.lot").is_ok() && e.reg.field("stock.quant", "lot_id").is_ok() {
+            let names: Vec<String> = children(&e, "pos.pack.operation.lot", "pos_order_line_id", l["id"].as_i64().unwrap())?.iter().filter_map(|r| text(r, "lot_name")).collect();
+            if !names.is_empty() {
+                let loc = match source { Some(s) => s, None => stock::ensure_location(&e, "internal", "Stock")? };
+                let per = q / names.len() as f64;
+                for n in names { if let Some(lot) = find_one(&e, "stock.lot", odoo_core::Domain::And(vec![term("product_id", "=", pid), term("name", "=", n.as_str())]))? { adjust_lot_quant(&e, pid, loc, lot, -per)?; } }
+                continue;
+            }
+        }
         let m = row(&[("product_id", pid.into()), ("product_uom_qty", q.abs().into()), ("name", text(&l, "full_product_name").unwrap_or_default().into()), ("state", "confirmed".into())]);
         if q > 0.0 { out.push(m) } else { back.push(m) }
     }
@@ -77,4 +87,12 @@ pub fn close_entry(env: &Env, session: i64, cash_difference: f64) -> Result<Opti
     account::post(&e, mv).map_err(|x| OdooError::User(format!("Could not post the session entry: {x}")))?;
     let _ = Domain::True; let _ = Value::Null;
     Ok(Some(mv))
+}
+
+fn adjust_lot_quant(env: &Env, product: i64, loc: i64, lot: i64, delta: f64) -> Result<()> {
+    let dom = odoo_core::Domain::And(vec![term("product_id", "=", product), term("location_id", "=", loc), term("lot_id", "=", lot)]);
+    match find_one(env, "stock.quant", dom)? {
+        Some(q) => { let cur = num(&rec(env, "stock.quant", q)?, "quantity"); orm::write(env, "stock.quant", &[q], row(&[("quantity", (cur + delta).into())])) }
+        None => orm::create(env, "stock.quant", row(&[("product_id", product.into()), ("location_id", loc.into()), ("lot_id", lot.into()), ("quantity", delta.into())])).map(|_| ()),
+    }
 }

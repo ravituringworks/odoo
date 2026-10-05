@@ -2,10 +2,12 @@
 export type Tax = { id: number; name?: string; amount: number; amount_type: string; price_include: boolean }
 export type PricelistItem = { applied_on: string; compute_price: string; fixed_price: number; percent_price: number; min_quantity: number; product_tmpl_id: unknown; product_id: unknown; categ_id: unknown }
 export type Pricelist = { id: number; name: string; items: PricelistItem[] }
-export type Product = { id: number; name: string; price: number; code?: string | null; barcode?: string | null; tax_ids: number[]; category_ids: number[]; categ_chain?: number[]; to_weight?: boolean }
-export type Line = { key: string; product: Product; qty: number; price: number; discount: number; note?: string }
-export type Method = { id: number; name: string; kind: 'cash' | 'bank' | 'account' }
-export type Pay = { method: number; amount: number }
+export type Product = { id: number; name: string; price: number; code?: string | null; barcode?: string | null; tax_ids: number[]; category_ids: number[]; categ_chain?: number[]; to_weight?: boolean; type?: string; tracking?: 'none' | 'lot' | 'serial'; combo?: ComboGroup[] }
+export type ComboItem = { id: number; product_id: number; name: string; extra: number; tax_ids: number[] }
+export type ComboGroup = { id: number; name: string; items: ComboItem[] }
+export type Line = { key: string; product: Product; qty: number; price: number; discount: number; note?: string; lots?: string[]; combo?: { parent: string; item: number } }
+export type Method = { id: number; name: string; kind: 'cash' | 'bank' | 'account'; use_payment_terminal?: string | false | null }
+export type Pay = { method: number; amount: number; tx?: string; card?: string }
 export type Claim = { rewardId: number; cardId?: number | null }
 export type Cart = { lines: Line[]; partner?: { id: number; name: string } | null; pricelist?: number | null; note?: string; uuid: string; claims?: Claim[]; codes?: string[]; table?: { id: number; name: string } | null; guests?: number; takeaway?: boolean; sent?: Record<string, number> }
 
@@ -61,6 +63,8 @@ export type Act =
   | { t: 'note'; key: string; note: string }
   | { t: 'remove'; key: string }
   | { t: 'partner'; partner: Cart['partner'] }
+  | { t: 'addCombo'; product: Product; picks: ComboItem[]; pl?: Pricelist | null }
+  | { t: 'lots'; key: string; lots: string[] }
   | { t: 'meta'; meta: Partial<Cart> }
   | { t: 'move'; keys: string[] }
   | { t: 'claim'; claim: Claim }
@@ -75,12 +79,21 @@ export function reduce(c: Cart, a: Act): Cart {
       if (same) return reduce(c, { t: 'qty', key: same.key, qty: same.qty + 1, pl: a.pl })
       return { ...c, lines: [...c.lines, { key: uuid(), product: a.product, qty: 1, price: priceFor(a.product, 1, a.pl), discount: 0 }] }
     }
-    case 'qty': return upd(a.key, (l) => ({ ...l, qty: a.qty, price: l.price === priceFor(l.product, l.qty, a.pl) ? priceFor(l.product, a.qty, a.pl) : l.price }))
+    case 'addCombo': {
+      const parent: Line = { key: uuid(), product: a.product, qty: 1, price: priceFor(a.product, 1, a.pl), discount: 0 }
+      const kids: Line[] = a.picks.map((p) => ({ key: uuid(), product: { id: p.product_id, name: p.name, price: p.extra, tax_ids: p.tax_ids, category_ids: [] } as Product, qty: 1, price: p.extra, discount: 0, combo: { parent: parent.key, item: p.id } }))
+      return { ...c, lines: [...c.lines, parent, ...kids] }
+    }
+    case 'lots': return upd(a.key, (l) => ({ ...l, lots: a.lots }))
+    case 'qty': {
+      if (c.lines.find((l) => l.key === a.key)?.combo) return c                      // combo items follow their combo
+      return { ...c, lines: c.lines.map((l) => (l.key === a.key ? { ...l, qty: a.qty, price: l.price === priceFor(l.product, l.qty, a.pl) ? priceFor(l.product, a.qty, a.pl) : l.price } : l.combo?.parent === a.key ? { ...l, qty: a.qty } : l)) }
+    }
     case 'price': return upd(a.key, (l) => ({ ...l, price: Math.max(0, a.price) }))
     case 'discount': return upd(a.key, (l) => ({ ...l, discount: Math.min(100, Math.max(0, a.pct)) }))
     case 'order_discount': return { ...c, lines: c.lines.map((l) => ({ ...l, discount: Math.min(100, Math.max(0, a.pct)) })) }
     case 'note': return upd(a.key, (l) => ({ ...l, note: a.note }))
-    case 'remove': return { ...c, lines: c.lines.filter((l) => l.key !== a.key) }
+    case 'remove': return { ...c, lines: c.lines.filter((l) => l.key !== a.key && l.combo?.parent !== a.key && !(l.key === a.key)) .filter((l) => !(c.lines.find((x) => x.key === a.key)?.combo)) }
     case 'partner': return { ...c, partner: a.partner, claims: (c.claims ?? []).filter((x) => x.cardId == null) }   // a card belongs to the customer: drop card claims on change
     case 'meta': return { ...c, ...a.meta }
     case 'move': return { ...c, lines: c.lines.filter((l) => !a.keys.includes(l.key)) }
@@ -131,9 +144,15 @@ export function cartFromDraft(d: { uuid: string; table_id?: unknown; customer_co
   const byId = new Map(products.map((p) => [p.id, p]))
   let sent: Record<string, number> = {}
   try { const j = JSON.parse(d.last_order_preparation_change || '{}') as Record<string, { qty: number }>; sent = Object.fromEntries(Object.entries(j).map(([k, v]) => [k, v.qty])) } catch { /* no history */ }
-  return { uuid: d.uuid, table, guests: d.customer_count ?? 1, takeaway: !!d.takeaway, sent,
+  const tb = table ?? (Array.isArray(d.table_id) ? { id: d.table_id[0] as number, name: String(d.table_id[1]).replace(/^.*?(\d+)$/, '$1') } : null)
+  return { uuid: d.uuid, table: tb, guests: d.customer_count ?? 1, takeaway: !!d.takeaway, sent,
     partner: Array.isArray(d.partner_id) ? { id: d.partner_id[0] as number, name: d.partner_id[1] as string } : null,
     lines: d.lines.flatMap((l) => { const id = Array.isArray(l.product_id) ? (l.product_id[0] as number) : (l.product_id as number); const p = byId.get(id); return p ? [{ key: l.uuid || uuid(), product: p, qty: l.qty, price: l.price_unit, discount: l.discount, note: l.customer_note || undefined }] : [] }) }
 }
 /** Tip as a percentage of the untaxed-or-total amount, rounded to cents. */
 export const tipAmount = (total: number, pct: number) => r2((total * pct) / 100)
+
+// ---- tracking ----
+/** Tracked goods need serial/lot numbers before payment: serial = one per unit, lot = at least one. */
+export const lotsMissing = (l: Line): boolean => (l.product.tracking === 'serial' ? (l.lots?.length ?? 0) !== Math.round(Math.abs(l.qty)) && l.qty > 0 : l.product.tracking === 'lot' ? (l.lots?.length ?? 0) < 1 && l.qty > 0 : false)
+export const comboComplete = (parent: Line, c: Cart): boolean => { const need = parent.product.combo?.length ?? 0; return c.lines.filter((l) => l.combo?.parent === parent.key).length === need }
