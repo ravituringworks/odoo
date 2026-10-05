@@ -12,7 +12,7 @@ use odoo_core::{Domain, OdooError, Result, Row, Rules, Value};
 
 pub fn rules() -> Rules {
     config_rules().merge(payment_method_rules()).merge(payment_rules())
-        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules())
+        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules())
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -196,7 +196,14 @@ fn config_rules() -> Rules {
             let (journal, pms) = create_journal_and_payment_methods(env, kw)?;
             Ok(Value::List(vec![Value::Int(journal), id_list(&pms)]))
         })
-        .action("pos.config", "_get_special_products", |env, _, _| Ok(id_list(&xmlid(env, "point_of_sale", "product_product_tip").into_iter().collect::<Vec<_>>())))
+        .action("pos.config", "_get_special_products", |env, _, _| {
+            // the tip product, plus (pos_sale) every register's down payment product
+            let mut out: Vec<i64> = xmlid(env, "point_of_sale", "product_product_tip").into_iter().collect();
+            if env.reg.field("pos.config", "down_payment_product_id").is_ok() {
+                for c in orm::search(&env.sudo(), "pos.config", &Domain::True, None, None, 0)? { if let Some(p) = id_of(&rec(env, "pos.config", c)?, "down_payment_product_id") { if !out.contains(&p) { out.push(p); } } }
+            }
+            Ok(id_list(&out))
+        })
         .action("pos.config", "_get_customer_display_data", |env, ids_, _| {
             let c = rec(env, "pos.config", *ids_.first().unwrap_or(&0))?; let kind = text(&c, "customer_display_type").unwrap_or_else(|| "none".into());
             let mut out = row(&[("config_id", c["id"].clone()), ("access_token", c.get("access_token").cloned().unwrap_or(Value::Bool(false))), ("type", kind.as_str().into()), ("has_bg_img", flag(&c, "customer_display_bg_img").into()), ("company_id", id_of(&c, "company_id").map_or(Value::Bool(false), Value::Int))]);

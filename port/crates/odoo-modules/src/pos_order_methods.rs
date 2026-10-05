@@ -260,13 +260,23 @@ fn prepare_invoice_vals(env: &Env, o: &Row) -> Result<Row> {
     }
     if uses_rounding(env, o, &cfg, false)? { if let Some(rm) = id_of(&cfg, "rounding_method") { v.insert("invoice_cash_rounding_id".into(), rm.into()); } }
     if let Some(n) = text(o, "floating_order_name").filter(|n| !n.is_empty()) { v.insert("narration".into(), n.into()); }
+    // pos_sale: the sales team and the addresses/terms of the first sale order being settled
+    if env.reg.field("account.move", "team_id").is_ok() && env.reg.field("pos.order", "crm_team_id").is_ok() { if let Some(t) = id_of(o, "crm_team_id") { v.insert("team_id".into(), t.into()); } }
+    if let Some(so) = crate::pos_sale_methods::origin_orders(env, o)?.first().and_then(|s| rec(env, "sale.order", *s).ok()) {
+        if let Some(ship) = id_of(&so, "partner_shipping_id") { if id_of(&so, "partner_invoice_id") != Some(ship) { v.insert("partner_shipping_id".into(), ship.into()); } }
+        let term_ok = id_of(&so, "payment_term_id").and_then(|t| rec(env, "account.payment.term", t).ok()).filter(|t| !flag(t, "early_discount"));
+        v.insert("invoice_payment_term_id".into(), term_ok.and_then(|t| t["id"].as_i64()).map_or(Value::Bool(false), Value::Int));
+        if let Some(inv) = id_of(&so, "partner_invoice_id") { if Some(inv) != id_of(&so, "partner_id") { v.insert("partner_id".into(), inv.into()); } }
+    }
     Ok(v)
 }
 /// `_prepare_invoice_lines`: one product line per order line (refund invoices carry positive quantities).
 fn prepare_invoice_lines(env: &Env, o: &Row) -> Result<Vec<Row>> {
     let mut out = vec![];
     for l in many(env, "pos.order.line", &ids(o, "lines"))? {
-        let mut v = row(&[("name", text(&l, "full_product_name").filter(|n| !n.is_empty()).or_else(|| text(&l, "name")).unwrap_or_default().into()), ("quantity", num(&l, "qty").abs().into()), ("price_unit", num(&l, "price_unit").into()), ("discount", num(&l, "discount").into()), ("display_type", "product".into())]);
+        let mut name = text(&l, "full_product_name").filter(|n| !n.is_empty()).or_else(|| text(&l, "name")).unwrap_or_default();
+        if id_of(&l, "sale_order_origin_id").is_some() { if let Some(sl) = id_of(&l, "sale_order_line_id").and_then(|s| rec(env, "sale.order.line", s).ok()) { if let Some(n) = text(&sl, "name") { name = n; } } }   // pos_sale: the sale line's description
+        let mut v = row(&[("name", name.into()), ("quantity", num(&l, "qty").abs().into()), ("price_unit", num(&l, "price_unit").into()), ("discount", num(&l, "discount").into()), ("display_type", "product".into())]);
         if let Some(p) = id_of(&l, "product_id") { v.insert("product_id".into(), p.into()); }
         let tx = line_taxes_after_fpos(env, &l)?; if !tx.is_empty() { v.insert("tax_ids".into(), set6(&tx)); }
         out.push(v);
@@ -344,7 +354,8 @@ fn generate_invoices(env: &Env, ids_: &[i64]) -> Result<Vec<i64>> {
 fn real_time_picking(env: &Env, o: &Row) -> Result<bool> {
     let sess = rec(env, "pos.session", id_of(o, "session_id").unwrap_or(0))?;
     let anglo = id_of(o, "company_id").and_then(|c| rec(env, "res.company", c).ok()).map_or(false, |c| flag(&c, "anglo_saxon_accounting"));
-    Ok(!flag(&sess, "update_stock_at_closing") || (anglo && flag(o, "to_invoice")))
+    let from_sale = !crate::pos_sale_methods::origin_orders(env, o)?.is_empty();   // pos_sale: settling a sale order ships right away
+    Ok(!flag(&sess, "update_stock_at_closing") || (anglo && flag(o, "to_invoice")) || from_sale)
 }
 fn create_order_picking(env: &Env, oid: i64) -> Result<()> {
     let e = env.sudo(); let o = rec(&e, "pos.order", oid)?;
@@ -359,6 +370,8 @@ fn create_order_picking(env: &Env, oid: i64) -> Result<()> {
             orm::write(&e, "stock.picking", &[p], w)?;
         }
     }
+    // pos_sale: delivered quantities follow the pickings
+    if e.reg.field("pos.order.line", "qty_delivered").is_ok() { orm::recompute_ids(&e, "pos.order.line", &ids(&rec(&e, "pos.order", oid)?, "lines"))?; }
     Ok(())
 }
 
@@ -688,6 +701,7 @@ pub fn rules() -> Rules {
                     Some(x) => done.push(x),   // already settled: the sync is ignored
                 }
             }
+            crate::pos_sale_methods::after_sync(&e, &done)?;
             read_pos_data(&e, &done)
         })
         .action("pos.order", "action_view_invoice", |env, ids_, _| { let o = rec(env, "pos.order", oid_of(ids_)?)?; Ok(act_window("Customer Invoice", "account.move", "form", id_of(&o, "account_move"), None)) })

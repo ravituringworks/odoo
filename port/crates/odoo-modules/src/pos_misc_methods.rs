@@ -272,7 +272,9 @@ fn product_info_pos(env: &Env, pid: i64, price: f64, quantity: f64, config: i64)
             variants.push(Value::Map(row(&[("name", attr.into()), ("values", Value::List(values))])));
         }
     }
-    Ok(Value::Map(row(&[("all_prices", all_prices), ("pricelists", Value::List(pricelists)), ("warehouses", Value::List(warehouses.into_iter().map(|x| x.1).collect())), ("suppliers", Value::List(suppliers)), ("variants", Value::List(variants))])))
+    let mut info = row(&[("all_prices", all_prices), ("pricelists", Value::List(pricelists)), ("warehouses", Value::List(warehouses.into_iter().map(|x| x.1).collect())), ("suppliers", Value::List(suppliers)), ("variants", Value::List(variants))]);
+    if e.reg.field("product.template", "optional_product_ids").is_ok() && e.reg.field("pos.order.line", "sale_order_origin_id").is_ok() { info.insert("optional_products".into(), crate::pos_sale_methods::optional_products_info(&e, pid)?); }
+    Ok(Value::Map(info))
 }
 
 fn product_rules() -> Rules {
