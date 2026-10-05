@@ -22,13 +22,14 @@ fn order_to_cash() {
         let tax = orm::create(&env, "account.tax", row(&[("name", "VAT 15%".into()), ("amount", 15.0.into()), ("amount_type", "percent".into()), ("type_tax_use", "sale".into())]))?;
         // delegation: product.product create writes the template
         let prod = orm::create(&env, "product.product", row(&[("name", "Desk".into()), ("list_price", 100.0.into()), ("type", "consu".into())]))?;
+        let extra = orm::create(&env, "product.product", row(&[("name", "Extra".into()), ("list_price", 50.0.into()), ("type", "service".into())]))?;
         let tmpl = orm::read(&env, "product.product", &[prod], &["product_tmpl_id".into(), "name".into(), "list_price".into()])?;
         assert_eq!(tmpl[0]["name"], Value::Text("Desk".into()));   // related read through template
         assert_eq!(tmpl[0]["list_price"].as_f64(), Some(100.0));
 
         let so = orm::create(&env, "sale.order", row(&[("partner_id", partner.into()), ("order_line", lines(vec![
             row(&[("product_id", prod.into()), ("product_uom_qty", 2.0.into()), ("discount", 10.0.into()), ("tax_id", Value::List(vec![Value::List(vec![6.into(), 0.into(), Value::List(vec![tax.into()])])]))]),
-            row(&[("name", "Extra".into()), ("product_uom_qty", 1.0.into()), ("price_unit", 50.0.into())]),
+            row(&[("product_id", extra.into()), ("name", "Extra".into()), ("product_uom_qty", 1.0.into()), ("price_unit", 50.0.into())]),
         ]))]))?;
         let o = rec(&env, "sale.order", so)?;
         assert_eq!(text(&o, "name").unwrap(), "S00001");
