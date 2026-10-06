@@ -2,7 +2,7 @@
 //! bookkeeping, `sync_from_ui` and its helpers, paying, invoicing, cancelling and refunding.
 //!
 //! Not ported (needs engines this port does not have): anglo-saxon cost computation (`_compute_total_cost_*`), delayed
-//! shipping procurements (`shipping_date`), the reversal entry for orders invoiced after their session closed, mail receipts,
+//! shipping procurements (`shipping_date`), mail receipts, receivable reconciliation (invoice residuals are reduced directly),
 //! and the "paid orders cannot go back to draft" write guard (the ORM write hook cannot see the stored state).
 //! The terminal runtime in `pos.rs` (`create_from_ui`, `refund`) is a separate, complementary entry point.
 use crate::pos_methods::{flag, has_model, id_list, invalid, m2o, many, set6, user_err, xmlid};
@@ -332,6 +332,37 @@ fn apply_invoice_payments(env: &Env, oid: i64) -> Result<Vec<i64>> {
     }
     Ok(moves)
 }
+/// `_create_misc_reversal_move`: an order invoiced after its session closed was already booked in the closing entry, so a
+/// miscellaneous entry takes its sales, taxes and payments back out (the invoice books them again).
+fn create_misc_reversal_move(env: &Env, oid: i64) -> Result<Option<i64>> {
+    let o = rec(env, "pos.order", oid)?; let cfg = order_cfg(env, &o)?; let sess = rec(env, "pos.session", id_of(&o, "session_id").unwrap_or(0))?;
+    let rounding = rounding_of(env, order_currency(env, &o));
+    let (mut excl, mut incl) = (0.0, 0.0);
+    for l in children(env, "pos.order.line", "order_id", oid)? { excl += num(&l, "price_subtotal"); incl += num(&l, "price_subtotal_incl"); }
+    let paid: f64 = children(env, "pos.payment", "pos_order_id", oid)?.iter().map(|p| num(p, "amount")).sum();
+    let journal = match id_of(&cfg, "journal_id") { Some(j) => j, None => account::ensure_journal(env, "general", "POSS", "Point of Sale")? };
+    let closing = id_of(&sess, "move_id").and_then(|m| rec(env, "account.move", m).ok()).and_then(|m| text(&m, "name")).unwrap_or_default();
+    let reference = format!("Reversal of POS closing entry {closing} for order {} from session {}", text(&o, "name").unwrap_or_default(), text(&sess, "name").unwrap_or_default());
+    let mut vals = row(&[("move_type", "entry".into()), ("journal_id", journal.into()), ("ref", reference.as_str().into()), ("date", orm::today().into())]);
+    if env.reg.field("account.move", "reversed_pos_order_id").is_ok() { vals.insert("reversed_pos_order_id".into(), oid.into()); }
+    let mv = orm::create(env, "account.move", vals)?;
+    let income = account::ensure_account(env, "income", "Product Sales")?; let tax_acc = account::ensure_account(env, "liability_current", "Tax Payable")?; let recv = account::ensure_account(env, "asset_receivable", "Account Receivable")?;
+    // what the closing entry credited (sales, taxes) is debited back, what it debited (payments) is credited back
+    let lines = [("Sales", income, excl), ("Taxes", tax_acc, incl - excl), ("Payments", recv, -paid)];
+    let mut net = 0.0;
+    for (name, acct, bal) in lines {
+        if is_zero(bal, rounding) { continue; }
+        let (dr, cr) = if bal >= 0.0 { (bal, 0.0) } else { (0.0, -bal) };
+        orm::create(env, "account.move.line", row(&[("move_id", mv.into()), ("name", format!("{reference} - {name}").into()), ("account_id", acct.into()), ("debit", dr.into()), ("credit", cr.into()), ("balance", (dr - cr).into())]))?; net += dr - cr;
+    }
+    if !is_zero(net, rounding) {   // cash rounding: the difference between what was paid and the order total
+        let (dr, cr) = if net < 0.0 { (-net, 0.0) } else { (0.0, net) };
+        orm::create(env, "account.move.line", row(&[("move_id", mv.into()), ("name", format!("{reference} - Rounding").into()), ("account_id", income.into()), ("debit", dr.into()), ("credit", cr.into()), ("balance", (dr - cr).into())]))?;
+    }
+    if children(env, "account.move.line", "move_id", mv)?.is_empty() { orm::unlink(env, "account.move", &[mv])?; return Ok(None); }
+    account::post(env, mv)?;
+    Ok(Some(mv))
+}
 /// `_generate_pos_order_invoice`: the ids of the invoices (created or already there).
 fn generate_invoices(env: &Env, ids_: &[i64]) -> Result<Vec<i64>> {
     let e = env.sudo(); let mut moves = vec![];
@@ -344,6 +375,8 @@ fn generate_invoices(env: &Env, ids_: &[i64]) -> Result<Vec<i64>> {
         orm::write(&e, "pos.order", &[*oid], row(&[("state", "invoiced".into())]))?;
         account::post(&e, mid)?;
         apply_invoice_payments(&e, *oid)?;
+        let session_closed = id_of(&o, "session_id").and_then(|s| rec(&e, "pos.session", s).ok()).and_then(|s| text(&s, "state")).as_deref() == Some("closed");
+        if session_closed { create_misc_reversal_move(&e, *oid)?; }
         moves.push(mid);
     }
     Ok(moves)
@@ -657,6 +690,7 @@ pub fn rules() -> Rules {
             let moves = generate_invoices(&e, ids_)?;
             Ok(match moves.first() { Some(m) => Value::Map(row(&[("name", "Customer Invoice".into()), ("view_mode", "form".into()), ("res_model", "account.move".into()), ("type", "ir.actions.act_window".into()), ("target", "current".into()), ("res_id", (*m).into())])), None => Value::Map(Row::new()) })
         })
+        .action("pos.order", "_create_misc_reversal_move", |env, ids_, _| Ok(create_misc_reversal_move(&env.sudo(), oid_of(ids_)?)?.map_or(Value::Bool(false), Value::Int)))
         .action("pos.order", "_apply_invoice_payments", |env, ids_, _| Ok(id_list(&apply_invoice_payments(&env.sudo(), oid_of(ids_)?)?)))
         .action("pos.order", "_create_order_picking", |env, ids_, _| { create_order_picking(env, oid_of(ids_)?)?; Ok(Value::Null) })
         .action("pos.order", "_should_create_picking_real_time", |env, ids_, _| Ok(real_time_picking(env, &rec(env, "pos.order", oid_of(ids_)?)?)?.into()))

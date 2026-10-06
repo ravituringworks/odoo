@@ -1,6 +1,6 @@
 //! pos.order / pos.order.line methods (pos_order_methods).
 mod pos_common;
-use odoo_core::{orm, store, Row, Value};
+use odoo_core::{orm, store, Domain, Row, Value};
 use odoo_modules::{rules_for, util::*};
 use pos_common::*;
 
@@ -167,6 +167,45 @@ fn invoice_refund_and_fiscal_position_mapping() {
         orm::write(&env, "pos.order.line", &[line], row(&[("discount", 50.0.into())]))?;
         call(&env, "pos.order.line", "_onchange_amount_line_all", &[line], Row::new())?;
         assert_eq!(call(&env, "pos.order.line", "_get_discount_amount", &[line], Row::new())?.as_f64(), Some(10.5));
+        Ok(())
+    }).unwrap();
+}
+
+#[test]
+fn invoicing_after_the_session_closed_reverses_the_closing_entry() {
+    let (reg, st) = setup(&["point_of_sale", "account"]); let rules = rules_for(&reg);
+    store::run(&st, |c| {
+        let env = new_env(&reg, c, &rules); let f = fixture(&env); let s = opened_session(&env, &f, 0.0);
+        let o = draft_order(&env, &f, s, 2.0); pay(&env, o, f.cash, 22.0); call(&env, "pos.order", "action_pos_order_paid", &[o], Row::new())?;
+        call(&env, "pos.session", "post_closing_cash_details", &[s], row(&[("counted_cash", 22.0.into())]))?;
+        call(&env, "pos.session", "close_session_from_ui", &[s], Row::new())?;
+        assert_eq!(state(&env, o), "done");
+        let closing = id_of(&rec(&env, "pos.session", s)?, "move_id").expect("closing entry");
+        let before = orm::search(&env, "account.move", &Domain::True, None, None, 0)?.len();
+        // the customer asks for an invoice later
+        orm::write(&env, "pos.order", &[o], row(&[("partner_id", f.partner.into())]))?;
+        let Value::Map(act) = call(&env, "pos.order", "action_pos_order_invoice", &[o], Row::new())? else { panic!() };
+        let inv = rec(&env, "account.move", act["res_id"].as_i64().unwrap())?;
+        assert_eq!((text(&inv, "state").unwrap(), num(&inv, "amount_total"), num(&inv, "amount_residual")), ("posted".to_string(), 22.0, 0.0));
+        assert_eq!(state(&env, o), "invoiced");
+        // a reversal entry took the order out of the closing entry: sales and taxes debited, payments credited
+        let rev = orm::search(&env, "account.move", &term("ref", "ilike", "Reversal of POS closing entry"), None, None, 0)?;
+        assert_eq!(rev.len(), 1);
+        let rm = rec(&env, "account.move", rev[0])?;
+        assert!(text(&rm, "ref").unwrap().contains(&text(&rec(&env, "account.move", closing)?, "name").unwrap()) && text(&rm, "ref").unwrap().contains(&text(&rec(&env, "pos.order", o)?, "name").unwrap()));
+        assert_eq!(text(&rm, "state").unwrap(), "posted");
+        assert_eq!(id_of(&rm, "reversed_pos_order_id"), Some(o));
+        let ml = children(&env, "account.move.line", "move_id", rev[0])?;
+        let (d, cr): (f64, f64) = ml.iter().fold((0.0, 0.0), |a, l| (a.0 + num(l, "debit"), a.1 + num(l, "credit")));
+        assert_eq!((d, cr), (22.0, 22.0));
+        assert!(ml.iter().any(|l| num(l, "debit") == 20.0) && ml.iter().any(|l| num(l, "debit") == 2.0) && ml.iter().any(|l| num(l, "credit") == 22.0));
+        // invoice + payment move + reversal entry were added
+        assert!(orm::search(&env, "account.move", &Domain::True, None, None, 0)?.len() >= before + 3);
+        // an order whose session is still open is not reversed
+        let s2 = opened_session(&env, &f, 0.0); let o2 = draft_order(&env, &f, s2, 1.0); pay(&env, o2, f.cash, 11.0); call(&env, "pos.order", "action_pos_order_paid", &[o2], Row::new())?;
+        orm::write(&env, "pos.order", &[o2], row(&[("partner_id", f.partner.into())]))?;
+        call(&env, "pos.order", "action_pos_order_invoice", &[o2], Row::new())?;
+        assert_eq!(orm::search(&env, "account.move", &term("ref", "ilike", "Reversal of POS closing entry"), None, None, 0)?.len(), 1);
         Ok(())
     }).unwrap();
 }
