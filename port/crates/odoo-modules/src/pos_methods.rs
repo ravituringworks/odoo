@@ -12,7 +12,7 @@ use odoo_core::{Domain, OdooError, Result, Row, Rules, Value};
 
 pub fn rules() -> Rules {
     config_rules().merge(payment_method_rules()).merge(payment_rules())
-        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules()).merge(crate::pos_loyalty_methods::rules()).merge(crate::pos_report_methods::rules()).merge(crate::pos_config_methods::rules())
+        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules()).merge(crate::pos_loyalty_methods::rules()).merge(crate::pos_report_methods::rules()).merge(crate::pos_config_methods::rules()).merge(crate::pos_hr_methods::rules()).merge(crate::pos_restaurant_methods::rules())
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -355,7 +355,7 @@ fn check_config(env: &Env, cfg: i64, vals: Option<&Row>) -> Result<()> {
 }
 /// `write`: while a session is open the structural settings of the config are frozen.
 fn forbid_changes_while_open(env: &Env, ids_: &[i64], vals: &Row) -> Result<()> {
-    const FORBIDDEN: [&str; 9] = ["module_pos_hr", "module_pos_restaurant", "available_pricelist_ids", "limit_categories", "iface_available_categ_ids", "use_pricelist", "module_pos_discount", "payment_method_ids", "iface_tipproduc"];
+    const FORBIDDEN: [&str; 10] = ["module_pos_hr", "module_pos_restaurant", "available_pricelist_ids", "limit_categories", "iface_available_categ_ids", "use_pricelist", "module_pos_discount", "payment_method_ids", "iface_tipproduc", "floor_ids"];
     let mut any_open = false;
     for i in ids_ { if !open_sessions(env, *i)?.is_empty() { any_open = true; } }
     if !any_open { return Ok(()); }

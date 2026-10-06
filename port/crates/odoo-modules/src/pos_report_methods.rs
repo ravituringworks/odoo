@@ -96,7 +96,7 @@ fn categories(env: &Env, b: &Bucket) -> Result<(Value, Value)> {
     Ok((Value::List(out), Value::Map(row(&[("total", all_total.into()), ("qty", all_qty.into())]))))
 }
 
-fn sale_details(env: &Env, kw: &Row) -> Result<Value> {
+pub(crate) fn sale_details(env: &Env, kw: &Row) -> Result<Value> {
     let e = env.sudo();
     let session_ids = int_list(kw, "session_ids"); let config_ids = int_list(kw, "config_ids");
     let (mut date_start, mut date_stop) = (text(kw, "date_start"), text(kw, "date_stop"));
@@ -107,6 +107,8 @@ fn sale_details(env: &Env, kw: &Row) -> Result<Value> {
         dom.push(term("date_order", ">=", date_start.clone().unwrap_or_default().as_str())); dom.push(term("date_order", "<=", date_stop.clone().unwrap_or_default().as_str()));
         if !config_ids.is_empty() { dom.push(term("config_id", "in", id_list(&config_ids))); }
     }
+    // pos_hr: the report of a single cashier
+    if let Some(emp) = kw.get("employee_id").and_then(|v| v.as_i64()) { if e.reg.field("pos.order", "employee_id").is_ok() { dom.push(term("employee_id", "=", emp)); } }
     let order_ids = orm::search(&e, "pos.order", &Domain::And(dom), Some("date_order desc, name desc, id desc"), None, 0)?;
     let orders: Vec<Row> = order_ids.iter().map(|o| rec(&e, "pos.order", *o)).collect::<Result<_>>()?;
     let cfg_cur = |c: i64| crate::pos_methods::config_currency_id(&e, c);

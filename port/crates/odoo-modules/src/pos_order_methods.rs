@@ -666,10 +666,7 @@ pub fn rules() -> Rules {
             Ok(Value::Map(row(&[("name", format!("{} REFUND", text(&o, "name").unwrap_or_default()).into()), ("session_id", kw.get("current_session").cloned().unwrap_or(Value::Null)), ("date_order", orm::now().into()), ("pos_reference", o.get("pos_reference").cloned().unwrap_or(Value::Null)), ("amount_tax", (-num(&o, "amount_tax")).into()), ("amount_total", (-num(&o, "amount_total")).into()), ("amount_paid", 0.into()), ("is_total_cost_computed", false.into()), ("uuid", new_uuid().into())])))
         })
         .action("pos.order", "_get_valid_session", |env, _, kw| Ok(Value::Int(valid_session(env, &as_map(kw.get("order").unwrap_or(&Value::Null)))?)))
-        .action("pos.order", "_get_open_order", |env, _, kw| {
-            let u = text(&as_map(kw.get("order").unwrap_or(&Value::Null)), "uuid").unwrap_or_default();
-            Ok(find_one(env, "pos.order", term("uuid", "=", u.as_str()))?.map_or(Value::Bool(false), Value::Int))
-        })
+        .action("pos.order", "_get_open_order", |env, _, kw| Ok(crate::pos_restaurant_methods::open_order(env, &as_map(kw.get("order").unwrap_or(&Value::Null)))?.map_or(Value::Bool(false), Value::Int)))
         .action("pos.order", "_get_refunded_orders", |env, _, kw| Ok(id_list(&refunded_orders_of(&env.sudo(), &as_map(kw.get("order").unwrap_or(&Value::Null))))))
         .action("pos.order", "_prepare_combo_line_uuids", |_, _, kw| {
             let mut o = as_map(kw.get("order").unwrap_or(&Value::Null)); let acc = prepare_combo_uuids(&mut o);
@@ -694,7 +691,7 @@ pub fn rules() -> Rules {
             for o in &orders {
                 let order = as_map(o);
                 if refunded_orders_of(&e, &order).len() > 1 { return invalid("You can only refund products from the same order."); }
-                let existing = match text(&order, "uuid") { Some(u) if !u.is_empty() => find_one(&e, "pos.order", term("uuid", "=", u.as_str()))?, _ => None };
+                let existing = match text(&order, "uuid") { Some(u) if !u.is_empty() => crate::pos_restaurant_methods::open_order(&e, &order)?, _ => None };
                 match existing {
                     Some(x) if text(&rec(&e, "pos.order", x)?, "state").as_deref() == Some("draft") => done.push(process_order(&e, order, Some(x))?),
                     None => done.push(process_order(&e, order, None)?),
@@ -702,7 +699,16 @@ pub fn rules() -> Rules {
                 }
             }
             crate::pos_sale_methods::after_sync(&e, &done)?;
-            read_pos_data(&e, &done)
+            let mut data = read_pos_data(&e, &done)?;
+            // pos_restaurant: the terminal also gets the other open orders of the tables it works on
+            if let Some(Value::List(tables)) = env.ctx.get("table_ids") {
+                let tids: Vec<i64> = tables.iter().filter_map(|v| v.as_i64()).collect();
+                let extra = crate::pos_restaurant_methods::table_draft_orders(&e, &tids, &done)?;
+                if !extra.is_empty() {
+                    if let (Value::Map(d), Value::Map(more)) = (&mut data, read_pos_data(&e, &extra)?) { for (k, v) in more { if let (Some(Value::List(a)), Value::List(b)) = (d.get_mut(&k), v) { a.extend(b); } } }
+                }
+            }
+            Ok(data)
         })
         .action("pos.order", "action_view_invoice", |env, ids_, _| { let o = rec(env, "pos.order", oid_of(ids_)?)?; Ok(act_window("Customer Invoice", "account.move", "form", id_of(&o, "account_move"), None)) })
         .action("pos.order", "action_view_refunded_order", |env, ids_, _| { let o = rec(env, "pos.order", oid_of(ids_)?)?; Ok(act_window("Refunded Order", "pos.order", "form", refunded_order(env, &o)?, None)) })

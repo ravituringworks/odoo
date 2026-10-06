@@ -123,7 +123,11 @@ pub fn rules() -> Rules {
             orm::write(&env.sudo(), "pos.session", &[sid], row(&[("cash_register_balance_end_real", num(kw, "counted_cash").into())]))?;
             Ok(Value::Map(row(&[("successful", true.into())])))
         })
-        .action("pos.session", "get_closing_control_data", |env, ids_, _| closing_control_data(env, sid_of(ids_)?))
+        .action("pos.session", "get_closing_control_data", |env, ids_, _| {
+            let sid = sid_of(ids_)?; let mut data = match closing_control_data(env, sid)? { Value::Map(m) => m, v => return Ok(v) };
+            crate::pos_hr_methods::extend_closing_data(env, sid, &mut data)?;   // pos_hr: amounts per cashier
+            Ok(Value::Map(data))
+        })
         .action("pos.session", "try_cash_in_out", |env, ids_, kw| {
             let sign = if text(kw, "_type").as_deref() == Some("in") { 1.0 } else { -1.0 };
             let extras = match kw.get("extras") { Some(Value::Map(m)) => m.clone(), _ => Row::new() };
@@ -132,7 +136,9 @@ pub fn rules() -> Rules {
                 let s = rec(env, "pos.session", *sid)?;
                 let Some(j) = id_of(&s, "cash_journal_id") else { continue };
                 let reference = [text(&s, "name").unwrap_or_default(), text(&extras, "translatedType").unwrap_or_default(), text(kw, "reason").unwrap_or_default()].join("-");
-                create_statement_line(env, *sid, j, sign * num(kw, "amount"), &reference, &orm::today())?; made = true;
+                let line = create_statement_line(env, *sid, j, sign * num(kw, "amount"), &reference, &orm::today())?; made = true;
+                // pos_hr: who made the cash move
+                if let (Some(emp), true) = (extras.get("employee_id").and_then(|v| v.as_i64()), env.reg.field("account.bank.statement.line", "employee_id").is_ok()) { orm::write(&env.sudo(), "account.bank.statement.line", &[line], row(&[("employee_id", emp.into())]))?; }
             }
             if !made { return user_err("There is no cash payment method for this PoS Session"); }
             Ok(Value::Null)
