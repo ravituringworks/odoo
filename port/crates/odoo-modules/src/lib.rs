@@ -22,6 +22,7 @@ pub mod pos_report_methods;
 pub mod pos_restaurant;
 pub mod pos_restaurant_methods;
 pub mod pos_sale_methods;
+pub mod pos_self_order_methods;
 pub mod pos_shop;
 pub mod pos_ubl;
 pub mod purchase;

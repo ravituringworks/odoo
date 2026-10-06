@@ -12,7 +12,7 @@ use odoo_core::{Domain, OdooError, Result, Row, Rules, Value};
 
 pub fn rules() -> Rules {
     config_rules().merge(payment_method_rules()).merge(payment_rules())
-        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules()).merge(crate::pos_loyalty_methods::rules()).merge(crate::pos_report_methods::rules()).merge(crate::pos_config_methods::rules()).merge(crate::pos_hr_methods::rules()).merge(crate::pos_restaurant_methods::rules())
+        .merge(crate::pos_session_methods::rules()).merge(crate::pos_order_methods::rules()).merge(crate::pos_misc_methods::rules()).merge(crate::pos_sale_methods::rules()).merge(crate::pos_loyalty_methods::rules()).merge(crate::pos_report_methods::rules()).merge(crate::pos_config_methods::rules()).merge(crate::pos_hr_methods::rules()).merge(crate::pos_restaurant_methods::rules()).merge(crate::pos_self_order_methods::rules())
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -199,9 +199,11 @@ fn config_rules() -> Rules {
         .action("pos.config", "_get_special_products", |env, _, _| {
             // the tip product, plus (pos_sale) every register's down payment product
             let mut out: Vec<i64> = xmlid(env, "point_of_sale", "product_product_tip").into_iter().collect();
-            if env.reg.field("pos.config", "down_payment_product_id").is_ok() {
-                for c in orm::search(&env.sudo(), "pos.config", &Domain::True, None, None, 0)? { if let Some(p) = id_of(&rec(env, "pos.config", c)?, "down_payment_product_id") { if !out.contains(&p) { out.push(p); } } }
+            for field in ["down_payment_product_id", "discount_product_id"] {   // pos_sale, pos_discount
+                if env.reg.field("pos.config", field).is_err() { continue; }
+                for c in orm::search(&env.sudo(), "pos.config", &Domain::True, None, None, 0)? { if let Some(p) = id_of(&rec(env, "pos.config", c)?, field) { if !out.contains(&p) { out.push(p); } } }
             }
+            if let Some(d) = xmlid(env, "pos_discount", "product_product_consumable") { if !out.contains(&d) { out.push(d); } }
             Ok(id_list(&out))
         })
         .action("pos.config", "_get_customer_display_data", |env, ids_, _| {
