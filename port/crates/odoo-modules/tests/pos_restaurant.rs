@@ -24,6 +24,9 @@ fn restaurant_register_defaults_floors_and_tables() {
         let floor = ids(&r, "floor_ids")[0];
         let tables = children(&env, "restaurant.table", "floor_id", floor)?;
         assert_eq!((tables.len(), num(&tables[0], "table_number"), num(&tables[0], "width")), (1, 1.0, 130.0));
+        // the default floor is only created when the register has none
+        call(&env, "pos.config", "_setup_default_floor", &[rest], Row::new())?;
+        assert_eq!(ids(&rec(&env, "pos.config", rest)?, "floor_ids").len(), 1);
         // a plain register stays plain; switching restaurant mode off drops the floors
         assert!(ids(&rec(&env, "pos.config", f.cfg)?, "floor_ids").is_empty());
         orm::write(&env, "pos.config", &[rest], row(&[("module_pos_restaurant", false.into())]))?;

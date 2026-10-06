@@ -41,6 +41,8 @@ fn cashiers_managers_hashed_credentials_and_per_employee_closing() {
         let Value::Map(cash) = &d["default_cash_details"] else { panic!() };
         let Value::List(per) = &cash["amount_per_employee"] else { panic!() };
         assert!(matches!(&per[0], Value::Map(m) if m["id"] == Value::Int(ann) && m["name"] == Value::Text("Ann".into()) && m["amount"].as_f64() == Some(22.0)));
+        let Value::List(direct) = call(&env, "pos.session", "_aggregate_moves_by_employee", &[s], Row::new())? else { panic!() };
+        assert_eq!(direct.len(), 1);
         let Value::List(moves) = &cash["moves_per_employee"] else { panic!() };
         assert!(matches!(&moves[0], Value::Map(m) if m["id"] == Value::Int(bob) && m["amount"].as_f64() == Some(7.0)));
         let Value::List(nc) = &d["non_cash_payment_methods"] else { panic!() };

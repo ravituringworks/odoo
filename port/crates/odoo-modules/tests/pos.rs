@@ -86,6 +86,11 @@ fn payment_method_computes_and_guards() {
         // QR methods need a bank account on a bank journal and a QR format
         let e = err_of(c, || orm::create(&env, "pos.payment.method", row(&[("name", "QR".into()), ("payment_method_type", "qr_code".into()), ("journal_id", bank_j.into())])));
         assert!(e.contains("bank account must be defined"), "{e}");
+        // the same rule holds when an existing method is switched to QR payments
+        let plain = mk(&env, "pos.payment.method", &[("name", "Plain".into())]);
+        let e = err_of(c, || orm::write(&env, "pos.payment.method", &[plain], row(&[("payment_method_type", "qr_code".into())])));
+        assert!(e.contains("bank account must be defined"), "{e}");
+        call(&env, "pos.payment.method", "_check_payment_method", &[plain], Row::new())?;   // the rolled-back write left it plain
         // terminal methods drop the QR format and vice versa
         let t = mk(&env, "pos.payment.method", &[("name", "Terminal".into()), ("payment_method_type", "terminal".into()), ("qr_code_method", "sepa".into())]);
         assert_eq!(rd(&env, "pos.payment.method", t, "qr_code_method"), Value::Bool(false));

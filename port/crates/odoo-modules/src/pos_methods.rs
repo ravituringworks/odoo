@@ -468,6 +468,7 @@ fn payment_method_rules() -> Rules {
                     if !fix.is_empty() { orm::write(&e, "pos.payment.method", &[*i], fix)?; }
                 }
             }
+            if ["payment_method_type", "journal_id", "qr_code_method"].iter().any(|k| vals.contains_key(*k)) { for i in ids_ { check_payment_method(&e, *i)?; } }
             Ok(())
         })
         .after_create("pos.payment.method", |env, ids_, _| { for i in ids_ { check_payment_method(env, *i)?; } Ok(()) })

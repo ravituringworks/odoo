@@ -51,6 +51,19 @@ fn self_order_urls_modes_tokens_and_links() {
         assert!(err_of(c, || orm::write(&env, "pos.config", &[f.cfg], row(&[("payment_method_ids", cmd6(&[f.cash, f.bank]))]))).contains("You cannot add cash payment methods in kiosk mode"));
         assert!(err_of(c, || call(&env, "pos.config", "_check_default_user", &[f.cfg], Row::new())).contains("default user must be a POS user"));
 
+        // helpers: kiosk URL, custom button (recreated when removed), session sequence
+        assert_eq!(txt(call(&env, "pos.config", "get_kiosk_url", &[f.cfg], Row::new())?), format!("http://localhost:8069/pos-self/{}?access_token={}", f.cfg, text(&rec(&env, "pos.config", f.cfg)?, "access_token").unwrap()));
+        let link = orm::search(&env, "pos_self_order.custom_link", &term("url", "=", format!("/pos-self/{}/products", f.cfg).as_str()), None, None, 0)?;
+        orm::unlink(&env, "pos_self_order.custom_link", &link)?;
+        call(&env, "pos.config", "_prepare_self_order_custom_btn", &[f.cfg], Row::new())?;
+        assert_eq!(orm::search(&env, "pos_self_order.custom_link", &term("url", "=", format!("/pos-self/{}/products", f.cfg).as_str()), None, None, 0)?.len(), 1);
+        let tmp = mk(&env, "pos.session", &[("config_id", f.cfg.into())]);
+        orm::unlink(&env, "ir.sequence", &orm::search(&env, "ir.sequence", &term("code", "=", format!("pos.order_{tmp}").as_str()), None, None, 0)?)?;
+        call(&env, "pos.session", "_create_pos_self_sessions_sequence", &[tmp], Row::new())?;
+        assert!(find_one(&env, "ir.sequence", term("code", "=", format!("pos.order_{tmp}").as_str()))?.is_some());
+        orm::write(&env, "pos.session", &[tmp], row(&[("state", "closed".into())]))?;
+        call(&env, "restaurant.table", "_update_identifier", &[], Row::new())?;
+
         // QR code data: per-table codes for table service, six generic ones otherwise; split into rows
         orm::write(&env, "pos.config", &[f.cfg], row(&[("self_ordering_mode", "mobile".into()), ("self_ordering_service_mode", "table".into()), ("self_ordering_pay_after", "meal".into())]))?;
         let Value::List(qr) = call(&env, "pos.config", "_get_qr_code_data", &[f.cfg], Row::new())? else { panic!() };
@@ -75,7 +88,7 @@ fn self_order_urls_modes_tokens_and_links() {
         assert_eq!(w["tag"], Value::Text("install_kiosk_pwa".into()));
         assert_eq!(seqs(&env), before + 1);
         assert_eq!(rd(&env, "pos.config", f.cfg, "status"), Value::Text("active".into()));
-        let sid = ids(&rec(&env, "pos.config", f.cfg)?, "session_ids")[0];
+        let sid = *ids(&rec(&env, "pos.config", f.cfg)?, "session_ids").last().unwrap();
         let sess = rec(&env, "pos.session", sid)?; assert_eq!(text(&sess, "state").unwrap(), "opened");
         assert!(find_one(&env, "ir.sequence", term("code", "=", format!("pos.order_{sid}").as_str()))?.is_some());
         // a second call reuses the session; an unpaid order is dropped on close, a paid one stays
